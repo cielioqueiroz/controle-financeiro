@@ -1,0 +1,265 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  outline: none;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #e0e7e9;
+  color: #333;
+  padding: 20px;
+}
+
+header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+footer {
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+  padding: 10px 0;
+  background-color: #f1f1f1;
+  color: #333;
+  position: fixed;
+  bottom: 0;
+}
+
+main {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  margin-bottom: 40px;
+}
+
+h1 {
+  font-size: 35px;
+  margin: 40px 0;
+  font-style: italic;
+}
+
+.resume {
+  display: flex;
+  padding: 20px 0;
+  gap: 20px;
+  width: 100%;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.resume > div {
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  width: 160px;
+  background-color: #f9f9f9;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.resume > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.newItem {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.divDesc,
+.divType,
+.divAmount {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 180px;
+}
+
+.newItem > button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  font-size: 16px;
+}
+
+.newItem > button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+input,
+select {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+  font-size: 16px;
+  font-family: "Poppins", sans-serif;
+  background-color: #f5f5f5;
+}
+
+input:hover,
+select:hover {
+  background-color: #e0e0e0;
+}
+
+input:focus,
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  background-color: #ffffff;
+}
+
+.divTable {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-collapse: collapse;
+  overflow: hidden;
+  font-size: 16px;
+}
+
+th,
+td {
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
+}
+
+th {
+  text-align: left;
+  background-color: #f1f1f1;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+td {
+  font-size: 16px;
+}
+
+i {
+  font-size: 25px;
+}
+
+.bxs-chevron-up-circle {
+  color: #4caf50;
+}
+
+.bxs-chevron-down-circle {
+  color: #d32f2f;
+}
+
+.columnAction {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.columnAction button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.columnAction button:hover {
+  transform: scale(1.2);
+}
+
+.columnAmount {
+  width: 150px;
+}
+
+.columnType {
+  width: 90px;
+  text-align: center;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content p,
+.modal-content label,
+.modal-content input,
+.modal-content select {
+  margin-bottom: 10px;
+}
+
+.modal-content button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  font-size: 16px;
+  margin: 5px;
+}
+
+.modal-content button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.toastify {
+  font-family: "Poppins", sans-serif;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff;
+}
