@@ -1,92 +1,175 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Aplicação Controle Financeiro." />
-    <meta
-      name="keywords"
-      content="entrada, saida, total dos valores, descrição das entradas"
-    />
+    <meta name="description" content="Controle Financeiro — gerencie entradas, saídas e seu saldo com categorias, filtros e gráficos." />
     <meta name="author" content="Cielio Queiroz" />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" href="./public/img/favicon.svg" type="image/svg+xml" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="icon"
-      href="./public/img/icons8-financial-96.png"
-      type="image/x-icon"
-    />
-    <link
-      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="./css/tokens.css" />
     <link rel="stylesheet" href="./css/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
-    />
     <title>Controle Financeiro</title>
   </head>
   <body>
-    <header>
-      <h1>Controle Financeiro</h1>
+    <div class="bg-atmosphere" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <a class="brand" href="./" aria-label="Controle Financeiro — início">
+        <span class="brand__mark">
+          <img src="./public/img/favicon.svg" alt="" width="36" height="36" />
+        </span>
+        <span class="brand__text">
+          <strong>Controle</strong>
+          <em>Financeiro</em>
+        </span>
+      </a>
+
+      <div class="header-actions">
+        <button id="btnImport" class="icon-btn" type="button" aria-label="Importar dados" title="Importar (JSON/CSV)">
+          <i class="bx bx-upload"></i>
+        </button>
+        <button id="btnExport" class="icon-btn" type="button" aria-label="Exportar dados" title="Exportar">
+          <i class="bx bx-download"></i>
+        </button>
+        <button id="btnTheme" class="icon-btn" type="button" aria-label="Alternar tema" title="Tema claro/escuro">
+          <i class="bx bx-moon"></i>
+        </button>
+        <input id="fileImport" type="file" accept=".json,.csv,application/json,text/csv" hidden />
+      </div>
     </header>
-    <main>
-      <div class="resume">
-        <div>
-          Entradas
-          <span class="incomes">0.00</span>
+
+    <main class="app-main">
+      <section class="overview" aria-label="Resumo financeiro">
+        <div class="summary">
+          <article class="card card--income">
+            <div class="card__top">
+              <span class="card__icon"><i class="bx bx-trending-up"></i></span>
+              <span class="card__label">Entradas</span>
+            </div>
+            <span class="card__value" data-value="incomes">R$&nbsp;0,00</span>
+          </article>
+
+          <article class="card card--expense">
+            <div class="card__top">
+              <span class="card__icon"><i class="bx bx-trending-down"></i></span>
+              <span class="card__label">Saídas</span>
+            </div>
+            <span class="card__value" data-value="expenses">R$&nbsp;0,00</span>
+          </article>
+
+          <article class="card card--balance" data-state="zero">
+            <div class="card__top">
+              <span class="card__icon"><i class="bx bx-wallet"></i></span>
+              <span class="card__label">Saldo</span>
+            </div>
+            <span class="card__value" data-value="total">R$&nbsp;0,00</span>
+            <span class="card__hint" data-value="monthBalance">Mês: R$&nbsp;0,00</span>
+          </article>
         </div>
-        <div>
-          Saídas
-          <span class="expenses">0.00</span>
+
+        <div class="chart-panel">
+          <div class="chart-panel__head">
+            <h2>Distribuição</h2>
+            <span class="chart-panel__sub" data-value="chartHint">Sem lançamentos</span>
+          </div>
+          <div class="chart-wrap" id="chart"></div>
+          <ul class="chart-legend" id="chartLegend"></ul>
         </div>
-        <div>
-          Total
-          <span class="total">0.00</span>
+      </section>
+
+      <section class="panel form-panel" aria-label="Novo lançamento">
+        <h2 class="panel__title"><i class="bx bx-plus-circle"></i> Novo lançamento</h2>
+        <form id="formNew" class="new-item" novalidate>
+          <div class="field field--desc">
+            <label for="desc">Descrição</label>
+            <input type="text" id="desc" name="desc" placeholder="Ex.: Mercado, salário…" autocomplete="off" required />
+          </div>
+          <div class="field field--amount">
+            <label for="amount">Valor</label>
+            <input type="text" id="amount" name="amount" placeholder="R$ 0,00" inputmode="numeric" autocomplete="off" required />
+          </div>
+          <div class="field field--type">
+            <label for="type">Tipo</label>
+            <select id="type" name="type">
+              <option value="Entrada">Entrada</option>
+              <option value="Saída">Saída</option>
+            </select>
+          </div>
+          <div class="field field--category">
+            <label for="category">Categoria</label>
+            <select id="category" name="category"></select>
+          </div>
+          <div class="field field--date">
+            <label for="date">Data</label>
+            <input type="date" id="date" name="date" required />
+          </div>
+          <button class="btn btn--primary" id="btnNew" type="submit">
+            <i class="bx bx-plus"></i><span>Incluir</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="panel filters" aria-label="Filtros">
+        <div class="search">
+          <i class="bx bx-search"></i>
+          <input type="search" id="search" placeholder="Buscar descrição…" autocomplete="off" />
         </div>
-      </div>
-      <div class="newItem">
-        <div class="divDesc">
-          <label for="desc">Descrição</label>
-          <input type="text" id="desc" />
+        <select id="filterType" class="filter-select" aria-label="Filtrar por tipo">
+          <option value="all">Todos os tipos</option>
+          <option value="Entrada">Entradas</option>
+          <option value="Saída">Saídas</option>
+        </select>
+        <select id="filterCategory" class="filter-select" aria-label="Filtrar por categoria">
+          <option value="all">Todas as categorias</option>
+        </select>
+        <select id="filterPeriod" class="filter-select" aria-label="Filtrar por período">
+          <option value="all">Todo o período</option>
+          <option value="month">Mês atual</option>
+        </select>
+      </section>
+
+      <section class="panel table-panel" aria-label="Lançamentos">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th data-sort="date" class="th-sortable">Data <i class="bx bx-chevron-down"></i></th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th class="col-amount th-sortable" data-sort="amount">Valor <i class="bx bx-chevron-down"></i></th>
+                <th class="col-type">Tipo</th>
+                <th class="col-action">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
         </div>
-        <div class="divAmount">
-          <label for="amount">Valor</label>
-          <input type="number" id="amount" />
+        <div class="empty-state" id="emptyState" hidden>
+          <div class="empty-state__art"><i class="bx bx-receipt"></i></div>
+          <p class="empty-state__title">Nenhum lançamento por aqui</p>
+          <p class="empty-state__text">Adicione sua primeira entrada ou saída no formulário acima.</p>
         </div>
-        <div class="divType">
-          <label for="type">Tipo</label>
-          <select id="type">
-            <option>Entrada</option>
-            <option>Saída</option>
-          </select>
-        </div>
-        <button id="btnNew">Incluir</button>
-      </div>
-      <div class="divTable">
-        <table>
-          <thead>
-            <tr>
-              <th>Descrição</th>
-              <th class="columnAmount">Valor</th>
-              <th class="columnType">Tipo</th>
-              <th class="columnAction">Ações</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      </section>
     </main>
-    <footer>
-      <p>
-        &copy; <span id="year"></span> Controle Financeiro. Todos os direitos
-        reservados.
-      </p>
+
+    <footer class="app-footer">
+      <p>&copy; <span id="year"></span> Controle Financeiro — Cielio Queiroz.</p>
     </footer>
 
+    <div id="modalRoot"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="./js/main.js"></script>
-    <script>
-      document.getElementById("year").textContent = new Date().getFullYear();
-    </script>
+    <script type="module" src="./js/main.js"></script>
   </body>
 </html>

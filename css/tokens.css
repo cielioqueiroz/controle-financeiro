@@ -1,0 +1,90 @@
+:root {
+  --font-display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, -apple-system, sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 0.18s var(--ease);
+  --t-med: 0.32s var(--ease);
+
+  --income: #0e9f6e;
+  --income-strong: #0b7e58;
+  --expense: #e5484d;
+  --expense-strong: #c4373b;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --on-accent: #ffffff;
+}
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f1efe9;
+  --bg-glow-a: rgba(79, 70, 229, 0.1);
+  --bg-glow-b: rgba(14, 159, 110, 0.1);
+  --surface: #ffffff;
+  --surface-2: #faf9f6;
+  --surface-hover: #f3f2ee;
+  --border: rgba(22, 24, 29, 0.09);
+  --border-strong: rgba(22, 24, 29, 0.16);
+  --text: #16181d;
+  --text-muted: #66707e;
+  --text-faint: #9aa3b0;
+  --income-soft: rgba(14, 159, 110, 0.12);
+  --expense-soft: rgba(229, 72, 77, 0.12);
+  --accent-soft: rgba(79, 70, 229, 0.1);
+  --shadow-sm: 0 1px 2px rgba(22, 24, 29, 0.06), 0 1px 3px rgba(22, 24, 29, 0.04);
+  --shadow-md: 0 4px 12px rgba(22, 24, 29, 0.08), 0 2px 4px rgba(22, 24, 29, 0.04);
+  --shadow-lg: 0 18px 48px rgba(22, 24, 29, 0.14), 0 6px 16px rgba(22, 24, 29, 0.08);
+  --grain-opacity: 0.035;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0d11;
+  --bg-glow-a: rgba(99, 102, 241, 0.16);
+  --bg-glow-b: rgba(52, 211, 153, 0.12);
+  --surface: #14171d;
+  --surface-2: #1a1e26;
+  --surface-hover: #20242d;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #ecedef;
+  --text-muted: #8b919e;
+  --text-faint: #5a616d;
+  --income: #34d399;
+  --income-strong: #10b981;
+  --expense: #fb7185;
+  --expense-strong: #f43f5e;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --income-soft: rgba(52, 211, 153, 0.14);
+  --expense-soft: rgba(251, 113, 133, 0.14);
+  --accent-soft: rgba(129, 140, 248, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
+  --grain-opacity: 0.05;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,244 +1,186 @@
-const tbody = document.querySelector("tbody");
-const descItem = document.querySelector("#desc");
-const amount = document.querySelector("#amount");
-const type = document.querySelector("#type");
-const btnNew = document.querySelector("#btnNew");
+import * as store from "./store.js";
+import { initTheme } from "./theme.js";
+import { toast } from "./toast.js";
+import { todayISO } from "./format.js";
+import { filterState, applyFilters } from "./filters.js";
+import {
+  populateCategories,
+  renderTable,
+  renderEmpty,
+  renderSummary,
+} from "./render.js";
+import { renderChart } from "./chart.js";
+import { openEditModal, openDeleteModal } from "./modals.js";
+import { exportJSON, parseImport } from "./io.js";
+import { attachMoneyMask, moneyToNumber } from "./money.js";
 
-const incomes = document.querySelector(".incomes");
-const expenses = document.querySelector(".expenses");
-const total = document.querySelector(".total");
+const $ = (sel) => document.querySelector(sel);
 
-let currentIndex = -1;
+const tbody = $("#tbody");
+const chartEl = $("#chart");
+const legendEl = $("#chartLegend");
 
-const getItensBD = () => JSON.parse(localStorage.getItem("db_items")) ?? [];
-const setItensBD = () =>
-  localStorage.setItem("db_items", JSON.stringify(items));
-
-let items = getItensBD();
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("year").textContent = new Date().getFullYear();
-  loadItens();
-});
-
-btnNew.onclick = () => {
-  incluirItem();
-};
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    incluirItem();
-  }
-});
-
-function incluirItem() {
-  if (descItem.value === "" || amount.value === "" || type.value === "") {
-    return Toastify({
-      text: "Preencha todos os campos!",
-      duration: 3000,
-      gravity: "top",
-      position: "right",
-      backgroundColor: "#ff0000",
-      className: "toastify",
-    }).showToast();
-  }
-
-  const newItem = {
-    desc: descItem.value,
-    amount: parseFloat(amount.value),
-    type: type.value,
-  };
-
-  if (currentIndex === -1) {
-    items.push(newItem);
-    Toastify({
-      text: "Item incluído com sucesso!",
-      duration: 3000,
-      gravity: "top",
-      position: "right",
-      backgroundColor: "#4caf50",
-      className: "toastify",
-    }).showToast();
-  } else {
-    items[currentIndex] = newItem;
-    currentIndex = -1;
-    btnNew.textContent = "Incluir";
-    Toastify({
-      text: "Item editado com sucesso!",
-      duration: 3000,
-      gravity: "top",
-      position: "right",
-      backgroundColor: "#4caf50",
-      className: "toastify",
-    }).showToast();
-  }
-
-  setItensBD();
-  loadItens();
-
-  descItem.value = "";
-  amount.value = "";
+function sumBy(list, type) {
+  return list.filter((t) => t.type === type).reduce((acc, t) => acc + t.amount, 0);
 }
 
-function deleteItem(index) {
-  const item = items[index];
-  showDeleteModal(item.desc, item.amount, index);
+function currentMonthNet(all) {
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const month = all.filter((t) => String(t.date).startsWith(ym));
+  return sumBy(month, "Entrada") - sumBy(month, "Saída");
 }
 
-function editItem(index) {
-  const item = items[index];
-  showEditModal(item, index);
-}
+function render(all) {
+  const list = applyFilters(all);
 
-function showDeleteModal(desc, amount, index) {
-  const modal = document.createElement("div");
-  modal.classList.add("modal");
-  modal.innerHTML = `
-        <div class="modal-content">
-            <p>Tem certeza que deseja excluir o item?</p>
-            <p>Descrição: ${desc}</p>
-            <p>Valor: ${amount.toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            })}</p>
-            <button id="confirmDelete">Sim</button>
-            <button id="cancelDelete">Não</button>
-        </div>
-    `;
-  document.body.appendChild(modal);
+  const incomes = sumBy(list, "Entrada");
+  const expenses = sumBy(list, "Saída");
 
-  document.getElementById("confirmDelete").onclick = () => {
-    items.splice(index, 1);
-    setItensBD();
-    loadItens();
-    modal.remove();
-    Toastify({
-      text: "Item excluído com sucesso!",
-      duration: 3000,
-      gravity: "top",
-      position: "right",
-      backgroundColor: "#ff0000",
-      className: "toastify",
-    }).showToast();
-  };
-
-  document.getElementById("cancelDelete").onclick = () => {
-    modal.remove();
-  };
-}
-
-function showEditModal(item, index) {
-  const modal = document.createElement("div");
-  modal.classList.add("modal");
-  modal.innerHTML = `
-        <div class="modal-content">
-            <label for="editDesc">Descrição</label>
-            <input type="text" id="editDesc" value="${item.desc}" />
-            <label for="editAmount">Valor</label>
-            <input type="number" id="editAmount" value="${item.amount}" />
-            <label for="editType">Tipo</label>
-            <select id="editType">
-                <option ${
-                  item.type === "Entrada" ? "selected" : ""
-                }>Entrada</option>
-                <option ${
-                  item.type === "Saída" ? "selected" : ""
-                }>Saída</option>
-            </select>
-            <button id="confirmEdit">Atualizar</button>
-            <button id="cancelEdit">Cancelar</button>
-        </div>
-    `;
-  document.body.appendChild(modal);
-
-  document.getElementById("confirmEdit").onclick = () => {
-    const editedItem = {
-      desc: document.getElementById("editDesc").value,
-      amount: parseFloat(document.getElementById("editAmount").value),
-      type: document.getElementById("editType").value,
-    };
-
-    items[index] = editedItem;
-    setItensBD();
-    loadItens();
-    modal.remove();
-    Toastify({
-      text: "Item atualizado com sucesso!",
-      duration: 3000,
-      gravity: "top",
-      position: "right",
-      backgroundColor: "#4caf50",
-      className: "toastify",
-    }).showToast();
-  };
-
-  document.getElementById("cancelEdit").onclick = () => {
-    modal.remove();
-  };
-}
-
-function insertItem(item, index) {
-  let tr = document.createElement("tr");
-
-  tr.innerHTML = `
-        <td>${item.desc}</td>
-        <td>${item.amount.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })}</td>
-        <td class="columnType">${
-          item.type === "Entrada"
-            ? '<i class="bx bxs-chevron-up-circle"></i>'
-            : '<i class="bx bxs-chevron-down-circle"></i>'
-        }</td>
-        <td class="columnAction">
-            <button onclick="editItem(${index})"><i class='bx bx-edit'></i></button>
-            <button onclick="deleteItem(${index})"><i class='bx bx-trash'></i></button>
-        </td>
-    `;
-
-  tbody.appendChild(tr);
-}
-
-function loadItens() {
-  items = getItensBD();
-  tbody.innerHTML = "";
-  items.forEach((item, index) => {
-    insertItem(item, index);
+  renderTable(tbody, list);
+  renderEmpty(list.length === 0);
+  renderSummary({
+    incomes,
+    expenses,
+    total: incomes - expenses,
+    monthBalance: currentMonthNet(all),
   });
+  renderChart(chartEl, legendEl, { incomes, expenses });
 
-  getTotals();
+  $('[data-value="chartHint"]').textContent =
+    list.length === 0 ? "Sem lançamentos" : `${list.length} lançamento(s)`;
 }
 
-function getTotals() {
-  const amountIncomes = items
-    .filter((item) => item.type === "Entrada")
-    .map((transaction) => Number(transaction.amount));
+function setupForm() {
+  const form = $("#formNew");
+  $("#date").value = todayISO();
+  attachMoneyMask($("#amount"));
 
-  const amountExpenses = items
-    .filter((item) => item.type === "Saída")
-    .map((transaction) => Number(transaction.amount));
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const desc = $("#desc").value.trim();
+    const amount = moneyToNumber($("#amount").value);
+    const date = $("#date").value || todayISO();
 
-  const totalIncomes = amountIncomes.reduce((acc, cur) => acc + cur, 0);
+    if (!desc) return toast("Informe uma descrição.", "error");
+    if (!(amount > 0)) return toast("O valor deve ser maior que zero.", "error");
 
-  const totalExpenses = Math.abs(
-    amountExpenses.reduce((acc, cur) => acc + cur, 0)
-  );
+    store.add({
+      desc,
+      amount,
+      type: $("#type").value,
+      category: $("#category").value,
+      date,
+    });
+    toast("Lançamento incluído!", "success");
 
-  const totalItems = totalIncomes - totalExpenses;
-
-  incomes.innerHTML = totalIncomes.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  expenses.innerHTML = totalExpenses.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  total.innerHTML = totalItems.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
+    form.reset();
+    $("#date").value = todayISO();
+    $("#desc").focus();
   });
 }
 
-loadItens();
+function setupFilters() {
+  const rerender = () => render(store.getAll());
+
+  $("#search").addEventListener("input", (e) => {
+    filterState.search = e.target.value;
+    rerender();
+  });
+  $("#filterType").addEventListener("change", (e) => {
+    filterState.type = e.target.value;
+    rerender();
+  });
+  $("#filterCategory").addEventListener("change", (e) => {
+    filterState.category = e.target.value;
+    rerender();
+  });
+  $("#filterPeriod").addEventListener("change", (e) => {
+    filterState.period = e.target.value;
+    rerender();
+  });
+
+  document.querySelectorAll("th.th-sortable").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+      if (filterState.sortBy === key) {
+        filterState.sortDir = filterState.sortDir === "asc" ? "desc" : "asc";
+      } else {
+        filterState.sortBy = key;
+        filterState.sortDir = "desc";
+      }
+      document.querySelectorAll("th.th-sortable").forEach((t) => {
+        t.removeAttribute("data-dir");
+      });
+      th.setAttribute("data-dir", filterState.sortDir);
+      rerender();
+    });
+  });
+}
+
+function setupTableActions() {
+  tbody.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const item = store.getById(id);
+    if (!item) return;
+
+    if (btn.dataset.action === "edit") {
+      openEditModal(item, (patch) => {
+        store.update(id, patch);
+        toast("Lançamento atualizado!", "success");
+      });
+    } else if (btn.dataset.action === "delete") {
+      openDeleteModal(item, () => {
+        store.remove(id);
+        toast("Lançamento excluído.", "error");
+      });
+    }
+  });
+}
+
+function setupIO() {
+  $("#btnExport").addEventListener("click", () => {
+    const all = store.getAll();
+    if (!all.length) return toast("Nada para exportar.", "info");
+    exportJSON(all);
+    toast("Dados exportados (JSON).", "success");
+  });
+
+  const fileInput = $("#fileImport");
+  $("#btnImport").addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await parseImport(file);
+      if (!Array.isArray(data) || !data.length) throw new Error("Vazio");
+      if (!confirm(`Importar ${data.length} lançamento(s)? Isso substitui os dados atuais.`)) {
+        return;
+      }
+      store.replaceAll(data);
+      toast(`${data.length} lançamento(s) importado(s).`, "success");
+    } catch (err) {
+      toast("Arquivo inválido. Use JSON ou CSV exportado pelo app.", "error");
+    } finally {
+      fileInput.value = "";
+    }
+  });
+}
+
+function init() {
+  $("#year").textContent = new Date().getFullYear();
+  initTheme();
+  populateCategories();
+  setupForm();
+  setupFilters();
+  setupTableActions();
+  setupIO();
+
+  store.subscribe(render);
+  store.load();
+}
+
+document.addEventListener("DOMContentLoaded", init);
