@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { neon } from '../lib/neon'
 
 export type TransacaoSalva = {
   id: string
@@ -50,10 +50,10 @@ export async function puxarTransacoes(
   periodo: Periodo,
   ref: Date,
 ): Promise<TransacaoSalva[]> {
-  if (!supabase) return []
+  if (!neon) return []
   const { de, ate } = intervalo(periodo, ref)
 
-  const { data, error } = await supabase
+  const { data, error } = await neon
     .from('transactions')
     .select('id, date, description, label, amount_cents, kind, category_slug, installment, accounts(bank)')
     .gte('date', de)

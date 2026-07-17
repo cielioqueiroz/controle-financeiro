@@ -8,7 +8,7 @@ import { buildLines } from './pdf/lines'
 import { pareceDigitalizado } from './pdf/extract'
 import { parse, ParserNaoImplementadoError } from './parsers'
 import { validar } from './validate/checksum'
-import { supabase, supabaseConfigurado } from './lib/supabase'
+import { neon, neonConfigurado } from './lib/neon'
 import { salvarDocumento } from './persist/salvar'
 import type { DocKind } from './pdf/detect'
 import type { ParseResult } from './parsers/types'
@@ -23,13 +23,15 @@ export default function App() {
   const [logado, setLogado] = useState(false)
   const [salvando, setSalvando] = useState(false)
 
+  async function checarSessao() {
+    if (!neon) return
+    const { data } = await neon.auth.getSession()
+    setLogado(Boolean(data?.session))
+  }
+
   useEffect(() => {
-    if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => setLogado(Boolean(data.session)))
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
-      setLogado(Boolean(session)),
-    )
-    return () => sub.subscription.unsubscribe()
+    checarSessao()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function importar(file: File) {
@@ -88,8 +90,8 @@ export default function App() {
     }
   }
 
-  // Com Supabase configurado e sem login → tela de entrar.
-  const precisaLogin = supabaseConfigurado && !logado
+  // Com Neon configurado e sem login → tela de entrar.
+  const precisaLogin = neonConfigurado && !logado
 
   return (
     <div className="grao min-h-dvh">
@@ -117,9 +119,12 @@ export default function App() {
               <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
             </h1>
           </div>
-          {logado && supabase && (
+          {logado && neon && (
             <button
-              onClick={() => supabase?.auth.signOut()}
+              onClick={async () => {
+                await neon?.auth.signOut()
+                setLogado(false)
+              }}
               className="tabular shrink-0 text-[11px] uppercase tracking-widest text-tinta-tenue hover:text-tinta"
             >
               Sair
@@ -128,7 +133,7 @@ export default function App() {
         </header>
 
         {precisaLogin ? (
-          <Auth />
+          <Auth onAutenticado={checarSessao} />
         ) : estado.fase !== 'pronto' ? (
           <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
         ) : (
@@ -145,7 +150,7 @@ export default function App() {
         <footer className="mt-16 flex items-center gap-3">
           <span className="h-px flex-1 bg-carvao-800" />
           <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-            {supabaseConfigurado
+            {neonConfigurado
               ? 'Lido no navegador · só a transação é salva, nunca o PDF'
               : 'Lido no navegador · nada sai deste computador'}
           </p>

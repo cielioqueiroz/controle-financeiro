@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { supabase } from '../lib/supabase'
+import { neon } from '../lib/neon'
 
-/** Login e cadastro. E-mail/senha com confirmação por e-mail + Google.
- *  Sem porta dos fundos: todo cadastro passa por e-mail verificado (ver
- *  spec, decisão #6). */
-export function Auth() {
+type Props = {
+  /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
+  onAutenticado: () => void
+}
+
+/** Login e cadastro. E-mail/senha + Google, via Neon Auth (Better Auth).
+ *  Mantém a tela grafite/Fraunces; só a engrenagem por baixo mudou de
+ *  Supabase para neon-js. */
+export function Auth({ onAutenticado }: Props) {
   const [modo, setModo] = useState<'entrar' | 'criar'>('entrar')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
@@ -13,16 +18,22 @@ export function Auth() {
 
   async function submeter(e: React.FormEvent) {
     e.preventDefault()
-    if (!supabase) return
+    if (!neon) return
     setOcupado(true)
     try {
       if (modo === 'criar') {
-        const { error } = await supabase.auth.signUp({ email, password: senha })
-        if (error) throw error
-        toast.success('Enviamos um e-mail de confirmação. Confira sua caixa de entrada.')
+        const { error } = await neon.auth.signUp.email({
+          email,
+          password: senha,
+          name: email.split('@')[0] || email,
+        })
+        if (error) throw new Error(error.message)
+        toast.success('Conta criada. Se pedirmos confirmação, confira seu e-mail.')
+        onAutenticado()
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
-        if (error) throw error
+        const { error } = await neon.auth.signIn.email({ email, password: senha })
+        if (error) throw new Error(error.message)
+        onAutenticado()
       }
     } catch (err) {
       toast.error(err instanceof Error ? traduzErro(err.message) : 'Falha na autenticação.')
@@ -32,10 +43,10 @@ export function Auth() {
   }
 
   async function comGoogle() {
-    if (!supabase) return
-    const { error } = await supabase.auth.signInWithOAuth({
+    if (!neon) return
+    const { error } = await neon.auth.signIn.social({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      callbackURL: window.location.origin,
     })
     if (error) toast.error('Falha ao entrar com o Google.')
   }
@@ -46,7 +57,7 @@ export function Auth() {
         {modo === 'entrar' ? 'Entrar' : 'Criar conta'}
       </h2>
       <p className="mt-2 text-sm text-tinta-fraca">
-        Seus dados financeiros, só seus. {modo === 'criar' && 'Confirmamos por e-mail.'}
+        Seus dados financeiros, só seus.
       </p>
 
       <form onSubmit={submeter} className="mt-6 space-y-3">
@@ -61,8 +72,8 @@ export function Auth() {
         <input
           type="password"
           required
-          minLength={6}
-          placeholder="senha (mín. 6 caracteres)"
+          minLength={8}
+          placeholder="senha (mín. 8 caracteres)"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
@@ -100,9 +111,9 @@ export function Auth() {
 }
 
 function traduzErro(msg: string): string {
-  if (/Invalid login/i.test(msg)) return 'E-mail ou senha incorretos.'
-  if (/already registered/i.test(msg)) return 'Este e-mail já tem conta.'
-  if (/Email not confirmed/i.test(msg)) return 'Confirme seu e-mail antes de entrar.'
+  if (/invalid|credencial|password|senha/i.test(msg)) return 'E-mail ou senha incorretos.'
+  if (/exist|already|registered/i.test(msg)) return 'Este e-mail já tem conta.'
+  if (/verif|confirm/i.test(msg)) return 'Confirme seu e-mail antes de entrar.'
   return msg
 }
 

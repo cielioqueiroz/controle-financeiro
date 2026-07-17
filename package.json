@@ -13,6 +13,7 @@
     "fixtures": "tsx scripts/gerar-fixtures.ts"
   },
   "dependencies": {
+    "@neondatabase/neon-js": "^0.6.2-beta",
     "@supabase/supabase-js": "^2.110.7",
     "pdfjs-dist": "^5.4.149",
     "react": "^19.2.7",
