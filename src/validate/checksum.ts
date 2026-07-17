@@ -26,22 +26,10 @@ export function validar(result: ParseResult): Validacao {
   const { transactions, declaredTotal, declaredIncome, declaredExpense } = result
   const contagem = transactions.length
 
-  // Fatura: soma compras + encargos = "Total a pagar".
-  if (declaredTotal != null) {
-    const somaExtraida = transactions
-      .filter((t) => t.kind === 'compra' || t.kind === 'encargo')
-      .reduce((a, t) => a + t.amountCents, 0)
-    const diferenca = somaExtraida - declaredTotal
-    return {
-      status: diferenca === 0 ? 'confere' : 'diverge',
-      contagem,
-      somaExtraida,
-      diferenca,
-    }
-  }
-
-  // Extrato: dois fluxos. Confere entradas E saídas contra os declarados.
-  // amountCents: saída positiva, entrada negativa (ver types).
+  // Dois fluxos: confere entradas E saídas contra os declarados. Cobre
+  // extratos e a fatura Bradesco (cujo "Resumo" declara créditos e
+  // débitos). Mais preciso que um total único. amountCents: saída
+  // positiva, entrada negativa (ver types).
   if (declaredIncome != null && declaredExpense != null) {
     const saidas = transactions
       .filter((t) => t.amountCents > 0)
@@ -56,6 +44,20 @@ export function validar(result: ParseResult): Validacao {
       status: difSaidas === 0 && difEntradas === 0 ? 'confere' : 'diverge',
       contagem,
       somaExtraida: saidas + entradas,
+      diferenca,
+    }
+  }
+
+  // Fatura Nubank: soma compras + encargos = "Total a pagar".
+  if (declaredTotal != null) {
+    const somaExtraida = transactions
+      .filter((t) => t.kind === 'compra' || t.kind === 'encargo')
+      .reduce((a, t) => a + t.amountCents, 0)
+    const diferenca = somaExtraida - declaredTotal
+    return {
+      status: diferenca === 0 ? 'confere' : 'diverge',
+      contagem,
+      somaExtraida,
       diferenca,
     }
   }

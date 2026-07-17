@@ -2,6 +2,8 @@ import type { Line } from '../pdf/lines'
 import { detectDocument, type DocKind } from '../pdf/detect'
 import { parseNubankFatura } from './nubank-fatura'
 import { parseNubankExtrato } from './nubank-extrato'
+import { parseBradescoExtrato } from './bradesco-extrato'
+import { parseBradescoFatura } from './bradesco-fatura'
 import type { ParseResult } from './types'
 
 export class ParserNaoImplementadoError extends Error {
@@ -28,6 +30,12 @@ export function parse(lines: Line[]): { kind: DocKind; result: ParseResult } {
   }
   if (kind.bank === 'nubank' && kind.docType === 'extrato') {
     return { kind, result: parseNubankExtrato(lines) }
+  }
+  if (kind.bank === 'bradesco' && kind.docType === 'extrato') {
+    return { kind, result: parseBradescoExtrato(lines) }
+  }
+  if (kind.bank === 'bradesco' && kind.docType === 'fatura') {
+    return { kind, result: parseBradescoFatura(lines) }
   }
 
   throw new ParserNaoImplementadoError(kind)
