@@ -43,6 +43,21 @@ export function intervalo(periodo: Periodo, ref: Date): { de: string; ate: strin
   return { de: iso(inicio), ate: iso(fim) }
 }
 
+/** Data do lançamento mais recente do usuário (ou null se não há nenhum).
+ *  O dashboard usa para abrir no período que de fato tem dados, em vez do
+ *  mês atual — importante porque faturas trazem meses passados. */
+export async function ultimaData(): Promise<Date | null> {
+  if (!neon) return null
+  const { data, error } = await neon
+    .from('transactions')
+    .select('date')
+    .order('date', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  const iso = (data?.[0] as { date?: string } | undefined)?.date
+  return iso ? new Date(`${iso}T00:00:00`) : null
+}
+
 /** Puxa as transações salvas de um período. É o que sustenta a visão por
  *  dia/semana/mês/ano — os dados ficam no banco e o usuário puxa quando
  *  quiser (ver spec da Fundação). RLS garante que só vêm as dele. */

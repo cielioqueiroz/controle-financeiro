@@ -4,6 +4,7 @@ import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
 import { ThemeToggle } from './ui/ThemeToggle'
+import { Dashboard } from './ui/Dashboard'
 import { loadTextItems, PdfProtegidoError } from './pdf/load'
 import { buildLines } from './pdf/lines'
 import { pareceDigitalizado } from './pdf/extract'
@@ -23,6 +24,10 @@ export default function App() {
   const [estado, setEstado] = useState<Estado>({ fase: 'vazio' })
   const [logado, setLogado] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
+   *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
+   *  quando muda (nova chave). */
+  const [importando, setImportando] = useState(false)
 
   async function checarSessao() {
     if (!neon) return
@@ -79,6 +84,9 @@ export default function App() {
           `Salvo: ${r.inseridas} novos lançamentos` +
             (r.jaExistiam > 0 ? `, ${r.jaExistiam} já existiam.` : '.'),
         )
+        // Volta ao histórico, que recarrega e mostra o que acabou de entrar.
+        setEstado({ fase: 'vazio' })
+        setImportando(false)
       } else if (r.status === 'documento-duplicado') {
         toast.warning(
           `Este documento já foi importado em ${new Date(r.importadoEm).toLocaleDateString('pt-BR')}.`,
@@ -138,17 +146,32 @@ export default function App() {
 
         {precisaLogin ? (
           <Auth onAutenticado={checarSessao} />
-        ) : estado.fase !== 'pronto' ? (
-          <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
-        ) : (
+        ) : estado.fase === 'pronto' ? (
           <ResultadoImport
             kind={estado.kind}
             result={estado.result}
             podeSalvar={logado}
             salvando={salvando}
             onSalvar={salvar}
-            onLimpar={() => setEstado({ fase: 'vazio' })}
+            onLimpar={() => {
+              setEstado({ fase: 'vazio' })
+              setImportando(false)
+            }}
           />
+        ) : logado && !importando ? (
+          <Dashboard onImportar={() => setImportando(true)} />
+        ) : (
+          <div>
+            {logado && (
+              <button
+                onClick={() => setImportando(false)}
+                className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
+              >
+                ‹ Voltar ao histórico
+              </button>
+            )}
+            <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
+          </div>
         )}
 
         <footer className="mt-16 space-y-4">
