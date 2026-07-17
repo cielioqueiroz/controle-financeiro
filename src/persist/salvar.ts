@@ -77,28 +77,36 @@ export async function salvarDocumento(
   const key = accountKey(result, kind)
   const linked = vincular([paraVincular(result, key, kind.docType)])
 
-  const comHash = await Promise.all(
-    linked.map(async (t) => {
-      const hash = await sha256(chaveTransacao(t, key))
-      return {
+  // Duas transações idênticas no MESMO documento (ex.: dois pães de R$5 no
+  // mesmo dia) geram o mesmo hash. Ambas são reais — perder uma faria o
+  // total salvo divergir do banco. Damos um sufixo de ocorrência à
+  // repetida para o hash ficar único sem descartar a linha. Loop
+  // sequencial: o contador precisa da ordem.
+  const ocorrencias = new Map<string, number>()
+  const comHash: Array<{ hash: string; row: Record<string, unknown> }> = []
+  for (const t of linked) {
+    const base = await sha256(chaveTransacao(t, key))
+    const n = (ocorrencias.get(base) ?? 0) + 1
+    ocorrencias.set(base, n)
+    const hash = n === 1 ? base : `${base}#${n}`
+    comHash.push({
+      hash,
+      row: {
+        account_id: accountId,
+        document_id: doc.id,
+        date: t.date.toISOString().slice(0, 10),
+        description: t.description,
+        amount_cents: t.amountCents,
+        direction: t.amountCents >= 0 ? 'out' : 'in',
+        kind: kindParaBanco(t.kind, t.link),
+        category_slug: categoriaDe(t),
+        installment: t.installment,
+        fx: t.fx,
         hash,
-        row: {
-          account_id: accountId,
-          document_id: doc.id,
-          date: t.date.toISOString().slice(0, 10),
-          description: t.description,
-          amount_cents: t.amountCents,
-          direction: t.amountCents >= 0 ? 'out' : 'in',
-          kind: kindParaBanco(t.kind, t.link),
-          category_slug: categoriaDe(t),
-          installment: t.installment,
-          fx: t.fx,
-          hash,
-          raw: t.raw,
-        },
-      }
-    }),
-  )
+        raw: t.raw,
+      },
+    })
+  }
 
   // Descobre quais hashes já existem e insere só os inéditos.
   const hashes = comHash.map((c) => c.hash)
