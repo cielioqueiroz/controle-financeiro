@@ -117,12 +117,12 @@ export default function App() {
       />
 
       <main className="relative z-10 mx-auto max-w-3xl px-6 py-16 sm:py-24">
-        <header className="mb-12 flex items-start justify-between gap-4">
+        <header className="screen-only mb-12 flex items-start justify-between gap-4">
           <div>
             <p className="tabular text-[11px] uppercase tracking-[0.35em] text-tinta-tenue">
               Controle Financeiro
             </p>
-            <h1 className="mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl">
+            <h1 className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl">
               Importe o PDF.
               <br />
               <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
@@ -175,7 +175,7 @@ export default function App() {
         )}
 
         <footer className="mt-16 space-y-4">
-          <div className="flex items-center gap-3">
+          <div className="screen-only flex items-center gap-3">
             <span className="h-px flex-1 bg-carvao-800" />
             <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
               {neonConfigurado

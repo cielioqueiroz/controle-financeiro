@@ -184,3 +184,46 @@ body {
     transition: none;
   }
 }
+
+/* Cabeçalho que só aparece no PDF impresso. */
+.somente-impressao {
+  display: none;
+}
+
+/* Impressão / Baixar PDF — relatório limpo em papel branco. Esconde
+   enfeites e controles; força paleta clara para não gastar tinta. */
+@media print {
+  .somente-impressao {
+    display: block !important;
+  }
+  .aurora::before,
+  .grao::after,
+  button,
+  select,
+  .screen-only {
+    display: none !important;
+  }
+  :root,
+  :root[data-theme="light"] {
+    --color-carvao-950: #ffffff;
+    --color-carvao-900: #ffffff;
+    --color-carvao-850: #f6f6f4;
+    --color-carvao-800: #eeece8;
+    --color-carvao-700: #dddad4;
+    --color-carvao-600: #c2bdb4;
+    --color-tinta: #17150f;
+    --color-tinta-fraca: #45413a;
+    --color-tinta-tenue: #6f6a60;
+    color-scheme: light;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding-top: 0 !important;
+  }
+  .max-h-\[46vh\] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}

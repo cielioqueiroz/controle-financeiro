@@ -151,12 +151,33 @@ export function Dashboard({ onImportar }: Props) {
           ))}
         </div>
 
-        <button
-          onClick={onImportar}
-          className="rounded-sm bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
-        >
-          + Importar PDF
-        </button>
+        <div className="flex items-center gap-2">
+          {txs && txs.length > 0 && (
+            <button
+              onClick={() => window.print()}
+              className="rounded-sm border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:bg-carvao-850"
+              title="Baixar ou compartilhar em PDF"
+            >
+              Baixar PDF
+            </button>
+          )}
+          <button
+            onClick={onImportar}
+            className="rounded-sm bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+          >
+            + Importar PDF
+          </button>
+        </div>
+      </div>
+
+      {/* Cabeçalho do relatório — só aparece no PDF impresso */}
+      <div className="somente-impressao mb-6">
+        <p className="tabular text-[11px] uppercase tracking-[0.3em] text-tinta-tenue">
+          Controle Financeiro
+        </p>
+        <h1 className="font-display text-3xl text-tinta">
+          Relatório · <span className="capitalize">{rotulo(periodo, ref)}</span>
+        </h1>
       </div>
 
       {/* Navegação de período */}
