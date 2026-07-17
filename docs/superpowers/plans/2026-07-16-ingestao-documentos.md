@@ -18,11 +18,71 @@
 - **Valores monetários em centavos (`number` inteiro) internamente** — evita erro de ponto flutuante. Conversão para exibição só na UI.
 - Idioma de UI e mensagens: **português brasileiro**.
 
-## Pré-requisito bloqueante
+## Estado da execução
 
-**Tasks 3 em diante exigem os 4 PDFs reais em disco** para gerar os fixtures JSON. Tasks 1 e 2 não dependem deles.
+| Task | Estado |
+|---|---|
+| 1. Scaffold | ✅ commit `150f2e7` |
+| 2. Primitivas de normalização | ✅ commit `150f2e7` |
+| 3. Extração pdf.js + fixtures | ✅ commit `47fd273` |
+| 4. Reconstrução de linhas | ✅ commit `47fd273` |
+| 5. Detecção de emissor/tipo | ✅ commit `47fd273` |
+| 6–14 | pendentes de redação |
 
-Arquivos necessários: `BradescoCartoes14-07-2026-17-40-28.pdf`, `extratoBradescoJunho.pdf`, `NuBank_extratoConta.pdf`, `Nubank_faturaCartao.pdf`. Caminho a ser informado pelo usuário; ficam fora do repositório.
+PDFs de referência em `D:\extratos\junho2026` (fora do repositório). Fixtures gerados com `npm run fixtures -- D:/extratos/junho2026`.
+
+**73 testes passando.**
+
+---
+
+## Coordenadas medidas (referência para as Tasks 6–14)
+
+Medidas nos fixtures reais. **Estes números são fato, não estimativa** — qualquer parser que os contradiga está errado.
+
+### Descoberta que corrige o design original
+
+**Valores monetários são alinhados à DIREITA.** O X do `TextItem` é a borda *esquerda*, então um valor curto tem X maior que um longo na mesma coluna:
+
+| Valor | X (esquerda) | Borda direita | Coluna |
+|---|---|---|---|
+| `0,00` | ~415 | **426,7** | Crédito |
+| `298,56` | ~405 | **426,8** | Crédito |
+| `10.000,00` | ~395 | **426,8** | Crédito |
+
+Pela borda esquerda, `0,00` e `10.000,00` estão a 20pt de distância — seriam classificados como colunas diferentes, fazendo **crédito virar débito conforme o tamanho do número**. Pela borda direita, a 0,1pt.
+
+Por isso `cellAtRight(line, right, tol=3)` casa por borda direita, e `cellAt(line, xMin, xMax)` (borda esquerda) só serve para texto alinhado à esquerda, como descrições.
+
+### Extrato Bradesco — colunas
+
+| Coluna | Cabeçalho X | **Borda direita dos valores** |
+|---|---|---|
+| Data | 46,1 | — (texto, use `cellAt`) |
+| Histórico | 110,6 | — (texto) |
+| Docto. | 304,9 | — |
+| Crédito (R$) | 385,0 | **426,7** |
+| Débito (R$) | 451,7 | **490,5** |
+| Saldo (R$) | 519,8 | **550,5** |
+
+Cabeçalho da tabela em Y=680,7 na página 1.
+
+### Contagem de items por documento
+
+| Fixture | Items | Páginas |
+|---|---|---|
+| `bradesco-fatura` | 467 | 3 |
+| `bradesco-extrato` | 183 | 3 |
+| `nubank-extrato` | 166 | 3 |
+| `nubank-fatura` | 502 | 8 |
+
+### Gabaritos a validar (Task 10)
+
+| Documento | Fórmula | Resultado |
+|---|---|---|
+| Extrato Nubank | `108,24 + 8.531,25 − 8.613,81` | `25,68` |
+| Extrato Bradesco | `55.575,13 + 33.265,53 − 41.841,65` | `46.999,01` |
+| Fatura Bradesco | `4.782,64 − 4.839,43 + 5.586,23` | `5.529,44` |
+| Fatura Nubank | `8.320,22 + 4,02` | `8.324,24` |
 
 ---
 
