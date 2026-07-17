@@ -1,0 +1,4018 @@
+[
+  {
+    "text": "Olá, Mariaxxx.",
+    "x": 138,
+    "y": 647.84,
+    "width": 165.31199999999995,
+    "height": 28,
+    "page": 1
+  },
+  {
+    "text": "Esta é a sua fatura de",
+    "x": 138,
+    "y": 606.32,
+    "width": 278.152,
+    "height": 28,
+    "page": 1
+  },
+  {
+    "text": "junho, no valor de",
+    "x": 138,
+    "y": 564.8,
+    "width": 236.12400000000002,
+    "height": 28,
+    "page": 1
+  },
+  {
+    "text": "R$ 8.324,24",
+    "x": 138,
+    "y": 523.27,
+    "width": 157.83599999999998,
+    "height": 28,
+    "page": 1
+  },
+  {
+    "text": "Data de vencimento: 29 JUN 2026",
+    "x": 138,
+    "y": 437.58,
+    "width": 191.10000000000002,
+    "height": 12,
+    "page": 1
+  },
+  {
+    "text": "Período vigente: 20 MAI a 20 JUN",
+    "x": 138,
+    "y": 414.58,
+    "width": 187.90800000000004,
+    "height": 12,
+    "page": 1
+  },
+  {
+    "text": "Limite total do cartão de crédito: R$ 18.150,00",
+    "x": 138,
+    "y": 372.58,
+    "width": 261.06000000000006,
+    "height": 12,
+    "page": 1
+  },
+  {
+    "text": "1 de 8",
+    "x": 493,
+    "y": 44.42,
+    "width": 20.32400000000003,
+    "height": 7,
+    "page": 1
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 325,
+    "y": 794.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 325,
+    "y": 781.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 439.09,
+    "y": 781.57,
+    "width": 103.90800000000009,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Alternativas de pagamento para a sua",
+    "x": 57,
+    "y": 729.57,
+    "width": 282.5120000000001,
+    "height": 16,
+    "page": 2
+  },
+  {
+    "text": "fatura no valor de R$ 8.324,24",
+    "x": 57,
+    "y": 707.31,
+    "width": 226.48000000000002,
+    "height": 16,
+    "page": 2
+  },
+  {
+    "text": "Para valores atualizados,",
+    "x": 448,
+    "y": 730.66,
+    "width": 91.84800000000003,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "consulte o aplicativo.",
+    "x": 448,
+    "y": 721.03,
+    "width": 79.81600000000002,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "1. Pagar o valor total da fatura",
+    "x": 68,
+    "y": 648.55,
+    "width": 169.11599999999993,
+    "height": 12,
+    "page": 2
+  },
+  {
+    "text": "Você quita o seu saldo, libera seu limite e não paga juros",
+    "x": 68,
+    "y": 613.73,
+    "width": 265.33000000000004,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "nem multa.",
+    "x": 68,
+    "y": 599.82,
+    "width": 52.78,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "Pagamento total da fatura",
+    "x": 406,
+    "y": 612.06,
+    "width": 97.168,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "R$ 8.324,24",
+    "x": 406,
+    "y": 596.55,
+    "width": 69.564,
+    "height": 12,
+    "page": 2
+  },
+  {
+    "text": "Não tem juros nem taxas",
+    "x": 406,
+    "y": 575.06,
+    "width": 92.71200000000005,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "Sempre a melhor escolha!",
+    "x": 88,
+    "y": 572.42,
+    "width": 85.57499999999997,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Ainda que pagar a fatura inteira seja a melhor escolha, sabemos que imprevistos acontecem. Aqui, a",
+    "x": 52,
+    "y": 529.73,
+    "width": 469.78000000000003,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "gente tem opções para não te deixar no atraso. Você pode consultar mais no aplicativo.",
+    "x": 52,
+    "y": 515.82,
+    "width": 411.33,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "2. Parcele a sua fatura",
+    "x": 56,
+    "y": 474.55,
+    "width": 125.25599999999997,
+    "height": 12,
+    "page": 2
+  },
+  {
+    "text": "Você dá uma entrada e escolhe o valor",
+    "x": 56,
+    "y": 440.82,
+    "width": 181.92000000000004,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "que cabe no seu bolso, valendo apenas",
+    "x": 56,
+    "y": 424.97,
+    "width": 184.61000000000007,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "para a fatura atual. Você pode parcelar",
+    "x": 56,
+    "y": 409.12,
+    "width": 182.06000000000006,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "em até 12 vezes. Consulte no aplicativo",
+    "x": 56,
+    "y": 393.27,
+    "width": 183.22000000000006,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "mais simulações e outras opções de",
+    "x": 56,
+    "y": 377.42,
+    "width": 169.32000000000005,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "parcelamento.",
+    "x": 56,
+    "y": 361.57,
+    "width": 67.94,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "Ideal para quando se precisa de mais tempo para",
+    "x": 76,
+    "y": 342.06,
+    "width": 161.364,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "pagar.",
+    "x": 76,
+    "y": 333.57,
+    "width": 20.944000000000003,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Válido até a data de",
+    "x": 312.23,
+    "y": 444.34,
+    "width": 55.53599999999991,
+    "height": 6,
+    "page": 2
+  },
+  {
+    "text": "vencimento da fatura",
+    "x": 309.98,
+    "y": 436.99,
+    "width": 60.04799999999996,
+    "height": 6,
+    "page": 2
+  },
+  {
+    "text": "Parcelar em 3",
+    "x": 400.12,
+    "y": 444.53,
+    "width": 45.751999999999995,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "meses",
+    "x": 412.27,
+    "y": 436.05,
+    "width": 21.462000000000003,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Parcelar em 6",
+    "x": 483.06,
+    "y": 444.53,
+    "width": 45.878000000000114,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "meses",
+    "x": 495.27,
+    "y": 436.05,
+    "width": 21.462000000000003,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Total a pagar",
+    "x": 318.32,
+    "y": 414.9,
+    "width": 43.350999999999985,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Valor de entrada",
+    "x": 312.34,
+    "y": 393.9,
+    "width": 55.320999999999984,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Valor da parcela",
+    "x": 313.39,
+    "y": 376.9,
+    "width": 54.22899999999999,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Juros totais",
+    "x": 321.4,
+    "y": 362.4,
+    "width": 38.19899999999999,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "(12,42% a.m.)",
+    "x": 322.16,
+    "y": 355.29,
+    "width": 36.67799999999998,
+    "height": 6,
+    "page": 2
+  },
+  {
+    "text": "IOF",
+    "x": 334.62,
+    "y": 339.4,
+    "width": 11.760000000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "CET",
+    "x": 333.82,
+    "y": 322.4,
+    "width": 13.356000000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 10.096,36",
+    "x": 395,
+    "y": 414.53,
+    "width": 51.816,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "R$ 11.630,56",
+    "x": 478,
+    "y": 414.53,
+    "width": 49.25599999999999,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "R$ 1.248,64",
+    "x": 395,
+    "y": 393.92,
+    "width": 38.47900000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 2.949,24",
+    "x": 395,
+    "y": 376.92,
+    "width": 39.66200000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 1.709,23",
+    "x": 395,
+    "y": 357.92,
+    "width": 38.26900000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 62,88",
+    "x": 395,
+    "y": 338.92,
+    "width": 29.323000000000018,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "307,57% ao ano",
+    "x": 395,
+    "y": 321.92,
+    "width": 51.82800000000004,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 1.248,64",
+    "x": 478,
+    "y": 394.42,
+    "width": 38.47900000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 1.730,32",
+    "x": 478,
+    "y": 377.42,
+    "width": 38.15700000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 3.211,93",
+    "x": 478,
+    "y": 357.92,
+    "width": 36.84800000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "R$ 94,39",
+    "x": 478,
+    "y": 339.42,
+    "width": 29.84100000000002,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "305,84% ao ano",
+    "x": 478,
+    "y": 322.42,
+    "width": 53.04600000000004,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "3. Faça o pagamento mínimo e entre no rotativo",
+    "x": 56,
+    "y": 278.55,
+    "width": 273.63599999999997,
+    "height": 12,
+    "page": 2
+  },
+  {
+    "text": "O saldo restante (R$ 7.075,60) entrará nos juros rotativos de",
+    "x": 56,
+    "y": 256.28,
+    "width": 282.65999999999997,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "16,1% ao mês. O valor cresce diariamente, e você pode quitá-lo",
+    "x": 56,
+    "y": 240.29,
+    "width": 294.79,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "quando quiser.",
+    "x": 56,
+    "y": 224.3,
+    "width": 70.36999999999999,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "Se pagar só na próxima fatura, ficará R$ 8.476,69 [saldo",
+    "x": 56,
+    "y": 192.33,
+    "width": 263.01000000000005,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "restante (R$ 7.075,60) + Juros e IOF (R$ 1.401,08)]. Incluindo o",
+    "x": 56,
+    "y": 176.34,
+    "width": 292.34000000000003,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "pagamento mínimo que você já fez, ficaria R$ 9.725,32.",
+    "x": 56,
+    "y": 160.35,
+    "width": 259.87000000000006,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "Essa opção é boa apenas quando você tem certeza que vai quitar o valor total em",
+    "x": 76,
+    "y": 139.06,
+    "width": 267.4280000000001,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "poucos dias.",
+    "x": 76,
+    "y": 130.57,
+    "width": 41.496,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "Pagamento mínimo de",
+    "x": 418,
+    "y": 246.06,
+    "width": 84.64000000000001,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "R$ 1.248,63",
+    "x": 418,
+    "y": 230.55,
+    "width": 67.656,
+    "height": 12,
+    "page": 2
+  },
+  {
+    "text": "Lembre-se: você pode pagar",
+    "x": 418,
+    "y": 207.7,
+    "width": 107.72000000000004,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "um valor menor de juros",
+    "x": 418,
+    "y": 196.68,
+    "width": 91.47200000000002,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "quitando antes, parcelando ou",
+    "x": 418,
+    "y": 185.67,
+    "width": 114.57600000000001,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "entrando no rotativo com um",
+    "x": 418,
+    "y": 174.66,
+    "width": 109.91200000000002,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "pagamento maior que o valor",
+    "x": 418,
+    "y": 163.64,
+    "width": 110.53600000000002,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "mínimo.",
+    "x": 418,
+    "y": 152.63,
+    "width": 30.512,
+    "height": 8,
+    "page": 2
+  },
+  {
+    "text": "Composição do pagamento mínimo: 15% do valor total das compras em aberto da sua fatura atual +",
+    "x": 60,
+    "y": 103.64,
+    "width": 466.4699999999996,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "15% do valor total das compras em aberto mês anterior + 100% de outros lançamentos (juros e mora,",
+    "x": 60,
+    "y": 88.76,
+    "width": 470.6000000000001,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "multa, IOF, saques e parcelamentos de fatura).",
+    "x": 60,
+    "y": 73.88,
+    "width": 218.42000000000007,
+    "height": 10,
+    "page": 2
+  },
+  {
+    "text": "2 de 8",
+    "x": 526,
+    "y": 33.42,
+    "width": 20.32399999999999,
+    "height": 7,
+    "page": 2
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 327,
+    "y": 789.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 327,
+    "y": 776.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 441.09,
+    "y": 776.57,
+    "width": 103.90800000000003,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "4. Pagar menos que o valor mínimo e deixar a fatura atrasar",
+    "x": 58,
+    "y": 725.55,
+    "width": 338.6040000000001,
+    "height": 12,
+    "page": 3
+  },
+  {
+    "text": "Ao pagar um valor menor que o pagamento mínimo de R$ 1.248,63, ou não efetuar nenhum",
+    "x": 58,
+    "y": 695.64,
+    "width": 429.76,
+    "height": 10,
+    "page": 3
+  },
+  {
+    "text": "pagamento, você entrará em atraso. Além de todos os encargos como juros, IOF e multa, você ainda",
+    "x": 58,
+    "y": 678.82,
+    "width": 471.4899999999999,
+    "height": 10,
+    "page": 3
+  },
+  {
+    "text": "corre o risco de ter seu cartão bloqueado e seu CPF negativado.",
+    "x": 58,
+    "y": 662,
+    "width": 300.63,
+    "height": 10,
+    "page": 3
+  },
+  {
+    "text": "Nunca é uma boa escolha. Você consegue parcelar um valor que caiba no seu bolso no aplicativo.",
+    "x": 78,
+    "y": 639.42,
+    "width": 321.82500000000016,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "Nu Pagamentos S.A.",
+    "x": 50,
+    "y": 120.33,
+    "width": 66.61200000000001,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "CNPJ 18.236.120/0001-58",
+    "x": 50,
+    "y": 109.95,
+    "width": 84.51799999999999,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "Rua Capote Valente, 39 - Pinheiros",
+    "x": 50,
+    "y": 99.57,
+    "width": 113.435,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "São Paulo/SP - 05409-000",
+    "x": 50,
+    "y": 89.19,
+    "width": 88.543,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "SAC 4020 0182",
+    "x": 179,
+    "y": 119.9,
+    "width": 52.507,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "capitais e regiões metropolitanas",
+    "x": 179,
+    "y": 110.29,
+    "width": 93.18599999999999,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "0800 591 2117",
+    "x": 179,
+    "y": 99.9,
+    "width": 47.82399999999999,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "demais localidades",
+    "x": 179,
+    "y": 90.29,
+    "width": 53.808000000000014,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "Ouvidoria 0800 887 0463",
+    "x": 179,
+    "y": 74.06,
+    "width": 86.10699999999999,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "8h às 18h em dias úteis",
+    "x": 179,
+    "y": 64.07,
+    "width": 75.50199999999994,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "Encargos e Custo Efetivo Total (CET) válidos para o próximo período",
+    "x": 289,
+    "y": 120.63,
+    "width": 259.3119999999999,
+    "height": 8,
+    "page": 3
+  },
+  {
+    "text": "Saque nacional juros de 9,75% a.m + IOF de 0,38% + IOF diário até o vencimento de 0,008%",
+    "x": 289,
+    "y": 97.93,
+    "width": 258.6599999999997,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "e CET máximo do empréstimo de 289,42% a.a",
+    "x": 289,
+    "y": 88.71,
+    "width": 128.91599999999977,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "Saque internacional juros de 9,75% a.m + IOF de 0,38% + IOF diário até o vencimento de",
+    "x": 289,
+    "y": 79.49,
+    "width": 247.6859999999996,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "0,008% + IOF de câmbio de 3,5% e CET máximo do empréstimo de 289,42% a.a",
+    "x": 289,
+    "y": 70.27,
+    "width": 224.17799999999966,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "Juros rotativo 16,1% ao mês CET 503,15% ao ano",
+    "x": 289,
+    "y": 52.38,
+    "width": 134.81399999999977,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "Juros de parcelamento do saldo devedor da fatura consulte o app na contratação",
+    "x": 289,
+    "y": 43.46,
+    "width": 228.8039999999996,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "Juros e mora em caso de atraso 17,1% ao mês + 2% multa CET: 570,17% ao ano",
+    "x": 289,
+    "y": 34.53,
+    "width": 217.76999999999964,
+    "height": 6,
+    "page": 3
+  },
+  {
+    "text": "3 de 8",
+    "x": 528,
+    "y": 21.42,
+    "width": 20.324000000000083,
+    "height": 7,
+    "page": 3
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 327,
+    "y": 794.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 327,
+    "y": 781.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 441.09,
+    "y": 781.57,
+    "width": 103.90800000000003,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "RESUMO DA FATURA ATUAL",
+    "x": 50,
+    "y": 732.32,
+    "width": 132.67999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Fatura anterior",
+    "x": 140,
+    "y": 702.82,
+    "width": 68.88000000000001,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 3.644,97",
+    "x": 486.14,
+    "y": 702.82,
+    "width": 56.859999999999985,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Pagamento recebido",
+    "x": 140,
+    "y": 686.82,
+    "width": 97.82999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "−R$ 3.644,97",
+    "x": 480.95,
+    "y": 686.82,
+    "width": 62.04999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Total de compras de todos os cartões, 20 MAI a 20 JUN",
+    "x": 140,
+    "y": 660.82,
+    "width": 259.1399999999999,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 8.320,22",
+    "x": 486.62,
+    "y": 660.82,
+    "width": 56.37999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "IOF de compras internacionais",
+    "x": 140,
+    "y": 644.82,
+    "width": 143.23000000000008,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 4,02",
+    "x": 506.46,
+    "y": 644.82,
+    "width": 36.53999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Total a pagar",
+    "x": 140,
+    "y": 614.11,
+    "width": 97.53600000000002,
+    "height": 16,
+    "page": 4
+  },
+  {
+    "text": "R$ 8.324,24",
+    "x": 454.81,
+    "y": 614.11,
+    "width": 90.19200000000002,
+    "height": 16,
+    "page": 4
+  },
+  {
+    "text": "Pagamento mínimo para não ficar em atraso",
+    "x": 140,
+    "y": 585.06,
+    "width": 165.84000000000006,
+    "height": 8,
+    "page": 4
+  },
+  {
+    "text": "R$ 1.248,63",
+    "x": 499.13,
+    "y": 585.06,
+    "width": 43.87200000000001,
+    "height": 8,
+    "page": 4
+  },
+  {
+    "text": "O Nubank declara, nos termos da Lei 12.007 2009, que os débitos referentes ao cartão de crédito no ano de 2025",
+    "x": 148,
+    "y": 569.2,
+    "width": 373.0650000000003,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "foram devidamente quitados. Esta declaração substitui os comprovantes dos pagamentos dos anos anteriores, assim",
+    "x": 148,
+    "y": 558.45,
+    "width": 384.10400000000027,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "como, aqueles pagamentos realizados até a data de vencimento da fatura de dezembro de 2025.",
+    "x": 148,
+    "y": 547.7,
+    "width": 318.0800000000002,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "PRÓXIMAS FATURAS",
+    "x": 50,
+    "y": 422.32,
+    "width": 97.82,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Fechamento da próxima fatura",
+    "x": 140,
+    "y": 399.82,
+    "width": 144.10000000000002,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "20 JUL 2026",
+    "x": 484.76,
+    "y": 399.82,
+    "width": 58.23999999999995,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Saldo em aberto da próxima fatura",
+    "x": 140,
+    "y": 383.82,
+    "width": 162.85000000000002,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 1.270,16",
+    "x": 490.39,
+    "y": 383.82,
+    "width": 52.60999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Saldo em aberto total",
+    "x": 140,
+    "y": 367.82,
+    "width": 101.07000000000004,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 2.688,23",
+    "x": 486.71,
+    "y": 367.82,
+    "width": 56.28999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "LIMITES DISPONÍVEIS",
+    "x": 50,
+    "y": 325.32,
+    "width": 100.81,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Utilizado",
+    "x": 411.29,
+    "y": 298.32,
+    "width": 40.71,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Disponível",
+    "x": 494.27,
+    "y": 298.32,
+    "width": 48.73,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Limite total",
+    "x": 140,
+    "y": 283.82,
+    "width": 52.53,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 11.012,47",
+    "x": 395.42,
+    "y": 283.82,
+    "width": 56.579999999999984,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 18.150,00",
+    "x": 481.81,
+    "y": 283.82,
+    "width": 61.18999999999998,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "VALOR MÁXIMO PARA TRANSAÇÕES",
+    "x": 50,
+    "y": 199.32,
+    "width": 174.07000000000005,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Valor máximo",
+    "x": 478.58,
+    "y": 177.32,
+    "width": 64.41999999999999,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Saque no crédito",
+    "x": 140,
+    "y": 163.82,
+    "width": 80.43000000000002,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 2.500,00",
+    "x": 483.51,
+    "y": 163.82,
+    "width": 59.48999999999999,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Pix no crédito",
+    "x": 140,
+    "y": 147.82,
+    "width": 64.51,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 15.000,00",
+    "x": 478.25,
+    "y": 147.82,
+    "width": 64.74999999999999,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "Pagamentos de boleto no crédito",
+    "x": 140,
+    "y": 131.82,
+    "width": 156.29000000000002,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "R$ 15.000,00",
+    "x": 478.25,
+    "y": 131.82,
+    "width": 64.74999999999999,
+    "height": 10,
+    "page": 4
+  },
+  {
+    "text": "As informações de limite são referentes ao período desta fatura, especificamente na data de emissão da fatura (20/06/2026) às 03:21. Para",
+    "x": 58,
+    "y": 66.2,
+    "width": 455.8680000000002,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "informações atualizadas em tempo real, consulte o aplicativo do Nu. O valor do Limite Adicional não é fixo e pode variar de acordo com as nossas",
+    "x": 58,
+    "y": 55.45,
+    "width": 478.20500000000055,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "análises, podendo inclusive ser removido.",
+    "x": 58,
+    "y": 44.7,
+    "width": 137.25599999999997,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "4 de 8",
+    "x": 528,
+    "y": 21.42,
+    "width": 20.324000000000076,
+    "height": 7,
+    "page": 4
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 327,
+    "y": 794.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 5
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 327,
+    "y": 781.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 5
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 441.09,
+    "y": 781.57,
+    "width": 103.90800000000003,
+    "height": 7,
+    "page": 5
+  },
+  {
+    "text": "TRANSAÇÕES",
+    "x": 50,
+    "y": 732.32,
+    "width": 66.22,
+    "height": 10,
+    "page": 5
+  },
+  {
+    "text": "DE 20 MAI A 20 JUN",
+    "x": 130,
+    "y": 733.92,
+    "width": 65.64599999999996,
+    "height": 7,
+    "page": 5
+  },
+  {
+    "text": "Maria A Santoss",
+    "x": 119,
+    "y": 666.06,
+    "width": 66.528,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 8.324,24",
+    "x": 489.9,
+    "y": 666.06,
+    "width": 45.09600000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 640.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 639.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Dias Gomes Comercio - Parcela 5/8",
+    "x": 214,
+    "y": 639.06,
+    "width": 132.83200000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 249,50",
+    "x": 496.11,
+    "y": 639.06,
+    "width": 38.888000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 618.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 617.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Airbnb * Hmmr9qz9xf - Parcela 2/6",
+    "x": 214,
+    "y": 617.06,
+    "width": 131.16000000000003,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 149,24",
+    "x": 498.13,
+    "y": 617.06,
+    "width": 36.87200000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 596.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 595.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Rommanel - Parcela 2/2",
+    "x": 214,
+    "y": 595.06,
+    "width": 88.67999999999999,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 94,00",
+    "x": 499.79,
+    "y": 595.06,
+    "width": 35.208000000000006,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 574.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 573.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Oticas Carol - Parcela 6/6",
+    "x": 214,
+    "y": 573.06,
+    "width": 95.86400000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 206,66",
+    "x": 495.85,
+    "y": 573.06,
+    "width": 39.152,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 552.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 551.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Bela Center Com de Cal - Parcela 3/3",
+    "x": 214,
+    "y": 551.06,
+    "width": 139.016,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 46,63",
+    "x": 500.91,
+    "y": 551.06,
+    "width": 34.088,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 530.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 529.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Bela Center Com de Cal - Parcela 3/4",
+    "x": 214,
+    "y": 529.06,
+    "width": 139.12,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 41,96",
+    "x": 502.54,
+    "y": 529.06,
+    "width": 32.456,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 508.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 507.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Atacadao 671as - Parcela 2/3",
+    "x": 214,
+    "y": 507.06,
+    "width": 107.19200000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 95,45",
+    "x": 501.3,
+    "y": 507.06,
+    "width": 33.704,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "20 MAI",
+    "x": 123,
+    "y": 486.29,
+    "width": 19.842000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 485.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Got Servicos Administr - Parcela 2/4",
+    "x": 214,
+    "y": 485.06,
+    "width": 135.47200000000004,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 281,57",
+    "x": 499.21,
+    "y": 485.06,
+    "width": 35.79200000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "21 MAI",
+    "x": 123,
+    "y": 464.29,
+    "width": 18.150000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 463.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Deposito Expansao",
+    "x": 214,
+    "y": 463.06,
+    "width": 71.49599999999998,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 76,49",
+    "x": 501.54,
+    "y": 463.06,
+    "width": 33.464000000000006,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "22 MAI",
+    "x": 123,
+    "y": 442.29,
+    "width": 19.080000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 441.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 441.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 9,92",
+    "x": 506.23,
+    "y": 441.06,
+    "width": 28.768000000000008,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "22 MAI",
+    "x": 123,
+    "y": 420.29,
+    "width": 19.080000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 419.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 419.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 3,00",
+    "x": 504.86,
+    "y": 419.06,
+    "width": 30.144000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "22 MAI",
+    "x": 123,
+    "y": 398.29,
+    "width": 19.080000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 397.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 397.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 5,00",
+    "x": 504.99,
+    "y": 397.06,
+    "width": 30.008000000000003,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "23 MAI",
+    "x": 123,
+    "y": 376.29,
+    "width": 19.380000000000003,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 375.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Cristiane Melo",
+    "x": 214,
+    "y": 375.06,
+    "width": 50.184000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 12,84",
+    "x": 503.17,
+    "y": 375.06,
+    "width": 31.832000000000008,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "23 MAI",
+    "x": 123,
+    "y": 354.29,
+    "width": 19.380000000000003,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 353.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 353.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 17,64",
+    "x": 503.3,
+    "y": 353.06,
+    "width": 31.696000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "24 MAI",
+    "x": 123,
+    "y": 332.29,
+    "width": 19.458000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 331.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Deposito Expansao",
+    "x": 214,
+    "y": 331.06,
+    "width": 71.49599999999998,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 5,91",
+    "x": 507.74,
+    "y": 331.06,
+    "width": 27.264000000000003,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "25 MAI",
+    "x": 123,
+    "y": 310.29,
+    "width": 19.278000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 309.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 309.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 10,00",
+    "x": 501.05,
+    "y": 309.06,
+    "width": 33.952000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "25 MAI",
+    "x": 123,
+    "y": 288.29,
+    "width": 19.278000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 287.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Mp *Cristilene",
+    "x": 214,
+    "y": 287.06,
+    "width": 52.88800000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 30,00",
+    "x": 499.41,
+    "y": 287.06,
+    "width": 35.592000000000006,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "26 MAI",
+    "x": 123,
+    "y": 266.29,
+    "width": 19.470000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 265.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "D'Tudo Massa'S",
+    "x": 214,
+    "y": 265.06,
+    "width": 58.352000000000004,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 12,00",
+    "x": 502.06,
+    "y": 265.06,
+    "width": 32.93600000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "26 MAI",
+    "x": 123,
+    "y": 244.29,
+    "width": 19.470000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 243.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Jim.Com* J C Acessori",
+    "x": 214,
+    "y": 243.06,
+    "width": 83.88000000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 40,00",
+    "x": 499.3,
+    "y": 243.06,
+    "width": 35.696000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "26 MAI",
+    "x": 123,
+    "y": 222.29,
+    "width": 19.470000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 221.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Auto Eletrica Rr",
+    "x": 214,
+    "y": 221.06,
+    "width": 57.97600000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 80,00",
+    "x": 499.38,
+    "y": 221.06,
+    "width": 35.61600000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "26 MAI",
+    "x": 123,
+    "y": 200.29,
+    "width": 19.470000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 199.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 199.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 15,98",
+    "x": 502.88,
+    "y": 199.06,
+    "width": 32.120000000000005,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "27 MAI",
+    "x": 123,
+    "y": 178.29,
+    "width": 18.906000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 177.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 177.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 9,00",
+    "x": 504.73,
+    "y": 177.06,
+    "width": 30.272000000000006,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "27 MAI",
+    "x": 123,
+    "y": 156.29,
+    "width": 18.906000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 155.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 155.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 15,00",
+    "x": 501.8,
+    "y": 155.06,
+    "width": 33.2,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "27 MAI",
+    "x": 123,
+    "y": 134.29,
+    "width": 18.906000000000002,
+    "height": 6,
+    "page": 5
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 133.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "Auto Posto Novo Mundo",
+    "x": 214,
+    "y": 133.06,
+    "width": 91.12800000000001,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "R$ 100,00",
+    "x": 495.6,
+    "y": 133.06,
+    "width": 39.400000000000006,
+    "height": 8,
+    "page": 5
+  },
+  {
+    "text": "5 de 8",
+    "x": 528,
+    "y": 21.42,
+    "width": 20.323999999999998,
+    "height": 7,
+    "page": 5
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 327,
+    "y": 794.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 327,
+    "y": 781.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 441.09,
+    "y": 781.57,
+    "width": 103.90800000000003,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "TRANSAÇÕES",
+    "x": 50,
+    "y": 732.32,
+    "width": 66.22,
+    "height": 10,
+    "page": 6
+  },
+  {
+    "text": "DE 20 MAI A 20 JUN",
+    "x": 130,
+    "y": 733.92,
+    "width": 65.64599999999996,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "28 MAI",
+    "x": 123,
+    "y": 665.29,
+    "width": 19.398000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 664.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Mercado Josias",
+    "x": 214,
+    "y": 664.06,
+    "width": 57.480000000000004,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 25,29",
+    "x": 502.06,
+    "y": 664.06,
+    "width": 32.93600000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "28 MAI",
+    "x": 123,
+    "y": 643.29,
+    "width": 19.398000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 642.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 642.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 10,11",
+    "x": 505.56,
+    "y": 642.06,
+    "width": 29.440000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "28 MAI",
+    "x": 123,
+    "y": 621.29,
+    "width": 19.398000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 620.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "D'Tudo Massa'S",
+    "x": 214,
+    "y": 620.06,
+    "width": 58.352000000000004,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 12,00",
+    "x": 502.06,
+    "y": 620.06,
+    "width": 32.93600000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "29 MAI",
+    "x": 123,
+    "y": 599.29,
+    "width": 19.476000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 598.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 598.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 18,99",
+    "x": 502.62,
+    "y": 598.06,
+    "width": 32.38400000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "29 MAI",
+    "x": 123,
+    "y": 577.29,
+    "width": 19.476000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 576.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Cristiane Melo",
+    "x": 214,
+    "y": 576.06,
+    "width": 50.184000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 9,00",
+    "x": 504.73,
+    "y": 576.06,
+    "width": 30.272000000000006,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "29 MAI",
+    "x": 123,
+    "y": 555.29,
+    "width": 19.476000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 554.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Sol Magazine Santana",
+    "x": 214,
+    "y": 554.06,
+    "width": 82.25600000000003,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 44,00",
+    "x": 499.82,
+    "y": 554.06,
+    "width": 35.184000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "30 MAI",
+    "x": 123,
+    "y": 533.29,
+    "width": 20.142000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 532.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Mercado Josias",
+    "x": 214,
+    "y": 532.06,
+    "width": 57.480000000000004,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 19,68",
+    "x": 502.62,
+    "y": 532.06,
+    "width": 32.376000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "30 MAI",
+    "x": 123,
+    "y": 511.29,
+    "width": 20.142000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 510.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Mk Embalagens",
+    "x": 214,
+    "y": 510.06,
+    "width": 58.792,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 44,48",
+    "x": 500.92,
+    "y": 510.06,
+    "width": 34.080000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "30 MAI",
+    "x": 123,
+    "y": 489.29,
+    "width": 20.142000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 488.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Supermercado Fama",
+    "x": 214,
+    "y": 488.06,
+    "width": 78.304,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 10,04",
+    "x": 501.56,
+    "y": 488.06,
+    "width": 33.440000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "30 MAI",
+    "x": 123,
+    "y": 467.29,
+    "width": 20.142000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 466.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Papelaria Giz de Cera",
+    "x": 214,
+    "y": 466.06,
+    "width": 79.936,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 24,90",
+    "x": 500.81,
+    "y": 466.06,
+    "width": 34.19200000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "31 MAI",
+    "x": 123,
+    "y": 445.29,
+    "width": 18.450000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 444.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 444.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 9,00",
+    "x": 504.73,
+    "y": 444.06,
+    "width": 30.272000000000006,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "31 MAI",
+    "x": 123,
+    "y": 423.29,
+    "width": 18.450000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 422.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 422.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 5,90",
+    "x": 505.48,
+    "y": 422.06,
+    "width": 29.520000000000003,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "01 JUN",
+    "x": 123,
+    "y": 401.29,
+    "width": 19.110000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 400.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 400.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 33,00",
+    "x": 500.02,
+    "y": 400.06,
+    "width": 34.97599999999995,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "02 JUN",
+    "x": 123,
+    "y": 379.29,
+    "width": 20.040000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 378.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Auto Posto Novo Mundo",
+    "x": 214,
+    "y": 378.06,
+    "width": 91.12800000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 100,00",
+    "x": 495.6,
+    "y": 378.06,
+    "width": 39.400000000000006,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "02 JUN",
+    "x": 123,
+    "y": 357.29,
+    "width": 20.040000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 356.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 356.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 10,00",
+    "x": 501.05,
+    "y": 356.06,
+    "width": 33.952000000000005,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "02 JUN",
+    "x": 123,
+    "y": 335.29,
+    "width": 20.040000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 334.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Americanas",
+    "x": 214,
+    "y": 334.06,
+    "width": 44.087999999999994,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 26,99",
+    "x": 501.28,
+    "y": 334.06,
+    "width": 33.71999999999995,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "02 JUN",
+    "x": 123,
+    "y": 313.29,
+    "width": 20.040000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 312.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Laboratorio Laluth - Parcela 1/2",
+    "x": 214,
+    "y": 312.06,
+    "width": 115.80000000000004,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 105,00",
+    "x": 496.35,
+    "y": 312.06,
+    "width": 38.648,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "03 JUN",
+    "x": 123,
+    "y": 291.29,
+    "width": 20.340000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 290.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Airbnb * Hmazyqxyqh",
+    "x": 214,
+    "y": 290.06,
+    "width": 81.68000000000002,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 5.038,80",
+    "x": 488.19,
+    "y": 290.06,
+    "width": 46.80800000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "04 JUN",
+    "x": 123,
+    "y": 269.29,
+    "width": 20.418000000000006,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 268.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Hna*Oboticario - Parcela 1/2",
+    "x": 214,
+    "y": 268.06,
+    "width": 105.624,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 55,50",
+    "x": 501.05,
+    "y": 268.06,
+    "width": 33.952,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "04 JUN",
+    "x": 123,
+    "y": 247.29,
+    "width": 20.418000000000006,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 246.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 246.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 20,44",
+    "x": 500.83,
+    "y": 246.06,
+    "width": 34.168000000000006,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "04 JUN",
+    "x": 123,
+    "y": 225.29,
+    "width": 20.418000000000006,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 224.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 224.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 10,90",
+    "x": 501.54,
+    "y": 224.06,
+    "width": 33.464000000000006,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "05 JUN",
+    "x": 123,
+    "y": 203.29,
+    "width": 20.238000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 202.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 202.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 5,00",
+    "x": 504.99,
+    "y": 202.06,
+    "width": 30.008000000000003,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "05 JUN",
+    "x": 123,
+    "y": 181.29,
+    "width": 20.238000000000003,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 180.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Lojao Brasil",
+    "x": 214,
+    "y": 180.06,
+    "width": 42.65600000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "R$ 20,00",
+    "x": 499.81,
+    "y": 180.06,
+    "width": 35.19200000000001,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "06 JUN",
+    "x": 123,
+    "y": 159.29,
+    "width": 20.430000000000007,
+    "height": 6,
+    "page": 6
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 158.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "Anthropic* Claude Sub",
+    "x": 214,
+    "y": 158.06,
+    "width": 86.17599999999999,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "BRL 110.00 = USD 21.57",
+    "x": 214,
+    "y": 143.56,
+    "width": 75.72599999999998,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "Conversão: BRL 5.32 = USD 1 = R$ 5,32",
+    "x": 214,
+    "y": 134.57,
+    "width": 125.48200000000011,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "R$ 114,95",
+    "x": 499.61,
+    "y": 158.06,
+    "width": 35.392,
+    "height": 8,
+    "page": 6
+  },
+  {
+    "text": "6 de 8",
+    "x": 528,
+    "y": 21.42,
+    "width": 20.324000000000066,
+    "height": 7,
+    "page": 6
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 327,
+    "y": 794.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 7
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 327,
+    "y": 781.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 7
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 441.09,
+    "y": 781.57,
+    "width": 103.90800000000003,
+    "height": 7,
+    "page": 7
+  },
+  {
+    "text": "TRANSAÇÕES",
+    "x": 50,
+    "y": 732.32,
+    "width": 66.22,
+    "height": 10,
+    "page": 7
+  },
+  {
+    "text": "DE 20 MAI A 20 JUN",
+    "x": 130,
+    "y": 733.92,
+    "width": 65.64599999999996,
+    "height": 7,
+    "page": 7
+  },
+  {
+    "text": "06 JUN",
+    "x": 123,
+    "y": 665.29,
+    "width": 20.430000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 664.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 664.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 6,79",
+    "x": 506.47,
+    "y": 664.06,
+    "width": 28.528000000000002,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "06 JUN",
+    "x": 123,
+    "y": 643.29,
+    "width": 20.430000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 642.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Americanas",
+    "x": 214,
+    "y": 642.06,
+    "width": 44.087999999999994,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 59,34",
+    "x": 501.16,
+    "y": 642.06,
+    "width": 33.84,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "06 JUN",
+    "x": 123,
+    "y": 621.29,
+    "width": 20.430000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 620.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 620.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 4,23",
+    "x": 506.38,
+    "y": 620.06,
+    "width": 28.616000000000007,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "06 JUN",
+    "x": 123,
+    "y": 599.29,
+    "width": 20.430000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 598.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Farmacia Bom Preco - Parcela 1/3",
+    "x": 214,
+    "y": 598.06,
+    "width": 124.86400000000002,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 76,68",
+    "x": 501.62,
+    "y": 598.06,
+    "width": 33.37599999999995,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "06 JUN",
+    "x": 123,
+    "y": 577.29,
+    "width": 20.430000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "IOF de \"Anthropic* Claude Sub\"",
+    "x": 185,
+    "y": 576.06,
+    "width": 119.048,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 4,02",
+    "x": 505.77,
+    "y": 576.06,
+    "width": 29.232000000000006,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "07 JUN",
+    "x": 123,
+    "y": 555.29,
+    "width": 19.866000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 554.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 554.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 98,50",
+    "x": 500.62,
+    "y": 554.06,
+    "width": 34.37599999999995,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "08 JUN",
+    "x": 123,
+    "y": 533.29,
+    "width": 20.358000000000004,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 532.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Mp *Hbomaxassin",
+    "x": 214,
+    "y": 532.06,
+    "width": 67.69600000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 20,93",
+    "x": 500.91,
+    "y": 532.06,
+    "width": 34.08800000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "09 JUN",
+    "x": 123,
+    "y": 511.29,
+    "width": 20.436000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 510.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Supermercado Fama",
+    "x": 214,
+    "y": 510.06,
+    "width": 78.304,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 66,62",
+    "x": 501.3,
+    "y": 510.06,
+    "width": 33.704,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "09 JUN",
+    "x": 123,
+    "y": 489.29,
+    "width": 20.436000000000007,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 488.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 488.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 79,00",
+    "x": 500.53,
+    "y": 488.06,
+    "width": 34.47199999999995,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "10 JUN",
+    "x": 123,
+    "y": 467.29,
+    "width": 19.110000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 466.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Farma Lider",
+    "x": 214,
+    "y": 466.06,
+    "width": 44.30400000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 9,99",
+    "x": 505.7,
+    "y": 466.06,
+    "width": 29.296000000000006,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "10 JUN",
+    "x": 123,
+    "y": 445.29,
+    "width": 19.110000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 444.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "D'Tudo Massa'S",
+    "x": 214,
+    "y": 444.06,
+    "width": 58.352000000000004,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 12,00",
+    "x": 502.06,
+    "y": 444.06,
+    "width": 32.93600000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "10 JUN",
+    "x": 123,
+    "y": 423.29,
+    "width": 19.110000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 422.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Cristiane Melo",
+    "x": 214,
+    "y": 422.06,
+    "width": 50.184000000000005,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 7,75",
+    "x": 507.49,
+    "y": 422.06,
+    "width": 27.512,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "11 JUN",
+    "x": 123,
+    "y": 401.29,
+    "width": 17.418000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 400.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Supermercado Fama",
+    "x": 214,
+    "y": 400.06,
+    "width": 78.304,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 52,56",
+    "x": 501.81,
+    "y": 400.06,
+    "width": 33.192,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "11 JUN",
+    "x": 123,
+    "y": 379.29,
+    "width": 17.418000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 378.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Farmacia Bom Preco",
+    "x": 214,
+    "y": 378.06,
+    "width": 77.13600000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 10,00",
+    "x": 501.05,
+    "y": 378.06,
+    "width": 33.952000000000005,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "11 JUN",
+    "x": 123,
+    "y": 357.29,
+    "width": 17.418000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 356.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Americanas",
+    "x": 214,
+    "y": 356.06,
+    "width": 44.087999999999994,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 13,99",
+    "x": 502.64,
+    "y": 356.06,
+    "width": 32.36000000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "12 JUN",
+    "x": 123,
+    "y": 335.29,
+    "width": 18.348000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 334.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Mercado Josias",
+    "x": 214,
+    "y": 334.06,
+    "width": 57.480000000000004,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 7,18",
+    "x": 508.34,
+    "y": 334.06,
+    "width": 26.664,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "12 JUN",
+    "x": 123,
+    "y": 313.29,
+    "width": 18.348000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 312.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 312.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 13,94",
+    "x": 502.66,
+    "y": 312.06,
+    "width": 32.336000000000006,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "13 JUN",
+    "x": 123,
+    "y": 291.29,
+    "width": 18.648000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 290.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Cristiane Melo",
+    "x": 214,
+    "y": 290.06,
+    "width": 50.184000000000005,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 8,80",
+    "x": 505.42,
+    "y": 290.06,
+    "width": 29.576000000000008,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "13 JUN",
+    "x": 123,
+    "y": 269.29,
+    "width": 18.648000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 268.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Supermercado Ofertao",
+    "x": 214,
+    "y": 268.06,
+    "width": 86.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 6,54",
+    "x": 506,
+    "y": 268.06,
+    "width": 29,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "14 JUN",
+    "x": 123,
+    "y": 247.29,
+    "width": 18.726000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 246.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Hna*Oboticario - Parcela 1/2",
+    "x": 214,
+    "y": 246.06,
+    "width": 105.624,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 59,95",
+    "x": 501.27,
+    "y": 246.06,
+    "width": 33.727999999999945,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "15 JUN",
+    "x": 123,
+    "y": 225.29,
+    "width": 18.546000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 224.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 224.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 5,00",
+    "x": 504.99,
+    "y": 224.06,
+    "width": 30.008000000000003,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "15 JUN",
+    "x": 123,
+    "y": 203.29,
+    "width": 18.546000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 202.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Mp *Pasrovilson",
+    "x": 214,
+    "y": 202.06,
+    "width": 59.82400000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 40,00",
+    "x": 499.3,
+    "y": 202.06,
+    "width": 35.696000000000005,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "15 JUN",
+    "x": 123,
+    "y": 181.29,
+    "width": 18.546000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 180.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Auto Posto Novo Mundo",
+    "x": 214,
+    "y": 180.06,
+    "width": 91.12800000000001,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 100,00",
+    "x": 495.6,
+    "y": 180.06,
+    "width": 39.400000000000006,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "15 JUN",
+    "x": 123,
+    "y": 159.29,
+    "width": 18.546000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 158.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 158.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 5,00",
+    "x": 504.99,
+    "y": 158.06,
+    "width": 30.008000000000003,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "16 JUN",
+    "x": 123,
+    "y": 137.29,
+    "width": 18.738000000000003,
+    "height": 6,
+    "page": 7
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 136.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "Deposito Expansao",
+    "x": 214,
+    "y": 136.06,
+    "width": 71.49599999999998,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "R$ 27,34",
+    "x": 502.18,
+    "y": 136.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 7
+  },
+  {
+    "text": "7 de 8",
+    "x": 528,
+    "y": 21.42,
+    "width": 20.32400000000008,
+    "height": 7,
+    "page": 7
+  },
+  {
+    "text": "MARIA APARECIDA SANTOSS",
+    "x": 327,
+    "y": 794.57,
+    "width": 95.24200000000009,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "FATURA 29 JUN 2026",
+    "x": 327,
+    "y": 781.57,
+    "width": 69.97200000000007,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "EMISSÃO E ENVIO 20 JUN 2026",
+    "x": 441.09,
+    "y": 781.57,
+    "width": 103.90800000000003,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "TRANSAÇÕES",
+    "x": 50,
+    "y": 732.32,
+    "width": 66.22,
+    "height": 10,
+    "page": 8
+  },
+  {
+    "text": "DE 20 MAI A 20 JUN",
+    "x": 130,
+    "y": 733.92,
+    "width": 65.64599999999996,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "17 JUN",
+    "x": 123,
+    "y": 665.29,
+    "width": 18.174000000000003,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 664.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "Deposito Expansao",
+    "x": 214,
+    "y": 664.06,
+    "width": 71.49599999999998,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "R$ 27,13",
+    "x": 503.93,
+    "y": 664.06,
+    "width": 31.072000000000006,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "17 JUN",
+    "x": 123,
+    "y": 643.29,
+    "width": 18.174000000000003,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 642.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "Paygo*Ga Glesia Artes",
+    "x": 214,
+    "y": 642.06,
+    "width": 83.67200000000001,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "R$ 107,00",
+    "x": 496.85,
+    "y": 642.06,
+    "width": 38.15200000000001,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "18 JUN",
+    "x": 123,
+    "y": 621.29,
+    "width": 18.666000000000004,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 620.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "Ofertao Supermercado",
+    "x": 214,
+    "y": 620.06,
+    "width": 86.81600000000002,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "R$ 4,76",
+    "x": 506.5,
+    "y": 620.06,
+    "width": 28.504000000000005,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "19 JUN",
+    "x": 123,
+    "y": 599.29,
+    "width": 18.744000000000003,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "•••• 7777",
+    "x": 172,
+    "y": 598.06,
+    "width": 32.816,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "Panificadora Farturao",
+    "x": 214,
+    "y": 598.06,
+    "width": 80.22399999999999,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "R$ 7,44",
+    "x": 506.51,
+    "y": 598.06,
+    "width": 28.488000000000003,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "Pagamentos e Financiamentos",
+    "x": 119,
+    "y": 546.06,
+    "width": 114.54400000000004,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "-R$ 3.644,97",
+    "x": 486.84,
+    "y": 546.06,
+    "width": 48.16000000000001,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "26 MAI",
+    "x": 123,
+    "y": 520.29,
+    "width": 19.470000000000002,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "Pagamento em 26 MAI",
+    "x": 185,
+    "y": 519.06,
+    "width": 84.60800000000002,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "−R$ 3.644,97",
+    "x": 485.36,
+    "y": 519.06,
+    "width": 49.64000000000001,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "27 MAI",
+    "x": 123,
+    "y": 498.29,
+    "width": 18.906000000000002,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "Saldo restante da fatura anterior",
+    "x": 185,
+    "y": 497.06,
+    "width": 121.152,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "R$ 0,00",
+    "x": 504.24,
+    "y": 497.06,
+    "width": 30.760000000000005,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "27 MAI",
+    "x": 123,
+    "y": 476.29,
+    "width": 18.906000000000002,
+    "height": 6,
+    "page": 8
+  },
+  {
+    "text": "Saldo restante da fatura anterior",
+    "x": 185,
+    "y": 475.06,
+    "width": 121.152,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "R$ 0,00",
+    "x": 504.24,
+    "y": 475.06,
+    "width": 30.760000000000005,
+    "height": 8,
+    "page": 8
+  },
+  {
+    "text": "Em cumprimento à regulação do Banco Central, as suas operações de crédito, estejam elas em dia ou atrasadas, serão comunicados ao Sistema",
+    "x": 58,
+    "y": 107.57,
+    "width": 472.8710000000003,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "de Informações de Créditos (SCR) e poderão ser consultadas no registrato, pelo Meu BC com sua Conta gov.br, que você pode acessar fazendo o",
+    "x": 58,
+    "y": 96.82,
+    "width": 477.9670000000005,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "login com sua conta Nubank.",
+    "x": 58,
+    "y": 86.08,
+    "width": 95.522,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "Como assegurado pela Resolução CMN n° 5.112 de 21/12/2023, o valor total cobrado a título de juros e encargos financeiros aplicados aos",
+    "x": 58,
+    "y": 66.57,
+    "width": 451.50700000000046,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "financiamentos de saldo devedor da fatura (rotativo, parcelamentos de fatura e renegociações de pendências) não deve exceder o valor original",
+    "x": 58,
+    "y": 55.82,
+    "width": 473.5780000000003,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "da dívida. Válido apenas para as operações realizadas a partir de 3 de Janeiro de 2024.",
+    "x": 58,
+    "y": 45.08,
+    "width": 283.94100000000014,
+    "height": 7,
+    "page": 8
+  },
+  {
+    "text": "8 de 8",
+    "x": 528,
+    "y": 21.42,
+    "width": 20.324000000000012,
+    "height": 7,
+    "page": 8
+  }
+]
