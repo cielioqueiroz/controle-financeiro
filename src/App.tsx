@@ -3,6 +3,7 @@ import { Toaster, toast } from 'sonner'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
+import { ThemeToggle } from './ui/ThemeToggle'
 import { loadTextItems, PdfProtegidoError } from './pdf/load'
 import { buildLines } from './pdf/lines'
 import { pareceDigitalizado } from './pdf/extract'
@@ -94,7 +95,7 @@ export default function App() {
   const precisaLogin = neonConfigurado && !logado
 
   return (
-    <div className="grao min-h-dvh">
+    <div className="aurora grao min-h-dvh">
       <Toaster
         theme="dark"
         position="bottom-right"
@@ -119,17 +120,20 @@ export default function App() {
               <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
             </h1>
           </div>
-          {logado && neon && (
-            <button
-              onClick={async () => {
-                await neon?.auth.signOut()
-                setLogado(false)
-              }}
-              className="tabular shrink-0 text-[11px] uppercase tracking-widest text-tinta-tenue hover:text-tinta"
-            >
-              Sair
-            </button>
-          )}
+          <div className="flex shrink-0 items-center gap-3">
+            {logado && neon && (
+              <button
+                onClick={async () => {
+                  await neon?.auth.signOut()
+                  setLogado(false)
+                }}
+                className="tabular text-[11px] uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
+              >
+                Sair
+              </button>
+            )}
+            <ThemeToggle />
+          </div>
         </header>
 
         {precisaLogin ? (
@@ -147,14 +151,27 @@ export default function App() {
           />
         )}
 
-        <footer className="mt-16 flex items-center gap-3">
-          <span className="h-px flex-1 bg-carvao-800" />
-          <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-            {neonConfigurado
-              ? 'Lido no navegador · só a transação é salva, nunca o PDF'
-              : 'Lido no navegador · nada sai deste computador'}
+        <footer className="mt-16 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-carvao-800" />
+            <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
+              {neonConfigurado
+                ? 'Lido no navegador · só a transação é salva, nunca o PDF'
+                : 'Lido no navegador · nada sai deste computador'}
+            </p>
+            <span className="h-px flex-1 bg-carvao-800" />
+          </div>
+          <p className="text-center text-[11px] text-tinta-tenue">
+            <span className="tabular">© {new Date().getFullYear()}</span> · Criado por{' '}
+            <a
+              href="https://cielio-portfolio.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-tinta-fraca underline decoration-carvao-600 underline-offset-4 transition-colors hover:text-tinta hover:decoration-tinta"
+            >
+              Cielio Queiroz
+            </a>
           </p>
-          <span className="h-px flex-1 bg-carvao-800" />
         </footer>
       </main>
     </div>
