@@ -11,12 +11,22 @@ import { GraficoCategorias } from './GraficoCategorias'
 type Props = {
   kind: DocKind
   result: ParseResult
+  podeSalvar: boolean
+  salvando: boolean
+  onSalvar: () => void
   onLimpar: () => void
 }
 
 const dm = (d: Date) => d.toLocaleDateString('pt-BR')
 
-export function ResultadoImport({ kind, result, onLimpar }: Props) {
+export function ResultadoImport({
+  kind,
+  result,
+  podeSalvar,
+  salvando,
+  onSalvar,
+  onLimpar,
+}: Props) {
   const tema = BANCOS[kind.bank]
   const conf = validar(result)
   const baseInsights = useMemo(() => construirInsights(result, kind), [result, kind])
@@ -58,12 +68,24 @@ export function ResultadoImport({ kind, result, onLimpar }: Props) {
             </p>
           )}
         </div>
-        <button
-          onClick={onLimpar}
-          className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
-        >
-          Limpar ✕
-        </button>
+        <div className="flex items-center gap-4">
+          {podeSalvar && (
+            <button
+              onClick={onSalvar}
+              disabled={salvando}
+              className="rounded-sm px-3 py-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: tema.accent, color: tema.tinta }}
+            >
+              {salvando ? 'Salvando…' : 'Salvar no histórico'}
+            </button>
+          )}
+          <button
+            onClick={onLimpar}
+            className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
+          >
+            Limpar ✕
+          </button>
+        </div>
       </header>
 
       <Veredito conf={conf} total={result.declaredTotal} accent={tema.accent} />

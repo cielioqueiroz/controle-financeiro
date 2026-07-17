@@ -13,6 +13,7 @@
     "fixtures": "tsx scripts/gerar-fixtures.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "pdfjs-dist": "^5.4.149",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
