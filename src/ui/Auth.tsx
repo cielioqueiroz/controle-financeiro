@@ -100,6 +100,12 @@ export function Auth({ onAutenticado }: Props) {
         <GoogleIcon /> Continuar com o Google
       </button>
 
+      <p className="mt-4 text-center text-[11px] leading-relaxed text-tinta-tenue">
+        Recomendamos criar conta com{' '}
+        <span className="text-tinta-fraca">e-mail e senha</span> — é o jeito mais
+        simples e direto.
+      </p>
+
       <button
         onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}
         className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
