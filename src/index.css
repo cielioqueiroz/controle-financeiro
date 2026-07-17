@@ -1,1 +1,103 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+
+  /* Grafite quente — papel carbono, não preto de tela */
+  --color-carvao-950: #0d0c0b;
+  --color-carvao-900: #131211;
+  --color-carvao-850: #191816;
+  --color-carvao-800: #22201d;
+  --color-carvao-700: #2f2c28;
+  --color-carvao-600: #45403a;
+
+  --color-tinta: #f5f3ef;
+  --color-tinta-fraca: #a8a29a;
+  --color-tinta-tenue: #6f6a62;
+
+  --color-confere: #00c974;
+  --color-ressalva: #f5a623;
+  --color-falha: #ff4d4f;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-carvao-950);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Números alinhados em coluna: sem isso um "1" ocupa menos que um "8"
+   e a coluna de valores fica trêmula. Num app de dinheiro isso importa. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Grão sutil — dá textura de papel ao fundo, tira o plástico da tela */
+.grao::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes carimbo {
+  0% {
+    opacity: 0;
+    transform: scale(1.15) rotate(-3deg);
+  }
+  60% {
+    transform: scale(0.97) rotate(0.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes pulso {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.surgir {
+  animation: surgir 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.carimbo {
+  animation: carimbo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.pulso {
+  animation: pulso 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surgir,
+  .carimbo,
+  .pulso {
+    animation: none;
+  }
+}

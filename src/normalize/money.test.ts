@@ -34,6 +34,10 @@ describe('parseBRL', () => {
     expect(parseBRL('0,00')).toBe(0)
   })
 
+  it('trata o "+" de crédito do resumo Nubank como positivo', () => {
+    expect(parseBRL('+8.531,25')).toBe(853125)
+  })
+
   it('não perde precisão em valor grande', () => {
     expect(parseBRL('17.410,00')).toBe(1741000)
   })

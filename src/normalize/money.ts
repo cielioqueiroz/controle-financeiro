@@ -11,7 +11,8 @@ export function parseBRL(raw: string): number {
   const trimmed = raw.trim()
   const negative = /-\s*$/.test(trimmed) || /^[−-]/.test(trimmed)
 
-  const digits = trimmed.replace(/[R$\s−-]/g, '')
+  // O "+" de crédito no resumo Nubank ("+8.531,25") é sinal, não dígito.
+  const digits = trimmed.replace(/[R$\s−+-]/g, '')
   if (!/^\d{1,3}(\.\d{3})*,\d{2}$|^\d+,\d{2}$|^\d+$/.test(digits)) {
     throw new Error(`Valor monetário inválido: ${raw}`)
   }
