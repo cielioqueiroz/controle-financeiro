@@ -20,6 +20,7 @@ export function Auth({ onAutenticado }: Props) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [verSenha, setVerSenha] = useState(false)
 
   // Uma ref por campo obrigatório, para focar o primeiro que estiver vazio.
   const refs: Record<CampoAcesso, React.RefObject<HTMLInputElement | null>> = {
@@ -165,16 +166,27 @@ export function Auth({ onAutenticado }: Props) {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
         />
-        <input
-          type="password"
-          ref={refs.senha}
-          required
-          minLength={8}
-          placeholder="senha (mín. 8 caracteres)"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
-        />
+        <div className="relative">
+          <input
+            ref={refs.senha}
+            type={verSenha ? 'text' : 'password'}
+            required
+            minLength={8}
+            placeholder="senha (mín. 8 caracteres)"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 pr-10 text-sm text-tinta outline-none focus:border-tinta-tenue"
+          />
+          <button
+            type="button"
+            onClick={() => setVerSenha(!verSenha)}
+            aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
+            aria-pressed={verSenha}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-tinta-tenue transition-colors hover:text-tinta"
+          >
+            <IconeOlho aberto={verSenha} />
+          </button>
+        </div>
         <button
           type="submit"
           disabled={ocupado}
@@ -241,6 +253,17 @@ function traduzErro(msg: string): string {
   if (/exist|already|registered/i.test(msg)) return 'Este e-mail já tem conta.'
   if (/verif|confirm/i.test(msg)) return 'Confirme seu e-mail antes de entrar.'
   return msg
+}
+
+/** Olho aberto/cortado para revelar a senha. */
+function IconeOlho({ aberto }: { aberto: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
+      <circle cx="12" cy="12" r="2.8" />
+      {!aberto && <line x1="3.5" y1="20.5" x2="20.5" y2="3.5" strokeLinecap="round" />}
+    </svg>
+  )
 }
 
 function GoogleIcon() {
