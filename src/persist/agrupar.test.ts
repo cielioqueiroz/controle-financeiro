@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { competenciaDe, pertence, filtrar, agregar, type TxAgrupavel } from './agrupar'
+import {
+  competenciaDe,
+  pertence,
+  filtrar,
+  agregar,
+  porCategoriaDetalhado,
+  porDia,
+  type TxAgrupavel,
+} from './agrupar'
 
 const tx = (over: Partial<TxAgrupavel>): TxAgrupavel => ({
   date: '2026-06-15',
@@ -77,5 +85,38 @@ describe('filtrar', () => {
       tx({ competencia: '2026-06' }),
     ]
     expect(filtrar(txs, 'mes', ref)).toHaveLength(2)
+  })
+})
+
+describe('porCategoriaDetalhado', () => {
+  it('agrupa despesas por categoria com itens ordenados por valor', () => {
+    const txs = [
+      tx({ category_slug: 'supermercado', amount_cents: 3000 }),
+      tx({ category_slug: 'supermercado', amount_cents: 8000 }),
+      tx({ category_slug: 'padaria', amount_cents: 500 }),
+      tx({ category_slug: 'supermercado', amount_cents: -2000, kind: 'income' }), // entra, ignora
+    ]
+    const g = porCategoriaDetalhado(txs)
+    expect(g[0].slug).toBe('supermercado')
+    expect(g[0].totalCents).toBe(11000)
+    expect(g[0].contagem).toBe(2)
+    expect(g[0].itens[0].amount_cents).toBe(8000) // maior primeiro
+    expect(g[1].slug).toBe('padaria')
+  })
+})
+
+describe('porDia', () => {
+  it('agrupa tudo por dia com subtotais e dias recentes primeiro', () => {
+    const txs = [
+      tx({ date: '2026-06-01', amount_cents: 1000, kind: 'expense' }),
+      tx({ date: '2026-06-01', amount_cents: -5000, kind: 'income' }),
+      tx({ date: '2026-06-02', amount_cents: 2000, kind: 'expense' }),
+    ]
+    const g = porDia(txs)
+    expect(g[0].dia).toBe('2026-06-02') // mais recente primeiro
+    expect(g[1].dia).toBe('2026-06-01')
+    expect(g[1].gastoCents).toBe(1000)
+    expect(g[1].entradasCents).toBe(5000)
+    expect(g[1].itens).toHaveLength(2)
   })
 })

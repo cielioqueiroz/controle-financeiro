@@ -95,3 +95,51 @@ export function agregar(txs: TxAgrupavel[]): Resumo {
     porCategoria: [...mapa.values()].sort((a, b) => b.totalCents - a.totalCents),
   }
 }
+
+export type GrupoCategoria<T> = {
+  slug: string
+  cat: Categoria
+  totalCents: number
+  contagem: number
+  itens: T[]
+}
+
+/** Agrupa as DESPESAS por categoria com os itens dentro (para o drill-down:
+ *  clicar em Supermercado e ver todas as compras). Ordena categorias por
+ *  total e itens por valor, ambos desc. Igual ao donut, mas com detalhe. */
+export function porCategoriaDetalhado<T extends TxAgrupavel>(txs: T[]): GrupoCategoria<T>[] {
+  const mapa = new Map<string, GrupoCategoria<T>>()
+  for (const t of txs) {
+    if (t.kind !== 'expense') continue
+    const slug = t.category_slug ?? 'outros'
+    const g = mapa.get(slug) ?? { slug, cat: categoria(slug), totalCents: 0, contagem: 0, itens: [] }
+    g.totalCents += t.amount_cents
+    g.contagem += 1
+    g.itens.push(t)
+    mapa.set(slug, g)
+  }
+  const grupos = [...mapa.values()]
+  for (const g of grupos) g.itens.sort((a, b) => b.amount_cents - a.amount_cents)
+  return grupos.sort((a, b) => b.totalCents - a.totalCents)
+}
+
+export type GrupoDia<T> = {
+  dia: string // YYYY-MM-DD
+  gastoCents: number
+  entradasCents: number
+  itens: T[]
+}
+
+/** Agrupa TUDO por dia (compras, débitos, créditos, estornos) com subtotal
+ *  de gasto e de entradas do dia. Dias mais recentes primeiro. */
+export function porDia<T extends TxAgrupavel>(txs: T[]): GrupoDia<T>[] {
+  const mapa = new Map<string, GrupoDia<T>>()
+  for (const t of txs) {
+    const g = mapa.get(t.date) ?? { dia: t.date, gastoCents: 0, entradasCents: 0, itens: [] }
+    if (t.kind === 'income') g.entradasCents += Math.abs(t.amount_cents)
+    else if (t.kind === 'expense') g.gastoCents += t.amount_cents
+    g.itens.push(t)
+    mapa.set(t.date, g)
+  }
+  return [...mapa.values()].sort((a, b) => (a.dia < b.dia ? 1 : -1))
+}
