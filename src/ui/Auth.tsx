@@ -95,18 +95,6 @@ export function Auth({ onAutenticado }: Props) {
 
   return (
     <div className="relative mx-auto mt-6 max-w-sm sm:mt-12">
-      {/* Brilho animado atrás do cartão (contido, não é o fundo todo) */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -inset-12 -z-10 rounded-full blur-3xl"
-        style={{
-          background:
-            'radial-gradient(40% 40% at 25% 30%, color-mix(in oklab, var(--color-confere) 60%, transparent), transparent 70%), radial-gradient(45% 45% at 80% 75%, color-mix(in oklab, #7c5cff 45%, transparent), transparent 70%), radial-gradient(40% 40% at 60% 20%, color-mix(in oklab, #ff5da2 35%, transparent), transparent 70%)',
-        }}
-        animate={{ scale: [0.9, 1.25, 0.9], rotate: [0, 40, -15, 0], opacity: [0.45, 0.95, 0.45] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

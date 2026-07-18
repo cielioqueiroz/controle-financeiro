@@ -1,0 +1,67 @@
+"""Mede se algum elemento estoura o viewport ao longo do tempo.
+
+Uso:  python scripts/medir-overflow.py [url]
+
+Existe porque o brilho decorativo da tela de login escalava ate 1.25 sem ser
+recortado por ninguem, entrando no scrollWidth da pagina e criando uma barra
+de rolagem que aparecia e sumia no ritmo da animacao. Rode apos mexer em
+qualquer decoracao de fundo.
+"""
+import sys
+from playwright.sync_api import sync_playwright
+
+URL = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5173"
+VIEWPORTS = [(1280, 800), (390, 844)]
+AMOSTRAS = 16
+INTERVALO_MS = 500
+
+SONDA = """
+() => {
+  const de = document.documentElement;
+  const vw = de.clientWidth, vh = de.clientHeight;
+  const out = [];
+  for (const el of document.querySelectorAll('*')) {
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) continue;
+    if (r.right > vw + 1 || r.left < -1 || r.bottom > vh + 1 || r.top < -1) {
+      out.push({
+        tag: el.tagName.toLowerCase(),
+        cls: (el.className?.baseVal ?? el.className ?? '').toString().slice(0, 70),
+        rect: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)],
+      });
+    }
+  }
+  return {vw, vh, scrollW: de.scrollWidth, scrollH: de.scrollHeight, culpados: out};
+}
+"""
+
+
+def main() -> int:
+    falhou = False
+    with sync_playwright() as p:
+        navegador = p.chromium.launch(headless=True)
+        for largura, altura in VIEWPORTS:
+            pagina = navegador.new_page(viewport={"width": largura, "height": altura})
+            pagina.goto(URL)
+            pagina.wait_for_load_state("networkidle")
+            print(f"\n=== viewport {largura}x{altura} ===")
+            for i in range(AMOSTRAS):
+                pagina.wait_for_timeout(INTERVALO_MS)
+                d = pagina.evaluate(SONDA)
+                estoura = d["scrollW"] > d["vw"] or d["scrollH"] > d["vh"]
+                if estoura:
+                    falhou = True
+                    print(f"  t={i * INTERVALO_MS / 1000:4.1f}s  ESTOURO  "
+                          f"scrollW={d['scrollW']}/{d['vw']}  scrollH={d['scrollH']}/{d['vh']}")
+                    for c in d["culpados"]:
+                        print(f"      <{c['tag']}> {c['rect']}  class={c['cls']}")
+            if not falhou:
+                print("  todas as amostras OK (scroll == viewport)")
+            pagina.close()
+        navegador.close()
+    print("\nRESULTADO:", "ESTOUROU" if falhou else "OK — nenhum estouro")
+    return 1 if falhou else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
