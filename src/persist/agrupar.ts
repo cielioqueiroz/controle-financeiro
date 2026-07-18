@@ -123,6 +123,29 @@ export function porCategoriaDetalhado<T extends TxAgrupavel>(txs: T[]): GrupoCat
   return grupos.sort((a, b) => b.totalCents - a.totalCents)
 }
 
+export type PontoMes = {
+  competencia: string // YYYY-MM
+  gastoCents: number
+  entradasCents: number
+}
+
+/** Série de gasto/entradas por competência (mês da fatura), em ordem
+ *  cronológica. Alimenta o gráfico de evolução mês a mês. */
+export function evolucaoMensal(txs: TxAgrupavel[]): PontoMes[] {
+  const mapa = new Map<string, PontoMes>()
+  for (const t of txs) {
+    const p = mapa.get(t.competencia) ?? {
+      competencia: t.competencia,
+      gastoCents: 0,
+      entradasCents: 0,
+    }
+    if (t.kind === 'income') p.entradasCents += Math.abs(t.amount_cents)
+    else if (t.kind === 'expense') p.gastoCents += t.amount_cents
+    mapa.set(t.competencia, p)
+  }
+  return [...mapa.values()].sort((a, b) => (a.competencia < b.competencia ? -1 : 1))
+}
+
 export type GrupoDia<T> = {
   dia: string // YYYY-MM-DD
   gastoCents: number

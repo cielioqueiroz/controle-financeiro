@@ -6,6 +6,7 @@ import {
   agregar,
   porCategoriaDetalhado,
   porDia,
+  evolucaoMensal,
   type TxAgrupavel,
 } from './agrupar'
 
@@ -102,6 +103,20 @@ describe('porCategoriaDetalhado', () => {
     expect(g[0].contagem).toBe(2)
     expect(g[0].itens[0].amount_cents).toBe(8000) // maior primeiro
     expect(g[1].slug).toBe('padaria')
+  })
+})
+
+describe('evolucaoMensal', () => {
+  it('soma gasto/entradas por competência em ordem cronológica', () => {
+    const txs = [
+      tx({ competencia: '2026-06', amount_cents: 1000, kind: 'expense' }),
+      tx({ competencia: '2026-05', amount_cents: 3000, kind: 'expense' }),
+      tx({ competencia: '2026-06', amount_cents: -8000, kind: 'income' }),
+    ]
+    const s = evolucaoMensal(txs)
+    expect(s.map((p) => p.competencia)).toEqual(['2026-05', '2026-06'])
+    expect(s[1].gastoCents).toBe(1000)
+    expect(s[1].entradasCents).toBe(8000)
   })
 })
 

@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
-import { filtrar, agregar, porCategoriaDetalhado, porDia, type Periodo } from '../persist/agrupar'
+import {
+  filtrar,
+  agregar,
+  porCategoriaDetalhado,
+  porDia,
+  evolucaoMensal,
+  type Periodo,
+} from '../persist/agrupar'
 import { formatBRL } from '../normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
+import { GraficoEvolucao } from './GraficoEvolucao'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { ListaPorDia } from './ListaPorDia'
 import { Documentos } from './Documentos'
@@ -127,8 +135,16 @@ export function Dashboard({ onImportar }: Props) {
     }
     return m
   }, [todas])
+  const serie = useMemo(() => (todas ? evolucaoMensal(todas) : []), [todas])
+  const compAtiva = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`
   const vazio = !carregando && todas !== null && txs.length === 0
   const chave = `${periodo}-${ref.getTime()}`
+
+  function irParaMes(competencia: string) {
+    const [y, m] = competencia.split('-').map(Number)
+    setPeriodo('mes')
+    setRef(new Date(y, m - 1, 1))
+  }
 
   return (
     <div className="surgir">
@@ -223,6 +239,12 @@ export function Dashboard({ onImportar }: Props) {
           ›
         </button>
       </div>
+
+      {!carregando && serie.length >= 2 && (
+        <div className="mb-4 screen-only">
+          <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-sm border border-carvao-700 bg-carvao-900">
         {carregando ? (
