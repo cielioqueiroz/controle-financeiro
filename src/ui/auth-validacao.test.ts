@@ -48,4 +48,9 @@ describe('mensagemCamposFaltando', () => {
     expect(mensagemCamposFaltando('entrar', ['email']))
       .toBe('Preencha seu e-mail para entrar.')
   })
+
+  it('retorna string vazia para lista vazia, em vez de frase com espaço duplo', () => {
+    expect(mensagemCamposFaltando('criar', [])).toBe('')
+    expect(mensagemCamposFaltando('entrar', [])).toBe('')
+  })
 })

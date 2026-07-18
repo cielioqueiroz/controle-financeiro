@@ -35,6 +35,9 @@ function ligar(itens: string[]): string {
 }
 
 export function mensagemCamposFaltando(modo: ModoAcesso, faltando: CampoAcesso[]): string {
+  // Hoje inalcançável (todo chamador guarda com faltando.length > 0), mas
+  // sem isso a lista vazia geraria "Preencha  para entrar." com espaço duplo.
+  if (faltando.length === 0) return ''
   const fim = modo === 'criar' ? 'para criar sua conta' : 'para entrar'
   const lista =
     faltando.length === 1
