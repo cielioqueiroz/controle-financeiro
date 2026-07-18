@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { puxarTransacoes, ultimaData, type Periodo, type TransacaoSalva } from '../persist/puxar'
+import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
+import { filtrar, agregar, type Periodo } from '../persist/agrupar'
 import { categoria } from '../categorize/categorias'
 import { formatBRL } from '../normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
-import type { CategoriaResumo } from '../insights'
 
 type Props = {
   onImportar: () => void
@@ -17,33 +17,9 @@ const PERIODOS: Array<{ id: Periodo; nome: string }> = [
   { id: 'ano', nome: 'Ano' },
 ]
 
-/** Agrega transações salvas em números de dashboard. Gasto = despesas
- *  (kind expense); entradas = income; vínculos ficam de fora do gasto. */
-function agregar(txs: TransacaoSalva[]) {
-  let gastoCents = 0
-  let entradasCents = 0
-  const mapa = new Map<string, CategoriaResumo>()
-
-  for (const t of txs) {
-    if (t.kind === 'income') {
-      entradasCents += Math.abs(t.amount_cents)
-      continue
-    }
-    if (t.kind !== 'expense') continue // internal_transfer / card_payment: fora
-    gastoCents += t.amount_cents
-    const slug = t.category_slug ?? 'outros'
-    const atual = mapa.get(slug) ?? { cat: categoria(slug), totalCents: 0, contagem: 0 }
-    atual.totalCents += t.amount_cents
-    atual.contagem += 1
-    mapa.set(slug, atual)
-  }
-
-  return {
-    gastoCents,
-    entradasCents,
-    contagem: txs.length,
-    porCategoria: [...mapa.values()].sort((a, b) => b.totalCents - a.totalCents),
-  }
+/** Mês/Ano agrupam por fatura (competência); Dia/Semana pela data real. */
+function agrupamentoDe(periodo: Periodo): string {
+  return periodo === 'mes' || periodo === 'ano' ? 'por fatura' : 'por data da compra'
 }
 
 /** Move a data de referência um período para trás/frente. */
@@ -92,38 +68,43 @@ function rotulo(periodo: Periodo, ref: Date): string {
 export function Dashboard({ onImportar }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [ref, setRef] = useState<Date>(new Date())
-  const [txs, setTxs] = useState<TransacaoSalva[] | null>(null)
+  const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  // Abre no mês do lançamento mais recente (faturas trazem meses passados).
-  useEffect(() => {
-    let vivo = true
-    ultimaData()
-      .then((d) => {
-        if (vivo && d) setRef(d)
-      })
-      .catch(() => {})
-    return () => {
-      vivo = false
-    }
-  }, [])
-
+  // Busca tudo uma vez; navegar entre períodos é fatiamento no cliente.
   useEffect(() => {
     let vivo = true
     setCarregando(true)
     setErro(null)
-    puxarTransacoes(periodo, ref)
-      .then((dados) => vivo && setTxs(dados))
+    puxarTudo()
+      .then((dados) => {
+        if (!vivo) return
+        setTodas(dados)
+        // Abre no mês da competência mais recente (faturas trazem meses
+        // passados; a lista já vem ordenada por data desc).
+        const maisRecente = dados
+          .map((t) => t.competencia)
+          .sort()
+          .at(-1)
+        if (maisRecente) {
+          const [y, m] = maisRecente.split('-').map(Number)
+          setRef(new Date(y, m - 1, 1))
+        }
+      })
       .catch((e) => vivo && setErro(e instanceof Error ? e.message : 'Falha ao carregar'))
       .finally(() => vivo && setCarregando(false))
     return () => {
       vivo = false
     }
-  }, [periodo, ref])
+  }, [])
 
-  const resumo = useMemo(() => agregar(txs ?? []), [txs])
-  const vazio = !carregando && txs !== null && txs.length === 0
+  const txs = useMemo(
+    () => (todas ? filtrar(todas, periodo, ref) : []),
+    [todas, periodo, ref],
+  )
+  const resumo = useMemo(() => agregar(txs), [txs])
+  const vazio = !carregando && todas !== null && txs.length === 0
   const chave = `${periodo}-${ref.getTime()}`
 
   return (
@@ -190,16 +171,19 @@ export function Dashboard({ onImportar }: Props) {
           ‹
         </button>
         <AnimatePresence mode="wait">
-          <motion.h2
+          <motion.div
             key={chave}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2 }}
-            className="font-display text-2xl capitalize text-tinta"
+            className="text-center"
           >
-            {rotulo(periodo, ref)}
-          </motion.h2>
+            <h2 className="font-display text-2xl capitalize text-tinta">{rotulo(periodo, ref)}</h2>
+            <p className="tabular mt-0.5 text-[10px] uppercase tracking-widest text-tinta-tenue">
+              {agrupamentoDe(periodo)}
+            </p>
+          </motion.div>
         </AnimatePresence>
         <button
           onClick={() => setRef((r) => mover(periodo, r, 1))}
@@ -218,7 +202,7 @@ export function Dashboard({ onImportar }: Props) {
         ) : vazio ? (
           <Vazio onImportar={onImportar} />
         ) : (
-          <Conteudo resumo={resumo} txs={txs!} chave={chave} />
+          <Conteudo resumo={resumo} txs={txs} chave={chave} />
         )}
       </div>
     </div>
@@ -255,8 +239,8 @@ function Conteudo({
         </div>
       )}
 
-      {/* Lista */}
-      <ul className="max-h-[46vh] overflow-y-auto border-t border-carvao-800 px-3 py-2">
+      {/* Lista — sem rolagem interna; flui com a página (usa o espaço). */}
+      <ul className="border-t border-carvao-800 px-3 py-2">
         {txs.map((t) => (
           <Linha key={t.id} t={t} />
         ))}

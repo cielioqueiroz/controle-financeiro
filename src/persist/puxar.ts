@@ -1,92 +1,56 @@
 import { neon } from '../lib/neon'
+import { competenciaDe } from './agrupar'
+
+export type { Periodo } from './agrupar'
 
 export type TransacaoSalva = {
   id: string
-  date: string
+  date: string // data real da compra/débito
+  competencia: string // mês de referência (fatura), YYYY-MM
   description: string
   label: string | null
   amount_cents: number
   kind: string
   category_slug: string | null
   bank: string
+  doc_type: string
+  document_id: string
   installment: { current: number; total: number } | null
 }
 
-export type Periodo = 'dia' | 'semana' | 'mes' | 'ano'
-
-/** Intervalo [início, fim] para um período âncorado numa data. */
-export function intervalo(periodo: Periodo, ref: Date): { de: string; ate: string } {
-  const d = new Date(ref)
-  let inicio: Date
-  let fim: Date
-  switch (periodo) {
-    case 'dia':
-      inicio = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-      fim = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-      break
-    case 'semana': {
-      const diaSemana = (d.getDay() + 6) % 7 // segunda = 0
-      inicio = new Date(d.getFullYear(), d.getMonth(), d.getDate() - diaSemana)
-      fim = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + 6)
-      break
-    }
-    case 'mes':
-      inicio = new Date(d.getFullYear(), d.getMonth(), 1)
-      fim = new Date(d.getFullYear(), d.getMonth() + 1, 0)
-      break
-    case 'ano':
-      inicio = new Date(d.getFullYear(), 0, 1)
-      fim = new Date(d.getFullYear(), 11, 31)
-      break
-  }
-  const iso = (x: Date) => x.toISOString().slice(0, 10)
-  return { de: iso(inicio), ate: iso(fim) }
-}
-
-/** Data do lançamento mais recente do usuário (ou null se não há nenhum).
- *  O dashboard usa para abrir no período que de fato tem dados, em vez do
- *  mês atual — importante porque faturas trazem meses passados. */
-export async function ultimaData(): Promise<Date | null> {
-  if (!neon) return null
-  const { data, error } = await neon
-    .from('transactions')
-    .select('date')
-    .order('date', { ascending: false })
-    .limit(1)
-  if (error) throw error
-  const iso = (data?.[0] as { date?: string } | undefined)?.date
-  return iso ? new Date(`${iso}T00:00:00`) : null
-}
-
-/** Puxa as transações salvas de um período. É o que sustenta a visão por
- *  dia/semana/mês/ano — os dados ficam no banco e o usuário puxa quando
- *  quiser (ver spec da Fundação). RLS garante que só vêm as dele. */
-export async function puxarTransacoes(
-  periodo: Periodo,
-  ref: Date,
-): Promise<TransacaoSalva[]> {
+/** Puxa TODAS as transações do usuário de uma vez, já com a competência
+ *  calculada (mês do vencimento da fatura, ou do período do extrato). O
+ *  dashboard fatia por dia/semana/mês/ano no cliente — os volumes são
+ *  pequenos (uso pessoal) e assim navegar entre períodos é instantâneo,
+ *  além de habilitar tabelas por categoria e o detalhe por dia sem novas
+ *  idas ao banco. RLS garante que só vêm as transações do próprio usuário. */
+export async function puxarTudo(): Promise<TransacaoSalva[]> {
   if (!neon) return []
-  const { de, ate } = intervalo(periodo, ref)
-
   const { data, error } = await neon
     .from('transactions')
-    .select('id, date, description, label, amount_cents, kind, category_slug, installment, accounts(bank)')
-    .gte('date', de)
-    .lte('date', ate)
+    .select(
+      'id, date, description, label, amount_cents, kind, category_slug, installment, document_id, accounts(bank), documents(doc_type, period_end)',
+    )
     .order('date', { ascending: false })
 
   if (error) throw error
 
-  return (data ?? []).map((r: Record<string, unknown>) => ({
-    id: r.id as string,
-    date: r.date as string,
-    description: r.description as string,
-    label: (r.label as string) ?? null,
-    amount_cents: r.amount_cents as number,
-    kind: r.kind as string,
-    category_slug: (r.category_slug as string) ?? null,
-    bank:
-      (r.accounts as { bank?: string } | null)?.bank ?? 'desconhecido',
-    installment: (r.installment as { current: number; total: number }) ?? null,
-  }))
+  return (data ?? []).map((r: Record<string, unknown>) => {
+    const doc = r.documents as { doc_type?: string; period_end?: string } | null
+    const date = r.date as string
+    return {
+      id: r.id as string,
+      date,
+      competencia: competenciaDe(doc?.period_end ?? null, date),
+      description: r.description as string,
+      label: (r.label as string) ?? null,
+      amount_cents: r.amount_cents as number,
+      kind: r.kind as string,
+      category_slug: (r.category_slug as string) ?? null,
+      bank: (r.accounts as { bank?: string } | null)?.bank ?? 'desconhecido',
+      doc_type: doc?.doc_type ?? 'desconhecido',
+      document_id: r.document_id as string,
+      installment: (r.installment as { current: number; total: number }) ?? null,
+    }
+  })
 }
