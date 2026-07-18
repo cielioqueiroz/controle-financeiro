@@ -1,0 +1,51 @@
+import { describe, it, expect } from 'vitest'
+import { camposFaltando, mensagemCamposFaltando } from './auth-validacao'
+
+const vazio = { nome: '', email: '', senha: '' }
+
+describe('camposFaltando', () => {
+  it('no modo criar, lista nome, email e senha na ordem da tela', () => {
+    expect(camposFaltando('criar', vazio)).toEqual(['nome', 'email', 'senha'])
+  })
+
+  it('no modo entrar, ignora o campo nome (que nem existe na tela)', () => {
+    expect(camposFaltando('entrar', vazio)).toEqual(['email', 'senha'])
+  })
+
+  it('no modo entrar, ignora nome mesmo quando preenchido', () => {
+    expect(camposFaltando('entrar', { ...vazio, nome: 'Cielio' })).toEqual(['email', 'senha'])
+  })
+
+  it('não acusa campo preenchido', () => {
+    expect(camposFaltando('criar', { nome: 'Cielio', email: 'a@b.com', senha: 'segredo12' })).toEqual([])
+  })
+
+  it('trata espaço em branco como vazio em nome e email', () => {
+    expect(camposFaltando('criar', { nome: '   ', email: '  ', senha: 'segredo12' })).toEqual(['nome', 'email'])
+  })
+
+  it('NÃO apara a senha — espaço é caractere válido', () => {
+    expect(camposFaltando('criar', { nome: 'Cielio', email: 'a@b.com', senha: '   ' })).toEqual([])
+  })
+})
+
+describe('mensagemCamposFaltando', () => {
+  it('lista os três campos com vírgula e "e"', () => {
+    expect(mensagemCamposFaltando('criar', ['nome', 'email', 'senha']))
+      .toBe('Preencha nome, e-mail e senha para criar sua conta.')
+  })
+
+  it('liga dois campos com "e"', () => {
+    expect(mensagemCamposFaltando('entrar', ['email', 'senha']))
+      .toBe('Preencha e-mail e senha para entrar.')
+  })
+
+  it('usa possessivo quando falta só um campo', () => {
+    expect(mensagemCamposFaltando('criar', ['nome']))
+      .toBe('Preencha seu nome para criar sua conta.')
+    expect(mensagemCamposFaltando('entrar', ['senha']))
+      .toBe('Preencha sua senha para entrar.')
+    expect(mensagemCamposFaltando('entrar', ['email']))
+      .toBe('Preencha seu e-mail para entrar.')
+  })
+})
