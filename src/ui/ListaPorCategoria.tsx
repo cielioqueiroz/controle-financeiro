@@ -34,11 +34,16 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
 
   return (
     <ul className="divide-y divide-carvao-800">
-      {grupos.map((g) => {
+      {grupos.map((g, i) => {
         const aberta = abertas.has(g.slug)
         const pct = totalCents > 0 ? (g.totalCents / totalCents) * 100 : 0
         return (
-          <li key={g.slug}>
+          <motion.li
+            key={g.slug}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: Math.min(i * 0.04, 0.4), duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
             <button
               onClick={() => alternar(g.slug)}
               className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-carvao-850"
@@ -92,7 +97,7 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </li>
+          </motion.li>
         )
       })}
     </ul>

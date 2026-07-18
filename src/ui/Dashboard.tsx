@@ -12,13 +12,13 @@ import {
   type PontoMes,
   type MesFuturo,
 } from '../persist/agrupar'
-import { formatBRL } from '../domain/normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
 import { GraficoEvolucao } from './GraficoEvolucao'
 import { CompromissosFuturos } from './CompromissosFuturos'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { ListaPorDia } from './ListaPorDia'
 import { MenuAcoes } from './MenuAcoes'
+import { ValorAnimado } from './ValorAnimado'
 import { Documentos } from './Documentos'
 import { EditarCompra } from './EditarCompra'
 
@@ -328,11 +328,17 @@ function Conteudo({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Tiles de resumo — largura total */}
+      {/* Tiles de resumo — largura total, com números que "contam" */}
       <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-3">
-        <Tile rotulo="Gasto no período" valor={formatBRL(resumo.gastoCents)} destaque />
-        <Tile rotulo="Entradas" valor={formatBRL(resumo.entradasCents)} cor="var(--color-confere)" />
-        <Tile rotulo="Lançamentos" valor={String(resumo.contagem)} />
+        <Tile rotulo="Gasto no período" destaque>
+          <ValorAnimado valor={resumo.gastoCents} />
+        </Tile>
+        <Tile rotulo="Entradas" cor="var(--color-confere)">
+          <ValorAnimado valor={resumo.entradasCents} />
+        </Tile>
+        <Tile rotulo="Lançamentos">
+          <ValorAnimado valor={resumo.contagem} moeda={false} />
+        </Tile>
       </div>
 
       {/* Duas colunas no desktop: resumo visual (esq.) + tabelas largas (dir.) */}
@@ -407,14 +413,14 @@ function AbaVista({
 
 function Tile({
   rotulo,
-  valor,
   cor,
   destaque,
+  children,
 }: {
   rotulo: string
-  valor: string
   cor?: string
   destaque?: boolean
+  children: React.ReactNode
 }) {
   return (
     <div className="bg-carvao-900 px-6 py-5">
@@ -423,7 +429,7 @@ function Tile({
         className={`tabular mt-1.5 ${destaque ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'} text-tinta`}
         style={cor ? { color: cor } : undefined}
       >
-        {valor}
+        {children}
       </p>
     </div>
   )

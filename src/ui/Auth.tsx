@@ -63,13 +63,13 @@ export function Auth({ onAutenticado }: Props) {
       {/* Brilho animado atrás do cartão (contido, não é o fundo todo) */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -inset-10 -z-10 rounded-full opacity-70 blur-3xl"
+        className="pointer-events-none absolute -inset-12 -z-10 rounded-full blur-3xl"
         style={{
           background:
-            'radial-gradient(45% 45% at 30% 30%, color-mix(in oklab, var(--color-confere) 40%, transparent), transparent 70%), radial-gradient(45% 45% at 75% 70%, color-mix(in oklab, var(--color-tinta) 22%, transparent), transparent 70%)',
+            'radial-gradient(40% 40% at 25% 30%, color-mix(in oklab, var(--color-confere) 60%, transparent), transparent 70%), radial-gradient(45% 45% at 80% 75%, color-mix(in oklab, #7c5cff 45%, transparent), transparent 70%), radial-gradient(40% 40% at 60% 20%, color-mix(in oklab, #ff5da2 35%, transparent), transparent 70%)',
         }}
-        animate={{ scale: [1, 1.12, 1], rotate: [0, 12, 0], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ scale: [0.9, 1.25, 0.9], rotate: [0, 40, -15, 0], opacity: [0.45, 0.95, 0.45] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <motion.div
@@ -80,8 +80,13 @@ export function Auth({ onAutenticado }: Props) {
       >
         <motion.div
           className="mb-5 flex justify-center"
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          initial={{ rotate: -180, scale: 0 }}
+          animate={{ rotate: 0, scale: 1, y: [0, -7, 0] }}
+          transition={{
+            rotate: { type: 'spring', stiffness: 160, damping: 14 },
+            scale: { type: 'spring', stiffness: 160, damping: 14 },
+            y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 },
+          }}
         >
           <MoedaLogo />
         </motion.div>

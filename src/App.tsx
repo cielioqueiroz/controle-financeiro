@@ -148,8 +148,8 @@ export default function App() {
                     <motion.span
                       aria-hidden
                       className="inline-block origin-[70%_80%]"
-                      animate={{ rotate: [0, 16, -8, 16, 0] }}
-                      transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.5 }}
+                      animate={{ rotate: [0, 20, -12, 20, -6, 0] }}
+                      transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.1 }}
                     >
                       👋
                     </motion.span>
