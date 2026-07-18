@@ -152,6 +152,26 @@ body {
   }
 }
 
+/* Toasts — fundo colorido e cheio por tipo (sonner marca data-type).
+   Cor viva para chamar atenção; título/descrição herdam a cor. */
+[data-sonner-toast] {
+  border: none !important;
+  background: var(--color-carvao-800);
+  color: var(--color-tinta);
+}
+[data-sonner-toast][data-type="success"] {
+  background: var(--color-confere);
+  color: #04240f;
+}
+[data-sonner-toast][data-type="error"] {
+  background: var(--color-falha);
+  color: #ffffff;
+}
+[data-sonner-toast][data-type="warning"] {
+  background: var(--color-ressalva);
+  color: #241a00;
+}
+
 /* Cabeçalho que só aparece no PDF impresso. */
 .somente-impressao {
   display: none;
