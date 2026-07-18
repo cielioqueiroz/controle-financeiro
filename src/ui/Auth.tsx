@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
+import { camposFaltando, mensagemCamposFaltando, type CampoAcesso } from './auth-validacao'
 
 type Props = {
   /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
@@ -20,25 +21,39 @@ export function Auth({ onAutenticado }: Props) {
   const [senha, setSenha] = useState('')
   const [ocupado, setOcupado] = useState(false)
 
+  // Uma ref por campo obrigatório, para focar o primeiro que estiver vazio.
+  const refs: Record<CampoAcesso, React.RefObject<HTMLInputElement | null>> = {
+    nome: useRef<HTMLInputElement>(null),
+    email: useRef<HTMLInputElement>(null),
+    senha: useRef<HTMLInputElement>(null),
+  }
+
   async function submeter(e: React.FormEvent) {
     e.preventDefault()
-    if (!neon) return
 
-    // Validação com o NOSSO toast (não o balão nativo do navegador).
-    if (!email.trim() || !senha) {
-      toast.error('Preencha o e-mail e a senha para continuar.')
+    // Validação primeiro: campo vazio sempre vence formato inválido, para
+    // as duas mensagens nunca competirem.
+    const faltando = camposFaltando(modo, { nome, email, senha })
+    if (faltando.length > 0) {
+      toast.error(mensagemCamposFaltando(modo, faltando))
+      refs[faltando[0]].current?.focus()
       return
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       toast.error('Esse e-mail não parece válido.')
-      return
-    }
-    if (modo === 'criar' && !nome.trim()) {
-      toast.error('Preencha seu nome para criar a conta.')
+      refs.email.current?.focus()
       return
     }
     if (senha.length < 8) {
       toast.warning('A senha precisa ter ao menos 8 caracteres.')
+      refs.senha.current?.focus()
+      return
+    }
+
+    // Só agora o Neon importa. Antes ficava no topo da função e engolia a
+    // validação em silêncio quando o banco não estava configurado.
+    if (!neon) {
+      toast.error('O banco de dados não está configurado neste ambiente.')
       return
     }
 
@@ -120,6 +135,7 @@ export function Auth({ onAutenticado }: Props) {
           <>
             <input
               type="text"
+              ref={refs.nome}
               required
               placeholder="nome e sobrenome"
               value={nome}
@@ -142,6 +158,7 @@ export function Auth({ onAutenticado }: Props) {
         )}
         <input
           type="email"
+          ref={refs.email}
           required
           placeholder="seu@email.com"
           value={email}
@@ -150,6 +167,7 @@ export function Auth({ onAutenticado }: Props) {
         />
         <input
           type="password"
+          ref={refs.senha}
           required
           minLength={8}
           placeholder="senha (mín. 8 caracteres)"
