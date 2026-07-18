@@ -41,3 +41,14 @@ desktop.ini
 *~
 .vscode/*
 !.vscode/settings.json
+
+# Documentos financeiros reais (CPF, agência, conta, nomes de terceiros).
+# Nunca commitar: o histórico do git é permanente.
+# Fixtures de teste ficam em tests/fixtures/, anonimizados.
+*.pdf
+!tests/fixtures/**/*.pdf
+documentos/
+extratos/
+
+# Ferramenta de diagnóstico local (usa caminhos de PDFs reais)
+scripts/diagnostico.ts

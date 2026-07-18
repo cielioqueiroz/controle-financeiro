@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+@theme {
+  /* Tipografia quadrada/geométrica: Archivo (grotesca de traços retos) no
+     texto e JetBrains Mono (dígitos quadrados) nos números. */
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "Archivo", system-ui, sans-serif;
+
+  /* Superfícies e tinta — valores padrão (tema ESCURO). O tema claro
+     sobrescreve estas mesmas variáveis em :root[data-theme="light"], então
+     as classes (bg-carvao-950, text-tinta…) invertem sem tocar no HTML. */
+  --color-carvao-950: #0d0c0b;
+  --color-carvao-900: #131211;
+  --color-carvao-850: #191816;
+  --color-carvao-800: #22201d;
+  --color-carvao-700: #2f2c28;
+  --color-carvao-600: #45403a;
+
+  --color-tinta: #f5f3ef;
+  --color-tinta-fraca: #a8a29a;
+  --color-tinta-tenue: #6f6a62;
+
+  --color-confere: #00c974;
+  --color-ressalva: #f5a623;
+  --color-falha: #ff4d4f;
+
+  --radius-suave: 0.5rem;
+}
+
+/* Tema CLARO — papel quente. Inverte a hierarquia mantendo o contraste:
+   página bege, cartões quase brancos (sobressaem), tinta escura. */
+:root[data-theme="light"] {
+  --color-carvao-950: #ece6db; /* página */
+  --color-carvao-900: #fbf9f5; /* cartão (mais claro que a página) */
+  --color-carvao-850: #f2eee6; /* hover */
+  --color-carvao-800: #e7e1d5; /* preenchimentos sutis */
+  --color-carvao-700: #d8d0c2; /* bordas */
+  --color-carvao-600: #c0b7a6; /* bordas fortes */
+
+  --color-tinta: #211e1a;
+  --color-tinta-fraca: #57514a;
+  --color-tinta-tenue: #8a8377;
+  color-scheme: light;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-carvao-950);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
+}
+
+/* Mãozinha em tudo que é clicável (o Tailwind v4 não põe por padrão). */
+@layer base {
+  button:not(:disabled),
+  a,
+  select:not(:disabled),
+  summary,
+  [role="button"],
+  label[for] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  /* Títulos em Archivo pedem peso e tracking apertado para o ar quadrado
+     (é só o padrão; utilitários de peso ainda sobrescrevem). */
+  .font-display {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Hover/foco bacana nos campos: borda realça ao passar o mouse e um anel
+     verde suave ao focar. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+  input:hover:not(:focus):not(:disabled),
+  textarea:hover:not(:focus),
+  select:hover:not(:disabled) {
+    border-color: var(--color-carvao-600);
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: color-mix(in oklab, var(--color-confere) 55%, var(--color-carvao-600));
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-confere) 20%, transparent);
+  }
+
+  /* Clicáveis ganham uma transição suave para o hover ficar gostoso. */
+  button,
+  a,
+  [role="button"],
+  summary {
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      transform 0.12s ease,
+      opacity 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+}
+
+/* Números tabulares — coluna de valores sem tremer. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Grão de papel sobre o fundo. */
+.grao::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes carimbo {
+  0% {
+    opacity: 0;
+    transform: scale(1.15) rotate(-3deg);
+  }
+  60% {
+    transform: scale(0.97) rotate(0.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes pulso {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.surgir {
+  animation: surgir 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.carimbo {
+  animation: carimbo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.pulso {
+  animation: pulso 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surgir,
+  .carimbo,
+  .pulso,
+  body {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Toasts — fundo colorido e cheio por tipo (sonner marca data-type).
+   Cor viva para chamar atenção; título/descrição herdam a cor. */
+[data-sonner-toast] {
+  border: none !important;
+  background: var(--color-carvao-800);
+  color: var(--color-tinta);
+}
+[data-sonner-toast][data-type="success"] {
+  background: var(--color-confere);
+  color: #04240f;
+}
+[data-sonner-toast][data-type="error"] {
+  background: var(--color-falha);
+  color: #ffffff;
+}
+[data-sonner-toast][data-type="warning"] {
+  background: var(--color-ressalva);
+  color: #241a00;
+}
+
+/* Cabeçalho que só aparece no PDF impresso. */
+.somente-impressao {
+  display: none;
+}
+
+/* Impressão / Baixar PDF — relatório limpo em papel branco. Esconde
+   enfeites e controles; força paleta clara para não gastar tinta. */
+@media print {
+  .somente-impressao {
+    display: block !important;
+  }
+  .grao::after,
+  button,
+  select,
+  .screen-only {
+    display: none !important;
+  }
+  :root,
+  :root[data-theme="light"] {
+    --color-carvao-950: #ffffff;
+    --color-carvao-900: #ffffff;
+    --color-carvao-850: #f6f6f4;
+    --color-carvao-800: #eeece8;
+    --color-carvao-700: #dddad4;
+    --color-carvao-600: #c2bdb4;
+    --color-tinta: #17150f;
+    --color-tinta-fraca: #45413a;
+    --color-tinta-tenue: #6f6a60;
+    color-scheme: light;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding-top: 0 !important;
+  }
+}
