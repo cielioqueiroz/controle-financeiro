@@ -6,6 +6,7 @@ import { categoria } from '../categorize/categorias'
 import { formatBRL } from '../normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
 import { Documentos } from './Documentos'
+import { EditarCompra } from './EditarCompra'
 
 type Props = {
   onImportar: () => void
@@ -73,6 +74,14 @@ export function Dashboard({ onImportar }: Props) {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [mostrarDocs, setMostrarDocs] = useState(false)
+  const [editando, setEditando] = useState<TransacaoSalva | null>(null)
+
+  // Aplica a edição em memória (sem reidratar tudo do banco).
+  function aplicarEdicao(id: string, campos: { label: string | null; category_slug: string }) {
+    setTodas((atual) =>
+      atual ? atual.map((t) => (t.id === id ? { ...t, ...campos } : t)) : atual,
+    )
+  }
 
   // Busca tudo uma vez; navegar entre períodos é fatiamento no cliente.
   // Reutilizado para recarregar após apagar um documento.
@@ -222,7 +231,7 @@ export function Dashboard({ onImportar }: Props) {
         ) : vazio ? (
           <Vazio onImportar={onImportar} />
         ) : (
-          <Conteudo resumo={resumo} txs={txs} chave={chave} />
+          <Conteudo resumo={resumo} txs={txs} chave={chave} onEditar={setEditando} />
         )}
       </div>
 
@@ -234,6 +243,13 @@ export function Dashboard({ onImportar }: Props) {
             onMudou={carregar}
           />
         )}
+        {editando && (
+          <EditarCompra
+            tx={editando}
+            onFechar={() => setEditando(null)}
+            onSalvo={aplicarEdicao}
+          />
+        )}
       </AnimatePresence>
     </div>
   )
@@ -243,10 +259,12 @@ function Conteudo({
   resumo,
   txs,
   chave,
+  onEditar,
 }: {
   resumo: ReturnType<typeof agregar>
   txs: TransacaoSalva[]
   chave: string
+  onEditar: (t: TransacaoSalva) => void
 }) {
   return (
     <motion.div
@@ -272,7 +290,7 @@ function Conteudo({
       {/* Lista — sem rolagem interna; flui com a página (usa o espaço). */}
       <ul className="border-t border-carvao-800 px-3 py-2">
         {txs.map((t) => (
-          <Linha key={t.id} t={t} />
+          <Linha key={t.id} t={t} onEditar={onEditar} />
         ))}
       </ul>
     </motion.div>
@@ -303,12 +321,12 @@ function Tile({
   )
 }
 
-function Linha({ t }: { t: TransacaoSalva }) {
+function Linha({ t, onEditar }: { t: TransacaoSalva; onEditar: (t: TransacaoSalva) => void }) {
   const cat = categoria(t.category_slug ?? 'outros')
   const interno = t.kind === 'internal_transfer' || t.kind === 'card_payment'
   return (
     <li
-      className={`flex items-center gap-3 rounded-sm px-4 py-2 transition-colors hover:bg-carvao-850 ${
+      className={`group flex items-center gap-3 rounded-sm px-4 py-2 transition-colors hover:bg-carvao-850 ${
         interno ? 'opacity-55' : ''
       }`}
     >
@@ -326,6 +344,16 @@ function Linha({ t }: { t: TransacaoSalva }) {
           </span>
         )}
       </span>
+      <button
+        onClick={() => onEditar(t)}
+        aria-label="Editar compra"
+        title="Renomear / trocar categoria"
+        className="screen-only grid h-7 w-7 shrink-0 place-items-center rounded-md text-tinta-tenue opacity-0 transition-all hover:bg-carvao-800 hover:text-tinta focus:opacity-100 group-hover:opacity-100"
+      >
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+        </svg>
+      </button>
       <span
         className={`tabular shrink-0 text-sm ${
           t.amount_cents < 0 ? 'text-confere' : 'text-tinta'
