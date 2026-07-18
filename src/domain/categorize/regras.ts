@@ -57,6 +57,46 @@ export const REGRAS_GLOBAIS: Regra[] = [
   ...contains('delivery', 110, ['IFOOD', 'RAPPI', 'UBER EATS']),
   // Transporte
   ...contains('transporte', 110, ['UBER', '99APP', '99 APP', 'CABIFY']),
+  // Restaurante (comer fora — distinto de delivery)
+  ...contains('restaurante', 105, [
+    'RESTAURANTE', 'LANCHONETE', 'CHURRASCARIA', 'PIZZARIA', 'BURGER KING',
+    'MC DONALDS', 'MCDONALDS', 'SUBWAY', 'HABIBS', 'GIRAFFAS', 'OUTBACK',
+    'SPOLETO', 'DIVINO FOGAO', 'COMIDA',
+  ]),
+  // Lazer
+  ...contains('lazer', 100, [
+    'CINEMARK', 'CINEMA', 'INGRESSO.COM', 'INGRESSOCOM', 'KINOPLEX', 'UCI ',
+    'TEATRO', 'CERVEJARIA', 'BOATE', 'BALADA',
+  ]),
+  // Vestuário
+  ...contains('vestuario', 100, [
+    'RENNER', 'RIACHUELO', 'C&A', 'ZARA', 'HERING', 'MARISA', 'PERNAMBUCANAS',
+    'CALCADOS', 'CALÇADOS', 'MODA ', 'CENTAURO', 'NIKE', 'ADIDAS',
+  ]),
+  // Pets
+  ...contains('pets', 105, [
+    'PETZ', 'COBASI', 'PETSHOP', 'PET SHOP', 'PETLOVE', 'AGROPET',
+    'VETERINARIA', 'PET CENTER',
+  ]),
+  // Casa & Moradia
+  ...contains('casa', 95, [
+    'LEROY', 'TELHANORTE', 'C&C CASA', 'TOK STOK', 'TOK&STOK', 'MADEIRA MADEIRA',
+    'MADEIRAMADEIRA', 'MATERIAL DE CONSTR', 'CONSTRUCAO', 'FERRAGEM',
+  ]),
+  // Aluguel
+  ...contains('aluguel', 110, ['ALUGUEL', 'IMOBILIARIA']),
+  // Academia
+  ...contains('academia', 110, ['SMARTFIT', 'SMART FIT', 'ACADEMIA', 'BODYTECH', 'BIO RITMO']),
+  // Investimentos
+  ...contains('investimentos', 100, [
+    'TESOURO DIRETO', 'NUINVEST', 'XP INVESTIMENTOS', 'RICO INVEST',
+    'CLEAR CORRETORA', 'CORRETORA', 'CDB', 'APLICACAO',
+  ]),
+  // Impostos & Taxas de governo
+  ...contains('impostos', 110, [
+    'DARF', 'IPTU', 'IPVA', 'DETRAN', 'RECEITA FEDERAL', 'GOV.BR', 'GOVBR',
+    'FGTS', 'INSS', 'DAS SIMPLES', 'GRU ',
+  ]),
   // Educação
   ...contains('educacao', 100, ['EDUCANDARIO', 'INSTITUTO APRENDER', 'ESCOLA', 'FACULDADE']),
   // Papelaria

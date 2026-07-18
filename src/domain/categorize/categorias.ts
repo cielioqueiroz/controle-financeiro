@@ -30,6 +30,16 @@ export const CATEGORIAS: Categoria[] = [
   { slug: 'agua', nome: 'Água', icone: '💧', cor: '#60a5fa' },
   { slug: 'luz', nome: 'Luz', icone: '💡', cor: '#fde047' },
   { slug: 'transporte', nome: 'Transporte', icone: '🚗', cor: '#f59e0b' },
+  { slug: 'restaurante', nome: 'Restaurante', icone: '🍽️', cor: '#fb923c' },
+  { slug: 'lazer', nome: 'Lazer', icone: '🎬', cor: '#c084fc' },
+  { slug: 'vestuario', nome: 'Vestuário', icone: '👕', cor: '#f472b6' },
+  { slug: 'pets', nome: 'Pets', icone: '🐾', cor: '#a3e635' },
+  { slug: 'casa', nome: 'Casa & Moradia', icone: '🏠', cor: '#38bdf8' },
+  { slug: 'aluguel', nome: 'Aluguel', icone: '🔑', cor: '#facc15' },
+  { slug: 'academia', nome: 'Academia', icone: '🏋️', cor: '#4ade80' },
+  { slug: 'investimentos', nome: 'Investimentos', icone: '💰', cor: '#34d399' },
+  { slug: 'presentes', nome: 'Presentes', icone: '🎁', cor: '#fb7185' },
+  { slug: 'impostos', nome: 'Impostos & Taxas', icone: '🧾', cor: '#94a3b8' },
   { slug: 'outros', nome: 'Outros', icone: '❓', cor: '#6b7280' },
 ]
 
