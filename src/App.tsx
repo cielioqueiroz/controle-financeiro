@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Toaster, toast } from 'sonner'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
@@ -126,28 +126,54 @@ export default function App() {
         }}
       />
 
-      <main className="relative z-10 mx-auto max-w-3xl px-6 py-16 sm:py-24">
-        <header className="screen-only mb-12 flex items-start justify-between gap-4">
+      <main className="relative z-10 mx-auto w-full max-w-[104rem] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
+        <header className="screen-only mb-8 flex items-start justify-between gap-4 sm:mb-10">
           <div>
-            <p className="tabular text-[11px] uppercase tracking-[0.35em] text-tinta-tenue">
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="tabular flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-tinta-tenue"
+            >
+              <motion.span
+                className="inline-block h-1.5 w-1.5 rounded-full bg-confere"
+                animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              />
               Controle Financeiro
-            </p>
-            <h1 className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl">
-              {logado ? (
-                <>
-                  Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
-                  <span aria-hidden>👋</span>
-                  <br />
-                  <span className="text-tinta-fraca">Para onde o dinheiro foi?</span>
-                </>
-              ) : (
-                <>
-                  Importe o PDF.
-                  <br />
-                  <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
-                </>
-              )}
-            </h1>
+            </motion.p>
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={logado ? 'in' : 'out'}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+                className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl"
+              >
+                {logado ? (
+                  <>
+                    Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
+                    <motion.span
+                      aria-hidden
+                      className="inline-block origin-[70%_80%]"
+                      animate={{ rotate: [0, 16, -8, 16, 0] }}
+                      transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.5 }}
+                    >
+                      👋
+                    </motion.span>
+                    <br />
+                    <span className="text-tinta-fraca">Para onde o dinheiro foi?</span>
+                  </>
+                ) : (
+                  <>
+                    Importe o PDF.
+                    <br />
+                    <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
+                  </>
+                )}
+              </motion.h1>
+            </AnimatePresence>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <ThemeToggle />
@@ -170,21 +196,23 @@ export default function App() {
         {precisaLogin ? (
           <Auth onAutenticado={checarSessao} />
         ) : estado.fase === 'pronto' ? (
-          <ResultadoImport
-            kind={estado.kind}
-            result={estado.result}
-            podeSalvar={logado}
-            salvando={salvando}
-            onSalvar={salvar}
-            onLimpar={() => {
-              setEstado({ fase: 'vazio' })
-              setImportando(false)
-            }}
-          />
+          <div className="mx-auto max-w-4xl">
+            <ResultadoImport
+              kind={estado.kind}
+              result={estado.result}
+              podeSalvar={logado}
+              salvando={salvando}
+              onSalvar={salvar}
+              onLimpar={() => {
+                setEstado({ fase: 'vazio' })
+                setImportando(false)
+              }}
+            />
+          </div>
         ) : logado && !importando ? (
           <Dashboard onImportar={() => setImportando(true)} />
         ) : (
-          <div>
+          <div className="mx-auto max-w-2xl">
             {logado && (
               <button
                 onClick={() => setImportando(false)}

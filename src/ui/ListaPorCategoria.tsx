@@ -84,7 +84,7 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
                   transition={{ duration: 0.25 }}
                   className="overflow-hidden"
                 >
-                  <ul className="bg-carvao-950/40 px-3 py-1.5">
+                  <ul className="bg-carvao-950/30 py-1">
                     {g.itens.map((t) => (
                       <LinhaTransacao key={t.id} t={t} onEditar={onEditar} semIcone />
                     ))}

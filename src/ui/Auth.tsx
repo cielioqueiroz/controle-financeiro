@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
@@ -58,13 +59,37 @@ export function Auth({ onAutenticado }: Props) {
   }
 
   return (
-    <div className="surgir mx-auto max-w-sm rounded-sm border border-carvao-700 bg-carvao-900 p-8">
-      <h2 className="font-display text-2xl text-tinta">
-        {modo === 'entrar' ? 'Entrar' : 'Criar conta'}
-      </h2>
-      <p className="mt-2 text-sm text-tinta-fraca">
-        Seus dados financeiros, só seus.
-      </p>
+    <div className="relative mx-auto mt-6 max-w-sm sm:mt-12">
+      {/* Brilho animado atrás do cartão (contido, não é o fundo todo) */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute -inset-10 -z-10 rounded-full opacity-70 blur-3xl"
+        style={{
+          background:
+            'radial-gradient(45% 45% at 30% 30%, color-mix(in oklab, var(--color-confere) 40%, transparent), transparent 70%), radial-gradient(45% 45% at 75% 70%, color-mix(in oklab, var(--color-tinta) 22%, transparent), transparent 70%)',
+        }}
+        animate={{ scale: [1, 1.12, 1], rotate: [0, 12, 0], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 p-8 shadow-2xl shadow-black/30 backdrop-blur-sm"
+      >
+        <motion.div
+          className="mb-5 flex justify-center"
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <MoedaLogo />
+        </motion.div>
+
+        <h2 className="text-center font-display text-2xl text-tinta">
+          {modo === 'entrar' ? 'Entrar' : 'Criar conta'}
+        </h2>
+        <p className="mt-2 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
 
       <form onSubmit={submeter} className="mt-6 space-y-3">
         {modo === 'criar' && (
@@ -142,7 +167,30 @@ export function Auth({ onAutenticado }: Props) {
       >
         {modo === 'entrar' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
       </button>
+      </motion.div>
     </div>
+  )
+}
+
+/** Moeda R$ animada — mesma marca do favicon, em SVG inline. */
+function MoedaLogo() {
+  return (
+    <svg width="56" height="56" viewBox="0 0 64 64" className="drop-shadow-lg" aria-hidden>
+      <circle cx="32" cy="32" r="23" fill="var(--color-confere)" />
+      <circle cx="32" cy="32" r="23" fill="none" stroke="#065f37" strokeWidth="2.5" opacity="0.55" />
+      <circle cx="32" cy="32" r="18.5" fill="none" stroke="#065f37" strokeWidth="1.6" opacity="0.4" />
+      <text
+        x="32"
+        y="41.5"
+        textAnchor="middle"
+        fontFamily="'JetBrains Mono', monospace"
+        fontWeight="800"
+        fontSize="24"
+        fill="#0d0c0b"
+      >
+        R$
+      </text>
+    </svg>
   )
 }
 

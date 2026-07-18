@@ -1,4 +1,4 @@
-import { LinhaTransacao } from './LinhaTransacao'
+import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
 import { formatBRL } from '../normalize/money'
 import type { GrupoDia } from '../persist/agrupar'
 import type { TransacaoSalva } from '../persist/puxar'
@@ -26,25 +26,28 @@ export function ListaPorDia({ grupos, onEditar }: Props) {
   }
 
   return (
-    <div className="divide-y divide-carvao-800">
-      {grupos.map((g) => (
-        <section key={g.dia}>
-          <header className="flex items-baseline justify-between gap-3 bg-carvao-950/40 px-5 py-2">
-            <span className="text-sm font-medium capitalize text-tinta">{cabecalhoDia(g.dia)}</span>
-            <span className="tabular flex items-baseline gap-3 text-xs">
-              {g.entradasCents > 0 && (
-                <span className="text-confere">+{formatBRL(g.entradasCents)}</span>
-              )}
-              {g.gastoCents > 0 && <span className="text-tinta-fraca">−{formatBRL(g.gastoCents)}</span>}
-            </span>
-          </header>
-          <ul className="px-3 py-1.5">
-            {g.itens.map((t) => (
-              <LinhaTransacao key={t.id} t={t} onEditar={onEditar} />
-            ))}
-          </ul>
-        </section>
-      ))}
+    <div>
+      <CabecalhoLancamentos mostrarCategoria />
+      <div className="divide-y divide-carvao-800">
+        {grupos.map((g) => (
+          <section key={g.dia}>
+            <header className="flex items-baseline justify-between gap-3 bg-carvao-850/60 px-5 py-2">
+              <span className="text-sm font-semibold capitalize text-tinta">{cabecalhoDia(g.dia)}</span>
+              <span className="tabular flex items-baseline gap-3 text-xs">
+                {g.entradasCents > 0 && (
+                  <span className="text-confere">+{formatBRL(g.entradasCents)}</span>
+                )}
+                {g.gastoCents > 0 && <span className="text-tinta-fraca">−{formatBRL(g.gastoCents)}</span>}
+              </span>
+            </header>
+            <ul>
+              {g.itens.map((t) => (
+                <LinhaTransacao key={t.id} t={t} onEditar={onEditar} mostrarCategoria />
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
     </div>
   )
 }

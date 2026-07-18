@@ -9,6 +9,8 @@ import {
   evolucaoMensal,
   projecaoFutura,
   type Periodo,
+  type PontoMes,
+  type MesFuturo,
 } from '../persist/agrupar'
 import { formatBRL } from '../normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
@@ -16,6 +18,7 @@ import { GraficoEvolucao } from './GraficoEvolucao'
 import { CompromissosFuturos } from './CompromissosFuturos'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { ListaPorDia } from './ListaPorDia'
+import { MenuAcoes } from './MenuAcoes'
 import { Documentos } from './Documentos'
 import { EditarCompra } from './EditarCompra'
 
@@ -175,28 +178,39 @@ export function Dashboard({ onImportar }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setMostrarDocs(true)}
-            className="rounded-sm border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
-            title="Ver e apagar documentos importados"
-          >
-            Documentos
-          </button>
-          {txs && txs.length > 0 && (
+          {/* Desktop: ações inline */}
+          <div className="hidden items-center gap-2 sm:flex">
             <button
-              onClick={() => window.print()}
-              className="rounded-sm border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:bg-carvao-850"
-              title="Baixar ou compartilhar em PDF"
+              onClick={() => setMostrarDocs(true)}
+              className="rounded-lg border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
+              title="Ver e apagar documentos importados"
             >
-              Baixar PDF
+              Documentos
             </button>
-          )}
-          <button
-            onClick={onImportar}
-            className="rounded-sm bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
-          >
-            + Importar PDF
-          </button>
+            {txs && txs.length > 0 && (
+              <button
+                onClick={() => window.print()}
+                className="rounded-lg border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:bg-carvao-850"
+                title="Baixar ou compartilhar em PDF"
+              >
+                Baixar PDF
+              </button>
+            )}
+            <button
+              onClick={onImportar}
+              className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+            >
+              + Importar PDF
+            </button>
+          </div>
+          {/* Mobile: hambúrguer */}
+          <div className="sm:hidden">
+            <MenuAcoes
+              onImportar={onImportar}
+              onDocumentos={() => setMostrarDocs(true)}
+              onBaixarPDF={txs && txs.length > 0 ? () => window.print() : undefined}
+            />
+          </div>
         </div>
       </div>
 
@@ -243,22 +257,7 @@ export function Dashboard({ onImportar }: Props) {
         </button>
       </div>
 
-      {!carregando && (serie.length >= 2 || futuros.length > 0) && (
-        <div
-          className={`mb-4 grid gap-4 ${
-            serie.length >= 2 && futuros.length > 0 ? 'lg:grid-cols-2' : ''
-          }`}
-        >
-          {serie.length >= 2 && (
-            <div className="screen-only">
-              <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
-            </div>
-          )}
-          {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-sm border border-carvao-700 bg-carvao-900">
+      <div className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900">
         {carregando ? (
           <Esqueleto />
         ) : erro ? (
@@ -266,7 +265,16 @@ export function Dashboard({ onImportar }: Props) {
         ) : vazio ? (
           <Vazio onImportar={onImportar} />
         ) : (
-          <Conteudo resumo={resumo} txs={txs} chave={chave} onEditar={setEditando} />
+          <Conteudo
+            resumo={resumo}
+            txs={txs}
+            chave={chave}
+            onEditar={setEditando}
+            serie={serie}
+            futuros={futuros}
+            compAtiva={compAtiva}
+            onIrParaMes={irParaMes}
+          />
         )}
       </div>
 
@@ -295,11 +303,19 @@ function Conteudo({
   txs,
   chave,
   onEditar,
+  serie,
+  futuros,
+  compAtiva,
+  onIrParaMes,
 }: {
   resumo: ReturnType<typeof agregar>
   txs: TransacaoSalva[]
   chave: string
   onEditar: (t: TransacaoSalva) => void
+  serie: PontoMes[]
+  futuros: MesFuturo[]
+  compAtiva: string
+  onIrParaMes: (competencia: string) => void
 }) {
   const [vista, setVista] = useState<'categoria' | 'dia'>('categoria')
   const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
@@ -312,38 +328,51 @@ function Conteudo({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Tiles de resumo */}
-      <div className="grid grid-cols-2 gap-px bg-carvao-800 sm:grid-cols-3">
+      {/* Tiles de resumo — largura total */}
+      <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-3">
         <Tile rotulo="Gasto no período" valor={formatBRL(resumo.gastoCents)} destaque />
         <Tile rotulo="Entradas" valor={formatBRL(resumo.entradasCents)} cor="var(--color-confere)" />
         <Tile rotulo="Lançamentos" valor={String(resumo.contagem)} />
       </div>
 
-      {/* Donut de categorias */}
-      {resumo.porCategoria.length > 0 && (
-        <div className="border-t border-carvao-800 px-8 py-7">
-          <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
-        </div>
-      )}
+      {/* Duas colunas no desktop: resumo visual (esq.) + tabelas largas (dir.) */}
+      <div className="grid border-t border-carvao-800 xl:grid-cols-[minmax(300px,360px)_1fr]">
+        {/* Coluna do resumo visual */}
+        <aside className="space-y-6 border-carvao-800 p-5 xl:border-r">
+          {resumo.porCategoria.length > 0 && (
+            <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
+          )}
+          {serie.length >= 2 && (
+            <div className="screen-only">
+              <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={onIrParaMes} />
+            </div>
+          )}
+          {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
+        </aside>
 
-      {/* Alternador de visão + lista (sem rolagem interna) */}
-      <div className="flex items-center justify-between border-t border-carvao-800 px-5 py-3">
-        <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">Lançamentos</p>
-        <div className="flex gap-0.5 rounded-full border border-carvao-700 bg-carvao-900 p-0.5">
-          <AbaVista ativa={vista === 'categoria'} onClick={() => setVista('categoria')}>
-            Por categoria
-          </AbaVista>
-          <AbaVista ativa={vista === 'dia'} onClick={() => setVista('dia')}>
-            Por dia
-          </AbaVista>
+        {/* Coluna das tabelas */}
+        <div className="min-w-0 border-t border-carvao-800 xl:border-t-0">
+          <div className="flex items-center justify-between px-5 py-3">
+            <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
+              Lançamentos
+            </p>
+            <div className="flex gap-0.5 rounded-full border border-carvao-700 bg-carvao-900 p-0.5">
+              <AbaVista ativa={vista === 'categoria'} onClick={() => setVista('categoria')}>
+                Por categoria
+              </AbaVista>
+              <AbaVista ativa={vista === 'dia'} onClick={() => setVista('dia')}>
+                Por dia
+              </AbaVista>
+            </div>
+          </div>
+
+          {vista === 'categoria' ? (
+            <ListaPorCategoria grupos={grupos} totalCents={resumo.gastoCents} onEditar={onEditar} />
+          ) : (
+            <ListaPorDia grupos={dias} onEditar={onEditar} />
+          )}
         </div>
       </div>
-
-      {vista === 'categoria' ? (
-        <ListaPorCategoria grupos={grupos} totalCents={resumo.gastoCents} onEditar={onEditar} />
-      ) : (
-        <ListaPorDia grupos={dias} onEditar={onEditar} />
-      )}
     </motion.div>
   )
 }
@@ -391,7 +420,7 @@ function Tile({
     <div className="bg-carvao-900 px-6 py-5">
       <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">{rotulo}</p>
       <p
-        className={`tabular mt-1.5 ${destaque ? 'text-2xl' : 'text-xl'} text-tinta`}
+        className={`tabular mt-1.5 ${destaque ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'} text-tinta`}
         style={cor ? { color: cor } : undefined}
       >
         {valor}
