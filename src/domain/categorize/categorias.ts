@@ -45,5 +45,30 @@ export const CATEGORIAS: Categoria[] = [
 
 const porSlug = new Map(CATEGORIAS.map((c) => [c.slug, c]))
 
+/** Categorias criadas pelo usuário (vêm do banco em tempo de execução).
+ *  Slugs começam com "u-" para nunca colidir com as embutidas. */
+const extras = new Map<string, Categoria>()
+
+export function registrarCategoriasUsuario(cats: Categoria[]): void {
+  extras.clear()
+  for (const c of cats) extras.set(c.slug, c)
+}
+
+export function adicionarCategoriaExtra(cat: Categoria): void {
+  extras.set(cat.slug, cat)
+}
+
+export function removerCategoriaExtra(slug: string): void {
+  extras.delete(slug)
+}
+
+/** Todas as categorias para o seletor: embutidas + do usuário, com "Outros"
+ *  sempre por último. */
+export function todasCategorias(): Categoria[] {
+  const semOutros = CATEGORIAS.filter((c) => c.slug !== 'outros')
+  const outros = CATEGORIAS.find((c) => c.slug === 'outros')!
+  return [...semOutros, ...extras.values(), outros]
+}
+
 export const categoria = (slug: string): Categoria =>
-  porSlug.get(slug) ?? porSlug.get('outros')!
+  porSlug.get(slug) ?? extras.get(slug) ?? porSlug.get('outros')!

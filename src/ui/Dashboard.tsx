@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
+import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
+import { registrarCategoriasUsuario } from '../domain/categorize/categorias'
 import {
   filtrar,
   agregar,
@@ -110,7 +112,13 @@ export function Dashboard({ onImportar }: Props) {
     setCarregando(true)
     setErro(null)
     try {
-      const dados = await puxarTudo()
+      // Carrega as categorias do usuário antes das transações, para que
+      // categoria() já conheça as personalizadas ao renderizar.
+      const [cats, dados] = await Promise.all([
+        puxarCategoriasUsuario().catch(() => []),
+        puxarTudo(),
+      ])
+      registrarCategoriasUsuario(cats)
       setTodas(dados)
       // Abre no mês da competência mais recente (faturas trazem meses passados).
       const maisRecente = dados
