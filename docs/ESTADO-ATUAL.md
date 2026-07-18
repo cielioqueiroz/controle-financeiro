@@ -5,9 +5,9 @@
 
 ## Onde o código está
 
-- **Branch de trabalho:** `feat/ingestao-documentos` (ainda **não** foi mesclada na `main`).
+- **Branch de trabalho:** `main`. A `feat/ingestao-documentos` foi mesclada (PR #1) e **não se trabalha mais nela** — desde 2026-07-18 o trabalho é direto na `main`.
 - **Remoto:** `git@github.com:cielioqueiroz/controle-financeiro.git`
-- Árvore limpa, tudo commitado. `npm test` = **183 testes verdes**, `npm run build` e `npm run lint` OK.
+- Árvore limpa, tudo commitado. `npm test` = **197 testes verdes**, `npm run build` e `npm run lint` OK.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -57,6 +57,17 @@ Existe uma conta de teste no Neon (`teste.migracao@exemplo.com`) usada nas verif
 ---
 
 ## 🚧 O que falta
+
+### 0. Fila de features pedidas em 2026-07-18
+
+Nesta ordem, cada uma com seu próprio spec e plano:
+
+1. ~~Toast do cadastro + olho da senha~~ — **feito** (spec e plano em `docs/superpowers/`).
+2. **Fundo animado (three.js) + mais animações.** Instalar `three` e `@types/three`; canvas `#bg-animation` fixo, `z-index: -1`, sobre `#0d0d0d`.
+3. **Renomear o sistema.** "Controle financeiro" é genérico. Sugestões levantadas: Cofre, Bússola, Extrato, Malote, Farol, Miúdo. Aguarda escolha.
+4. **i18n pt/en/es.** Botão de idioma trocando *todo* o texto. Decisão pendente: a moeda deve apenas **formatar** conforme a locale (mantendo R$) — **não** converter, o que exigiria cotação e faria os números mentirem. Depende do nome estar definido.
+5. **PDF de verdade.** Hoje `Baixar PDF` é `window.print()`, que não gera arquivo algum — o app nunca vê um PDF. Precisa de geração real (jsPDF/pdfmake) antes de qualquer coisa depender do arquivo.
+6. **Enviar o relatório por e-mail.** Depende de (5) e do deploy. O app é um SPA sem servidor: a chave do serviço de e-mail não pode ficar no navegador, então exige uma serverless function na Vercel.
 
 ### 1. Saldo bancário por conta (feature pedida, ainda não iniciada)
 

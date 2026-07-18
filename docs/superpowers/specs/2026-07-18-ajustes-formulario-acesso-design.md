@@ -46,9 +46,9 @@ A mensagem é montada a partir da lista, com o verbo conforme o modo:
 | Modo | Faltando | Toast |
 |---|---|---|
 | criar | nome, email, senha | "Preencha nome, e-mail e senha para criar sua conta." |
-| criar | nome | "Preencha seu nome para criar a conta." |
+| criar | nome | "Preencha seu nome para criar sua conta." |
 | criar | email, senha | "Preencha e-mail e senha para criar sua conta." |
-| entrar | email, senha | "Preencha o e-mail e a senha para entrar." |
+| entrar | email, senha | "Preencha e-mail e senha para entrar." |
 | entrar | senha | "Preencha sua senha para entrar." |
 
 Ligação da lista em português: dois itens unidos por "e"; três por vírgula + "e"
