@@ -7,7 +7,9 @@ import {
   porCategoriaDetalhado,
   porDia,
   evolucaoMensal,
+  projecaoFutura,
   type TxAgrupavel,
+  type TxParcela,
 } from './agrupar'
 
 const tx = (over: Partial<TxAgrupavel>): TxAgrupavel => ({
@@ -117,6 +119,43 @@ describe('evolucaoMensal', () => {
     expect(s.map((p) => p.competencia)).toEqual(['2026-05', '2026-06'])
     expect(s[1].gastoCents).toBe(1000)
     expect(s[1].entradasCents).toBe(8000)
+  })
+})
+
+describe('projecaoFutura', () => {
+  const parcela = (over: Partial<TxParcela>): TxParcela => ({
+    competencia: '2026-06',
+    amount_cents: 10000,
+    kind: 'expense',
+    description: 'GELADEIRA LOJA X',
+    label: null,
+    installment: { current: 3, total: 6 },
+    ...over,
+  })
+
+  it('projeta as parcelas restantes nos meses seguintes', () => {
+    // 3/6 em junho → 4,5,6 caem em jul, ago, set
+    const f = projecaoFutura([parcela({})])
+    expect(f.map((m) => m.competencia)).toEqual(['2026-07', '2026-08', '2026-09'])
+    expect(f[0].totalCents).toBe(10000)
+    expect(f[0].itens[0].parcela).toBe(4)
+    expect(f[2].itens[0].parcela).toBe(6)
+  })
+
+  it('não duplica: usa a parcela mais recente de cada série', () => {
+    // mesma compra em duas faturas (3/6 em jun, 4/6 em jul) → projeta só a
+    // partir da 4/6 (a mais nova): 5,6 em ago, set
+    const f = projecaoFutura([
+      parcela({ competencia: '2026-06', installment: { current: 3, total: 6 } }),
+      parcela({ competencia: '2026-07', installment: { current: 4, total: 6 } }),
+    ])
+    expect(f.map((m) => m.competencia)).toEqual(['2026-08', '2026-09'])
+    expect(f.reduce((a, m) => a + m.itens.length, 0)).toBe(2)
+  })
+
+  it('ignora compras à vista e parcelas já quitadas', () => {
+    expect(projecaoFutura([parcela({ installment: null })])).toEqual([])
+    expect(projecaoFutura([parcela({ installment: { current: 6, total: 6 } })])).toEqual([])
   })
 })
 

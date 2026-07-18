@@ -7,11 +7,13 @@ import {
   porCategoriaDetalhado,
   porDia,
   evolucaoMensal,
+  projecaoFutura,
   type Periodo,
 } from '../persist/agrupar'
 import { formatBRL } from '../normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
 import { GraficoEvolucao } from './GraficoEvolucao'
+import { CompromissosFuturos } from './CompromissosFuturos'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { ListaPorDia } from './ListaPorDia'
 import { Documentos } from './Documentos'
@@ -136,6 +138,7 @@ export function Dashboard({ onImportar }: Props) {
     return m
   }, [todas])
   const serie = useMemo(() => (todas ? evolucaoMensal(todas) : []), [todas])
+  const futuros = useMemo(() => (todas ? projecaoFutura(todas) : []), [todas])
   const compAtiva = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`
   const vazio = !carregando && todas !== null && txs.length === 0
   const chave = `${periodo}-${ref.getTime()}`
@@ -240,9 +243,18 @@ export function Dashboard({ onImportar }: Props) {
         </button>
       </div>
 
-      {!carregando && serie.length >= 2 && (
-        <div className="mb-4 screen-only">
-          <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+      {!carregando && (serie.length >= 2 || futuros.length > 0) && (
+        <div
+          className={`mb-4 grid gap-4 ${
+            serie.length >= 2 && futuros.length > 0 ? 'lg:grid-cols-2' : ''
+          }`}
+        >
+          {serie.length >= 2 && (
+            <div className="screen-only">
+              <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+            </div>
+          )}
+          {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
         </div>
       )}
 

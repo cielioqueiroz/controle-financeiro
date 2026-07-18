@@ -146,6 +146,70 @@ export function evolucaoMensal(txs: TxAgrupavel[]): PontoMes[] {
   return [...mapa.values()].sort((a, b) => (a.competencia < b.competencia ? -1 : 1))
 }
 
+export type TxParcela = {
+  competencia: string
+  amount_cents: number
+  kind: string
+  description: string
+  label: string | null
+  installment: { current: number; total: number } | null
+}
+
+export type ItemFuturo = {
+  descricao: string
+  parcela: number
+  total: number
+  amountCents: number
+}
+
+export type MesFuturo = {
+  competencia: string // YYYY-MM
+  totalCents: number
+  itens: ItemFuturo[]
+}
+
+function somarMeses(comp: string, k: number): string {
+  const [y, m] = comp.split('-').map(Number)
+  const d = new Date(y, m - 1 + k, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+/** Projeta as parcelas que ainda vão cair, por mês futuro.
+ *
+ *  "Sem duplicar": a projeção NUNCA é salva no banco — é só cálculo. E, para
+ *  cada série de parcelas (mesma compra em várias faturas), projetamos a
+ *  partir da parcela MAIS RECENTE conhecida. Como a próxima parcela ainda
+ *  não foi importada (se tivesse, ela seria a mais recente), a projeção
+ *  nunca colide com um lançamento real que chegar. */
+export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
+  // Uma entrada por série, mantendo a parcela de maior número (mais nova).
+  const series = new Map<string, { comp: string; current: number; total: number; cents: number; desc: string }>()
+  for (const t of txs) {
+    if (t.kind !== 'expense' || !t.installment) continue
+    const { current, total } = t.installment
+    if (total <= current) continue
+    const desc = t.label ?? t.description
+    const chave = `${desc}|${total}`
+    const atual = series.get(chave)
+    if (!atual || current > atual.current) {
+      series.set(chave, { comp: t.competencia, current, total, cents: t.amount_cents, desc })
+    }
+  }
+
+  const meses = new Map<string, MesFuturo>()
+  for (const s of series.values()) {
+    for (let k = 1; k <= s.total - s.current; k++) {
+      const comp = somarMeses(s.comp, k)
+      const mes = meses.get(comp) ?? { competencia: comp, totalCents: 0, itens: [] }
+      mes.totalCents += s.cents
+      mes.itens.push({ descricao: s.desc, parcela: s.current + k, total: s.total, amountCents: s.cents })
+      meses.set(comp, mes)
+    }
+  }
+  for (const m of meses.values()) m.itens.sort((a, b) => b.amountCents - a.amountCents)
+  return [...meses.values()].sort((a, b) => (a.competencia < b.competencia ? -1 : 1))
+}
+
 export type GrupoDia<T> = {
   dia: string // YYYY-MM-DD
   gastoCents: number
