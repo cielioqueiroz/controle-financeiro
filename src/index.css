@@ -89,46 +89,6 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Fundo AURORA — manchas de cor que derivam devagar, dando profundidade
-   estilo shader sem o peso do three.js. Puro CSS, GPU-friendly. */
-.aurora::before {
-  content: "";
-  position: fixed;
-  inset: -20%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.55;
-  background:
-    radial-gradient(35% 45% at 18% 28%, color-mix(in oklab, var(--aurora-a) 40%, transparent), transparent 70%),
-    radial-gradient(30% 40% at 82% 22%, color-mix(in oklab, var(--aurora-b) 32%, transparent), transparent 72%),
-    radial-gradient(45% 50% at 65% 80%, color-mix(in oklab, var(--aurora-c) 28%, transparent), transparent 75%);
-  filter: blur(60px) saturate(120%);
-  animation: aurora-flow 26s ease-in-out infinite alternate;
-}
-
-:root {
-  --aurora-a: #7c5cff;
-  --aurora-b: #00c974;
-  --aurora-c: #ff5da2;
-}
-:root[data-theme="light"] {
-  --aurora-a: #b7a6ff;
-  --aurora-b: #8fe3bf;
-  --aurora-c: #ffb0cf;
-}
-
-@keyframes aurora-flow {
-  0% {
-    transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translate3d(5%, 3%, 0) rotate(8deg) scale(1.12);
-  }
-  100% {
-    transform: translate3d(-2%, 4%, 0) rotate(-6deg) scale(1.05);
-  }
-}
-
 @keyframes surgir {
   from {
     opacity: 0;
@@ -178,7 +138,6 @@ body {
   .surgir,
   .carimbo,
   .pulso,
-  .aurora::before,
   body {
     animation: none;
     transition: none;
@@ -196,7 +155,6 @@ body {
   .somente-impressao {
     display: block !important;
   }
-  .aurora::before,
   .grao::after,
   button,
   select,
@@ -221,9 +179,5 @@ body {
   }
   main {
     padding-top: 0 !important;
-  }
-  .max-h-\[46vh\] {
-    max-height: none !important;
-    overflow: visible !important;
   }
 }

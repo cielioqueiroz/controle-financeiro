@@ -4,6 +4,7 @@ import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
 import { ThemeToggle } from './ui/ThemeToggle'
+import { ContaMenu } from './ui/ContaMenu'
 import { Dashboard } from './ui/Dashboard'
 import { loadTextItems, PdfProtegidoError } from './pdf/load'
 import { buildLines } from './pdf/lines'
@@ -103,7 +104,7 @@ export default function App() {
   const precisaLogin = neonConfigurado && !logado
 
   return (
-    <div className="aurora grao min-h-dvh">
+    <div className="grao min-h-dvh">
       <Toaster
         theme="dark"
         position="bottom-right"
@@ -129,18 +130,15 @@ export default function App() {
             </h1>
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            <ThemeToggle />
             {logado && neon && (
-              <button
-                onClick={async () => {
+              <ContaMenu
+                onSair={async () => {
                   await neon?.auth.signOut()
                   setLogado(false)
                 }}
-                className="tabular text-[11px] uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
-              >
-                Sair
-              </button>
+              />
             )}
-            <ThemeToggle />
           </div>
         </header>
 

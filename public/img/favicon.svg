@@ -1,10 +1,11 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="16" fill="#131211"/>
-  <circle cx="32" cy="32" r="16" fill="none" stroke="#2f2c28" stroke-width="9"/>
-  <circle cx="32" cy="32" r="16" fill="none" stroke="#7c5cff" stroke-width="9"
-          stroke-dasharray="42 100" transform="rotate(-90 32 32)"/>
-  <circle cx="32" cy="32" r="16" fill="none" stroke="#00c974" stroke-width="9"
-          stroke-dasharray="22 100" stroke-dashoffset="-42" transform="rotate(-90 32 32)"/>
-  <circle cx="32" cy="32" r="16" fill="none" stroke="#ff5da2" stroke-width="9"
-          stroke-dasharray="14 100" stroke-dashoffset="-64" transform="rotate(-90 32 32)"/>
+  <rect width="64" height="64" rx="15" fill="#131211"/>
+  <!-- barras ascendentes: gasto que vira insight -->
+  <rect x="14" y="38" width="10" height="12" rx="3" fill="#6f6a62"/>
+  <rect x="27" y="28" width="10" height="22" rx="3" fill="#a8a29a"/>
+  <rect x="40" y="16" width="10" height="34" rx="3" fill="#00c974"/>
+  <!-- linha de tendência para cima -->
+  <path d="M16 40 L32 30 L45 17" fill="none" stroke="#f5f3ef" stroke-width="3"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="45" cy="17" r="4.2" fill="#f5f3ef"/>
 </svg>
