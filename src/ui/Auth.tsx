@@ -23,6 +23,25 @@ export function Auth({ onAutenticado }: Props) {
   async function submeter(e: React.FormEvent) {
     e.preventDefault()
     if (!neon) return
+
+    // Validação com o NOSSO toast (não o balão nativo do navegador).
+    if (!email.trim() || !senha) {
+      toast.error('Preencha o e-mail e a senha para continuar.')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error('Esse e-mail não parece válido.')
+      return
+    }
+    if (modo === 'criar' && !nome.trim()) {
+      toast.error('Preencha seu nome para criar a conta.')
+      return
+    }
+    if (senha.length < 8) {
+      toast.warning('A senha precisa ter ao menos 8 caracteres.')
+      return
+    }
+
     setOcupado(true)
     try {
       if (modo === 'criar') {
@@ -96,7 +115,7 @@ export function Auth({ onAutenticado }: Props) {
         </h2>
         <p className="mt-2 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
 
-      <form onSubmit={submeter} className="mt-6 space-y-3">
+      <form onSubmit={submeter} noValidate className="mt-6 space-y-3">
         {modo === 'criar' && (
           <>
             <input
