@@ -77,6 +77,43 @@ body {
     font-weight: 700;
     letter-spacing: -0.02em;
   }
+
+  /* Hover/foco bacana nos campos: borda realça ao passar o mouse e um anel
+     verde suave ao focar. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+  input:hover:not(:focus):not(:disabled),
+  textarea:hover:not(:focus),
+  select:hover:not(:disabled) {
+    border-color: var(--color-carvao-600);
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: color-mix(in oklab, var(--color-confere) 55%, var(--color-carvao-600));
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-confere) 20%, transparent);
+  }
+
+  /* Clicáveis ganham uma transição suave para o hover ficar gostoso. */
+  button,
+  a,
+  [role="button"],
+  summary {
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      transform 0.12s ease,
+      opacity 0.15s ease,
+      box-shadow 0.15s ease;
+  }
 }
 
 /* Números tabulares — coluna de valores sem tremer. */

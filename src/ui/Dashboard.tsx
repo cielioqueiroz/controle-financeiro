@@ -33,6 +33,12 @@ const PERIODOS: Array<{ id: Periodo; nome: string }> = [
   { id: 'ano', nome: 'Ano' },
 ]
 
+const BANCO_INFO: Record<string, { nome: string; cor: string }> = {
+  nubank: { nome: 'Nubank', cor: '#a05bd6' },
+  bradesco: { nome: 'Bradesco', cor: '#e8637a' },
+  desconhecido: { nome: 'Outro', cor: '#8a8377' },
+}
+
 /** Mês/Ano agrupam por fatura (competência); Dia/Semana pela data real. */
 function agrupamentoDe(periodo: Periodo): string {
   return periodo === 'mes' || periodo === 'ano' ? 'por fatura' : 'por data da compra'
@@ -89,6 +95,7 @@ export function Dashboard({ onImportar }: Props) {
   const [erro, setErro] = useState<string | null>(null)
   const [mostrarDocs, setMostrarDocs] = useState(false)
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
+  const [banco, setBanco] = useState<string>('geral')
 
   // Aplica a edição em memória (sem reidratar tudo do banco).
   function aplicarEdicao(id: string, campos: { label: string | null; category_slug: string }) {
@@ -125,9 +132,19 @@ export function Dashboard({ onImportar }: Props) {
     carregar()
   }, [carregar])
 
+  // Bancos presentes e a fatia visível conforme o banco selecionado.
+  const bancos = useMemo(
+    () => [...new Set((todas ?? []).map((t) => t.bank))].filter(Boolean).sort(),
+    [todas],
+  )
+  const visiveis = useMemo(
+    () => (banco === 'geral' ? todas : (todas ?? []).filter((t) => t.bank === banco)),
+    [todas, banco],
+  )
+
   const txs = useMemo(
-    () => (todas ? filtrar(todas, periodo, ref) : []),
-    [todas, periodo, ref],
+    () => (visiveis ? filtrar(visiveis, periodo, ref) : []),
+    [visiveis, periodo, ref],
   )
   const resumo = useMemo(() => agregar(txs), [txs])
   const contagemPorDoc = useMemo(() => {
@@ -140,8 +157,8 @@ export function Dashboard({ onImportar }: Props) {
     }
     return m
   }, [todas])
-  const serie = useMemo(() => (todas ? evolucaoMensal(todas) : []), [todas])
-  const futuros = useMemo(() => (todas ? projecaoFutura(todas) : []), [todas])
+  const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
+  const futuros = useMemo(() => (visiveis ? projecaoFutura(visiveis) : []), [visiveis])
   const compAtiva = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`
   const vazio = !carregando && todas !== null && txs.length === 0
   const chave = `${periodo}-${ref.getTime()}`
@@ -154,6 +171,22 @@ export function Dashboard({ onImportar }: Props) {
 
   return (
     <div className="surgir">
+      {/* Seletor de banco (só se houver mais de um) */}
+      {bancos.length >= 2 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <BancoPill ativo={banco === 'geral'} onClick={() => setBanco('geral')} nome="Total geral" />
+          {bancos.map((b) => (
+            <BancoPill
+              key={b}
+              ativo={banco === b}
+              onClick={() => setBanco(b)}
+              nome={BANCO_INFO[b]?.nome ?? b}
+              cor={BANCO_INFO[b]?.cor}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Seletor de período + importar */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex gap-1 rounded-full border border-carvao-700 bg-carvao-900/60 p-1">
@@ -380,6 +413,39 @@ function Conteudo({
         </div>
       </div>
     </motion.div>
+  )
+}
+
+function BancoPill({
+  ativo,
+  onClick,
+  nome,
+  cor,
+}: {
+  ativo: boolean
+  onClick: () => void
+  nome: string
+  cor?: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition-colors ${
+        ativo
+          ? 'border-transparent text-carvao-950'
+          : 'border-carvao-700 text-tinta-fraca hover:border-carvao-600 hover:text-tinta'
+      }`}
+    >
+      {ativo && (
+        <motion.span
+          layoutId="pilula-banco"
+          className="absolute inset-0 rounded-full bg-tinta"
+          transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+        />
+      )}
+      {cor && <span className="relative z-10 h-2 w-2 rounded-full" style={{ background: cor }} />}
+      <span className="relative z-10">{nome}</span>
+    </button>
   )
 }
 
