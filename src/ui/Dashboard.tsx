@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
 import { filtrar, agregar, type Periodo } from '../persist/agrupar'
 import { categoria } from '../categorize/categorias'
 import { formatBRL } from '../normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
+import { Documentos } from './Documentos'
 
 type Props = {
   onImportar: () => void
@@ -71,39 +72,51 @@ export function Dashboard({ onImportar }: Props) {
   const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  const [mostrarDocs, setMostrarDocs] = useState(false)
 
   // Busca tudo uma vez; navegar entre períodos é fatiamento no cliente.
-  useEffect(() => {
-    let vivo = true
+  // Reutilizado para recarregar após apagar um documento.
+  const carregar = useCallback(async () => {
     setCarregando(true)
     setErro(null)
-    puxarTudo()
-      .then((dados) => {
-        if (!vivo) return
-        setTodas(dados)
-        // Abre no mês da competência mais recente (faturas trazem meses
-        // passados; a lista já vem ordenada por data desc).
-        const maisRecente = dados
-          .map((t) => t.competencia)
-          .sort()
-          .at(-1)
-        if (maisRecente) {
-          const [y, m] = maisRecente.split('-').map(Number)
-          setRef(new Date(y, m - 1, 1))
-        }
-      })
-      .catch((e) => vivo && setErro(e instanceof Error ? e.message : 'Falha ao carregar'))
-      .finally(() => vivo && setCarregando(false))
-    return () => {
-      vivo = false
+    try {
+      const dados = await puxarTudo()
+      setTodas(dados)
+      // Abre no mês da competência mais recente (faturas trazem meses passados).
+      const maisRecente = dados
+        .map((t) => t.competencia)
+        .sort()
+        .at(-1)
+      if (maisRecente) {
+        const [y, m] = maisRecente.split('-').map(Number)
+        setRef(new Date(y, m - 1, 1))
+      }
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha ao carregar')
+    } finally {
+      setCarregando(false)
     }
   }, [])
+
+  useEffect(() => {
+    carregar()
+  }, [carregar])
 
   const txs = useMemo(
     () => (todas ? filtrar(todas, periodo, ref) : []),
     [todas, periodo, ref],
   )
   const resumo = useMemo(() => agregar(txs), [txs])
+  const contagemPorDoc = useMemo(() => {
+    const m = new Map<string, { qtd: number; totalCents: number }>()
+    for (const t of todas ?? []) {
+      const cur = m.get(t.document_id) ?? { qtd: 0, totalCents: 0 }
+      cur.qtd += 1
+      if (t.kind === 'expense') cur.totalCents += t.amount_cents
+      m.set(t.document_id, cur)
+    }
+    return m
+  }, [todas])
   const vazio = !carregando && todas !== null && txs.length === 0
   const chave = `${periodo}-${ref.getTime()}`
 
@@ -133,6 +146,13 @@ export function Dashboard({ onImportar }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMostrarDocs(true)}
+            className="rounded-sm border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
+            title="Ver e apagar documentos importados"
+          >
+            Documentos
+          </button>
           {txs && txs.length > 0 && (
             <button
               onClick={() => window.print()}
@@ -205,6 +225,16 @@ export function Dashboard({ onImportar }: Props) {
           <Conteudo resumo={resumo} txs={txs} chave={chave} />
         )}
       </div>
+
+      <AnimatePresence>
+        {mostrarDocs && (
+          <Documentos
+            contagem={contagemPorDoc}
+            onFechar={() => setMostrarDocs(false)}
+            onMudou={carregar}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
