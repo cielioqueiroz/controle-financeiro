@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@neondatabase/neon-js": "^0.6.2-beta",
-    "@supabase/supabase-js": "^2.110.7",
     "motion": "^12.42.2",
     "pdfjs-dist": "^5.4.149",
     "react": "^19.2.7",

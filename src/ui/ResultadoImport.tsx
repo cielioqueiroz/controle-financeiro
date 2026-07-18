@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
-import { BANCOS, rotuloTipo } from '../banks'
-import type { DocKind } from '../pdf/detect'
-import type { ParseResult } from '../parsers/types'
-import { formatBRL } from '../normalize/money'
-import { validar } from '../validate/checksum'
-import { construirInsights, type TxView } from '../insights'
-import { CATEGORIAS } from '../categorize/categorias'
+import { BANCOS, rotuloTipo } from '../domain/banks'
+import type { DocKind } from '../domain/pdf/detect'
+import type { ParseResult } from '../domain/parsers/types'
+import { formatBRL } from '../domain/normalize/money'
+import { validar } from '../domain/validate/checksum'
+import { construirInsights, type TxView } from '../domain/insights'
+import { CATEGORIAS } from '../domain/categorize/categorias'
 import { GraficoCategorias } from './GraficoCategorias'
 
 type Props = {

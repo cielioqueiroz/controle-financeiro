@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { editarTransacao } from '../persist/editar'
-import { CATEGORIAS } from '../categorize/categorias'
-import { formatBRL } from '../normalize/money'
+import { CATEGORIAS } from '../domain/categorize/categorias'
+import { formatBRL } from '../domain/normalize/money'
 import type { TransacaoSalva } from '../persist/puxar'
 
 type Props = {

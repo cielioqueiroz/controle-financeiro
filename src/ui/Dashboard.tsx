@@ -12,7 +12,7 @@ import {
   type PontoMes,
   type MesFuturo,
 } from '../persist/agrupar'
-import { formatBRL } from '../normalize/money'
+import { formatBRL } from '../domain/normalize/money'
 import { GraficoCategorias } from './GraficoCategorias'
 import { GraficoEvolucao } from './GraficoEvolucao'
 import { CompromissosFuturos } from './CompromissosFuturos'

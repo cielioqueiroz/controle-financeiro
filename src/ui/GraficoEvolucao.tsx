@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { formatBRL } from '../normalize/money'
+import { formatBRL } from '../domain/normalize/money'
 import type { PontoMes } from '../persist/agrupar'
 
 type Props = {

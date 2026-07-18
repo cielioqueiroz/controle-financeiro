@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { LinhaTransacao } from './LinhaTransacao'
-import { formatBRL } from '../normalize/money'
+import { formatBRL } from '../domain/normalize/money'
 import type { GrupoCategoria } from '../persist/agrupar'
 import type { TransacaoSalva } from '../persist/puxar'
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import { puxarDocumentos, apagarDocumento, apagarTudo, type DocumentoSalvo } from '../persist/documentos'
-import { formatBRL } from '../normalize/money'
+import { formatBRL } from '../domain/normalize/money'
 
 type Props = {
   onFechar: () => void

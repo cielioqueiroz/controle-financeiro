@@ -10,8 +10,8 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
-import { extractFromDocument } from '../src/pdf/extract'
-import type { TextItem } from '../src/pdf/types'
+import { extractFromDocument } from '../src/domain/pdf/extract'
+import type { TextItem } from '../src/domain/pdf/types'
 
 const require = createRequire(import.meta.url)
 

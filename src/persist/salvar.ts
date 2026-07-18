@@ -1,9 +1,9 @@
 import { neon } from '../lib/neon'
-import type { ParseResult, RawTransaction } from '../parsers/types'
-import type { DocKind } from '../pdf/detect'
-import { hashDocumento, chaveTransacao, sha256 } from '../dedupe/hash'
-import { categoriaDe } from '../categorize/regras'
-import { vincular, paraVincular } from '../link/vinculos'
+import type { ParseResult, RawTransaction } from '../domain/parsers/types'
+import type { DocKind } from '../domain/pdf/detect'
+import { hashDocumento, chaveTransacao, sha256 } from '../domain/dedupe/hash'
+import { categoriaDe } from '../domain/categorize/regras'
+import { vincular, paraVincular } from '../domain/link/vinculos'
 
 export type ResultadoSalvar =
   | { status: 'salvo'; documentId: string; inseridas: number; jaExistiam: number }

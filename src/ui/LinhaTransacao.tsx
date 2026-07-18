@@ -1,5 +1,5 @@
-import { categoria } from '../categorize/categorias'
-import { formatBRL } from '../normalize/money'
+import { categoria } from '../domain/categorize/categorias'
+import { formatBRL } from '../domain/normalize/money'
 import type { TransacaoSalva } from '../persist/puxar'
 
 type Props = {

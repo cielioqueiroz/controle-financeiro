@@ -1,5 +1,5 @@
-import type { CategoriaResumo } from '../insights'
-import { formatBRL } from '../normalize/money'
+import type { CategoriaResumo } from '../domain/insights'
+import { formatBRL } from '../domain/normalize/money'
 
 /** Donut de categorias em SVG puro — sem biblioteca de gráfico. Cada
  *  fatia usa a cor da categoria. */

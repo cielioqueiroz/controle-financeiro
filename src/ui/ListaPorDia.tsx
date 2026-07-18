@@ -1,5 +1,5 @@
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
-import { formatBRL } from '../normalize/money'
+import { formatBRL } from '../domain/normalize/money'
 import type { GrupoDia } from '../persist/agrupar'
 import type { TransacaoSalva } from '../persist/puxar'
 

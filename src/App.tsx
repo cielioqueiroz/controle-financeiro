@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
+import { Notificacoes } from './ui/Notificacoes'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
@@ -9,15 +10,15 @@ import { ContaMenu } from './ui/ContaMenu'
 import { Dashboard } from './ui/Dashboard'
 import { Tutorial } from './ui/Tutorial'
 import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial } from './lib/perfil'
-import { loadTextItems, PdfProtegidoError } from './pdf/load'
-import { buildLines } from './pdf/lines'
-import { pareceDigitalizado } from './pdf/extract'
-import { parse, ParserNaoImplementadoError } from './parsers'
-import { validar } from './validate/checksum'
+import { loadTextItems, PdfProtegidoError } from './domain/pdf/load'
+import { buildLines } from './domain/pdf/lines'
+import { pareceDigitalizado } from './domain/pdf/extract'
+import { parse, ParserNaoImplementadoError } from './domain/parsers'
+import { validar } from './domain/validate/checksum'
 import { neon, neonConfigurado } from './lib/neon'
 import { salvarDocumento } from './persist/salvar'
-import type { DocKind } from './pdf/detect'
-import type { ParseResult } from './parsers/types'
+import type { DocKind } from './domain/pdf/detect'
+import type { ParseResult } from './domain/parsers/types'
 
 type Estado =
   | { fase: 'vazio' }
@@ -114,17 +115,7 @@ export default function App() {
 
   return (
     <div className="grao min-h-dvh">
-      <Toaster
-        theme="dark"
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: 'var(--color-carvao-800)',
-            border: '1px solid var(--color-carvao-700)',
-            color: 'var(--color-tinta)',
-          },
-        }}
-      />
+      <Notificacoes />
 
       <main className="relative z-10 mx-auto w-full max-w-[104rem] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
         <header className="screen-only mb-8 flex items-start justify-between gap-4 sm:mb-10">

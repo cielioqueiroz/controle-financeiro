@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { formatBRL } from '../normalize/money'
+import { formatBRL } from '../domain/normalize/money'
 import type { MesFuturo } from '../persist/agrupar'
 
 type Props = {

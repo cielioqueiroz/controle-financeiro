@@ -49,3 +49,6 @@ desktop.ini
 !tests/fixtures/**/*.pdf
 documentos/
 extratos/
+
+# Ferramenta de diagnóstico local (usa caminhos de PDFs reais)
+scripts/diagnostico.ts

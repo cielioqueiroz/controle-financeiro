@@ -1,5 +1,5 @@
-import { categoria, type Categoria } from '../categorize/categorias'
-import type { CategoriaResumo } from '../insights'
+import { categoria, type Categoria } from '../domain/categorize/categorias'
+import type { CategoriaResumo } from '../domain/insights'
 
 export type Periodo = 'dia' | 'semana' | 'mes' | 'ano'
 
