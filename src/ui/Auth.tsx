@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { neon } from '../lib/neon'
+import { salvarApelido } from '../lib/perfil'
 
 type Props = {
   /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
@@ -12,6 +13,8 @@ type Props = {
  *  Supabase para neon-js. */
 export function Auth({ onAutenticado }: Props) {
   const [modo, setModo] = useState<'entrar' | 'criar'>('entrar')
+  const [nome, setNome] = useState('')
+  const [apelido, setApelido] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [ocupado, setOcupado] = useState(false)
@@ -22,12 +25,15 @@ export function Auth({ onAutenticado }: Props) {
     setOcupado(true)
     try {
       if (modo === 'criar') {
+        const nomeCompleto = nome.trim() || email.split('@')[0] || email
         const { error } = await neon.auth.signUp.email({
           email,
           password: senha,
-          name: email.split('@')[0] || email,
+          name: nomeCompleto,
         })
         if (error) throw new Error(error.message)
+        // Apelido é preferência local (como quer ser chamado na saudação).
+        salvarApelido(apelido || nome.trim().split(/\s+/)[0])
         toast.success('Conta criada. Se pedirmos confirmação, confira seu e-mail.')
         onAutenticado()
       } else {
@@ -61,6 +67,30 @@ export function Auth({ onAutenticado }: Props) {
       </p>
 
       <form onSubmit={submeter} className="mt-6 space-y-3">
+        {modo === 'criar' && (
+          <>
+            <input
+              type="text"
+              required
+              placeholder="nome e sobrenome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
+            />
+            <div>
+              <input
+                type="text"
+                placeholder="como quer ser chamado? (apelido, opcional)"
+                value={apelido}
+                onChange={(e) => setApelido(e.target.value)}
+                className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
+              />
+              <p className="mt-1 px-1 text-[11px] text-tinta-tenue">
+                É assim que vamos te saudar. Se deixar em branco, usamos seu primeiro nome.
+              </p>
+            </div>
+          </>
+        )}
         <input
           type="email"
           required

@@ -4,12 +4,13 @@ import { neon } from '../lib/neon'
 
 type Props = {
   onSair: () => void
+  onVerTutorial?: () => void
 }
 
 /** Menu de conta. O "Sair" mora aqui dentro, longe do toggle de tema e
  *  atrás de um clique intencional (abrir → confirmar) — antes ele ficava
  *  colado no toggle e dava para sair sem querer. */
-export function ContaMenu({ onSair }: Props) {
+export function ContaMenu({ onSair, onVerTutorial }: Props) {
   const [aberto, setAberto] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
   const [confirmando, setConfirmando] = useState(false)
@@ -95,15 +96,32 @@ export function ContaMenu({ onSair }: Props) {
                 </div>
               </div>
             ) : (
-              <button
-                onClick={() => setConfirmando(true)}
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17l5-5-5-5M20 12H9M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6" />
-                </svg>
-                Sair da conta
-              </button>
+              <>
+                {onVerTutorial && (
+                  <button
+                    onClick={() => {
+                      setAberto(false)
+                      onVerTutorial()
+                    }}
+                    className="flex w-full items-center gap-2 border-b border-carvao-800 px-4 py-3 text-left text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <circle cx="12" cy="12" r="9" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7M12 17h.01" />
+                    </svg>
+                    Ver tutorial
+                  </button>
+                )}
+                <button
+                  onClick={() => setConfirmando(true)}
+                  className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17l5-5-5-5M20 12H9M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6" />
+                  </svg>
+                  Sair da conta
+                </button>
+              </>
             )}
           </motion.div>
         )}

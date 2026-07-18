@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence } from 'motion/react'
 import { Toaster, toast } from 'sonner'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
@@ -6,6 +7,8 @@ import { Auth } from './ui/Auth'
 import { ThemeToggle } from './ui/ThemeToggle'
 import { ContaMenu } from './ui/ContaMenu'
 import { Dashboard } from './ui/Dashboard'
+import { Tutorial } from './ui/Tutorial'
+import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial } from './lib/perfil'
 import { loadTextItems, PdfProtegidoError } from './pdf/load'
 import { buildLines } from './pdf/lines'
 import { pareceDigitalizado } from './pdf/extract'
@@ -24,6 +27,8 @@ type Estado =
 export default function App() {
   const [estado, setEstado] = useState<Estado>({ fase: 'vazio' })
   const [logado, setLogado] = useState(false)
+  const [usuario, setUsuario] = useState<{ nome: string | null; email: string | null } | null>(null)
+  const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [salvando, setSalvando] = useState(false)
   /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
@@ -33,7 +38,11 @@ export default function App() {
   async function checarSessao() {
     if (!neon) return
     const { data } = await neon.auth.getSession()
-    setLogado(Boolean(data?.session))
+    const logou = Boolean(data?.session)
+    setLogado(logou)
+    const u = (data as { user?: { name?: string; email?: string } } | null)?.user
+    setUsuario(logou ? { nome: u?.name ?? null, email: u?.email ?? null } : null)
+    if (logou && tutorialPendente()) setMostrarTutorial(true)
   }
 
   useEffect(() => {
@@ -124,18 +133,34 @@ export default function App() {
               Controle Financeiro
             </p>
             <h1 className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl">
-              Importe o PDF.
-              <br />
-              <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
+              {logado ? (
+                <>
+                  Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
+                  <span aria-hidden>👋</span>
+                  <br />
+                  <span className="text-tinta-fraca">Para onde o dinheiro foi?</span>
+                </>
+              ) : (
+                <>
+                  Importe o PDF.
+                  <br />
+                  <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
+                </>
+              )}
             </h1>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <ThemeToggle />
             {logado && neon && (
               <ContaMenu
+                onVerTutorial={() => {
+                  reabrirTutorial()
+                  setMostrarTutorial(true)
+                }}
                 onSair={async () => {
                   await neon?.auth.signOut()
                   setLogado(false)
+                  setUsuario(null)
                 }}
               />
             )}
@@ -195,6 +220,18 @@ export default function App() {
           </p>
         </footer>
       </main>
+
+      <AnimatePresence>
+        {mostrarTutorial && logado && (
+          <Tutorial
+            nome={comoChamar(usuario?.nome, usuario?.email)}
+            onFechar={() => {
+              marcarTutorialVisto()
+              setMostrarTutorial(false)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
