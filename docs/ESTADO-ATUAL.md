@@ -83,15 +83,20 @@ Três partes:
 2. **Guardar** — a tabela `accounts` **não tem coluna de saldo**; precisa de migração no Neon (mostrar o SQL e aplicar em branch antes da produção, conforme combinado).
 3. **Exibir** — card de saldo por conta, usando o extrato mais recente como base.
 
-### 2. Deploy na Vercel — no ar, faltam as liberações de origem
+### 2. Deploy na Vercel — ✅ concluído
 
 Necessário para as ~6 pessoas usarem. Passos encadeados:
 1. ~~Criar/conectar o projeto na Vercel~~ — **feito**: projeto `capital-financeiro`,
    no ar em **https://capital-financeiro.vercel.app**, conectado ao GitHub (todo
    push na `main` publica sozinho).
 2. ~~Configurar as env vars~~ — **feito** (confirmado: o endpoint do Neon está no bundle publicado).
-3. Adicionar o domínio da Vercel aos **trusted domains do Neon Auth** (senão o login é rejeitado por origem).
-4. Adicionar o domínio aos **redirect URIs do Google OAuth**.
+3. ~~Trusted domains do Neon Auth~~ — **feito**: `https://capital-financeiro.vercel.app`
+   em *Neon → Auth → Configuration → Domains*. Antes disso o `sign-in/social`
+   devolvia `403 {"code":"INVALID_CALLBACKURL"}`; agora devolve 200 e o fluxo
+   chega na tela do Google.
+4. ~~Redirect URIs do Google OAuth~~ — **não foi necessário**: o provedor Google
+   está como *Shared keys* no Neon, que administra os redirect URIs do lado do
+   Google. Só passaria a ser necessário ao migrar para chaves próprias.
 5. ~~Conferir a URL das meta tags OG~~ — **feito**: `og:image` aponta para
    `https://capital-financeiro.vercel.app/og.png`, que responde 200. Vale validar
    uma vez no [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
