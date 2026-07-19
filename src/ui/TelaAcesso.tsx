@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
+import { Rodape } from './Rodape'
 
 /** Frase de quem ainda não entrou — usada aqui embaixo e também no header
  *  do App quando não há Neon configurado (o modo "importa e vê" também é
@@ -59,8 +60,10 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
           <FraseDeslogado />
         </motion.h1>
 
-        <div className="w-full lg:justify-self-end">{children}</div>
+        <div className="w-full">{children}</div>
       </div>
+
+      <Rodape />
     </div>
   )
 }

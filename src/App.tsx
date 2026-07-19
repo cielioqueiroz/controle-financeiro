@@ -5,6 +5,7 @@ import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
 import { TelaAcesso, FraseDeslogado } from './ui/TelaAcesso'
+import { Rodape } from './ui/Rodape'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
@@ -130,6 +131,12 @@ export default function App() {
   if (precisaLogin) {
     return (
       <div className="grao min-h-dvh">
+        {/* <FundoAnimado /> e <Notificacoes /> ocupam a mesma posição neste
+            <div> raiz nos dois returns (aqui e no de baixo). É essa
+            reconciliação posicional do React que mantém o contexto WebGL do
+            fundo vivo (não recriado a cada troca de branch) e deixa o toast
+            "Até logo" sobreviver à transição logado→deslogado. Mover um dos
+            dois em só um dos returns quebra as duas coisas em silêncio. */}
         <FundoAnimado />
         <Notificacoes />
         <TelaAcesso>
@@ -143,10 +150,8 @@ export default function App() {
               // logado). Sem isto, precisaLogin vira false assim que o
               // token some e o Dashboard da sessão antiga reaparece por
               // cima — mesmo a UI tendo acabado de dizer "entre com a
-              // senha nova". No caminho de login automático bem-sucedido,
-              // o checarSessao chamado logo em seguida (via onAutenticado)
-              // já corrige para a sessão nova; aqui só forçamos o card de
-              // entrar a aparecer sempre que a recuperação termina.
+              // senha nova". Aqui só forçamos o card de entrar a aparecer
+              // sempre que a recuperação termina.
               setLogado(false)
               setUsuario(null)
             }}
@@ -266,32 +271,7 @@ export default function App() {
           </div>
         )}
 
-        <footer className="mt-16 space-y-4">
-          <div className="screen-only flex items-center gap-3">
-            <span className="h-px flex-1 bg-carvao-800" />
-            <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-              {neonConfigurado
-                ? 'Lido no navegador · só a transação é salva, nunca o PDF'
-                : 'Lido no navegador · nada sai deste computador'}
-            </p>
-            <span className="h-px flex-1 bg-carvao-800" />
-          </div>
-          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-tinta-tenue">
-            <span className="tabular">© {new Date().getFullYear()}</span>
-            <span aria-hidden>·</span>
-            <span>Criado por</span>
-            {/* A assinatura é o único nome próprio da página: ganha corpo,
-                peso e a cor da marca para não se perder no rodapé. */}
-            <a
-              href="https://cielio-portfolio.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-display text-base font-semibold text-marca underline decoration-marca/40 underline-offset-4 transition-all hover:decoration-marca hover:brightness-110"
-            >
-              Cielio Queiroz
-            </a>
-          </p>
-        </footer>
+        <Rodape />
       </main>
 
       <AnimatePresence>
