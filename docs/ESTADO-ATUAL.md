@@ -86,6 +86,10 @@ Três partes:
 ### 2. Deploy na Vercel (pendente, precisa do usuário presente)
 
 Necessário para as ~6 pessoas usarem. Passos encadeados:
+0. **Nomear o projeto `paypulse`** — as meta tags OG já apontam para
+   `https://paypulse.vercel.app`; nome diferente exige editar o `index.html`.
+   Importar o repositório pelo painel (e não subir arquivos avulsos) é o que
+   liga o deploy automático a cada push.
 1. Criar/conectar o projeto na Vercel (time: `cielio-queiroz`, id `team_mPYNczjFxkNFlE22FDIM8g0V`).
 2. Configurar as env vars `VITE_NEON_DATA_API_URL` e `VITE_NEON_AUTH_URL` (senão o build sai sem banco).
 3. Adicionar o domínio da Vercel aos **trusted domains do Neon Auth** (senão o login é rejeitado por origem).
@@ -115,6 +119,12 @@ Ao retomar: rodar `npm run dev`, logar e conferir as duas na prática.
   URL absoluta; hoje aponta para o placeholder `https://paypulse.vercel.app/og.png`.
   Conferir e trocar quando o domínio real existir, e validar no
   [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
+- **GitHub Pages não serve para este app — não tente de novo.** Em 2026-07-18 o
+  Pages ficou publicando a **raiz do repositório**, cujo `index.html` é o arquivo
+  -fonte do Vite e aponta para `/src/main.tsx`. Navegador não executa TypeScript
+  com JSX: dá 404 e página em branco. Para funcionar exigiria workflow de build,
+  publicar o `dist/` (hoje no `.gitignore`) e `base: '/controle-financeiro/'` no
+  `vite.config.ts`, já que o Pages serve em subcaminho. Optamos pela **Vercel**.
 - **Nunca commitar PDFs reais** (`*.pdf` está no `.gitignore`) — contêm CPF, conta e nomes de terceiros.
 - `scripts/diagnostico.ts` é ferramenta local e está no `.gitignore`.
 
