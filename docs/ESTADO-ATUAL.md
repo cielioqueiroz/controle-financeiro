@@ -7,7 +7,7 @@
 
 - **Branch de trabalho:** `main`. A `feat/ingestao-documentos` foi mesclada (PR #1) e **não se trabalha mais nela** — desde 2026-07-18 o trabalho é direto na `main`.
 - **Remoto:** `git@github.com:cielioqueiroz/controle-financeiro.git`
-- Árvore limpa, tudo commitado. `npm test` = **197 testes verdes**, `npm run build` e `npm run lint` OK.
+- Árvore limpa, tudo commitado. `npm test` = **211 testes verdes**, `npm run build` e `npm run lint` OK.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -63,11 +63,12 @@ Existe uma conta de teste no Neon (`teste.migracao@exemplo.com`) usada nas verif
 Nesta ordem, cada uma com seu próprio spec e plano:
 
 1. ~~Toast do cadastro + olho da senha~~ — **feito** (spec e plano em `docs/superpowers/`).
-2. **Fundo animado (three.js) + mais animações.** Instalar `three` e `@types/three`; canvas `#bg-animation` fixo, `z-index: -1`, sobre `#0d0d0d`.
-3. **Renomear o sistema.** "Controle financeiro" é genérico. Sugestões levantadas: Cofre, Bússola, Extrato, Malote, Farol, Miúdo. Aguarda escolha.
-4. **i18n pt/en/es.** Botão de idioma trocando *todo* o texto. Decisão pendente: a moeda deve apenas **formatar** conforme a locale (mantendo R$) — **não** converter, o que exigiria cotação e faria os números mentirem. Depende do nome estar definido.
-5. **PDF de verdade.** Hoje `Baixar PDF` é `window.print()`, que não gera arquivo algum — o app nunca vê um PDF. Precisa de geração real (jsPDF/pdfmake) antes de qualquer coisa depender do arquivo.
-6. **Enviar o relatório por e-mail.** Depende de (5) e do deploy. O app é um SPA sem servidor: a chave do serviço de e-mail não pode ficar no navegador, então exige uma serverless function na Vercel.
+2. ~~Fundo animado (three.js) + mais animações.~~ — **feito** (canvas `#bg-animation` fixo, `z-index: 0`, three.js, import dinâmico, pausa em aba oculta).
+3. ~~Renomear o sistema.~~ — **feito** (renomeado para **PayPulse**).
+4. ~~Card de compartilhamento (meta tags OG).~~ — **feito** (meta tags em `index.html`, imagem `og.png` 1200x630, validação com teste).
+5. **i18n pt/en/es.** Botão de idioma trocando *todo* o texto. Decisão pendente: a moeda deve apenas **formatar** conforme a locale (mantendo R$) — **não** converter, o que exigiria cotação e faria os números mentirem.
+6. **PDF de verdade.** Hoje `Baixar PDF` é `window.print()`, que não gera arquivo algum — o app nunca vê um PDF. Precisa de geração real (jsPDF/pdfmake) antes de qualquer coisa depender do arquivo.
+7. **Enviar o relatório por e-mail.** Depende de (6) e do deploy. O app é um SPA sem servidor: a chave do serviço de e-mail não pode ficar no navegador, então exige uma serverless function na Vercel.
 
 ### 1. Saldo bancário por conta (feature pedida, ainda não iniciada)
 
@@ -89,6 +90,7 @@ Necessário para as ~6 pessoas usarem. Passos encadeados:
 2. Configurar as env vars `VITE_NEON_DATA_API_URL` e `VITE_NEON_AUTH_URL` (senão o build sai sem banco).
 3. Adicionar o domínio da Vercel aos **trusted domains do Neon Auth** (senão o login é rejeitado por origem).
 4. Adicionar o domínio aos **redirect URIs do Google OAuth**.
+5. **Conferir e atualizar a URL das meta tags OG** — `og:image` em `index.html` aponta para `https://paypulse.vercel.app/og.png`; trocar o domínio e validar com [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
 
 ### 3. Verificações pendentes
 
@@ -104,6 +106,15 @@ Ao retomar: rodar `npm run dev`, logar e conferir as duas na prática.
 
 - **Vite não recarrega bem quando arquivos mudam de lugar.** Depois de qualquer refatoração de pastas, **pare e reinicie o `npm run dev`** e dê `Ctrl+Shift+R` no navegador — senão parece que "nada mudou".
 - **Build verde ≠ runtime verde.** Já aconteceu de o build passar e o app quebrar (duplicação de React com o sonner, resolvida com `resolve.dedupe` no `vite.config.ts`).
+- **Decoração nunca pode entrar no layout de rolagem.** O brilho da tela de
+  login escalava até 1,25 sem ser recortado por ninguém e entrava no
+  `scrollWidth`, criando uma barra que aparecia e sumia no ritmo da animação.
+  Todo efeito de fundo vai na camada `#bg-animation` (`position: fixed`).
+  Depois de mexer em qualquer decoração, rodar `python scripts/medir-overflow.py`.
+- **O card de compartilhamento só funciona depois do deploy.** `og:image` exige
+  URL absoluta; hoje aponta para o placeholder `https://paypulse.vercel.app/og.png`.
+  Conferir e trocar quando o domínio real existir, e validar no
+  [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
 - **Nunca commitar PDFs reais** (`*.pdf` está no `.gitignore`) — contêm CPF, conta e nomes de terceiros.
 - `scripts/diagnostico.ts` é ferramenta local e está no `.gitignore`.
 
