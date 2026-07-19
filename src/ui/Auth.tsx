@@ -113,7 +113,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
   }
 
   return (
-    <div className="relative mx-auto mt-6 max-w-sm sm:mt-12">
+    <div className="relative mx-auto w-full max-w-sm">
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
