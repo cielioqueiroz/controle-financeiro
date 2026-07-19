@@ -241,6 +241,11 @@ function CampoSenha({
         type={visivel ? 'text' : 'password'}
         required
         minLength={8}
+        // O Better Auth recusa senha acima de 128 caracteres com 400 — o
+        // mesmo status que usamos para "token expirado". Barrar no teclado
+        // impede que uma senha longa demais seja reportada como link morto,
+        // destruindo um token que ainda servia.
+        maxLength={128}
         placeholder={placeholder}
         value={valor}
         onChange={(e) => aoMudar(e.target.value)}

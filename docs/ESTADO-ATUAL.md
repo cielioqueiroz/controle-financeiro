@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-07-18, fim do dia**.
+> Documento de continuidade. Última atualização: **2026-07-19**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,8 +14,8 @@
   (o repositório mantém o nome antigo de propósito: renomear quebraria caminhos).
 - **No ar:** **https://capital-financeiro.vercel.app** — projeto `capital-financeiro`
   na Vercel, conectado ao GitHub. **Todo push na `main` publica sozinho** em ~1 min.
-- Árvore limpa. `npm test` = **211 testes verdes** (21 arquivos), `npm run build` e
-  `npm run lint` OK. Foram **26 commits** em 2026-07-18.
+- Árvore limpa. `npm test` = **275 testes verdes** (27 arquivos), `npm run build` e
+  `npm run lint` OK. Foram 26 commits em 2026-07-18 e 18 em 2026-07-19.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -35,9 +35,14 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
+| Testes | **275** (27 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
-Existe também `cielioqueirozz@gmail.com`, criada via Google.
+⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
+para logar, nunca para testar e-mail. Para isso use uma conta com caixa real.
+Existe também `cielioqueirozz@gmail.com`, criada via Google (sem senha própria,
+então não serve para testar redefinição), e `cielioqueiroz@hotmail.com`, criada
+com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 ---
 
@@ -74,32 +79,46 @@ Existe também `cielioqueirozz@gmail.com`, criada via Google.
 
 ---
 
+**Entregue em 2026-07-19 — recuperação de senha (código pronto, falta verificar no navegador)**
+- Fluxo em dois passos dentro do card do acesso: pedir o link e definir a nova senha.
+- `lib/recuperar-senha.ts` (HTTP puro), `lib/url-token.ts`, `ui/RecuperarSenha.tsx`,
+  `validarNovaSenha` e `emailValido` em `ui/auth-validacao.ts`.
+- Extraídos para não duplicar: `ui/IconeOlho.tsx` e `ui/estilos-campo.ts`.
+- **211 → 275 testes.** Ver a seção de armadilhas para o que quase escapou.
+
+---
+
 ## 🚧 Fila do que falta — em ordem
 
-### 1. Recuperação de senha ("Esqueceu a senha?") — PRÓXIMA, já investigada
+### 0. Verificar a recuperação de senha no navegador — PRÓXIMA, é só isso
 
-Pedida em 2026-07-18. **Não precisa de servidor nosso**: o Neon Auth (Better Auth) já
-tem os endpoints e o Neon envia o e-mail (*Email provider: Shared*, `auth@mail.myneon.app`).
+O código está pronto e revisado; **nada foi testado contra o navegador ainda**.
+Roteiro, em ordem:
 
-Sondagem feita contra o servidor real — o cliente `neon-js` **não** expõe esses métodos,
-então é chamada HTTP direta ao `VITE_NEON_AUTH_URL`:
+1. `npm run dev`, `Ctrl+Shift+R` (nasceram arquivos novos).
+2. `python scripts/medir-overflow.py` — sem rolagem lateral.
+3. "Esqueceu a senha?" → pedir link para `cielioqueiroz@hotmail.com`.
+4. Abrir o link **no mesmo navegador** → trocar a senha → deve entrar direto,
+   e o `?token=` deve sumir da barra de endereços.
+5. Limpar `localStorage.removeItem('cf:email-reset')` antes de abrir outro link
+   → a senha troca e o card volta ao login com aviso.
+6. Reabrir um link já usado → "Este link expirou ou já foi usado." + botão de
+   pedir outro.
+7. **O caso que mais importa:** estando logado, abrir um link de redefinição e
+   concluir. Tem que aparecer o card de login, não o dashboard. Foi um bug real
+   (F1 do review final) e é onde um possível piscar do card apareceria.
 
-| Endpoint | Resultado da sondagem |
-|---|---|
-| `POST /forget-password` | **404** — não existe, não use |
-| `POST /request-password-reset` | **200** `{"status":true,"message":"If this email exists…"}` |
-| `POST /reset-password` | **400** `[body.newPassword] expected string` — existe, exige `newPassword` + `token` |
+Aproveite a sessão logada para conferir o **item 5** desta fila (filtro por banco
+e categorias personalizadas, que nunca foram validados contra o banco).
 
-Fluxo a implementar:
-1. Link "Esqueceu a senha?" no `Auth.tsx` → pede o e-mail.
-2. `POST /request-password-reset` com `{ email, redirectTo }`. O `redirectTo` **precisa
-   estar nos Domains do Neon Auth** (produção já está; `Allow Localhost` cobre o dev).
-3. O Neon envia o e-mail com link contendo `token`.
-4. O app detecta o `token` na URL e mostra o formulário de nova senha.
-5. `POST /reset-password` com `{ newPassword, token }`.
+### 1. Nome errado no e-mail de redefinição
 
-Ainda a confirmar: o formato exato do parâmetro que volta na URL (`?token=` é o padrão
-do Better Auth, mas vale conferir com um e-mail real).
+O e-mail sai como **"controle-financeiro"**, não "Capital Financeiro" — é o nome
+do projeto no painel do Neon vazando para o usuário. Não é código.
+
+Vale prioridade porque **é o único e-mail que pedimos ao usuário para confiar**,
+e chegar sob um nome que ele não reconhece tem forma de phishing. Cuidado com a
+armadilha de renomeação registrada no fim deste documento.
 
 ### 2. Relatório: PDF de verdade → compartilhar → e-mail
 
@@ -155,6 +174,21 @@ resolver em 2026-07-18.
 
 ## ⚠️ Notas de armadilha
 
+**Testes e tipos** (todas de 2026-07-19)
+- **`vi.stubEnv` NÃO alcança `import.meta.env`** neste setup — só `process.env`. Um teste
+  que tente fixar `VITE_*` falha em silêncio, lendo o valor real do `.env.local`. Por isso
+  `recuperar-senha.test.ts` assevera a **forma** da URL (absoluta + caminho), não o valor
+  da base. **O `neon.ts` tem o mesmo padrão** e baterá na mesma parede se um dia for testado.
+- **`tsconfig.test.json` precisou de `vite/client`.** O primeiro teste que renderiza o
+  `App` puxa a cadeia até `domain/pdf/load.ts`, que importa o worker do pdf.js com sufixo
+  `?url`. Quem declara esse formato é o `vite/client`, que só o `tsconfig.app.json` tinha.
+  Os dois arquivos são quase-duplicatas mantidas à mão (17 chaves iguais) — extrair um
+  `tsconfig.base.json` evitaria a próxima divergência.
+- **`git stash` sem `-u` não guarda arquivo novo não rastreado.** Um diagnóstico desta
+  sessão concluiu "erro pré-existente" porque o arquivo recém-criado continuou no disco
+  durante a comparação com o commit antigo. Para bissecar de verdade: `git stash -u`, e
+  `tsc -b --force` (o `tsc -b` é incremental e mente com cache quente).
+
 **Ferramentas e ambiente**
 - **Vite não recarrega bem quando arquivos nascem ou mudam de lugar.** Depois de criar
   arquivo ou refatorar pastas, **reinicie o `npm run dev`** e dê `Ctrl+Shift+R`.
@@ -199,6 +233,41 @@ resolver em 2026-07-18.
   `sign-in/social`. A lista fica em *Neon → Auth → Configuration → Domains*.
 - **Não religue a Vercel Authentication.** Ela não protege dados — quem protege é o login
   do app + RLS + JWT. Ligada, as ~6 pessoas não entram.
+
+---
+
+## O que quase escapou na recuperação de senha (2026-07-19)
+
+Vale ler antes de escrever o próximo plano. **Os dois bugs mais graves da rodada
+vieram do código de exemplo do próprio plano**, transcrito fielmente pelos
+implementadores. Plano detalhado não substitui review.
+
+1. **`salvarSenha` sem `try/catch`.** Se o `signIn.email` *lançasse* em vez de
+   devolver `error`, o usuário ficava com a senha já trocada, o token já apagado
+   e o botão travado em `…` — sem toast, sem saída. O `Auth.tsx` já tratava a
+   mesma chamada como lançável; o exemplo não.
+2. **`tokenReset` era `const` sem setter**, então `precisaLogin` ficava `true`
+   para sempre: quem redefinia a senha continuava vendo o formulário de nova
+   senha, com o cabeçalho já dizendo que estava logado. **Nenhum teste pegava.**
+
+Mais dois, achados só no review final, que **nenhum review por tarefa poderia
+ver** porque só emergem com as peças montadas:
+
+3. Com **sessão ativa**, um reset concluído sem login automático mostrava o
+   dashboard enquanto o toast dizia "Entre com a senha nova".
+4. O e-mail guardado em `cf:email-reset` era **entrada de uma chamada de
+   autenticação sem verificação**. Duas contas da casa com a mesma senha → o
+   auto-login entrava na conta errada, e a saudação usa o apelido local, então
+   nem o cabeçalho denunciava. Hoje o registro tem carimbo de tempo e vale 1h,
+   o mesmo tempo de vida do token.
+
+E duas lições sobre testes:
+- **Teste que passa dos dois jeitos é pior que nenhum.** O teste do olho de
+  revelar clicava com os campos vazios: passaria igual se o botão fosse
+  `type="submit"`. Encher os campos primeiro foi o que o tornou real.
+- **Asserção positiva não guarda promessa negativa.** O teste "não afirma que o
+  e-mail existe" só conferia a presença da frase condicional — enquanto a tela
+  dizia "Enviamos um link" logo acima. O bug e o teste conviviam.
 
 ---
 
