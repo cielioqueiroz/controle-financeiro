@@ -27,6 +27,11 @@
      de sucesso parecer aviso. */
   --color-marca: #d9a441;
 
+  /* Traço da moeda do logo. Marrom profundo: a face da moeda é sempre
+     --color-marca (âmbar) nos dois temas, então um só tom escuro serve
+     para ambos. Antes era #065f37 fixo, verde da paleta anterior. */
+  --color-moeda-traco: #4a3208;
+
   /* Estados. O verde de "confere" ficou dessaturado para caber no café —
      verde=certo/vermelho=errado é leitura aprendida e não vale trocar. */
   --color-confere: #6b8f4e;
@@ -62,6 +67,7 @@
 
   /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro. */
   --color-marca: #9a6a15;
+  --color-moeda-traco: #3d2a06;
   --color-confere: #4f6b39;
   --color-ressalva: #9c6415;
   --color-falha: #b3323a;

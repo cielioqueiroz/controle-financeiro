@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
 import { Marca } from './Marca'
+import { MoedaLogo } from './MoedaLogo'
 import { RecuperarSenha } from './RecuperarSenha'
 import { camposFaltando, mensagemCamposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
 import { IconeOlho } from './IconeOlho'
@@ -256,28 +257,6 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         )}
       </motion.div>
     </div>
-  )
-}
-
-/** Moeda R$ animada — mesma marca do favicon, em SVG inline. */
-function MoedaLogo() {
-  return (
-    <svg width="56" height="56" viewBox="0 0 64 64" className="drop-shadow-lg" aria-hidden>
-      <circle cx="32" cy="32" r="23" fill="var(--color-marca)" />
-      <circle cx="32" cy="32" r="23" fill="none" stroke="#065f37" strokeWidth="2.5" opacity="0.55" />
-      <circle cx="32" cy="32" r="18.5" fill="none" stroke="#065f37" strokeWidth="1.6" opacity="0.4" />
-      <text
-        x="32"
-        y="41.5"
-        textAnchor="middle"
-        fontFamily="'JetBrains Mono', monospace"
-        fontWeight="800"
-        fontSize="24"
-        fill="#0d0c0b"
-      >
-        R$
-      </text>
-    </svg>
   )
 }
 
