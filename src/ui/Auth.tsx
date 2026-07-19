@@ -14,12 +14,16 @@ type Props = {
   onAutenticado: () => void
   /** Token vindo do link do e-mail. Presente → abre direto a nova senha. */
   tokenReset?: string | null
+  /** Chamado quando o fluxo de recuperação termina, por qualquer saída
+   *  (redefiniu e entrou, ou voltou ao login) — para o App soltar o token
+   *  guardado e o card de recuperação não voltar a ser oferecido depois. */
+  onRecuperacaoConcluida?: () => void
 }
 
 /** Login e cadastro. E-mail/senha + Google, via Neon Auth (Better Auth).
  *  Mantém a tela grafite/Fraunces; só a engrenagem por baixo mudou de
  *  Supabase para neon-js. */
-export function Auth({ onAutenticado, tokenReset }: Props) {
+export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Props) {
   const [modo, setModo] = useState<'entrar' | 'criar' | 'recuperar'>(
     tokenReset ? 'recuperar' : 'entrar',
   )
@@ -40,14 +44,17 @@ export function Auth({ onAutenticado, tokenReset }: Props) {
   async function submeter(e: React.FormEvent) {
     e.preventDefault()
 
+    // submeter só roda a partir do <form>, que não existe no modo recuperar.
+    // A guarda documenta essa invariante e falha alto — em vez de mapear em
+    // silêncio para 'entrar' — se a JSX algum dia deixar o form escapar do
+    // seu branch.
+    if (modo === 'recuperar') return
+
     // Validação primeiro: campo vazio sempre vence formato inválido, para
     // as duas mensagens nunca competirem.
-    // submeter só roda a partir do <form>, que não existe no modo recuperar
-    // — mas o TypeScript não enxerga essa garantia daqui, então explicitamos.
-    const modoFormulario = modo === 'criar' ? 'criar' : 'entrar'
-    const faltando = camposFaltando(modoFormulario, { nome, email, senha })
+    const faltando = camposFaltando(modo, { nome, email, senha })
     if (faltando.length > 0) {
-      toast.error(mensagemCamposFaltando(modoFormulario, faltando))
+      toast.error(mensagemCamposFaltando(modo, faltando))
       refs[faltando[0]].current?.focus()
       return
     }
@@ -135,116 +142,120 @@ export function Auth({ onAutenticado, tokenReset }: Props) {
             onVoltar={(emailVolta) => {
               if (emailVolta) setEmail(emailVolta)
               setModo('entrar')
+              onRecuperacaoConcluida?.()
             }}
-            onAutenticado={onAutenticado}
+            onAutenticado={() => {
+              onRecuperacaoConcluida?.()
+              onAutenticado()
+            }}
           />
         ) : (
           <>
-        <h2 className="text-center font-display text-2xl text-tinta">
-          {modo === 'criar' ? 'Criar conta' : 'Entrar'}
-        </h2>
-        <p className="mt-2 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
+            <h2 className="text-center font-display text-2xl text-tinta">
+              {modo === 'criar' ? 'Criar conta' : 'Entrar'}
+            </h2>
+            <p className="mt-2 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
 
-      <form onSubmit={submeter} noValidate className="mt-6 space-y-3">
-        {modo === 'criar' && (
-          <>
+          <form onSubmit={submeter} noValidate className="mt-6 space-y-3">
+            {modo === 'criar' && (
+              <>
+                <input
+                  type="text"
+                  ref={refs.nome}
+                  required
+                  placeholder="nome e sobrenome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className={CAMPO}
+                />
+                <div>
+                  <input
+                    type="text"
+                    placeholder="como quer ser chamado? (apelido, opcional)"
+                    value={apelido}
+                    onChange={(e) => setApelido(e.target.value)}
+                    className={CAMPO}
+                  />
+                  <p className="mt-1 px-1 text-[11px] text-tinta-tenue">
+                    É assim que vamos te saudar. Se deixar em branco, usamos seu primeiro nome.
+                  </p>
+                </div>
+              </>
+            )}
             <input
-              type="text"
-              ref={refs.nome}
+              type="email"
+              ref={refs.email}
               required
-              placeholder="nome e sobrenome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className={CAMPO}
             />
-            <div>
+            <div className="relative">
               <input
-                type="text"
-                placeholder="como quer ser chamado? (apelido, opcional)"
-                value={apelido}
-                onChange={(e) => setApelido(e.target.value)}
-                className={CAMPO}
+                ref={refs.senha}
+                type={verSenha ? 'text' : 'password'}
+                required
+                minLength={8}
+                placeholder="senha (mín. 8 caracteres)"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className={CAMPO + ' pr-11'}
               />
-              <p className="mt-1 px-1 text-[11px] text-tinta-tenue">
-                É assim que vamos te saudar. Se deixar em branco, usamos seu primeiro nome.
-              </p>
+              <button
+                type="button"
+                onClick={() => setVerSenha(!verSenha)}
+                aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={verSenha}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-tinta-tenue transition-colors hover:text-tinta"
+              >
+                <IconeOlho aberto={verSenha} />
+              </button>
             </div>
-          </>
-        )}
-        <input
-          type="email"
-          ref={refs.email}
-          required
-          placeholder="seu@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={CAMPO}
-        />
-        <div className="relative">
-          <input
-            ref={refs.senha}
-            type={verSenha ? 'text' : 'password'}
-            required
-            minLength={8}
-            placeholder="senha (mín. 8 caracteres)"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            className={CAMPO + ' pr-11'}
-          />
+            <button
+              type="submit"
+              disabled={ocupado}
+              className={BOTAO_PRIMARIO}
+            >
+              {ocupado ? '…' : modo === 'criar' ? 'Criar conta' : 'Entrar'}
+            </button>
+          </form>
+
+          {modo === 'entrar' && (
+            <button
+              type="button"
+              onClick={() => setModo('recuperar')}
+              className="mt-3 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
+            >
+              Esqueceu a senha?
+            </button>
+          )}
+
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-carvao-800" />
+            <span className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">ou</span>
+            <span className="h-px flex-1 bg-carvao-800" />
+          </div>
+
           <button
-            type="button"
-            onClick={() => setVerSenha(!verSenha)}
-            aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
-            aria-pressed={verSenha}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-tinta-tenue transition-colors hover:text-tinta"
+            onClick={comGoogle}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-carvao-700 px-4 py-3 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:border-carvao-600 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
           >
-            <IconeOlho aberto={verSenha} />
+            <GoogleIcon /> Continuar com o Google
           </button>
-        </div>
-        <button
-          type="submit"
-          disabled={ocupado}
-          className={BOTAO_PRIMARIO}
-        >
-          {ocupado ? '…' : modo === 'criar' ? 'Criar conta' : 'Entrar'}
-        </button>
-      </form>
 
-      {modo === 'entrar' && (
-        <button
-          type="button"
-          onClick={() => setModo('recuperar')}
-          className="mt-3 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
-        >
-          Esqueceu a senha?
-        </button>
-      )}
+          <p className="mt-4 text-center text-[11px] leading-relaxed text-tinta-tenue">
+            Recomendamos criar conta com{' '}
+            <span className="text-tinta-fraca">e-mail e senha</span> — é o jeito mais
+            simples e direto.
+          </p>
 
-      <div className="my-5 flex items-center gap-3">
-        <span className="h-px flex-1 bg-carvao-800" />
-        <span className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">ou</span>
-        <span className="h-px flex-1 bg-carvao-800" />
-      </div>
-
-      <button
-        onClick={comGoogle}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-carvao-700 px-4 py-3 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:border-carvao-600 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
-      >
-        <GoogleIcon /> Continuar com o Google
-      </button>
-
-      <p className="mt-4 text-center text-[11px] leading-relaxed text-tinta-tenue">
-        Recomendamos criar conta com{' '}
-        <span className="text-tinta-fraca">e-mail e senha</span> — é o jeito mais
-        simples e direto.
-      </p>
-
-      <button
-        onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}
-        className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
-      >
-        {modo === 'entrar' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
-      </button>
+          <button
+            onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}
+            className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
+          >
+            {modo === 'entrar' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
+          </button>
           </>
         )}
       </motion.div>

@@ -38,9 +38,12 @@ export default function App() {
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
    *  quando muda (nova chave). */
   const [importando, setImportando] = useState(false)
-  // Lido uma vez, na montagem. Quem clica no link do e-mail quer redefinir,
-  // mesmo já tendo sessão ativa — por isso o token vence o `logado` abaixo.
-  const [tokenReset] = useState(() => lerTokenDaUrl(window.location.search))
+  // Lido na montagem. Quem clica no link do e-mail quer redefinir, mesmo já
+  // tendo sessão ativa — por isso o token vence o `logado` abaixo NA ENTRADA.
+  // Essa precedência só vale até o fluxo de recuperação terminar: o próprio
+  // Auth chama de volta (onRecuperacaoConcluida) para soltar o token quando
+  // a redefinição acaba, por qualquer saída — daí o setter existir.
+  const [tokenReset, setTokenReset] = useState(() => lerTokenDaUrl(window.location.search))
 
   async function checarSessao() {
     if (!neon) return
@@ -205,7 +208,11 @@ export default function App() {
         </header>
 
         {precisaLogin ? (
-          <Auth onAutenticado={checarSessao} tokenReset={tokenReset} />
+          <Auth
+            onAutenticado={checarSessao}
+            tokenReset={tokenReset}
+            onRecuperacaoConcluida={() => setTokenReset(null)}
+          />
         ) : estado.fase === 'pronto' ? (
           <div className="mx-auto max-w-4xl">
             <ResultadoImport
