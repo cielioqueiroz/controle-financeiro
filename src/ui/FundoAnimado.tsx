@@ -53,12 +53,28 @@ export function FundoAnimado() {
         geometria.setAttribute('position', new THREE.BufferAttribute(posicoes, 3))
         geometria.setAttribute('fase', new THREE.BufferAttribute(fases, 1))
 
+        function temaClaro() {
+          return document.documentElement.dataset.theme === 'light'
+        }
+
         /** Cor lida do tema, para o fundo acompanhar claro/escuro. */
         function corDoTema() {
           const valor = getComputedStyle(document.documentElement)
             .getPropertyValue('--color-confere')
             .trim()
           return new THREE.Color(valor || '#00c974')
+        }
+
+        /** No tema claro o fundo é creme, e blending aditivo sobre fundo claro
+         *  só clareia: os pontos viram manchinhas que leem como sujeira na
+         *  tela. Ali usamos blending normal e opacidade bem menor, para o
+         *  efeito virar textura de fundo em vez de poeira. */
+        function ajustarAoTema() {
+          const claro = temaClaro()
+          material.uniforms.cor.value = corDoTema()
+          material.uniforms.alfaMax.value = claro ? 0.22 : 1
+          material.blending = claro ? THREE.NormalBlending : THREE.AdditiveBlending
+          material.needsUpdate = true
         }
 
         const material = new THREE.ShaderMaterial({
@@ -68,6 +84,7 @@ export function FundoAnimado() {
           uniforms: {
             tempo: { value: 0 },
             cor: { value: corDoTema() },
+            alfaMax: { value: temaClaro() ? 0.22 : 1 },
           },
           vertexShader: `
             attribute float fase;
@@ -84,11 +101,12 @@ export function FundoAnimado() {
           `,
           fragmentShader: `
             uniform vec3 cor;
+            uniform float alfaMax;
             varying float vAlfa;
             void main() {
               float d = length(gl_PointCoord - vec2(0.5));
               if (d > 0.5) discard;
-              gl_FragColor = vec4(cor, vAlfa * smoothstep(0.5, 0.1, d));
+              gl_FragColor = vec4(cor, vAlfa * alfaMax * smoothstep(0.5, 0.1, d));
             }
           `,
         })
@@ -113,7 +131,7 @@ export function FundoAnimado() {
 
         // Repinta quando o tema muda (o botão de tema escreve data-theme).
         const observador = new MutationObserver(() => {
-          material.uniforms.cor.value = corDoTema()
+          ajustarAoTema()
         })
         observador.observe(document.documentElement, {
           attributes: true,
