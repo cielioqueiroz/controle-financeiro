@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { pedirLink, redefinirSenha } from './recuperar-senha'
 
-// A URL base vem de import.meta.env e é verificada contra o servidor de
-// mão, não aqui. Mas os testes exigem uma URL absoluta (http:// ou https://)
-// para impedir que o módulo regida para fetch sem base URL.
+// A URL base vem de import.meta.env, que o vi.stubEnv não alcança neste
+// setup — então o valor dela é conferido à mão contra o servidor real, não
+// aqui. O que estes testes garantem é a FORMA: URL absoluta (http:// ou
+// https://) mais o caminho certo. Assim, se alguém trocar a chamada por um
+// caminho relativo, sem base, o teste reprova.
 
 function respostaFake(status: number, corpo: unknown = {}) {
   return {
