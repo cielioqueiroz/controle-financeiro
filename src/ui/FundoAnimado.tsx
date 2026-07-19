@@ -58,29 +58,34 @@ export function FundoAnimado() {
         geometria.setAttribute('position', new THREE.BufferAttribute(posicoes, 3))
         geometria.setAttribute('fase', new THREE.BufferAttribute(fases, 1))
 
-        function temaClaro() {
-          return document.documentElement.dataset.theme === 'light'
+        /** Opacidade máxima das partículas, calibrada por tema em
+         *  `--particula-alfa`. */
+        function alfaDoTema() {
+          const valor = getComputedStyle(document.documentElement)
+            .getPropertyValue('--particula-alfa')
+            .trim()
+          const n = Number.parseFloat(valor)
+          return Number.isFinite(n) ? n : 0.5
         }
 
-        /** Cor lida da variável de tema `--color-confere`. Hoje ela vale o
-         *  mesmo verde nos dois temas (o tema claro não a sobrescreve), então
-         *  a cor em si não muda entre claro/escuro — o que muda é o blending
-         *  e a opacidade, ajustados em `ajustarAoTema`. */
+        /** Cor lida de `--color-particula`, que cada tema define com o seu
+         *  tom. Antes vinha de `--color-confere`, que vale o mesmo verde nos
+         *  dois temas — a cor nunca mudava de fato entre claro e escuro. */
         function corDoTema() {
           const valor = getComputedStyle(document.documentElement)
-            .getPropertyValue('--color-confere')
+            .getPropertyValue('--color-particula')
             .trim()
-          return new THREE.Color(valor || '#00c974')
+          return new THREE.Color(valor || '#6b5138')
         }
 
         const material = new THREE.ShaderMaterial({
           transparent: true,
           depthWrite: false,
-          blending: THREE.AdditiveBlending,
+          blending: THREE.NormalBlending,
           uniforms: {
             tempo: { value: 0 },
             cor: { value: corDoTema() },
-            alfaMax: { value: temaClaro() ? 0.22 : 1 },
+            alfaMax: { value: alfaDoTema() },
             pixelRatio: { value: pixelRatio },
           },
           vertexShader: `
@@ -111,15 +116,14 @@ export function FundoAnimado() {
           `,
         })
 
-        /** No tema claro o fundo é creme, e blending aditivo sobre fundo claro
-         *  só clareia: os pontos viram manchinhas que leem como sujeira na
-         *  tela. Ali usamos blending normal e opacidade bem menor, para o
-         *  efeito virar textura de fundo em vez de poeira. */
+        /** Blending normal nos dois temas: as partículas agora são mais
+         *  escuras que o fundo, e blending aditivo só clareia — com ele, cor
+         *  escura simplesmente não aparece. A opacidade vem de
+         *  `--particula-alfa`, que cada tema calibra. */
         function ajustarAoTema() {
-          const claro = temaClaro()
           material.uniforms.cor.value = corDoTema()
-          material.uniforms.alfaMax.value = claro ? 0.22 : 1
-          material.blending = claro ? THREE.NormalBlending : THREE.AdditiveBlending
+          material.uniforms.alfaMax.value = alfaDoTema()
+          material.blending = THREE.NormalBlending
           material.needsUpdate = true
         }
 

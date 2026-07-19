@@ -10,7 +10,7 @@
   /* Superfícies e tinta — valores padrão (tema ESCURO). O tema claro
      sobrescreve estas mesmas variáveis em :root[data-theme="light"], então
      as classes (bg-carvao-950, text-tinta…) invertem sem tocar no HTML. */
-  --color-carvao-950: #0d0c0b;
+  --color-carvao-950: #1c1610; /* pagina — cafe escuro */
   --color-carvao-900: #131211;
   --color-carvao-850: #191816;
   --color-carvao-800: #22201d;
@@ -24,6 +24,13 @@
   --color-confere: #00c974;
   --color-ressalva: #f5a623;
   --color-falha: #ff4d4f;
+
+  /* Partículas do fundo animado. Variável própria porque o fundo não deve
+     seguir a cor de "confere" (verde de sucesso) — são coisas diferentes, e
+     cada tema pede o seu tom. Aqui, tom café mais escuro que a página, com
+     blending normal: partícula escura sobre fundo escuro vira relevo. */
+  --color-particula: #0a0705;
+  --particula-alfa: 0.55;
 
   --radius-suave: 0.5rem;
 }
@@ -41,6 +48,9 @@
   --color-tinta: #211e1a;
   --color-tinta-fraca: #57514a;
   --color-tinta-tenue: #8a8377;
+
+  --color-particula: #6b5744; /* cafe sobre o creme */
+  --particula-alfa: 0.30;
   color-scheme: light;
 }
 

@@ -258,7 +258,7 @@ export function Dashboard({ onImportar }: Props) {
       {/* Cabeçalho do relatório — só aparece no PDF impresso */}
       <div className="somente-impressao mb-6">
         <p className="tabular text-[11px] uppercase tracking-[0.3em] text-tinta-tenue">
-          PayPulse
+          Capital Financeiro
         </p>
         <h1 className="font-display text-3xl text-tinta">
           Relatório · <span className="capitalize">{rotulo(periodo, ref)}</span>

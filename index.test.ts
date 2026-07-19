@@ -38,6 +38,6 @@ describe('meta tags de compartilhamento', () => {
   })
 
   it('leva o nome novo no título', () => {
-    expect(meta('og:title')).toContain('PayPulse')
+    expect(meta('og:title')).toContain('Capital Financeiro')
   })
 })

@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
+import { Marca } from './Marca'
 import { camposFaltando, mensagemCamposFaltando, type CampoAcesso } from './auth-validacao'
 
 type Props = {
@@ -113,6 +114,10 @@ export function Auth({ onAutenticado }: Props) {
         >
           <MoedaLogo />
         </motion.div>
+
+        <div className="mb-4 flex justify-center">
+          <Marca variante="destaque" />
+        </div>
 
         <h2 className="text-center font-display text-2xl text-tinta">
           {modo === 'entrar' ? 'Entrar' : 'Criar conta'}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { FundoAnimado } from './ui/FundoAnimado'
+import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
@@ -133,7 +134,7 @@ export default function App() {
                 animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               />
-              PayPulse
+              <Marca />
             </motion.p>
             <AnimatePresence mode="wait">
               <motion.h1
