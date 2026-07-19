@@ -115,10 +115,17 @@ Ao retomar: rodar `npm run dev`, logar e conferir as duas na prática.
   `scrollWidth`, criando uma barra que aparecia e sumia no ritmo da animação.
   Todo efeito de fundo vai na camada `#bg-animation` (`position: fixed`).
   Depois de mexer em qualquer decoração, rodar `python scripts/medir-overflow.py`.
-- **O card de compartilhamento só funciona depois do deploy.** `og:image` exige
-  URL absoluta; hoje aponta para o placeholder `https://paypulse.vercel.app/og.png`.
-  Conferir e trocar quando o domínio real existir, e validar no
+- **`paypulse.vercel.app` é de outra pessoa.** Existe outro produto homônimo já
+  registrado na Vercel, então o nosso projeto recebeu
+  `https://paypulse-cielio-queiroz.vercel.app`. As meta tags OG apontaram por
+  engano para o domínio alheio até 2026-07-18 — se for registrar domínio
+  próprio, conferir esse detalhe de novo. Validar sempre no
   [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
+- **Deployment Protection da Vercel deixa o site só para quem está logado.**
+  Vem ligada por padrão: visitante anônimo é redirecionado para o login da
+  Vercel, e o WhatsApp não consegue buscar a `og:image`. Desligar em
+  *Settings → Deployment Protection → Vercel Authentication*. O sintoma engana,
+  porque o dono do projeto, já logado, vê o site normalmente.
 - **GitHub Pages não serve para este app — não tente de novo.** Em 2026-07-18 o
   Pages ficou publicando a **raiz do repositório**, cujo `index.html` é o arquivo
   -fonte do Vite e aponta para `/src/main.tsx`. Navegador não executa TypeScript
