@@ -76,7 +76,7 @@ formato do payload HTTP. Trocar o backend de autenticação mexe em um arquivo s
 `POST /reset-password` não devolve o e-mail. Sem e-mail não há `signIn.email`.
 
 Solução: ao pedir o link (passo 1), guardar o e-mail em `localStorage`
-(`capital:email-reset`). Quem abre o link **no mesmo navegador** entra
+(`cf:email-reset`, seguindo o prefixo já usado em `lib/perfil.ts`). Quem abre o link **no mesmo navegador** entra
 automaticamente; quem abre em outro aparelho cai no login com a senha já
 trocada e um toast explicando. O `localStorage` é limpo assim que o reset
 conclui, com ou sem login automático.
