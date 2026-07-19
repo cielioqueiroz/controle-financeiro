@@ -64,7 +64,7 @@ Nesta ordem, cada uma com seu próprio spec e plano:
 
 1. ~~Toast do cadastro + olho da senha~~ — **feito** (spec e plano em `docs/superpowers/`).
 2. ~~Fundo animado (three.js) + mais animações.~~ — **feito** (canvas `#bg-animation` fixo, `z-index: 0`, three.js, import dinâmico, pausa em aba oculta).
-3. ~~Renomear o sistema.~~ — **feito** (renomeado para **PayPulse**).
+3. ~~Renomear o sistema.~~ — **feito**: **Capital Financeiro**, com logotipo de duas cores (`src/ui/Marca.tsx`) e salto em onda no hover.
 4. ~~Card de compartilhamento (meta tags OG).~~ — **feito** (meta tags em `index.html`, imagem `og.png` 1200x630, validação com teste).
 5. **i18n pt/en/es.** Botão de idioma trocando *todo* o texto. Decisão pendente: a moeda deve apenas **formatar** conforme a locale (mantendo R$) — **não** converter, o que exigiria cotação e faria os números mentirem.
 6. **PDF de verdade.** Hoje `Baixar PDF` é `window.print()`, que não gera arquivo algum — o app nunca vê um PDF. Precisa de geração real (jsPDF/pdfmake) antes de qualquer coisa depender do arquivo.
@@ -83,18 +83,18 @@ Três partes:
 2. **Guardar** — a tabela `accounts` **não tem coluna de saldo**; precisa de migração no Neon (mostrar o SQL e aplicar em branch antes da produção, conforme combinado).
 3. **Exibir** — card de saldo por conta, usando o extrato mais recente como base.
 
-### 2. Deploy na Vercel (pendente, precisa do usuário presente)
+### 2. Deploy na Vercel — no ar, faltam as liberações de origem
 
 Necessário para as ~6 pessoas usarem. Passos encadeados:
-0. **Nomear o projeto `paypulse`** — as meta tags OG já apontam para
-   `https://paypulse.vercel.app`; nome diferente exige editar o `index.html`.
-   Importar o repositório pelo painel (e não subir arquivos avulsos) é o que
-   liga o deploy automático a cada push.
-1. Criar/conectar o projeto na Vercel (time: `cielio-queiroz`, id `team_mPYNczjFxkNFlE22FDIM8g0V`).
-2. Configurar as env vars `VITE_NEON_DATA_API_URL` e `VITE_NEON_AUTH_URL` (senão o build sai sem banco).
+1. ~~Criar/conectar o projeto na Vercel~~ — **feito**: projeto `capital-financeiro`,
+   no ar em **https://capital-financeiro.vercel.app**, conectado ao GitHub (todo
+   push na `main` publica sozinho).
+2. ~~Configurar as env vars~~ — **feito** (confirmado: o endpoint do Neon está no bundle publicado).
 3. Adicionar o domínio da Vercel aos **trusted domains do Neon Auth** (senão o login é rejeitado por origem).
 4. Adicionar o domínio aos **redirect URIs do Google OAuth**.
-5. **Conferir e atualizar a URL das meta tags OG** — `og:image` em `index.html` aponta para `https://paypulse.vercel.app/og.png`; trocar o domínio e validar com [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
+5. ~~Conferir a URL das meta tags OG~~ — **feito**: `og:image` aponta para
+   `https://capital-financeiro.vercel.app/og.png`, que responde 200. Vale validar
+   uma vez no [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
 
 ### 3. Verificações pendentes
 
@@ -115,23 +115,18 @@ Ao retomar: rodar `npm run dev`, logar e conferir as duas na prática.
   `scrollWidth`, criando uma barra que aparecia e sumia no ritmo da animação.
   Todo efeito de fundo vai na camada `#bg-animation` (`position: fixed`).
   Depois de mexer em qualquer decoração, rodar `python scripts/medir-overflow.py`.
-- **`paypulse.vercel.app` é de outra pessoa.** Existe outro produto homônimo já
-  registrado na Vercel, então o nosso projeto recebeu
-  `https://paypulse-cielio-queiroz.vercel.app`. As meta tags OG apontaram por
-  engano para o domínio alheio até 2026-07-18 — se for registrar domínio
-  próprio, conferir esse detalhe de novo. Validar sempre no
-  [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
-- **Deployment Protection da Vercel deixa o site só para quem está logado.**
-  Vem ligada por padrão: visitante anônimo é redirecionado para o login da
-  Vercel, e o WhatsApp não consegue buscar a `og:image`. Desligar em
-  *Settings → Deployment Protection → Vercel Authentication*. O sintoma engana,
-  porque o dono do projeto, já logado, vê o site normalmente.
-- **GitHub Pages não serve para este app — não tente de novo.** Em 2026-07-18 o
-  Pages ficou publicando a **raiz do repositório**, cujo `index.html` é o arquivo
-  -fonte do Vite e aponta para `/src/main.tsx`. Navegador não executa TypeScript
-  com JSX: dá 404 e página em branco. Para funcionar exigiria workflow de build,
-  publicar o `dist/` (hoje no `.gitignore`) e `base: '/controle-financeiro/'` no
-  `vite.config.ts`, já que o Pages serve em subcaminho. Optamos pela **Vercel**.
+- **Sempre conferir se o subdomínio `.vercel.app` está livre ANTES de adotar um
+  nome.** `paypulse.vercel.app` pertencia a outro produto homônimo; as meta tags
+  OG apontaram para o site alheio até isso ser percebido. Checagem rápida:
+  `curl -s -o /dev/null -w "%{http_code}" https://NOME.vercel.app/` — 404 é livre.
+- **Renomear o projeto na Vercel NÃO renomeia os domínios.** Ao trocar o nome do
+  projeto, os domínios antigos permanecem e o novo não é criado sozinho: é
+  preciso ir em *Settings → Domains → Edit*. Enquanto isso o `og:image` aponta
+  para um endereço que dá 404 e o card sai sem imagem.
+- **Deployment Protection deixa o site só para quem está logado na Vercel.** Vem
+  ligada por padrão, e o toggle **só vale depois de clicar em `Save`**. O sintoma
+  engana: o dono do projeto, já logado, vê tudo normal enquanto ninguém mais
+  consegue entrar — e o WhatsApp não busca a `og:image`.
 - **Nunca commitar PDFs reais** (`*.pdf` está no `.gitignore`) — contêm CPF, conta e nomes de terceiros.
 - `scripts/diagnostico.ts` é ferramenta local e está no `.gitignore`.
 
