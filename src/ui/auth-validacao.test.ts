@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { camposFaltando, mensagemCamposFaltando, validarNovaSenha } from './auth-validacao'
+import { camposFaltando, mensagemCamposFaltando, validarNovaSenha, emailValido } from './auth-validacao'
 
 const vazio = { nome: '', email: '', senha: '' }
 
@@ -88,5 +88,31 @@ describe('validarNovaSenha', () => {
   // sempre a mais fundamental, como já faz camposFaltando.
   it('prioriza vazia sobre curta', () => {
     expect(validarNovaSenha('', 'abc')).toBe('Digite a nova senha.')
+  })
+})
+
+describe('emailValido', () => {
+  it('aceita e-mail comum', () => {
+    expect(emailValido('alguem@exemplo.com')).toBe(true)
+  })
+
+  it('apara espaços nas bordas antes de validar', () => {
+    expect(emailValido('  alguem@exemplo.com  ')).toBe(true)
+  })
+
+  it('recusa string vazia', () => {
+    expect(emailValido('')).toBe(false)
+  })
+
+  it('recusa sem arroba', () => {
+    expect(emailValido('alguem.exemplo.com')).toBe(false)
+  })
+
+  it('recusa sem domínio depois do ponto', () => {
+    expect(emailValido('alguem@exemplo')).toBe(false)
+  })
+
+  it('recusa espaço no meio', () => {
+    expect(emailValido('alguem @exemplo.com')).toBe(false)
   })
 })

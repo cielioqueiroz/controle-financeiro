@@ -57,3 +57,9 @@ export function validarNovaSenha(senha: string, confirmacao: string): string | n
   if (senha !== confirmacao) return 'As senhas não coincidem.'
   return null
 }
+
+/** Formato de e-mail aceito no acesso. Deliberadamente frouxo: a validação
+ *  que vale é o e-mail chegar: só barramos o que claramente não é endereço. */
+export function emailValido(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}

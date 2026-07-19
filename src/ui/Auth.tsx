@@ -4,7 +4,9 @@ import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
 import { Marca } from './Marca'
-import { camposFaltando, mensagemCamposFaltando, type CampoAcesso } from './auth-validacao'
+import { camposFaltando, mensagemCamposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
+import { IconeOlho } from './IconeOlho'
+import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
 
 type Props = {
   /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
@@ -41,7 +43,7 @@ export function Auth({ onAutenticado }: Props) {
       refs[faltando[0]].current?.focus()
       return
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (!emailValido(email)) {
       toast.error('Esse e-mail não parece válido.')
       refs.email.current?.focus()
       return
@@ -134,7 +136,7 @@ export function Auth({ onAutenticado }: Props) {
               placeholder="nome e sobrenome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
+              className={CAMPO}
             />
             <div>
               <input
@@ -142,7 +144,7 @@ export function Auth({ onAutenticado }: Props) {
                 placeholder="como quer ser chamado? (apelido, opcional)"
                 value={apelido}
                 onChange={(e) => setApelido(e.target.value)}
-                className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
+                className={CAMPO}
               />
               <p className="mt-1 px-1 text-[11px] text-tinta-tenue">
                 É assim que vamos te saudar. Se deixar em branco, usamos seu primeiro nome.
@@ -157,7 +159,7 @@ export function Auth({ onAutenticado }: Props) {
           placeholder="seu@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
+          className={CAMPO}
         />
         <div className="relative">
           <input
@@ -168,7 +170,7 @@ export function Auth({ onAutenticado }: Props) {
             placeholder="senha (mín. 8 caracteres)"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
-            className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 pr-11 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
+            className={CAMPO + ' pr-11'}
           />
           <button
             type="button"
@@ -183,7 +185,7 @@ export function Auth({ onAutenticado }: Props) {
         <button
           type="submit"
           disabled={ocupado}
-          className="w-full rounded-xl bg-tinta px-4 py-3 text-sm font-semibold text-carvao-950 shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
+          className={BOTAO_PRIMARIO}
         >
           {ocupado ? '…' : modo === 'entrar' ? 'Entrar' : 'Criar conta'}
         </button>
@@ -246,17 +248,6 @@ function traduzErro(msg: string): string {
   if (/exist|already|registered/i.test(msg)) return 'Este e-mail já tem conta.'
   if (/verif|confirm/i.test(msg)) return 'Confirme seu e-mail antes de entrar.'
   return msg
-}
-
-/** Olho aberto/cortado para revelar a senha. */
-function IconeOlho({ aberto }: { aberto: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
-      <circle cx="12" cy="12" r="2.8" />
-      {!aberto && <line x1="3.5" y1="20.5" x2="20.5" y2="3.5" strokeLinecap="round" />}
-    </svg>
-  )
 }
 
 function GoogleIcon() {
