@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from './Notificacoes'
@@ -66,10 +66,11 @@ describe('RecuperarSenha — pedir o link', () => {
 
     // A subtitle passa a usar a mesma frase condicional do toast (C4), então
     // o texto aparece duas vezes na tela — aqui o alvo é o toast mesmo.
-    const toast = await screen.findByRole('status')
-    expect(within(toast).getByText(/se houver conta com esse e-mail/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' }),
+    ).toBeInTheDocument()
     // Garantir que a afirmação de envio não está presente (F2).
-    expect(within(toast).queryByText(/^Enviamos/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Enviamos/, { selector: '[data-title]' })).not.toBeInTheDocument()
   })
 
   it('guarda o e-mail no localStorage ao pedir o link', async () => {
@@ -80,8 +81,7 @@ describe('RecuperarSenha — pedir o link', () => {
     await usuario.type(screen.getByPlaceholderText('seu@email.com'), 'alguem@exemplo.com')
     await usuario.click(screen.getByRole('button', { name: 'Enviar link' }))
 
-    const toast = await screen.findByRole('status')
-    await within(toast).findByText(/se houver conta com esse e-mail/i)
+    await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' })
     expect(localStorage.getItem('cf:email-reset')).toBe('alguem@exemplo.com')
   })
 })
