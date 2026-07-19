@@ -50,7 +50,7 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
         <ThemeToggle />
       </header>
 
-      <div className="mx-auto grid w-full max-w-[104rem] flex-1 items-center gap-10 py-10 lg:grid-cols-2 lg:gap-16">
+      <div className="mx-auto grid w-full max-w-[104rem] flex-1 items-center gap-10 py-6 lg:grid-cols-2 lg:gap-16">
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

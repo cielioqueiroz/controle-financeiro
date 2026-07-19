@@ -271,7 +271,7 @@ export default function App() {
           </div>
         )}
 
-        <Rodape />
+        <Rodape className="mt-16" />
       </main>
 
       <AnimatePresence>

@@ -12,13 +12,18 @@ const VAO = 9
 const ANEL_FECHADO = `${CIRCUNFERENCIA / FATIAS} 0`
 const ANEL_ABERTO = `${CIRCUNFERENCIA / FATIAS - VAO} ${VAO}`
 
+type Props = {
+  /** Lado do SVG em px. O viewBox (64) não muda — só o tamanho renderizado. */
+  size?: number
+}
+
 /** Moeda R$ do logo. Três camadas de movimento: a entrada (que quem monta
  *  controla, com o giro em mola), um brilho que varre a face em repouso, e
  *  o anel externo que periodicamente se abre em fatias de donut.
  *
  *  Respeita `prefers-reduced-motion`: quem pede menos movimento recebe a
  *  moeda parada, com o anel fechado. */
-export function MoedaLogo() {
+export function MoedaLogo({ size = 56 }: Props) {
   const semMovimento = useReducedMotion()
   // Dois logos na mesma página colidiriam se os ids fossem fixos, e o
   // segundo herdaria o clip do primeiro.
@@ -31,7 +36,7 @@ export function MoedaLogo() {
   const idBrilho = `moeda-brilho-${id}`
 
   return (
-    <svg width="56" height="56" viewBox="0 0 64 64" className="drop-shadow-lg" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 64 64" className="drop-shadow-lg" aria-hidden>
       <defs>
         <clipPath id={idFace}>
           <circle cx="32" cy="32" r={R_ANEL} />

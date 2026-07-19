@@ -119,10 +119,10 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 p-8 shadow-2xl shadow-black/30 backdrop-blur-sm"
+        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-sm"
       >
         <motion.div
-          className="mb-5 flex justify-center"
+          className="mb-3 flex justify-center"
           initial={{ rotate: -180, scale: 0 }}
           animate={{ rotate: 0, scale: 1, y: [0, -7, 0] }}
           transition={{
@@ -131,7 +131,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
             y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 },
           }}
         >
-          <MoedaLogo />
+          <MoedaLogo size={44} />
         </motion.div>
 
         <div className="mb-4 flex justify-center">
@@ -229,7 +229,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
             </button>
           )}
 
-          <div className="my-5 flex items-center gap-3">
+          <div className="my-3 flex items-center gap-3">
             <span className="h-px flex-1 bg-carvao-800" />
             <span className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">ou</span>
             <span className="h-px flex-1 bg-carvao-800" />
@@ -241,12 +241,6 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
           >
             <GoogleIcon /> Continuar com o Google
           </button>
-
-          <p className="mt-4 text-center text-[11px] leading-relaxed text-tinta-tenue">
-            Recomendamos criar conta com{' '}
-            <span className="text-tinta-fraca">e-mail e senha</span> — é o jeito mais
-            simples e direto.
-          </p>
 
           <button
             onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}
