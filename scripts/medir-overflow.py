@@ -41,6 +41,10 @@ def main() -> int:
     with sync_playwright() as p:
         navegador = p.chromium.launch(headless=True)
         for largura, altura in VIEWPORTS:
+            # Flag POR VIEWPORT. Se usassemos so a global, um viewport limpo
+            # depois de um sujo nao imprimiria nada — nem ESTOURO nem OK — e
+            # pareceria que ele nem foi testado.
+            falhou_aqui = False
             pagina = navegador.new_page(viewport={"width": largura, "height": altura})
             pagina.goto(URL)
             pagina.wait_for_load_state("networkidle")
@@ -50,13 +54,14 @@ def main() -> int:
                 d = pagina.evaluate(SONDA)
                 estoura = d["scrollW"] > d["vw"] or d["scrollH"] > d["vh"]
                 if estoura:
-                    falhou = True
+                    falhou_aqui = True
                     print(f"  t={i * INTERVALO_MS / 1000:4.1f}s  ESTOURO  "
                           f"scrollW={d['scrollW']}/{d['vw']}  scrollH={d['scrollH']}/{d['vh']}")
                     for c in d["culpados"]:
                         print(f"      <{c['tag']}> {c['rect']}  class={c['cls']}")
-            if not falhou:
+            if not falhou_aqui:
                 print("  todas as amostras OK (scroll == viewport)")
+            falhou = falhou or falhou_aqui
             pagina.close()
         navegador.close()
     print("\nRESULTADO:", "ESTOUROU" if falhou else "OK — nenhum estouro")
