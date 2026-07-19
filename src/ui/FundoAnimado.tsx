@@ -7,8 +7,9 @@ const RAIO = 80
 /** Fundo de partículas em three.js, numa camada fixa que não afeta a rolagem.
  *
  *  O three entra por import dinâmico: o bundle já passa de 500 kB por causa do
- *  pdf.js e não pode carregar mais 150 kB antes da primeira tela. Se o import
- *  ou o WebGL falharem, o app segue funcionando — só fica sem fundo. */
+ *  pdf.js e não pode carregar mais 515 kB cru (129 kB gzip) antes da primeira
+ *  tela. Se o import ou o WebGL falharem, o app segue funcionando — só fica
+ *  sem fundo. */
 export function FundoAnimado() {
   const refCanvas = useRef<HTMLCanvasElement>(null)
 
@@ -27,7 +28,11 @@ export function FundoAnimado() {
         if (cancelado) return
 
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false })
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+        // gl_PointSize é medido em pixels do framebuffer: o shader usa este
+        // mesmo valor (uniform `pixelRatio`, adiante) para compensar o
+        // setPixelRatio, senão os pontos saem com metade do tamanho em DPR 2.
+        let pixelRatio = Math.min(window.devicePixelRatio, 2)
+        renderer.setPixelRatio(pixelRatio)
         renderer.setSize(window.innerWidth, window.innerHeight, false)
 
         const cena = new THREE.Scene()
@@ -57,24 +62,15 @@ export function FundoAnimado() {
           return document.documentElement.dataset.theme === 'light'
         }
 
-        /** Cor lida do tema, para o fundo acompanhar claro/escuro. */
+        /** Cor lida da variável de tema `--color-confere`. Hoje ela vale o
+         *  mesmo verde nos dois temas (o tema claro não a sobrescreve), então
+         *  a cor em si não muda entre claro/escuro — o que muda é o blending
+         *  e a opacidade, ajustados em `ajustarAoTema`. */
         function corDoTema() {
           const valor = getComputedStyle(document.documentElement)
             .getPropertyValue('--color-confere')
             .trim()
           return new THREE.Color(valor || '#00c974')
-        }
-
-        /** No tema claro o fundo é creme, e blending aditivo sobre fundo claro
-         *  só clareia: os pontos viram manchinhas que leem como sujeira na
-         *  tela. Ali usamos blending normal e opacidade bem menor, para o
-         *  efeito virar textura de fundo em vez de poeira. */
-        function ajustarAoTema() {
-          const claro = temaClaro()
-          material.uniforms.cor.value = corDoTema()
-          material.uniforms.alfaMax.value = claro ? 0.22 : 1
-          material.blending = claro ? THREE.NormalBlending : THREE.AdditiveBlending
-          material.needsUpdate = true
         }
 
         const material = new THREE.ShaderMaterial({
@@ -85,17 +81,21 @@ export function FundoAnimado() {
             tempo: { value: 0 },
             cor: { value: corDoTema() },
             alfaMax: { value: temaClaro() ? 0.22 : 1 },
+            pixelRatio: { value: pixelRatio },
           },
           vertexShader: `
             attribute float fase;
             uniform float tempo;
+            uniform float pixelRatio;
             varying float vAlfa;
             void main() {
               // Cada partícula respira na sua própria fase; juntas viram
               // pisca-pisca.
               vAlfa = 0.15 + 0.45 * (0.5 + 0.5 * sin(tempo + fase));
               vec4 mv = modelViewMatrix * vec4(position, 1.0);
-              gl_PointSize = 2.2 * (300.0 / -mv.z);
+              // pixelRatio compensa o setPixelRatio do renderer: sem ele, em
+              // DPR 2 os pontos saem com metade do tamanho pretendido.
+              gl_PointSize = 2.2 * (300.0 / -mv.z) * pixelRatio;
               gl_Position = projectionMatrix * mv;
             }
           `,
@@ -111,6 +111,18 @@ export function FundoAnimado() {
           `,
         })
 
+        /** No tema claro o fundo é creme, e blending aditivo sobre fundo claro
+         *  só clareia: os pontos viram manchinhas que leem como sujeira na
+         *  tela. Ali usamos blending normal e opacidade bem menor, para o
+         *  efeito virar textura de fundo em vez de poeira. */
+        function ajustarAoTema() {
+          const claro = temaClaro()
+          material.uniforms.cor.value = corDoTema()
+          material.uniforms.alfaMax.value = claro ? 0.22 : 1
+          material.blending = claro ? THREE.NormalBlending : THREE.AdditiveBlending
+          material.needsUpdate = true
+        }
+
         const pontos = new THREE.Points(geometria, material)
         cena.add(pontos)
 
@@ -121,22 +133,6 @@ export function FundoAnimado() {
           alvo.y = -(e.clientY / window.innerHeight - 0.5) * 12
         }
         window.addEventListener('mousemove', aoMoverMouse)
-
-        function aoRedimensionar() {
-          camera.aspect = window.innerWidth / window.innerHeight
-          camera.updateProjectionMatrix()
-          renderer.setSize(window.innerWidth, window.innerHeight, false)
-        }
-        window.addEventListener('resize', aoRedimensionar)
-
-        // Repinta quando o tema muda (o botão de tema escreve data-theme).
-        const observador = new MutationObserver(() => {
-          ajustarAoTema()
-        })
-        observador.observe(document.documentElement, {
-          attributes: true,
-          attributeFilter: ['data-theme'],
-        })
 
         const consulta =
           typeof window.matchMedia === 'function'
@@ -163,6 +159,36 @@ export function FundoAnimado() {
           quadro = requestAnimationFrame(laco)
         }
 
+        // `desenhar` e `animar` já estão definidos acima: os dois handlers
+        // abaixo dependem deles para repintar quando o movimento reduzido
+        // está ativo (sem loop, ninguém mais chamaria `desenhar`).
+        function aoRedimensionar() {
+          camera.aspect = window.innerWidth / window.innerHeight
+          camera.updateProjectionMatrix()
+          renderer.setSize(window.innerWidth, window.innerHeight, false)
+          // O DPR pode mudar ao arrastar a janela entre monitores.
+          pixelRatio = Math.min(window.devicePixelRatio, 2)
+          renderer.setPixelRatio(pixelRatio)
+          material.uniforms.pixelRatio.value = pixelRatio
+          // Com prefers-reduced-motion não há loop: o setSize acima limpa o
+          // buffer e, sem repintar aqui, o canvas ficaria em branco depois
+          // de qualquer redimensionamento de janela.
+          if (!animar) desenhar(performance.now())
+        }
+        window.addEventListener('resize', aoRedimensionar)
+
+        // Repinta quando o tema muda (o botão de tema escreve data-theme).
+        const observador = new MutationObserver(() => {
+          ajustarAoTema()
+          // Idem: sem loop rodando, a cor/opacidade novas só apareceriam no
+          // próximo quadro — que sem animação nunca vem.
+          if (!animar) desenhar(performance.now())
+        })
+        observador.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['data-theme'],
+        })
+
         if (animar) {
           quadro = requestAnimationFrame(laco)
         } else {
@@ -180,8 +206,11 @@ export function FundoAnimado() {
           renderer.dispose()
         }
       })
-      .catch(() => {
-        // Sem three ou sem WebGL o app continua inteiro, apenas sem fundo.
+      .catch((erro: unknown) => {
+        // Sem three ou sem WebGL o app continua inteiro, apenas sem fundo —
+        // mas o erro fica registrado para não mascarar um bug de shader ou
+        // de setup do WebGL.
+        console.warn('Fundo animado desativado: falha ao carregar/inicializar o three.js.', erro)
       })
 
     return () => {

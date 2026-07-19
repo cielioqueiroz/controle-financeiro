@@ -225,6 +225,13 @@ body {
   z-index: 0;
   display: block;
   pointer-events: none;
+  /* Canvas é elemento substituído: sem width/height explícitos, ele resolve
+     para o tamanho INTRÍNSECO (os atributos width/height, escritos em pixels
+     de dispositivo pelo renderer) em vez de respeitar `inset: 0`. Em telas
+     HiDPI (devicePixelRatio 2) isso deixa o canvas com o dobro do tamanho do
+     viewport, mostrando só o quadrante superior esquerdo, esticado. */
+  width: 100%;
+  height: 100%;
 }
 
 /* Impressão / Baixar PDF — relatório limpo em papel branco. Esconde
