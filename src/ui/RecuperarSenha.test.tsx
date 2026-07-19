@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from './Notificacoes'
-import { lerEmailReset } from '../lib/perfil'
+import { guardarEmailReset, lerEmailReset } from '../lib/perfil'
 
 vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
 vi.mock('../lib/recuperar-senha', () => ({
@@ -214,6 +214,30 @@ describe('RecuperarSenha — depois de trocar a senha', () => {
     await screen.findByText('Senha alterada. Entre com a senha nova.')
     expect(onVoltar).toHaveBeenCalledWith(undefined)
     expect(botao).not.toBeDisabled()
+  })
+
+  it('com e-mail guardado: troca com sucesso, devolve o e-mail para preencher o login e esquece o guardado (F3)', async () => {
+    const usuario = userEvent.setup()
+    guardarEmailReset('alguem@exemplo.com')
+    vi.mocked(redefinirSenha).mockResolvedValue({ ok: true })
+    const onVoltar = vi.fn()
+    render(
+      <>
+        <Notificacoes />
+        <RecuperarSenha token="tok123" onVoltar={onVoltar} />
+      </>,
+    )
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    await screen.findByText('Senha alterada. Entre com a senha nova.')
+    // O e-mail guardado volta só para preencher o campo do login.
+    expect(onVoltar).toHaveBeenCalledWith('alguem@exemplo.com')
+    // F3: concluído o reset, o e-mail guardado tem que ser esquecido — senão
+    // sobrevive para um pedido futuro de OUTRA conta neste navegador.
+    expect(localStorage.getItem('cf:email-reset')).toBeNull()
   })
 
   it('limpa o token da URL após redefinir a senha com sucesso', async () => {
