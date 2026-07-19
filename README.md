@@ -1,4 +1,4 @@
-# 💰 Controle Financeiro
+# 💰 PayPulse
 
 Importe a **fatura ou o extrato do banco em PDF** e veja, com clareza, para onde o seu dinheiro foi. O app lê o PDF **dentro do navegador**, extrai os lançamentos, classifica em categorias e guarda só as transações — o PDF nunca é enviado a lugar nenhum.
 

@@ -133,7 +133,7 @@ export default function App() {
                 animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               />
-              Controle Financeiro
+              PayPulse
             </motion.p>
             <AnimatePresence mode="wait">
               <motion.h1
