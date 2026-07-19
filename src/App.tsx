@@ -211,7 +211,20 @@ export default function App() {
           <Auth
             onAutenticado={checarSessao}
             tokenReset={tokenReset}
-            onRecuperacaoConcluida={() => setTokenReset(null)}
+            onRecuperacaoConcluida={() => {
+              setTokenReset(null)
+              // F1: uma sessão de OUTRA conta pode continuar ativa neste
+              // navegador (quem clicou no link não precisa ser quem estava
+              // logado). Sem isto, precisaLogin vira false assim que o
+              // token some e o Dashboard da sessão antiga reaparece por
+              // cima — mesmo a UI tendo acabado de dizer "entre com a
+              // senha nova". No caminho de login automático bem-sucedido,
+              // o checarSessao chamado logo em seguida (via onAutenticado)
+              // já corrige para a sessão nova; aqui só forçamos o card de
+              // entrar a aparecer sempre que a recuperação termina.
+              setLogado(false)
+              setUsuario(null)
+            }}
           />
         ) : estado.fase === 'pronto' ? (
           <div className="mx-auto max-w-4xl">

@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from './Notificacoes'
+import { lerEmailReset } from '../lib/perfil'
 
 vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
 vi.mock('../lib/recuperar-senha', () => ({
@@ -82,7 +83,9 @@ describe('RecuperarSenha — pedir o link', () => {
     await usuario.click(screen.getByRole('button', { name: 'Enviar link' }))
 
     await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' })
-    expect(localStorage.getItem('cf:email-reset')).toBe('alguem@exemplo.com')
+    // Lido via lerEmailReset (não a chave crua): a partir do F2 o valor
+    // guardado é um envelope { email, ts }, não mais o e-mail puro.
+    expect(lerEmailReset()).toBe('alguem@exemplo.com')
   })
 })
 

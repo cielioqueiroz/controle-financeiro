@@ -110,7 +110,12 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
         // A senha JÁ foi trocada no servidor (chegamos aqui só depois do
         // redefinirSenha ter dado ok:true). Só o login automático falhou —
         // isso nunca pode virar "a troca de senha falhou".
-        console.error('Auto-login falhou após redefinir senha:', err)
+        // Só a mensagem, nunca o objeto: ele pode carregar a senha em
+        // texto puro que acabou de ser enviada na chamada que falhou (F7).
+        console.error(
+          'Auto-login falhou após redefinir senha:',
+          err instanceof Error ? err.message : String(err),
+        )
         toast.success('Senha alterada. Entre com a senha nova.')
         onVoltar(emailSalvo)
       } finally {
@@ -160,7 +165,13 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
 
         <button
           type="button"
-          onClick={() => onVoltar()}
+          onClick={() => {
+            // F6: sem isto, o token sobrevive na barra de endereços e no
+            // histórico quando o usuário desiste — mesmo risco que o F5
+            // depois de um token gasto, só que sem nem precisar de F5.
+            limparTokenDaUrl()
+            onVoltar()
+          }}
           className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
         >
           ‹ Voltar ao login

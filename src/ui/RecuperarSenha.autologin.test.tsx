@@ -63,6 +63,10 @@ describe('RecuperarSenha — login automático após trocar a senha', () => {
 
     await screen.findByText('Senha alterada. Bem-vindo de volta.')
     expect(onAutenticado).toHaveBeenCalled()
+    // F3: o e-mail guardado tem que sumir assim que o reset conclui, com
+    // ou sem login automático — senão ele sobrevive para um pedido futuro
+    // de outra conta usar (F2).
+    expect(localStorage.getItem('cf:email-reset')).toBeNull()
   })
 
   it('signIn.email devolve erro: senha trocada mesmo assim, manda para o login', async () => {
@@ -97,5 +101,8 @@ describe('RecuperarSenha — login automático após trocar a senha', () => {
     await screen.findByText('Senha alterada. Entre com a senha nova.')
     expect(onVoltar).toHaveBeenCalledWith('alguem@exemplo.com')
     expect(botao).not.toBeDisabled()
+    // F3: mesmo no caminho em que o login automático falhou (não a troca de
+    // senha), o e-mail guardado precisa ser esquecido.
+    expect(localStorage.getItem('cf:email-reset')).toBeNull()
   })
 })

@@ -84,6 +84,18 @@ describe('validarNovaSenha', () => {
     expect(validarNovaSenha('senhaboa123', 'senhaboa123')).toBeNull()
   })
 
+  // Fronteira exata dos 8 caracteres: as fixtures existentes só cobriam 6
+  // (recusada) e 11 (aceita), deixando o limite em si sem teste.
+  it('recusa senha com exatamente 7 caracteres', () => {
+    expect(validarNovaSenha('abcdefg', 'abcdefg')).toBe(
+      'A senha precisa ter ao menos 8 caracteres.',
+    )
+  })
+
+  it('aceita senha com exatamente 8 caracteres', () => {
+    expect(validarNovaSenha('abcdefgh', 'abcdefgh')).toBeNull()
+  })
+
   // Vazio vence curta, que vence divergente: uma mensagem de cada vez,
   // sempre a mais fundamental, como já faz camposFaltando.
   it('prioriza vazia sobre curta', () => {

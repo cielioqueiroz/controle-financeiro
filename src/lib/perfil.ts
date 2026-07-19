@@ -54,15 +54,43 @@ export function reabrirTutorial(): void {
 /** Quem pede o link de redefinição fica anotado aqui, porque o link do
  *  e-mail traz só o token — sem o e-mail não dá para fazer o login
  *  automático depois. Quem abrir o link em OUTRO aparelho não terá esta
- *  anotação, e cairá no login normal; é o limite do protocolo, não um bug. */
+ *  anotação, e cairá no login normal; é o limite do protocolo, não um bug.
+ *
+ *  Guardado com timestamp (F2): o e-mail é uma entrada não verificada para
+ *  o signIn.email automático — nada garante que corresponde ao token que
+ *  acabou de ser consumido. Um pedido abandonado deixaria o e-mail vivo
+ *  para sempre, pronto para ser usado por um login automático de OUTRO
+ *  pedido de reset feito depois, no mesmo navegador. Expira junto com o
+ *  próprio token: 1h é a validade real, confirmada no e-mail do Neon. */
+const EXPIRACAO_EMAIL_RESET_MS = 60 * 60 * 1000
+
+type RegistroEmailReset = { email: string; ts: number }
+
 export function guardarEmailReset(email: string): void {
   const e = email.trim()
-  if (e) localStorage.setItem(CHAVE_EMAIL_RESET, e)
-  else localStorage.removeItem(CHAVE_EMAIL_RESET)
+  if (e) {
+    const registro: RegistroEmailReset = { email: e, ts: Date.now() }
+    localStorage.setItem(CHAVE_EMAIL_RESET, JSON.stringify(registro))
+  } else {
+    localStorage.removeItem(CHAVE_EMAIL_RESET)
+  }
 }
 
+/** Devolve o e-mail guardado, ou null se não houver, se o registro passou
+ *  de 1h (o token já teria expirado de qualquer forma), ou se o valor não
+ *  for o formato esperado — incluindo o formato antigo (string simples),
+ *  que deve ser tratado como ausente, nunca causar exceção. */
 export function lerEmailReset(): string | null {
-  return localStorage.getItem(CHAVE_EMAIL_RESET)
+  const bruto = localStorage.getItem(CHAVE_EMAIL_RESET)
+  if (!bruto) return null
+  try {
+    const registro = JSON.parse(bruto) as Partial<RegistroEmailReset>
+    if (typeof registro.email !== 'string' || typeof registro.ts !== 'number') return null
+    if (Date.now() - registro.ts > EXPIRACAO_EMAIL_RESET_MS) return null
+    return registro.email
+  } catch {
+    return null
+  }
 }
 
 export function esquecerEmailReset(): void {

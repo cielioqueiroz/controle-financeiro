@@ -168,4 +168,27 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
     expect(await screen.findByText('DASHBOARD_STUB')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Entrar' })).not.toBeInTheDocument()
   })
+
+  it('reset concluído com sessão ativa de OUTRA conta mostra o card de login, não o dashboard dela (F1)', async () => {
+    const usuario = userEvent.setup()
+    // O navegador já tem uma sessão ativa (conta A) quando o link de reset
+    // é aberto — token vence sessão na entrada (T1). Sem e-mail guardado
+    // (o link é de outra conta, B), não há login automático: o fluxo cai
+    // no onVoltar sem e-mail.
+    authMocks.setSessaoAtiva(true)
+    vi.mocked(redefinirSenha).mockResolvedValue({ ok: true })
+    comTokenNaUrl()
+
+    render(<App />)
+
+    expect(await screen.findByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
+    await preencherEEnviarNovaSenha(usuario)
+
+    // A sessão da conta A continua tecnicamente válida no servidor, mas o
+    // app não pode reaproveitá-la silenciosamente: o toast disse "entre com
+    // a senha nova" — a tela tem que exigir esse login explícito, nunca
+    // mostrar o dashboard de A por cima.
+    expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+    expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
+  })
 })
