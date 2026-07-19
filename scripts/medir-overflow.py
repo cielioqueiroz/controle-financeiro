@@ -1,11 +1,17 @@
-"""Mede se algum elemento estoura o viewport ao longo do tempo.
+"""Mede se a pagina rola HORIZONTALMENTE ao longo do tempo.
 
 Uso:  python scripts/medir-overflow.py [url]
 
 Existe porque o brilho decorativo da tela de login escalava ate 1.25 sem ser
 recortado por ninguem, entrando no scrollWidth da pagina e criando uma barra
-de rolagem que aparecia e sumia no ritmo da animacao. Rode apos mexer em
-qualquer decoracao de fundo.
+de rolagem lateral que aparecia e sumia no ritmo da animacao. Rode apos mexer
+em qualquer decoracao de fundo.
+
+POR QUE SO O EIXO HORIZONTAL CONTA COMO FALHA: rolagem vertical e o
+comportamento normal de qualquer pagina com conteudo mais alto que a janela
+(no app, o rodape fica abaixo da dobra em telas de 800px). Ja rolagem
+horizontal nunca deveria acontecer neste layout — e o sintoma exato do bug
+que esta ferramenta vigia. A altura e reportada apenas como informacao.
 """
 import sys
 from playwright.sync_api import sync_playwright
@@ -23,7 +29,8 @@ SONDA = """
   for (const el of document.querySelectorAll('*')) {
     const r = el.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) continue;
-    if (r.right > vw + 1 || r.left < -1 || r.bottom > vh + 1 || r.top < -1) {
+    // So o eixo horizontal: elemento abaixo da dobra e normal, ao lado nao.
+    if (r.right > vw + 1 || r.left < -1) {
       out.push({
         tag: el.tagName.toLowerCase(),
         cls: (el.className?.baseVal ?? el.className ?? '').toString().slice(0, 70),
@@ -52,15 +59,18 @@ def main() -> int:
             for i in range(AMOSTRAS):
                 pagina.wait_for_timeout(INTERVALO_MS)
                 d = pagina.evaluate(SONDA)
-                estoura = d["scrollW"] > d["vw"] or d["scrollH"] > d["vh"]
+                estoura = d["scrollW"] > d["vw"]
                 if estoura:
                     falhou_aqui = True
-                    print(f"  t={i * INTERVALO_MS / 1000:4.1f}s  ESTOURO  "
-                          f"scrollW={d['scrollW']}/{d['vw']}  scrollH={d['scrollH']}/{d['vh']}")
+                    print(f"  t={i * INTERVALO_MS / 1000:4.1f}s  ESTOURO LATERAL  "
+                          f"scrollW={d['scrollW']}/{d['vw']}")
                     for c in d["culpados"]:
                         print(f"      <{c['tag']}> {c['rect']}  class={c['cls']}")
             if not falhou_aqui:
-                print("  todas as amostras OK (scroll == viewport)")
+                # A altura vai junto so como informacao: ver o rodape abaixo da
+                # dobra e esperado, nao e defeito.
+                print(f"  todas as amostras OK (sem rolagem lateral; "
+                      f"altura da pagina {d['scrollH']}px)")
             falhou = falhou or falhou_aqui
             pagina.close()
         navegador.close()
