@@ -84,6 +84,8 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
         // Token morto: fora da URL, senão um F5 volta para este mesmo
         // formulário com um token já sabido inválido.
         limparTokenDaUrl()
+        // Limpar o e-mail guardado para não vazar entre usuários (F1).
+        esquecerEmailReset()
       }
       return
     }
@@ -104,10 +106,11 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
         }
         toast.success('Senha alterada. Entre com a senha nova.')
         onVoltar(emailSalvo)
-      } catch {
+      } catch (err) {
         // A senha JÁ foi trocada no servidor (chegamos aqui só depois do
         // redefinirSenha ter dado ok:true). Só o login automático falhou —
         // isso nunca pode virar "a troca de senha falhou".
+        console.error('Auto-login falhou após redefinir senha:', err)
         toast.success('Senha alterada. Entre com a senha nova.')
         onVoltar(emailSalvo)
       } finally {

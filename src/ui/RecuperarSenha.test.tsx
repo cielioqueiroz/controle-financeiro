@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from './Notificacoes'
@@ -66,9 +66,10 @@ describe('RecuperarSenha — pedir o link', () => {
 
     // A subtitle passa a usar a mesma frase condicional do toast (C4), então
     // o texto aparece duas vezes na tela — aqui o alvo é o toast mesmo.
-    expect(
-      await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' }),
-    ).toBeInTheDocument()
+    const toast = await screen.findByRole('status')
+    expect(within(toast).getByText(/se houver conta com esse e-mail/i)).toBeInTheDocument()
+    // Garantir que a afirmação de envio não está presente (F2).
+    expect(within(toast).queryByText(/^Enviamos/)).not.toBeInTheDocument()
   })
 
   it('guarda o e-mail no localStorage ao pedir o link', async () => {
@@ -79,7 +80,8 @@ describe('RecuperarSenha — pedir o link', () => {
     await usuario.type(screen.getByPlaceholderText('seu@email.com'), 'alguem@exemplo.com')
     await usuario.click(screen.getByRole('button', { name: 'Enviar link' }))
 
-    await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' })
+    const toast = await screen.findByRole('status')
+    await within(toast).findByText(/se houver conta com esse e-mail/i)
     expect(localStorage.getItem('cf:email-reset')).toBe('alguem@exemplo.com')
   })
 })
@@ -131,6 +133,27 @@ describe('RecuperarSenha — definir a nova senha', () => {
 
     expect(await screen.findByText('Este link expirou ou já foi usado.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Pedir um novo link' })).toBeInTheDocument()
+  })
+
+  it('token expirado limpa o e-mail guardado (F1: impede vazamento entre usuários)', async () => {
+    const usuario = userEvent.setup()
+    // Simular pessoa A que pediu um link e foi embora.
+    localStorage.setItem('cf:email-reset', 'pessoaA@exemplo.com')
+
+    vi.mocked(redefinirSenha).mockResolvedValue({
+      ok: false,
+      erro: 'Este link expirou ou já foi usado.',
+      motivo: 'token',
+    })
+    montar('tok123')
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    await screen.findByText('Este link expirou ou já foi usado.')
+    // O e-mail guardado foi limpo para não vazar.
+    expect(localStorage.getItem('cf:email-reset')).toBeNull()
   })
 
   it('erro de rede não marca o token como morto', async () => {
