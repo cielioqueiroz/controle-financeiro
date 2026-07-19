@@ -12,8 +12,8 @@ import { guardarEmailReset, marcarTutorialVisto } from './lib/perfil'
 // testes sobem o <App/> de verdade — é o único nível onde a "estranha" é
 // observável, porque ela mora na interação entre App e Auth.
 
-// Sessão simulada: começa deslogada e vira logada quando o auto-login do
-// RecuperarSenha chama signIn.email com sucesso — assim tanto o
+// Sessão simulada: começa deslogada e vira logada quando o formulário de
+// login manual (Auth) chama signIn.email com sucesso — assim tanto o
 // checarSessao do App quanto o próprio ContaMenu (que também consulta
 // getSession) enxergam o mesmo estado, sem depender de contar chamadas.
 const authMocks = vi.hoisted(() => {

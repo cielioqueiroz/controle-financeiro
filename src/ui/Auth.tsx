@@ -15,9 +15,10 @@ type Props = {
   onAutenticado: () => void
   /** Token vindo do link do e-mail. Presente → abre direto a nova senha. */
   tokenReset?: string | null
-  /** Chamado quando o fluxo de recuperação termina, por qualquer saída
-   *  (redefiniu e entrou, ou voltou ao login) — para o App soltar o token
-   *  guardado e o card de recuperação não voltar a ser oferecido depois. */
+  /** Chamado quando o fluxo de recuperação termina — hoje só existe uma
+   *  saída (voltou ao login, com a senha já redefinida) — para o App soltar
+   *  o token guardado e o card de recuperação não voltar a ser oferecido
+   *  depois. */
   onRecuperacaoConcluida?: () => void
 }
 
