@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { pedirLink, redefinirSenha } from './recuperar-senha'
 
-// A URL base vem de import.meta.env, e vi.stubEnv não alcança isso neste
-// setup do Vitest (import.meta.env.VITE_NEON_AUTH_URL é resolvido a partir
-// de .env.local, não do process.env que vi.stubEnv altera). Por isso estes
-// testes fixam só o caminho e o payload, não a URL absoluta — a URL base
-// real é conferida contra o servidor manualmente, não aqui.
+// A URL base vem de import.meta.env e é verificada contra o servidor de
+// mão, não aqui. Mas os testes exigem uma URL absoluta (http:// ou https://)
+// para impedir que o módulo regida para fetch sem base URL.
 
 function respostaFake(status: number, corpo: unknown = {}) {
   return {
@@ -31,7 +29,7 @@ describe('pedirLink', () => {
 
     expect(r).toEqual({ ok: true })
     const [url, init] = vi.mocked(fetch).mock.calls[0]
-    expect(String(url)).toMatch(/\/request-password-reset$/)
+    expect(String(url)).toMatch(/^https?:\/\/.+\/request-password-reset$/)
     expect(init?.method).toBe('POST')
     expect(JSON.parse(init?.body as string)).toEqual({
       email: 'alguem@exemplo.com',
@@ -55,7 +53,10 @@ describe('pedirLink', () => {
 
     const r = await pedirLink('alguem@exemplo.com', 'https://app.test/')
 
-    expect(r.ok).toBe(false)
+    expect(r).toEqual({
+      ok: false,
+      erro: 'Não consegui falar com o servidor. Tente de novo.',
+    })
   })
 })
 
@@ -67,7 +68,7 @@ describe('redefinirSenha', () => {
 
     expect(r).toEqual({ ok: true })
     const [url, init] = vi.mocked(fetch).mock.calls[0]
-    expect(String(url)).toMatch(/\/reset-password$/)
+    expect(String(url)).toMatch(/^https?:\/\/.+\/reset-password$/)
     expect(JSON.parse(init?.body as string)).toEqual({
       token: 'tok123',
       newPassword: 'senhaboa123',
@@ -77,7 +78,7 @@ describe('redefinirSenha', () => {
   // 400 aqui quer dizer token gasto ou expirado. A mensagem precisa dizer
   // isso, porque a saída é pedir outro link — não tentar de novo.
   it('traduz 400 como link expirado ou já usado', async () => {
-    vi.mocked(fetch).mockResolvedValue(respostaFake(400, { message: 'invalid token' }))
+    vi.mocked(fetch).mockResolvedValue(respostaFake(400))
 
     const r = await redefinirSenha('tok123', 'senhaboa123')
 
