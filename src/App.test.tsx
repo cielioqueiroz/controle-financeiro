@@ -130,4 +130,42 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
     expect(screen.queryByRole('button', { name: 'Salvar nova senha' })).not.toBeInTheDocument()
     expect(screen.queryByPlaceholderText('nova senha (mín. 8 caracteres)')).not.toBeInTheDocument()
   })
+
+  it('token de reset na URL vence uma sessão já ativa (T1)', async () => {
+    // Quem clica no link do e-mail está pedindo explicitamente para
+    // redefinir a senha — isso vale mesmo se o navegador já tiver uma
+    // sessão logada. O Dashboard não pode aparecer por cima do formulário
+    // de nova senha nesse caso.
+    authMocks.setSessaoAtiva(true)
+    comTokenNaUrl()
+
+    render(<App />)
+
+    expect(await screen.findByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
+    expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
+  })
+
+  it('após "voltar ao login" sem login automático, entrar manualmente leva ao dashboard (T2)', async () => {
+    const usuario = userEvent.setup()
+    // Sem guardarEmailReset: RecuperarSenha não tenta login automático e
+    // devolve o usuário para o card de entrar — a segunda metade do bug de
+    // "estranhamento" original: depois de onVoltar, logar manualmente tem
+    // que chegar no dashboard, não re-renderizar o card de login.
+    vi.mocked(redefinirSenha).mockResolvedValue({ ok: true })
+    comTokenNaUrl()
+
+    render(<App />)
+
+    expect(await screen.findByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
+    await preencherEEnviarNovaSenha(usuario)
+
+    expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+
+    await usuario.type(screen.getByPlaceholderText('seu@email.com'), 'alguem@exemplo.com')
+    await usuario.type(screen.getByPlaceholderText('senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Entrar' }))
+
+    expect(await screen.findByText('DASHBOARD_STUB')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Entrar' })).not.toBeInTheDocument()
+  })
 })
