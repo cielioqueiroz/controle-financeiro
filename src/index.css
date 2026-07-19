@@ -214,6 +214,19 @@ body {
   display: none;
 }
 
+/* Camada do fundo animado. `fixed` é o ponto central: elemento fixo sai do
+   fluxo e não entra no scrollWidth/scrollHeight da página. Foi exatamente
+   isso que faltava no brilho antigo, que criava barra de rolagem ao animar.
+   z-index 0 (e não -1) porque `main` já é `relative z-10`; z-index negativo
+   sumiria atrás do fundo de qualquer ancestral opaco. */
+#bg-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
 /* Impressão / Baixar PDF — relatório limpo em papel branco. Esconde
    enfeites e controles; força paleta clara para não gastar tinta. */
 @media print {
@@ -221,6 +234,7 @@ body {
     display: block !important;
   }
   .grao::after,
+  #bg-animation,
   button,
   select,
   .screen-only {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
+import { FundoAnimado } from './ui/FundoAnimado'
 import { Notificacoes } from './ui/Notificacoes'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
@@ -115,6 +116,7 @@ export default function App() {
 
   return (
     <div className="grao min-h-dvh">
+      <FundoAnimado />
       <Notificacoes />
 
       <main className="relative z-10 mx-auto w-full max-w-[104rem] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
