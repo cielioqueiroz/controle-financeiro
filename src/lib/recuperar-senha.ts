@@ -12,7 +12,9 @@
 const env = (import.meta as unknown as { env: Record<string, string | undefined> }).env
 const authUrl = env.VITE_NEON_AUTH_URL
 
-export type ResultadoReset = { ok: true } | { ok: false; erro: string }
+export type ResultadoReset =
+  | { ok: true }
+  | { ok: false; erro: string; motivo: 'token' | 'rede' }
 
 const ERRO_REDE = 'Não consegui falar com o servidor. Tente de novo.'
 const ERRO_TOKEN = 'Este link expirou ou já foi usado.'
@@ -31,10 +33,10 @@ async function postar(caminho: string, corpo: unknown): Promise<Response> {
 export async function pedirLink(email: string, redirectTo: string): Promise<ResultadoReset> {
   try {
     const r = await postar('/request-password-reset', { email, redirectTo })
-    if (!r.ok) return { ok: false, erro: ERRO_REDE }
+    if (!r.ok) return { ok: false, erro: ERRO_REDE, motivo: 'rede' }
     return { ok: true }
   } catch {
-    return { ok: false, erro: ERRO_REDE }
+    return { ok: false, erro: ERRO_REDE, motivo: 'rede' }
   }
 }
 
@@ -46,10 +48,10 @@ export async function redefinirSenha(
 ): Promise<ResultadoReset> {
   try {
     const r = await postar('/reset-password', { token, newPassword: novaSenha })
-    if (r.status === 400) return { ok: false, erro: ERRO_TOKEN }
-    if (!r.ok) return { ok: false, erro: ERRO_REDE }
+    if (r.status === 400) return { ok: false, erro: ERRO_TOKEN, motivo: 'token' }
+    if (!r.ok) return { ok: false, erro: ERRO_REDE, motivo: 'rede' }
     return { ok: true }
   } catch {
-    return { ok: false, erro: ERRO_REDE }
+    return { ok: false, erro: ERRO_REDE, motivo: 'rede' }
   }
 }

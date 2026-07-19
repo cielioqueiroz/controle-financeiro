@@ -47,6 +47,7 @@ describe('pedirLink', () => {
     expect(r).toEqual({
       ok: false,
       erro: 'Não consegui falar com o servidor. Tente de novo.',
+      motivo: 'rede',
     })
   })
 
@@ -58,6 +59,7 @@ describe('pedirLink', () => {
     expect(r).toEqual({
       ok: false,
       erro: 'Não consegui falar com o servidor. Tente de novo.',
+      motivo: 'rede',
     })
   })
 })
@@ -84,7 +86,7 @@ describe('redefinirSenha', () => {
 
     const r = await redefinirSenha('tok123', 'senhaboa123')
 
-    expect(r).toEqual({ ok: false, erro: 'Este link expirou ou já foi usado.' })
+    expect(r).toEqual({ ok: false, erro: 'Este link expirou ou já foi usado.', motivo: 'token' })
   })
 
   it('devolve erro amigável quando a rede falha', async () => {
@@ -95,6 +97,7 @@ describe('redefinirSenha', () => {
     expect(r).toEqual({
       ok: false,
       erro: 'Não consegui falar com o servidor. Tente de novo.',
+      motivo: 'rede',
     })
   })
 })

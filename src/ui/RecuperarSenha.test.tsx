@@ -10,8 +10,13 @@ vi.mock('../lib/recuperar-senha', () => ({
   pedirLink: vi.fn(),
   redefinirSenha: vi.fn(),
 }))
+vi.mock('../lib/url-token', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../lib/url-token')>()
+  return { ...real, limparTokenDaUrl: vi.fn() }
+})
 
 const { pedirLink, redefinirSenha } = await import('../lib/recuperar-senha')
+const { limparTokenDaUrl } = await import('../lib/url-token')
 
 function montar(token: string | null = null) {
   return render(
@@ -59,7 +64,11 @@ describe('RecuperarSenha — pedir o link', () => {
     await usuario.type(screen.getByPlaceholderText('seu@email.com'), 'alguem@exemplo.com')
     await usuario.click(screen.getByRole('button', { name: 'Enviar link' }))
 
-    expect(await screen.findByText(/se houver conta com esse e-mail/i)).toBeInTheDocument()
+    // A subtitle passa a usar a mesma frase condicional do toast (C4), então
+    // o texto aparece duas vezes na tela — aqui o alvo é o toast mesmo.
+    expect(
+      await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' }),
+    ).toBeInTheDocument()
   })
 
   it('guarda o e-mail no localStorage ao pedir o link', async () => {
@@ -70,7 +79,7 @@ describe('RecuperarSenha — pedir o link', () => {
     await usuario.type(screen.getByPlaceholderText('seu@email.com'), 'alguem@exemplo.com')
     await usuario.click(screen.getByRole('button', { name: 'Enviar link' }))
 
-    await screen.findByText(/se houver conta com esse e-mail/i)
+    await screen.findByText(/se houver conta com esse e-mail/i, { selector: '[data-title]' })
     expect(localStorage.getItem('cf:email-reset')).toBe('alguem@exemplo.com')
   })
 })
@@ -112,6 +121,7 @@ describe('RecuperarSenha — definir a nova senha', () => {
     vi.mocked(redefinirSenha).mockResolvedValue({
       ok: false,
       erro: 'Este link expirou ou já foi usado.',
+      motivo: 'token',
     })
     montar('tok123')
 
@@ -123,14 +133,90 @@ describe('RecuperarSenha — definir a nova senha', () => {
     expect(screen.getByRole('button', { name: 'Pedir um novo link' })).toBeInTheDocument()
   })
 
-  // O olho é type="button": clicar não pode submeter o formulário.
+  it('erro de rede não marca o token como morto', async () => {
+    const usuario = userEvent.setup()
+    vi.mocked(redefinirSenha).mockResolvedValue({
+      ok: false,
+      erro: 'Não consegui falar com o servidor. Tente de novo.',
+      motivo: 'rede',
+    })
+    montar('tok123')
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    expect(await screen.findByText('Não consegui falar com o servidor. Tente de novo.')).toBeInTheDocument()
+    // Continua no formulário de nova senha — não caiu para o pedido de link.
+    expect(screen.getByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
+  })
+
+  // O olho é type="button": clicar não pode submeter o formulário. Os dois
+  // campos precisam estar preenchidos com uma senha válida ANTES do clique
+  // — senão a validação de campo vazio barraria o submit de qualquer jeito
+  // e o teste passaria mesmo com um type="submit" indevido no olho.
   it('o olho de revelar não submete o formulário', async () => {
     const usuario = userEvent.setup()
     montar('tok123')
 
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
     await usuario.click(screen.getAllByRole('button', { name: 'Mostrar senha' })[0])
 
     await new Promise((r) => setTimeout(r, 100))
     expect(redefinirSenha).not.toHaveBeenCalled()
+  })
+})
+
+describe('RecuperarSenha — depois de trocar a senha', () => {
+  it('sem e-mail guardado (link aberto em outro aparelho): troca com sucesso, volta ao login e libera o botão', async () => {
+    const usuario = userEvent.setup()
+    vi.mocked(redefinirSenha).mockResolvedValue({ ok: true })
+    const onVoltar = vi.fn()
+    render(
+      <>
+        <Notificacoes />
+        <RecuperarSenha token="tok123" onVoltar={onVoltar} onAutenticado={() => {}} />
+      </>,
+    )
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    const botao = screen.getByRole('button', { name: 'Salvar nova senha' })
+    await usuario.click(botao)
+
+    await screen.findByText('Senha alterada. Entre com a senha nova.')
+    expect(onVoltar).toHaveBeenCalledWith(undefined)
+    expect(botao).not.toBeDisabled()
+  })
+
+  it('limpa o token da URL após redefinir a senha com sucesso', async () => {
+    const usuario = userEvent.setup()
+    vi.mocked(redefinirSenha).mockResolvedValue({ ok: true })
+    montar('tok123')
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    await screen.findByText('Senha alterada. Entre com a senha nova.')
+    expect(limparTokenDaUrl).toHaveBeenCalled()
+  })
+
+  it('limpa o token da URL quando o token está expirado', async () => {
+    const usuario = userEvent.setup()
+    vi.mocked(redefinirSenha).mockResolvedValue({
+      ok: false,
+      erro: 'Este link expirou ou já foi usado.',
+      motivo: 'token',
+    })
+    montar('tok123')
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    await screen.findByText('Este link expirou ou já foi usado.')
+    expect(limparTokenDaUrl).toHaveBeenCalled()
   })
 })

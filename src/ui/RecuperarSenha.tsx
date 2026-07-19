@@ -79,7 +79,12 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
     if (!r.ok) {
       setOcupado(false)
       toast.error(r.erro)
-      if (/expirou/.test(r.erro)) setTokenMorto(true)
+      if (r.motivo === 'token') {
+        setTokenMorto(true)
+        // Token morto: fora da URL, senão um F5 volta para este mesmo
+        // formulário com um token já sabido inválido.
+        limparTokenDaUrl()
+      }
       return
     }
 
@@ -88,23 +93,34 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
     limparTokenDaUrl()
 
     const emailSalvo = lerEmailReset()
-    esquecerEmailReset()
 
     if (emailSalvo && neon) {
-      const { error } = await neon.auth.signIn.email({ email: emailSalvo, password: senha })
-      setOcupado(false)
-      if (!error) {
-        toast.success('Senha alterada. Bem-vindo de volta.')
-        onAutenticado()
-        return
+      try {
+        const { error } = await neon.auth.signIn.email({ email: emailSalvo, password: senha })
+        if (!error) {
+          toast.success('Senha alterada. Bem-vindo de volta.')
+          onAutenticado()
+          return
+        }
+        toast.success('Senha alterada. Entre com a senha nova.')
+        onVoltar(emailSalvo)
+      } catch {
+        // A senha JÁ foi trocada no servidor (chegamos aqui só depois do
+        // redefinirSenha ter dado ok:true). Só o login automático falhou —
+        // isso nunca pode virar "a troca de senha falhou".
+        toast.success('Senha alterada. Entre com a senha nova.')
+        onVoltar(emailSalvo)
+      } finally {
+        esquecerEmailReset()
+        setOcupado(false)
       }
-      toast.success('Senha alterada. Entre com a senha nova.')
-      onVoltar(emailSalvo)
       return
     }
 
-    // Sem e-mail guardado: o link foi aberto em outro aparelho. Não dá para
-    // fazer login automático — só avisar e mandar ao login.
+    // Sem e-mail guardado (link aberto em outro aparelho) ou sem banco
+    // configurado neste ambiente: não dá para fazer login automático — só
+    // avisar e mandar ao login.
+    esquecerEmailReset()
     setOcupado(false)
     toast.success('Senha alterada. Entre com a senha nova.')
     onVoltar(emailSalvo ?? undefined)
@@ -140,6 +156,7 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
         </form>
 
         <button
+          type="button"
           onClick={() => onVoltar()}
           className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
         >
@@ -155,7 +172,9 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
       <p className="mt-2 text-center text-sm text-tinta-fraca">
         {tokenMorto
           ? 'Peça um link novo para continuar.'
-          : 'Enviamos um link para o e-mail cadastrado.'}
+          : enviado
+            ? 'Se houver conta com esse e-mail, o link já está a caminho.'
+            : 'Informe seu e-mail e mandamos um link para redefinir a senha.'}
       </p>
 
       <form onSubmit={enviarLink} noValidate className="mt-6 space-y-3">
@@ -174,6 +193,7 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
       </form>
 
       <button
+        type="button"
         onClick={() => onVoltar()}
         className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
       >
