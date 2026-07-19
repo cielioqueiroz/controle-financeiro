@@ -24,7 +24,43 @@ Spec: [`docs/superpowers/specs/2026-07-19-recuperacao-de-senha-design.md`](../sp
 
 ---
 
-## Task 0: Confirmar o formato do link no e-mail real
+## Task 0: Confirmar o formato do link no e-mail real — ✅ CONCLUÍDA em 2026-07-19
+
+**Resultado.** O link do e-mail **não** aponta para o nosso app: aponta para o
+servidor do Neon, com o token como **segmento de caminho**, e o nosso endereço
+como `callbackURL`:
+
+```
+https://ep-…neonauth.sa-east-1.aws.neon.tech/neondb/auth/reset-password/<TOKEN>
+    ?callbackURL=https%3A%2F%2Fcapital-financeiro.vercel.app%2F
+```
+
+O Neon valida e **redireciona**. O que o app recebe é:
+
+```
+https://capital-financeiro.vercel.app/?token=<TOKEN>
+```
+
+Ou seja, **`?token=` na query string** — o palpite do plano estava certo, e a
+`lerTokenDaUrl` fica como escrita. O `redirectTo` que mandamos no corpo do POST
+vira `callbackURL` no link; o nome no corpo está correto.
+
+Outros achados desta verificação:
+- **Entrega de e-mail funciona** (caixa de entrada do Hotmail, não o lixo).
+  Remetente `auth@mail.myneon.app`. O link **expira em 1 hora**.
+- **O e-mail diz "controle-financeiro"**, não "Capital Financeiro" — o nome do
+  projeto no Neon vaza para o usuário final. Pendência à parte, resolvida no
+  painel do Neon, sem código.
+- **`teste.migracao@exemplo.com` não recebe e-mail**: `exemplo.com` é domínio
+  reservado. Serve para logar, nunca para testar e-mail. O teste foi feito com
+  uma conta real.
+- Confirmado na prática que o app logado **ignora** o token e vai ao dashboard —
+  exatamente o que a Task 6 corrige.
+
+<details>
+<summary>Passos originais da verificação (mantidos como registro)</summary>
+
+## Task 0 (original): Confirmar o formato do link no e-mail real
 
 **Bloqueia todas as demais.** O nome do parâmetro (`?token=`) é o padrão do Better Auth, mas **nunca foi confirmado**. Se vier como fragmento (`#token=`) ou com outro nome, a Task 2 muda de forma.
 
@@ -59,6 +95,8 @@ Anotar aqui, no plano, a URL recebida com o token mascarado. Exemplo do que se e
 git add docs/superpowers/plans/2026-07-19-recuperacao-de-senha.md
 git commit -m "docs: confirma o formato do link de reset no e-mail real"
 ```
+
+</details>
 
 ---
 
