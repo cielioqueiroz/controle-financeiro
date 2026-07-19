@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { neon } from '../lib/neon'
 import { pedirLink, redefinirSenha } from '../lib/recuperar-senha'
 import { guardarEmailReset, lerEmailReset, esquecerEmailReset } from '../lib/perfil'
 import { limparTokenDaUrl } from '../lib/url-token'
@@ -13,11 +12,9 @@ type Props = {
   token: string | null
   /** Voltar ao card de login, com o e-mail a preencher, se houver. */
   onVoltar: (email?: string) => void
-  /** Redefiniu e entrou: o App deve re-checar a sessão. */
-  onAutenticado: () => void
 }
 
-export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
+export function RecuperarSenha({ token, onVoltar }: Props) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
@@ -44,8 +41,9 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
     }
 
     setOcupado(true)
-    // Guardado ANTES da resposta: é o que permite o login automático quando
-    // o link for aberto neste mesmo navegador.
+    // Guardado ANTES da resposta: é o que permite preencher o campo de
+    // e-mail do login depois de redefinir a senha, se o link for aberto
+    // neste mesmo navegador.
     guardarEmailReset(email)
     const r = await pedirLink(email.trim(), window.location.origin + '/')
     setOcupado(false)
@@ -94,40 +92,14 @@ export function RecuperarSenha({ token, onVoltar, onAutenticado }: Props) {
     // reenviá-lo e produzir um erro que não é do usuário.
     limparTokenDaUrl()
 
+    // O e-mail guardado preenche o campo do login e NADA MAIS. Ele já foi
+    // entrada de um signIn.email automático, e era essa propriedade — uma
+    // entrada não verificada alimentando autenticação — que produzia o F4:
+    // com duas contas da casa usando a mesma senha, o auto-login entrava na
+    // conta errada, e como a saudação usa o apelido local, nem o cabeçalho
+    // denunciava. Preenchendo um campo de texto, o pior caso é sugerir o
+    // e-mail errado, visível e editável.
     const emailSalvo = lerEmailReset()
-
-    if (emailSalvo && neon) {
-      try {
-        const { error } = await neon.auth.signIn.email({ email: emailSalvo, password: senha })
-        if (!error) {
-          toast.success('Senha alterada. Bem-vindo de volta.')
-          onAutenticado()
-          return
-        }
-        toast.success('Senha alterada. Entre com a senha nova.')
-        onVoltar(emailSalvo)
-      } catch (err) {
-        // A senha JÁ foi trocada no servidor (chegamos aqui só depois do
-        // redefinirSenha ter dado ok:true). Só o login automático falhou —
-        // isso nunca pode virar "a troca de senha falhou".
-        // Só a mensagem, nunca o objeto: ele pode carregar a senha em
-        // texto puro que acabou de ser enviada na chamada que falhou (F7).
-        console.error(
-          'Auto-login falhou após redefinir senha:',
-          err instanceof Error ? err.message : String(err),
-        )
-        toast.success('Senha alterada. Entre com a senha nova.')
-        onVoltar(emailSalvo)
-      } finally {
-        esquecerEmailReset()
-        setOcupado(false)
-      }
-      return
-    }
-
-    // Sem e-mail guardado (link aberto em outro aparelho) ou sem banco
-    // configurado neste ambiente: não dá para fazer login automático — só
-    // avisar e mandar ao login.
     esquecerEmailReset()
     setOcupado(false)
     toast.success('Senha alterada. Entre com a senha nova.')

@@ -88,7 +88,7 @@ async function preencherEEnviarNovaSenha(usuario: ReturnType<typeof userEvent.se
 }
 
 describe('App — saída do fluxo de recuperação de senha (C1)', () => {
-  it('após redefinir a senha com login automático, o app para de mostrar o formulário de nova senha', async () => {
+  it('após redefinir a senha, volta ao login com o e-mail preenchido e nunca autentica sozinho', async () => {
     const usuario = userEvent.setup()
     guardarEmailReset('alguem@exemplo.com')
     vi.mocked(redefinirSenha).mockResolvedValue({ ok: true })
@@ -99,12 +99,18 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
     expect(await screen.findByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
     await preencherEEnviarNovaSenha(usuario)
 
-    // O login automático teve sucesso: a tela de logado (aqui, o Dashboard
-    // dublado) precisa assumir — e o formulário de nova senha não pode
-    // continuar por baixo do toast de boas-vindas.
-    expect(await screen.findByText('DASHBOARD_STUB')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Salvar nova senha' })).not.toBeInTheDocument()
-    expect(screen.queryByText('Nova senha')).not.toBeInTheDocument()
+    // Trocar a senha não entra na conta: quem redefiniu precisa usar a senha
+    // nova, o que também confirma que ela funciona.
+    expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+    expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
+
+    // O e-mail guardado serve só para poupar digitação.
+    expect(screen.getByPlaceholderText('seu@email.com')).toHaveValue('alguem@exemplo.com')
+
+    // Asserção negativa explícita: o requisito é "não autentica". Conferir
+    // apenas que o card de entrar apareceu deixaria passar um login que
+    // acontecesse e falhasse por outro motivo.
+    expect(authMocks.signInEmail).not.toHaveBeenCalled()
   })
 
   it('depois de voltar ao login (sem e-mail salvo para login automático), "Esqueceu a senha?" leva ao pedido de link, não a um token gasto (I1)', async () => {

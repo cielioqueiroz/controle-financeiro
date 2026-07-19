@@ -144,16 +144,6 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
               setModo('entrar')
               onRecuperacaoConcluida?.()
             }}
-            onAutenticado={() => {
-              onRecuperacaoConcluida?.()
-              // Se checarSessao (disparado por onAutenticado abaixo) não
-              // encontrar sessão a tempo, `logado` fica false e o Auth
-              // re-renderiza — sem isso, ainda em modo 'recuperar' e com o
-              // token já limpo, mostrando de novo "informe seu e-mail" para
-              // quem acabou de trocar a senha com sucesso.
-              setModo('entrar')
-              onAutenticado()
-            }}
           />
         ) : (
           <>

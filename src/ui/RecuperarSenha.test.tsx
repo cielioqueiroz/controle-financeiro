@@ -23,7 +23,7 @@ function montar(token: string | null = null) {
   return render(
     <>
       <Notificacoes />
-      <RecuperarSenha token={token} onVoltar={() => {}} onAutenticado={() => {}} />
+      <RecuperarSenha token={token} onVoltar={() => {}} />
     </>,
   )
 }
@@ -202,7 +202,7 @@ describe('RecuperarSenha — depois de trocar a senha', () => {
     render(
       <>
         <Notificacoes />
-        <RecuperarSenha token="tok123" onVoltar={onVoltar} onAutenticado={() => {}} />
+        <RecuperarSenha token="tok123" onVoltar={onVoltar} />
       </>,
     )
 
