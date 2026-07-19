@@ -29,11 +29,14 @@
 
   /* Traço e brilho da moeda do logo. A face é sempre --color-marca (âmbar)
      nos dois temas — o resto da moeda segue a face, não a página, por isso
-     estas duas variáveis existem nos dois blocos de tema com valores
-     próprios (não necessariamente iguais aos da UI ao redor). O traço era
-     #065f37 fixo, verde da paleta anterior; o brilho era var(--color-tinta),
-     que no tema claro é escura e fazia o "reflexo" ler como sombra sobre o
-     âmbar. */
+     o traço tem valor próprio por tema (não necessariamente igual ao da UI
+     ao redor). O traço era #065f37 fixo, verde da paleta anterior; o brilho
+     era var(--color-tinta), que no tema claro é escura e fazia o "reflexo"
+     ler como sombra sobre o âmbar.
+     --color-moeda-brilho só é definida aqui: a face é âmbar nos dois temas,
+     então o reflexo sobre ela também é o mesmo claro nos dois — só o traço
+     muda por tema, porque só ele precisa de contraste diferente contra o
+     resto da UI. */
   --color-moeda-traco: #4a3208;
   --color-moeda-brilho: #fff8ec;
 
@@ -73,7 +76,6 @@
   /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro. */
   --color-marca: #9a6a15;
   --color-moeda-traco: #3d2a06;
-  --color-moeda-brilho: #fff8ec;
   --color-confere: #4f6b39;
   --color-ressalva: #9c6415;
   --color-falha: #b3323a;
