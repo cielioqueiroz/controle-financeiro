@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
-import { TelaAcesso } from './ui/TelaAcesso'
+import { TelaAcesso, FraseDeslogado } from './ui/TelaAcesso'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
@@ -183,17 +183,27 @@ export default function App() {
               transition={{ type: 'spring', stiffness: 200, damping: 22 }}
               className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl"
             >
-              Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
-              <motion.span
-                aria-hidden
-                className="inline-block origin-[70%_80%]"
-                animate={{ rotate: [0, 20, -12, 20, -6, 0] }}
-                transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.1 }}
-              >
-                👋
-              </motion.span>
-              <br />
-              <span className="text-tinta-fraca">Importe a fatura, o resto a gente calcula.</span>
+              {logado ? (
+                <>
+                  Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
+                  <motion.span
+                    aria-hidden
+                    className="inline-block origin-[70%_80%]"
+                    animate={{ rotate: [0, 20, -12, 20, -6, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.1 }}
+                  >
+                    👋
+                  </motion.span>
+                  <br />
+                  <span className="text-tinta-fraca">Importe a fatura, o resto a gente calcula.</span>
+                </>
+              ) : (
+                // Modo "importa e vê" (neonConfigurado false, ver lib/neon.ts):
+                // precisaLogin nunca é true, então este header — não o
+                // TelaAcesso — é quem o visitante anônimo vê. Mesma frase de
+                // deslogado, para não saudar quem nunca entrou.
+                <FraseDeslogado />
+              )}
             </motion.h1>
           </div>
           <div className="flex shrink-0 items-center gap-3">

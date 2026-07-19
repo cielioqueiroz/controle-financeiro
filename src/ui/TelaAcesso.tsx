@@ -3,6 +3,21 @@ import { motion } from 'motion/react'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
 
+/** Frase de quem ainda não entrou — usada aqui embaixo e também no header
+ *  do App quando não há Neon configurado (o modo "importa e vê" também é
+ *  visitante anônimo, então vê a mesma frase de deslogado, não a saudação).
+ *  Sem tag h1 nem classes de framing: cada chamador decide isso, porque o
+ *  card de acesso e o header usam tamanhos de fonte diferentes. */
+export function FraseDeslogado() {
+  return (
+    <>
+      Seu extrato vira gráfico,{' '}
+      <br />
+      <span className="text-tinta-fraca">em menos de um minuto.</span>
+    </>
+  )
+}
+
 /** Tela inteira enquanto ninguém está logado: marca e tema no topo, frase à
  *  esquerda e card à direita em telas largas, tudo empilhado no celular.
  *
@@ -41,9 +56,7 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
           transition={{ type: 'spring', stiffness: 200, damping: 22 }}
           className="font-display text-4xl leading-[1.05] text-tinta sm:text-5xl lg:text-6xl"
         >
-          Seu extrato vira gráfico,{' '}
-          <br />
-          <span className="text-tinta-fraca">em menos de um minuto.</span>
+          <FraseDeslogado />
         </motion.h1>
 
         <div className="w-full lg:justify-self-end">{children}</div>

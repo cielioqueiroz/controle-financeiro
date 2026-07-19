@@ -197,7 +197,9 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
     expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
   })
+})
 
+describe('App — frase do header por estado', () => {
   it('deslogado, mostra a frase da tela de acesso; logado, a de importar', async () => {
     const { unmount } = render(<App />)
     // O nome filtra o heading certo: sem ele, findByRole aceita o primeiro
