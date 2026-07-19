@@ -103,10 +103,11 @@ O código está no ar e revisado; **nada foi testado contra o navegador ainda**.
 ⚠️ **Este roteiro troca a senha de verdade** de `cielioqueiroz@hotmail.com` — não é
 ambiente de teste. Anote a senha que usar.
 
-Roteiro, em ordem:
+Roteiro, em ordem (**1 e 2 já feitos em 2026-07-19**, o servidor sobe em
+`http://localhost:5173/` e o medidor deu OK em 1280×800 e 390×844):
 
-1. `npm run dev`, `Ctrl+Shift+R` (nasceram arquivos novos).
-2. `python scripts/medir-overflow.py` — sem rolagem lateral.
+1. ~~`npm run dev`, `Ctrl+Shift+R` (nasceram arquivos novos).~~ ✅
+2. ~~`python scripts/medir-overflow.py` — sem rolagem lateral.~~ ✅
 3. "Esqueceu a senha?" → pedir link para `cielioqueiroz@hotmail.com`.
 4. Abrir o link **no mesmo navegador** → trocar a senha → deve entrar direto,
    e o `?token=` deve sumir da barra de endereços.
@@ -194,6 +195,15 @@ resolver em 2026-07-18.
   `?url`. Quem declara esse formato é o `vite/client`, que só o `tsconfig.app.json` tinha.
   Os dois arquivos são quase-duplicatas mantidas à mão (17 chaves iguais) — extrair um
   `tsconfig.base.json` evitaria a próxima divergência.
+- **Suíte verde não é suíte determinística** (2026-07-19). Três execuções seguidas do
+  mesmo commit deram 4 falhas → 1 falha → 0 falhas. Não era regressão: os 4 testes que
+  sobem o `<App/>` e dirigem a tela com `userEvent` levam ~2s isolados e passavam dos
+  **5s do `testTimeout` padrão** quando os 27 arquivos disputavam CPU. Corrigido com
+  `testTimeout: 15000` no `vite.config.ts` (35b4f84). O jeito de reproduzir esse tipo de
+  falha é `--testTimeout` baixo: com 1200ms caem exatamente os mesmos 4 e sobra o único
+  sem `userEvent`. **Se um teste falhar sem você ter mudado nada, rode de novo antes de
+  investigar o código** — e verifique sob carga (`npm test` duplicado em paralelo), porque
+  passar numa máquina ociosa não prova nada.
 - **`git stash` sem `-u` não guarda arquivo novo não rastreado.** Um diagnóstico desta
   sessão concluiu "erro pré-existente" porque o arquivo recém-criado continuou no disco
   durante a comparação com o commit antigo. Para bissecar de verdade: `git stash -u`, e
