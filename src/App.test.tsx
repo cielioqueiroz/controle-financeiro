@@ -197,4 +197,21 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
     expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
   })
+
+  it('deslogado, mostra a frase da tela de acesso; logado, a de importar', async () => {
+    const { unmount } = render(<App />)
+    // O nome filtra o heading certo: sem ele, findByRole aceita o primeiro
+    // <h1> que existir e resolve antes do checarSessao (assíncrono) trocar
+    // de tela — daí ficar esperando pelo texto que ainda vai aparecer.
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /Seu extrato vira gráfico/ }),
+    ).toHaveTextContent('Seu extrato vira gráfico, em menos de um minuto.')
+    unmount()
+
+    authMocks.setSessaoAtiva(true)
+    render(<App />)
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /Importe a fatura/ }),
+    ).toHaveTextContent('Importe a fatura, o resto a gente calcula.')
+  })
 })

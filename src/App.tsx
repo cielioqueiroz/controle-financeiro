@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
+import { TelaAcesso } from './ui/TelaAcesso'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { Auth } from './ui/Auth'
@@ -123,6 +124,38 @@ export default function App() {
   // na URL também leva ao card, mesmo com sessão ativa.
   const precisaLogin = neonConfigurado && (!logado || Boolean(tokenReset))
 
+  // Saída antecipada: a tela de acesso não compartilha nada com a tela
+  // logada além do fundo e dos toasts. Todos os hooks já rodaram acima —
+  // este return não pode subir daqui, sob pena de quebrar a ordem deles.
+  if (precisaLogin) {
+    return (
+      <div className="grao min-h-dvh">
+        <FundoAnimado />
+        <Notificacoes />
+        <TelaAcesso>
+          <Auth
+            onAutenticado={checarSessao}
+            tokenReset={tokenReset}
+            onRecuperacaoConcluida={() => {
+              setTokenReset(null)
+              // F1: uma sessão de OUTRA conta pode continuar ativa neste
+              // navegador (quem clicou no link não precisa ser quem estava
+              // logado). Sem isto, precisaLogin vira false assim que o
+              // token some e o Dashboard da sessão antiga reaparece por
+              // cima — mesmo a UI tendo acabado de dizer "entre com a
+              // senha nova". No caminho de login automático bem-sucedido,
+              // o checarSessao chamado logo em seguida (via onAutenticado)
+              // já corrige para a sessão nova; aqui só forçamos o card de
+              // entrar a aparecer sempre que a recuperação termina.
+              setLogado(false)
+              setUsuario(null)
+            }}
+          />
+        </TelaAcesso>
+      </div>
+    )
+  }
+
   return (
     <div className="grao min-h-dvh">
       <FundoAnimado />
@@ -144,38 +177,24 @@ export default function App() {
               />
               <Marca />
             </motion.p>
-            <AnimatePresence mode="wait">
-              <motion.h1
-                key={logado ? 'in' : 'out'}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-                className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl"
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+              className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl"
+            >
+              Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
+              <motion.span
+                aria-hidden
+                className="inline-block origin-[70%_80%]"
+                animate={{ rotate: [0, 20, -12, 20, -6, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.1 }}
               >
-                {logado ? (
-                  <>
-                    Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
-                    <motion.span
-                      aria-hidden
-                      className="inline-block origin-[70%_80%]"
-                      animate={{ rotate: [0, 20, -12, 20, -6, 0] }}
-                      transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.1 }}
-                    >
-                      👋
-                    </motion.span>
-                    <br />
-                    <span className="text-tinta-fraca">Para onde o dinheiro foi?</span>
-                  </>
-                ) : (
-                  <>
-                    Importe o PDF.
-                    <br />
-                    <span className="text-tinta-fraca">Veja para onde o dinheiro foi.</span>
-                  </>
-                )}
-              </motion.h1>
-            </AnimatePresence>
+                👋
+              </motion.span>
+              <br />
+              <span className="text-tinta-fraca">Importe a fatura, o resto a gente calcula.</span>
+            </motion.h1>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <ThemeToggle />
@@ -207,26 +226,7 @@ export default function App() {
           </div>
         </header>
 
-        {precisaLogin ? (
-          <Auth
-            onAutenticado={checarSessao}
-            tokenReset={tokenReset}
-            onRecuperacaoConcluida={() => {
-              setTokenReset(null)
-              // F1: uma sessão de OUTRA conta pode continuar ativa neste
-              // navegador (quem clicou no link não precisa ser quem estava
-              // logado). Sem isto, precisaLogin vira false assim que o
-              // token some e o Dashboard da sessão antiga reaparece por
-              // cima — mesmo a UI tendo acabado de dizer "entre com a
-              // senha nova". No caminho de login automático bem-sucedido,
-              // o checarSessao chamado logo em seguida (via onAutenticado)
-              // já corrige para a sessão nova; aqui só forçamos o card de
-              // entrar a aparecer sempre que a recuperação termina.
-              setLogado(false)
-              setUsuario(null)
-            }}
-          />
-        ) : estado.fase === 'pronto' ? (
+        {estado.fase === 'pronto' ? (
           <div className="mx-auto max-w-4xl">
             <ResultadoImport
               kind={estado.kind}
