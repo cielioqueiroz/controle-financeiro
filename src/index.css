@@ -21,9 +21,17 @@
   --color-tinta-fraca: #a8a29a;
   --color-tinta-tenue: #6f6a62;
 
-  --color-confere: #00c974;
-  --color-ressalva: #f5a623;
-  --color-falha: #ff4d4f;
+  /* Marca — âmbar/dourado. Cor de identidade (logotipo, favicon, foco,
+     ponto pulsante). É separada de --color-confere de propósito: aquela
+     carrega SEMÂNTICA de "o total bate", e misturar as duas faria o toast
+     de sucesso parecer aviso. */
+  --color-marca: #d9a441;
+
+  /* Estados. O verde de "confere" ficou dessaturado para caber no café —
+     verde=certo/vermelho=errado é leitura aprendida e não vale trocar. */
+  --color-confere: #6b8f4e;
+  --color-ressalva: #c8862a;
+  --color-falha: #d64545;
 
   /* Partículas do fundo animado. Variável própria porque o fundo não deve
      seguir a cor de "confere" (verde de sucesso) — são coisas diferentes, e
@@ -51,6 +59,12 @@
 
   --color-particula: #6b5744; /* cafe sobre o creme */
   --particula-alfa: 0.30;
+
+  /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro. */
+  --color-marca: #9a6a15;
+  --color-confere: #4f6b39;
+  --color-ressalva: #9c6415;
+  --color-falha: #b3323a;
   color-scheme: light;
 }
 
@@ -107,8 +121,8 @@ body {
   textarea:focus,
   select:focus {
     outline: none;
-    border-color: color-mix(in oklab, var(--color-confere) 55%, var(--color-carvao-600));
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-confere) 20%, transparent);
+    border-color: color-mix(in oklab, var(--color-marca) 60%, var(--color-carvao-600));
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-marca) 22%, transparent);
   }
 
   /* Clicáveis ganham uma transição suave para o hover ficar gostoso. */

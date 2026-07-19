@@ -11,10 +11,10 @@ function Icone({ tipo }: { tipo: 'ok' | 'erro' | 'aviso' | 'info' }) {
   }[tipo]
   return (
     <span
-      className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white shadow-sm"
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white shadow-md"
       style={{ color: cfg.cor }}
     >
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
         <path d={cfg.d} />
       </svg>
     </span>
@@ -31,13 +31,16 @@ export function Notificacoes() {
       offset={28}
       gap={12}
       duration={4500}
+      // Largura fixa e generosa: o toast ocupa o eixo central como um
+      // diálogo, em vez de encolher para o tamanho do texto.
+      style={{ width: 'min(30rem, calc(100vw - 2rem))' }}
       toastOptions={{
         unstyled: true,
         classNames: {
           toast:
-            'flex w-full items-center gap-3 rounded-2xl px-5 py-4 shadow-2xl shadow-black/40 ring-1 ring-black/10',
-          title: 'font-sans text-sm font-bold leading-snug',
-          description: 'font-sans text-xs font-medium leading-snug opacity-90',
+            'flex w-full items-center gap-4 rounded-2xl px-6 py-5 shadow-2xl shadow-black/50 ring-1 ring-black/15',
+          title: 'font-display text-[15px] font-bold leading-snug tracking-tight',
+          description: 'font-sans text-[13px] font-medium leading-snug opacity-90',
           icon: 'shrink-0',
           actionButton: 'rounded-lg bg-black/20 px-2.5 py-1 text-xs font-semibold',
           cancelButton: 'text-xs opacity-80',

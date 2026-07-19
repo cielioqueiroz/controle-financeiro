@@ -39,7 +39,7 @@ export function Marca({ variante = 'cabecalho' }: Props) {
         <motion.span
           key={i}
           aria-hidden
-          className={i < INICIO_SEGUNDA ? 'text-tinta' : 'text-confere'}
+          className={i < INICIO_SEGUNDA ? 'text-tinta' : 'text-marca'}
           // O espaço não pode colapsar no flex: damos largura explícita.
           style={letra === ' ' ? { width: '0.3em' } : undefined}
           variants={{ parado: { y: 0 }, salto: { y: -7 } }}

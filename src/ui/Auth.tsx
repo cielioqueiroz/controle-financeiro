@@ -134,7 +134,7 @@ export function Auth({ onAutenticado }: Props) {
               placeholder="nome e sobrenome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
+              className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
             />
             <div>
               <input
@@ -142,7 +142,7 @@ export function Auth({ onAutenticado }: Props) {
                 placeholder="como quer ser chamado? (apelido, opcional)"
                 value={apelido}
                 onChange={(e) => setApelido(e.target.value)}
-                className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
+                className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
               />
               <p className="mt-1 px-1 text-[11px] text-tinta-tenue">
                 É assim que vamos te saudar. Se deixar em branco, usamos seu primeiro nome.
@@ -157,7 +157,7 @@ export function Auth({ onAutenticado }: Props) {
           placeholder="seu@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 text-sm text-tinta outline-none focus:border-tinta-tenue"
+          className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
         />
         <div className="relative">
           <input
@@ -168,7 +168,7 @@ export function Auth({ onAutenticado }: Props) {
             placeholder="senha (mín. 8 caracteres)"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
-            className="w-full rounded-sm border border-carvao-700 bg-carvao-950 px-3 py-2 pr-10 text-sm text-tinta outline-none focus:border-tinta-tenue"
+            className="w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 pr-11 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca"
           />
           <button
             type="button"
@@ -183,7 +183,7 @@ export function Auth({ onAutenticado }: Props) {
         <button
           type="submit"
           disabled={ocupado}
-          className="w-full rounded-sm bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-xl bg-tinta px-4 py-3 text-sm font-semibold text-carvao-950 shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
         >
           {ocupado ? '…' : modo === 'entrar' ? 'Entrar' : 'Criar conta'}
         </button>
@@ -197,7 +197,7 @@ export function Auth({ onAutenticado }: Props) {
 
       <button
         onClick={comGoogle}
-        className="flex w-full items-center justify-center gap-2 rounded-sm border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:bg-carvao-850"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-carvao-700 px-4 py-3 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:border-carvao-600 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
       >
         <GoogleIcon /> Continuar com o Google
       </button>
@@ -223,7 +223,7 @@ export function Auth({ onAutenticado }: Props) {
 function MoedaLogo() {
   return (
     <svg width="56" height="56" viewBox="0 0 64 64" className="drop-shadow-lg" aria-hidden>
-      <circle cx="32" cy="32" r="23" fill="var(--color-confere)" />
+      <circle cx="32" cy="32" r="23" fill="var(--color-marca)" />
       <circle cx="32" cy="32" r="23" fill="none" stroke="#065f37" strokeWidth="2.5" opacity="0.55" />
       <circle cx="32" cy="32" r="18.5" fill="none" stroke="#065f37" strokeWidth="1.6" opacity="0.4" />
       <text

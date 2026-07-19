@@ -1,9 +1,9 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <rect width="64" height="64" rx="15" fill="#131211"/>
   <!-- moeda -->
-  <circle cx="32" cy="32" r="23" fill="#00c974"/>
-  <circle cx="32" cy="32" r="23" fill="none" stroke="#065f37" stroke-width="2.5" opacity="0.55"/>
-  <circle cx="32" cy="32" r="18.5" fill="none" stroke="#065f37" stroke-width="1.6" opacity="0.4"/>
+  <circle cx="32" cy="32" r="23" fill="#d9a441"/>
+  <circle cx="32" cy="32" r="23" fill="none" stroke="#7a4e12" stroke-width="2.5" opacity="0.55"/>
+  <circle cx="32" cy="32" r="18.5" fill="none" stroke="#7a4e12" stroke-width="1.6" opacity="0.4"/>
   <!-- R$ em grafite, forte para ler pequeno -->
   <text x="32" y="41.5" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif"
         font-weight="800" font-size="25" fill="#0d0c0b" letter-spacing="-1">R$</text>

@@ -132,7 +132,7 @@ export function Tutorial({ nome, onFechar }: Props) {
             {ultimo ? (
               <button
                 onClick={onFechar}
-                className="rounded-lg bg-confere px-4 py-1.5 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+                className="rounded-lg bg-marca px-4 py-1.5 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
               >
                 Começar!
               </button>

@@ -130,7 +130,7 @@ export default function App() {
               className="tabular flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-tinta-tenue"
             >
               <motion.span
-                className="inline-block h-1.5 w-1.5 rounded-full bg-confere"
+                className="inline-block h-1.5 w-1.5 rounded-full bg-marca"
                 animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               />
@@ -178,9 +178,21 @@ export default function App() {
                   setMostrarTutorial(true)
                 }}
                 onSair={async () => {
-                  await neon?.auth.signOut()
-                  setLogado(false)
-                  setUsuario(null)
+                  // Saudação pelo mesmo nome usado no cabeçalho, para a
+                  // despedida soar como continuação da conversa.
+                  const quem = comoChamar(usuario?.nome, usuario?.email)
+                  try {
+                    await neon?.auth.signOut()
+                    setLogado(false)
+                    setUsuario(null)
+                    toast.success(`Até logo, ${quem}!`, {
+                      description: 'Sua sessão foi encerrada neste navegador.',
+                    })
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error ? err.message : 'Não consegui encerrar a sessão.',
+                    )
+                  }
                 }}
               />
             )}
@@ -229,13 +241,17 @@ export default function App() {
             </p>
             <span className="h-px flex-1 bg-carvao-800" />
           </div>
-          <p className="text-center text-[11px] text-tinta-tenue">
-            <span className="tabular">© {new Date().getFullYear()}</span> · Criado por{' '}
+          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-tinta-tenue">
+            <span className="tabular">© {new Date().getFullYear()}</span>
+            <span aria-hidden>·</span>
+            <span>Criado por</span>
+            {/* A assinatura é o único nome próprio da página: ganha corpo,
+                peso e a cor da marca para não se perder no rodapé. */}
             <a
               href="https://cielio-portfolio.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-tinta-fraca underline decoration-carvao-600 underline-offset-4 transition-colors hover:text-tinta hover:decoration-tinta"
+              className="font-display text-base font-semibold text-marca underline decoration-marca/40 underline-offset-4 transition-all hover:decoration-marca hover:brightness-110"
             >
               Cielio Queiroz
             </a>
