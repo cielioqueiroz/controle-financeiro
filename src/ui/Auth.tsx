@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
 import { Marca } from './Marca'
+import { RecuperarSenha } from './RecuperarSenha'
 import { camposFaltando, mensagemCamposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
 import { IconeOlho } from './IconeOlho'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
@@ -11,13 +12,17 @@ import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
 type Props = {
   /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
   onAutenticado: () => void
+  /** Token vindo do link do e-mail. Presente → abre direto a nova senha. */
+  tokenReset?: string | null
 }
 
 /** Login e cadastro. E-mail/senha + Google, via Neon Auth (Better Auth).
  *  Mantém a tela grafite/Fraunces; só a engrenagem por baixo mudou de
  *  Supabase para neon-js. */
-export function Auth({ onAutenticado }: Props) {
-  const [modo, setModo] = useState<'entrar' | 'criar'>('entrar')
+export function Auth({ onAutenticado, tokenReset }: Props) {
+  const [modo, setModo] = useState<'entrar' | 'criar' | 'recuperar'>(
+    tokenReset ? 'recuperar' : 'entrar',
+  )
   const [nome, setNome] = useState('')
   const [apelido, setApelido] = useState('')
   const [email, setEmail] = useState('')
@@ -37,9 +42,12 @@ export function Auth({ onAutenticado }: Props) {
 
     // Validação primeiro: campo vazio sempre vence formato inválido, para
     // as duas mensagens nunca competirem.
-    const faltando = camposFaltando(modo, { nome, email, senha })
+    // submeter só roda a partir do <form>, que não existe no modo recuperar
+    // — mas o TypeScript não enxerga essa garantia daqui, então explicitamos.
+    const modoFormulario = modo === 'criar' ? 'criar' : 'entrar'
+    const faltando = camposFaltando(modoFormulario, { nome, email, senha })
     if (faltando.length > 0) {
-      toast.error(mensagemCamposFaltando(modo, faltando))
+      toast.error(mensagemCamposFaltando(modoFormulario, faltando))
       refs[faltando[0]].current?.focus()
       return
     }
@@ -121,8 +129,19 @@ export function Auth({ onAutenticado }: Props) {
           <Marca variante="destaque" />
         </div>
 
+        {modo === 'recuperar' ? (
+          <RecuperarSenha
+            token={tokenReset ?? null}
+            onVoltar={(emailVolta) => {
+              if (emailVolta) setEmail(emailVolta)
+              setModo('entrar')
+            }}
+            onAutenticado={onAutenticado}
+          />
+        ) : (
+          <>
         <h2 className="text-center font-display text-2xl text-tinta">
-          {modo === 'entrar' ? 'Entrar' : 'Criar conta'}
+          {modo === 'criar' ? 'Criar conta' : 'Entrar'}
         </h2>
         <p className="mt-2 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
 
@@ -187,9 +206,19 @@ export function Auth({ onAutenticado }: Props) {
           disabled={ocupado}
           className={BOTAO_PRIMARIO}
         >
-          {ocupado ? '…' : modo === 'entrar' ? 'Entrar' : 'Criar conta'}
+          {ocupado ? '…' : modo === 'criar' ? 'Criar conta' : 'Entrar'}
         </button>
       </form>
+
+      {modo === 'entrar' && (
+        <button
+          type="button"
+          onClick={() => setModo('recuperar')}
+          className="mt-3 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
+        >
+          Esqueceu a senha?
+        </button>
+      )}
 
       <div className="my-5 flex items-center gap-3">
         <span className="h-px flex-1 bg-carvao-800" />
@@ -216,6 +245,8 @@ export function Auth({ onAutenticado }: Props) {
       >
         {modo === 'entrar' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
       </button>
+          </>
+        )}
       </motion.div>
     </div>
   )

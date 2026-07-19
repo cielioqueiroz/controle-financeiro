@@ -18,6 +18,7 @@ import { pareceDigitalizado } from './domain/pdf/extract'
 import { parse, ParserNaoImplementadoError } from './domain/parsers'
 import { validar } from './domain/validate/checksum'
 import { neon, neonConfigurado } from './lib/neon'
+import { lerTokenDaUrl } from './lib/url-token'
 import { salvarDocumento } from './persist/salvar'
 import type { DocKind } from './domain/pdf/detect'
 import type { ParseResult } from './domain/parsers/types'
@@ -37,6 +38,9 @@ export default function App() {
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
    *  quando muda (nova chave). */
   const [importando, setImportando] = useState(false)
+  // Lido uma vez, na montagem. Quem clica no link do e-mail quer redefinir,
+  // mesmo já tendo sessão ativa — por isso o token vence o `logado` abaixo.
+  const [tokenReset] = useState(() => lerTokenDaUrl(window.location.search))
 
   async function checarSessao() {
     if (!neon) return
@@ -112,8 +116,9 @@ export default function App() {
     }
   }
 
-  // Com Neon configurado e sem login → tela de entrar.
-  const precisaLogin = neonConfigurado && !logado
+  // Com Neon configurado e sem login → tela de entrar. Token de redefinição
+  // na URL também leva ao card, mesmo com sessão ativa.
+  const precisaLogin = neonConfigurado && (!logado || Boolean(tokenReset))
 
   return (
     <div className="grao min-h-dvh">
@@ -200,7 +205,7 @@ export default function App() {
         </header>
 
         {precisaLogin ? (
-          <Auth onAutenticado={checarSessao} />
+          <Auth onAutenticado={checarSessao} tokenReset={tokenReset} />
         ) : estado.fase === 'pronto' ? (
           <div className="mx-auto max-w-4xl">
             <ResultadoImport

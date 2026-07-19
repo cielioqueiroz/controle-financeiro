@@ -78,3 +78,42 @@ describe('Auth — ordem das validações', () => {
     })
   })
 })
+
+describe('Auth — porta de entrada da recuperação', () => {
+  it('o link "Esqueceu a senha?" troca o card para o pedido de link', async () => {
+    const usuario = userEvent.setup()
+    render(<Auth onAutenticado={() => {}} />)
+
+    await usuario.click(screen.getByRole('button', { name: /esqueceu a senha/i }))
+
+    expect(screen.getByRole('button', { name: 'Enviar link' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Entrar' })).not.toBeInTheDocument()
+  })
+
+  it('voltar ao login restaura o formulário de entrar', async () => {
+    const usuario = userEvent.setup()
+    render(<Auth onAutenticado={() => {}} />)
+
+    await usuario.click(screen.getByRole('button', { name: /esqueceu a senha/i }))
+    await usuario.click(screen.getByRole('button', { name: /voltar ao login/i }))
+
+    expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+  })
+
+  it('com tokenReset, abre direto no formulário de nova senha', () => {
+    render(<Auth onAutenticado={() => {}} tokenReset="tok123" />)
+
+    expect(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)')).toBeInTheDocument()
+  })
+
+  // No modo criar, oferecer "esqueceu a senha?" não faz sentido: ainda não
+  // existe senha para esquecer.
+  it('o link não aparece no modo criar', async () => {
+    const usuario = userEvent.setup()
+    render(<Auth onAutenticado={() => {}} />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Não tem conta? Criar uma' }))
+
+    expect(screen.queryByRole('button', { name: /esqueceu a senha/i })).not.toBeInTheDocument()
+  })
+})
