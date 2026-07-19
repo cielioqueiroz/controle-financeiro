@@ -5,6 +5,7 @@
 
 const CHAVE_APELIDO = 'cf:apelido'
 const CHAVE_TUTORIAL = 'cf:tutorial-visto'
+const CHAVE_EMAIL_RESET = 'cf:email-reset'
 
 export function salvarApelido(apelido: string | null | undefined): void {
   const a = apelido?.trim()
@@ -48,4 +49,22 @@ export function marcarTutorialVisto(): void {
 /** Reabre o tutorial na próxima renderização (usado pelo "ver de novo"). */
 export function reabrirTutorial(): void {
   localStorage.removeItem(CHAVE_TUTORIAL)
+}
+
+/** Quem pede o link de redefinição fica anotado aqui, porque o link do
+ *  e-mail traz só o token — sem o e-mail não dá para fazer o login
+ *  automático depois. Quem abrir o link em OUTRO aparelho não terá esta
+ *  anotação, e cairá no login normal; é o limite do protocolo, não um bug. */
+export function guardarEmailReset(email: string): void {
+  const e = email.trim()
+  if (e) localStorage.setItem(CHAVE_EMAIL_RESET, e)
+  else localStorage.removeItem(CHAVE_EMAIL_RESET)
+}
+
+export function lerEmailReset(): string | null {
+  return localStorage.getItem(CHAVE_EMAIL_RESET)
+}
+
+export function esquecerEmailReset(): void {
+  localStorage.removeItem(CHAVE_EMAIL_RESET)
 }
