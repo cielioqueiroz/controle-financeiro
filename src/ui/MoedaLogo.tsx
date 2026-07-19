@@ -37,9 +37,9 @@ export function MoedaLogo() {
           <circle cx="32" cy="32" r={R_ANEL} />
         </clipPath>
         <linearGradient id={idBrilho} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--color-tinta)" stopOpacity="0" />
-          <stop offset="50%" stopColor="var(--color-tinta)" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="var(--color-tinta)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-moeda-brilho)" stopOpacity="0" />
+          <stop offset="50%" stopColor="var(--color-moeda-brilho)" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="var(--color-moeda-brilho)" stopOpacity="0" />
         </linearGradient>
       </defs>
 

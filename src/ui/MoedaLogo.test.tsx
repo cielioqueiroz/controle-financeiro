@@ -9,8 +9,10 @@ describe('MoedaLogo', () => {
 
     // #065f37 era o verde da paleta neon anterior ao rename, fixo em código:
     // a moeda ficava âmbar por fora e verde no contorno, sem responder ao
-    // tema. Este teste existe para isso não voltar.
-    expect(svg.outerHTML).not.toMatch(/#[0-9a-f]{6}/i)
+    // tema. Este teste existe para isso não voltar. Pega tanto a forma de
+    // 6 dígitos (#065f37) quanto a de 3 (#fff), para um hex curto futuro
+    // não passar batido.
+    expect(svg.outerHTML).not.toMatch(/#[0-9a-f]{3}([0-9a-f]{3})?\b/i)
   })
 
   it('gera ids únicos por instância, para duas moedas não colidirem', () => {

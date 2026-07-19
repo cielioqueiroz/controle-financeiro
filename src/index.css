@@ -27,10 +27,15 @@
      de sucesso parecer aviso. */
   --color-marca: #d9a441;
 
-  /* Traço da moeda do logo. Marrom profundo: a face da moeda é sempre
-     --color-marca (âmbar) nos dois temas, então um só tom escuro serve
-     para ambos. Antes era #065f37 fixo, verde da paleta anterior. */
+  /* Traço e brilho da moeda do logo. A face é sempre --color-marca (âmbar)
+     nos dois temas — o resto da moeda segue a face, não a página, por isso
+     estas duas variáveis existem nos dois blocos de tema com valores
+     próprios (não necessariamente iguais aos da UI ao redor). O traço era
+     #065f37 fixo, verde da paleta anterior; o brilho era var(--color-tinta),
+     que no tema claro é escura e fazia o "reflexo" ler como sombra sobre o
+     âmbar. */
   --color-moeda-traco: #4a3208;
+  --color-moeda-brilho: #fff8ec;
 
   /* Estados. O verde de "confere" ficou dessaturado para caber no café —
      verde=certo/vermelho=errado é leitura aprendida e não vale trocar. */
@@ -68,6 +73,7 @@
   /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro. */
   --color-marca: #9a6a15;
   --color-moeda-traco: #3d2a06;
+  --color-moeda-brilho: #fff8ec;
   --color-confere: #4f6b39;
   --color-ressalva: #9c6415;
   --color-falha: #b3323a;
