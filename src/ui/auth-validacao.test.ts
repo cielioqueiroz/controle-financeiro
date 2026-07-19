@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { camposFaltando, mensagemCamposFaltando } from './auth-validacao'
+import { camposFaltando, mensagemCamposFaltando, validarNovaSenha } from './auth-validacao'
 
 const vazio = { nome: '', email: '', senha: '' }
 
@@ -52,5 +52,41 @@ describe('mensagemCamposFaltando', () => {
   it('retorna string vazia para lista vazia, em vez de frase com espaço duplo', () => {
     expect(mensagemCamposFaltando('criar', [])).toBe('')
     expect(mensagemCamposFaltando('entrar', [])).toBe('')
+  })
+})
+
+describe('validarNovaSenha', () => {
+  it('recusa senha vazia', () => {
+    expect(validarNovaSenha('', '')).toBe('Digite a nova senha.')
+  })
+
+  it('recusa senha com menos de 8 caracteres', () => {
+    expect(validarNovaSenha('abc123', 'abc123')).toBe(
+      'A senha precisa ter ao menos 8 caracteres.',
+    )
+  })
+
+  it('recusa confirmação vazia quando a senha foi preenchida', () => {
+    expect(validarNovaSenha('senhaboa123', '')).toBe('Repita a nova senha para confirmar.')
+  })
+
+  it('recusa senhas diferentes', () => {
+    expect(validarNovaSenha('senhaboa123', 'senhaboa124')).toBe('As senhas não coincidem.')
+  })
+
+  // Espaço é caractere válido de senha: não aparar.
+  it('trata espaço como caractere significativo', () => {
+    expect(validarNovaSenha('senha com espaco', 'senha com espaco')).toBeNull()
+    expect(validarNovaSenha(' 12345678', '12345678')).toBe('As senhas não coincidem.')
+  })
+
+  it('aceita senhas iguais com 8 caracteres ou mais', () => {
+    expect(validarNovaSenha('senhaboa123', 'senhaboa123')).toBeNull()
+  })
+
+  // Vazio vence curta, que vence divergente: uma mensagem de cada vez,
+  // sempre a mais fundamental, como já faz camposFaltando.
+  it('prioriza vazia sobre curta', () => {
+    expect(validarNovaSenha('', 'abc')).toBe('Digite a nova senha.')
   })
 })

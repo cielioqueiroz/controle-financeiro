@@ -45,3 +45,15 @@ export function mensagemCamposFaltando(modo: ModoAcesso, faltando: CampoAcesso[]
       : ligar(faltando.map((c) => ROTULO[c]))
   return `Preencha ${lista} ${fim}.`
 }
+
+/** Valida o par senha/confirmação da redefinição. Devolve a mensagem de erro
+ *  ou null. A ordem importa: vazia vence curta, que vence divergente — uma
+ *  queixa por vez, sempre a mais fundamental. A senha não é aparada, porque
+ *  espaço é caractere válido. */
+export function validarNovaSenha(senha: string, confirmacao: string): string | null {
+  if (!senha) return 'Digite a nova senha.'
+  if (senha.length < 8) return 'A senha precisa ter ao menos 8 caracteres.'
+  if (!confirmacao) return 'Repita a nova senha para confirmar.'
+  if (senha !== confirmacao) return 'As senhas não coincidem.'
+  return null
+}
