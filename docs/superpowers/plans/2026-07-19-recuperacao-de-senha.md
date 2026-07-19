@@ -554,7 +554,162 @@ git commit -m "feat: lembra o e-mail que pediu o link de redefinicao"
 
 ---
 
+## Task 4b: Extrair o que Auth e RecuperarSenha vão compartilhar
+
+Acrescentada na pré-execução de 2026-07-19. Sem ela, a Task 5 copiaria do
+`Auth.tsx` o `IconeOlho` inteiro, as classes do campo e o regex de e-mail —
+três pares que divergiriam na primeira mudança de estilo.
+
+**Files:**
+- Create: `src/ui/IconeOlho.tsx`
+- Create: `src/ui/estilos-campo.ts`
+- Modify: `src/ui/auth-validacao.ts`
+- Modify: `src/ui/Auth.tsx`
+- Test: `src/ui/auth-validacao.test.ts` (acrescentar um `describe`)
+
+**Interfaces:**
+- Consumes: nada.
+- Produces:
+  - `IconeOlho({ aberto }: { aberto: boolean })` — de `./IconeOlho`
+  - `CAMPO: string` e `BOTAO_PRIMARIO: string` — de `./estilos-campo`
+  - `emailValido(email: string): boolean` — de `./auth-validacao`
+
+- [ ] **Step 1: Escrever o teste que falha**
+
+Acrescentar ao fim de `src/ui/auth-validacao.test.ts` (e incluir `emailValido`
+no `import` existente do topo):
+
+```ts
+describe('emailValido', () => {
+  it('aceita e-mail comum', () => {
+    expect(emailValido('alguem@exemplo.com')).toBe(true)
+  })
+
+  it('apara espaços nas bordas antes de validar', () => {
+    expect(emailValido('  alguem@exemplo.com  ')).toBe(true)
+  })
+
+  it('recusa string vazia', () => {
+    expect(emailValido('')).toBe(false)
+  })
+
+  it('recusa sem arroba', () => {
+    expect(emailValido('alguem.exemplo.com')).toBe(false)
+  })
+
+  it('recusa sem domínio depois do ponto', () => {
+    expect(emailValido('alguem@exemplo')).toBe(false)
+  })
+
+  it('recusa espaço no meio', () => {
+    expect(emailValido('alguem @exemplo.com')).toBe(false)
+  })
+})
+```
+
+- [ ] **Step 2: Rodar e ver falhar**
+
+Run: `npx vitest run src/ui/auth-validacao.test.ts`
+Expected: FAIL — `emailValido is not a function`.
+
+- [ ] **Step 3: Criar os módulos**
+
+Criar `src/ui/estilos-campo.ts`:
+
+```ts
+/** Classes dos campos e do botão primário do card de acesso. Ficam aqui
+ *  porque Auth e RecuperarSenha desenham o MESMO campo dentro da mesma
+ *  moldura: duas cópias divergiriam na primeira mudança de estilo. */
+
+export const CAMPO =
+  'w-full rounded-xl border border-carvao-700 bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca'
+
+export const BOTAO_PRIMARIO =
+  'w-full rounded-xl bg-tinta px-4 py-3 text-sm font-semibold text-carvao-950 shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none'
+```
+
+Criar `src/ui/IconeOlho.tsx` com o corpo **exato** que hoje está no fim de
+`src/ui/Auth.tsx` (linhas 251-260), acrescentando `export`:
+
+```tsx
+/** Olho aberto/cortado para revelar a senha. */
+export function IconeOlho({ aberto }: { aberto: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
+      <circle cx="12" cy="12" r="2.8" />
+      {!aberto && <line x1="3.5" y1="20.5" x2="20.5" y2="3.5" strokeLinecap="round" />}
+    </svg>
+  )
+}
+```
+
+Acrescentar ao fim de `src/ui/auth-validacao.ts`:
+
+```ts
+/** Formato de e-mail aceito no acesso. Deliberadamente frouxo: a validação
+ *  que vale é o e-mail chegar: só barramos o que claramente não é endereço. */
+export function emailValido(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}
+```
+
+- [ ] **Step 4: Trocar o Auth.tsx para usar os três**
+
+4a. Acrescentar aos imports:
+
+```tsx
+import { IconeOlho } from './IconeOlho'
+import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
+```
+
+E incluir `emailValido` no import que já vem de `./auth-validacao`.
+
+4b. **Apagar** a função `IconeOlho` local (linhas 251-260 do arquivo atual).
+
+4c. Trocar a checagem de e-mail (linha 44):
+
+```tsx
+    if (!emailValido(email)) {
+```
+
+4d. Trocar as quatro ocorrências da string longa de classe de `<input>` por
+`className={CAMPO}`, e a do `<button type="submit">` por
+`className={BOTAO_PRIMARIO}`. O input de senha usa `className={CAMPO + ' pr-11'}`.
+
+> Atenção: as classes devem ficar **idênticas** às de hoje. Se algum input
+> tiver classe ligeiramente diferente das demais, pare e reporte — não
+> uniformize por conta própria.
+
+- [ ] **Step 5: Rodar tudo**
+
+Run: `npm test && npm run build`
+Expected: PASS. Os testes existentes do `Auth.test.tsx` provam que nada
+quebrou na troca — em especial os do olho de revelar.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/ui/IconeOlho.tsx src/ui/estilos-campo.ts src/ui/auth-validacao.ts src/ui/auth-validacao.test.ts src/ui/Auth.tsx
+git commit -m "refactor: extrai olho, estilos do campo e validacao de e-mail"
+```
+
+---
+
 ## Task 5: Componente RecuperarSenha
+
+> **Mudança da pré-execução:** este componente **importa** `IconeOlho`,
+> `CAMPO`/`BOTAO_PRIMARIO` e `emailValido` da Task 4b. **Não** redefina
+> nenhum deles. No código abaixo, apague as definições locais de `CAMPO`,
+> `BOTAO` e `IconeOlho`, troque `BOTAO` por `BOTAO_PRIMARIO`, troque a
+> checagem de regex por `emailValido(email)`, e acrescente os imports:
+>
+> ```tsx
+> import { IconeOlho } from './IconeOlho'
+> import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
+> import { validarNovaSenha, emailValido } from './auth-validacao'
+> ```
+
 
 **Files:**
 - Create: `src/ui/RecuperarSenha.tsx`
