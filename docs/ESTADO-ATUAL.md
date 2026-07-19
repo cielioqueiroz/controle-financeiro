@@ -14,8 +14,14 @@
   (o repositório mantém o nome antigo de propósito: renomear quebraria caminhos).
 - **No ar:** **https://capital-financeiro.vercel.app** — projeto `capital-financeiro`
   na Vercel, conectado ao GitHub. **Todo push na `main` publica sozinho** em ~1 min.
-- Árvore limpa. `npm test` = **275 testes verdes** (27 arquivos), `npm run build` e
+- Árvore limpa, `main` sincronizada com o remoto em **`83775ee`** (push feito em
+  2026-07-19). `npm test` = **275 testes verdes** (27 arquivos), `npm run build` e
   `npm run lint` OK. Foram 26 commits em 2026-07-18 e 18 em 2026-07-19.
+
+> ⚠️ **A recuperação de senha está no ar sem nunca ter rodado num navegador.**
+> Revisada e com testes, mas tudo em jsdom. É o **item 0** da fila — faça isso antes
+> de qualquer coisa nova. Se algo estiver quebrado: `git revert 83775ee` e push,
+> que republica em ~1 min.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -92,7 +98,11 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 ### 0. Verificar a recuperação de senha no navegador — PRÓXIMA, é só isso
 
-O código está pronto e revisado; **nada foi testado contra o navegador ainda**.
+O código está no ar e revisado; **nada foi testado contra o navegador ainda**.
+
+⚠️ **Este roteiro troca a senha de verdade** de `cielioqueiroz@hotmail.com` — não é
+ambiente de teste. Anote a senha que usar.
+
 Roteiro, em ordem:
 
 1. `npm run dev`, `Ctrl+Shift+R` (nasceram arquivos novos).
@@ -291,6 +301,25 @@ E duas lições sobre testes:
 
 ## Melhorias futuras mapeadas (não urgentes)
 
+**Adiados de propósito no review final da recuperação de senha (2026-07-19).**
+Todos avaliados, nenhum bloqueia:
+- `limparTokenDaUrl` não tem teste direto — roda de verdade só dentro do
+  `App.test.tsx`, sem ninguém asseverar a URL depois. É a função cujo defeito
+  reenviaria um token gasto, e é trivial de testar em jsdom.
+- **`CampoSenha` ficou duplicado**: existe local no `RecuperarSenha.tsx` enquanto
+  o `Auth.tsx` mantém a mesma marcação inline. A extração de 2026-07-19 hoisted
+  `CAMPO`, `BOTAO_PRIMARIO` e `IconeOlho` exatamente para evitar isso, mas parou
+  antes do composto que os junta.
+- **Mesma frase, severidade diferente**: senha curta é `toast.warning` no login e
+  `toast.error` na recuperação — cor diferente para o mesmo texto no mesmo card.
+- **`tsconfig.app.json` e `tsconfig.test.json` são quase-duplicatas** mantidas à
+  mão (17 chaves iguais). Foi essa divergência que quebrou o build nesta rodada.
+  Um `tsconfig.base.json` que os dois estendam torna a próxima impossível.
+- **Classificação de erro do `/reset-password`**: hoje *qualquer* 400 vira "token
+  expirado". Mapear os códigos do Better Auth exigiria sondar a taxonomia de erros
+  dele, que nunca foi levantada. O único gatilho realista (senha > 128 caracteres)
+  já está barrado por `maxLength` no campo.
+
 - Refinar as policies de RLS para `auth.uid()`.
 - Chaves próprias do Google OAuth (hoje usa as compartilhadas do Neon; só então será
   necessário mexer nos redirect URIs do Google Cloud Console).
@@ -306,6 +335,10 @@ E duas lições sobre testes:
 
 ## Onde ficam os specs e planos
 
-`docs/superpowers/specs/` e `docs/superpowers/plans/` — cada rodada de 2026-07-18 tem o
-seu par (ajustes do formulário de acesso; fundo animado + rename + card OG). O ledger de
-execução fica em `.superpowers/sdd/progress.md` (git-ignored).
+`docs/superpowers/specs/` e `docs/superpowers/plans/` — cada rodada tem o seu par:
+2026-07-18 (ajustes do formulário de acesso; fundo animado + rename + card OG) e
+2026-07-19 (`*-recuperacao-de-senha*`). O plano da recuperação guarda, na Task 0, o
+formato real do link confirmado contra o servidor.
+
+O ledger de execução fica em `.superpowers/sdd/progress.md` (git-ignored) — é ele que
+registra, por tarefa, o que cada review achou e o que foi adiado de propósito.
