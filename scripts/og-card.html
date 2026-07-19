@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=JetBrains+Mono:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        width: 1200px; height: 630px;
+        background: #0d0c0b;
+        font-family: 'Archivo', sans-serif;
+        color: #f5f3ef;
+        position: relative;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        justify-content: center;
+        padding: 0 88px;
+      }
+      /* Eco do fundo de particulas, em versao estatica. */
+      .brilho {
+        position: absolute; inset: -20%;
+        background:
+          radial-gradient(38% 38% at 78% 28%, rgba(0, 201, 116, 0.30), transparent 70%),
+          radial-gradient(34% 34% at 88% 74%, rgba(124, 92, 255, 0.22), transparent 70%);
+        filter: blur(40px);
+      }
+      .conteudo { position: relative; z-index: 1; }
+      .marca {
+        display: flex; align-items: center; gap: 18px;
+        margin-bottom: 34px;
+      }
+      .marca span {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 20px; font-weight: 600;
+        letter-spacing: 0.35em; text-transform: uppercase;
+        color: #a8a29a;
+      }
+      h1 {
+        font-size: 82px; font-weight: 800;
+        line-height: 1.04; letter-spacing: -0.02em;
+      }
+      h1 .fraca { color: #a8a29a; }
+      p {
+        margin-top: 30px; font-size: 27px; color: #a8a29a; max-width: 800px;
+      }
+      .rodape {
+        position: absolute; bottom: 54px; left: 88px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 17px; letter-spacing: 0.22em;
+        text-transform: uppercase; color: #6f6a62;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brilho"></div>
+    <div class="conteudo">
+      <div class="marca">
+        <svg width="62" height="62" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="23" fill="#00c974" />
+          <circle cx="32" cy="32" r="23" fill="none" stroke="#065f37" stroke-width="2.5" opacity="0.55" />
+          <circle cx="32" cy="32" r="18.5" fill="none" stroke="#065f37" stroke-width="1.6" opacity="0.4" />
+          <text x="32" y="41.5" text-anchor="middle" font-family="'JetBrains Mono', monospace"
+                font-weight="800" font-size="24" fill="#0d0c0b">R$</text>
+        </svg>
+        <span>PayPulse</span>
+      </div>
+      <h1>Importe o PDF.<br /><span class="fraca">Veja para onde o dinheiro foi.</span></h1>
+      <p>Faturas e extratos viram gastos por categoria, dia, mês e ano.</p>
+    </div>
+    <div class="rodape">Lido no navegador · só a transação é salva, nunca o PDF</div>
+  </body>
+</html>
