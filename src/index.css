@@ -46,6 +46,15 @@
   --color-ressalva: #c8862a;
   --color-falha: #d64545;
 
+  /* Texto sobre fundo de cor viva (ex.: botão de perigo em --color-falha).
+     Não usa --color-tinta porque aquela inverte por tema (fica escura no
+     tema claro) — e --color-falha já muda de tom por tema exatamente para
+     manter contraste com um texto sempre claro. Mesmo valor de
+     --color-moeda-brilho, mas com nome próprio: aquela é sobre a face
+     âmbar da moeda, esta é sobre botão/selo colorido — usos diferentes que
+     coincidem em valor, não a mesma coisa. */
+  --color-tinta-viva: #fff8ec;
+
   /* Partículas do fundo animado. Variável própria porque o fundo não deve
      seguir a cor de "confere" (verde de sucesso) — são coisas diferentes, e
      cada tema pede o seu tom. Aqui, tom café mais escuro que a página, com

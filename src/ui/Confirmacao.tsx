@@ -1,6 +1,21 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { BOTAO_PRIMARIO } from './estilos-campo'
+
+// BOTAO_PRIMARIO nasceu para o botão de largura cheia do card de acesso
+// (w-full, py-3). Aqui ele divide a linha com o Cancelar, num
+// `flex justify-end`: a largura cheia tomaria a linha inteira e a altura
+// de py-3 ficaria maior que a do Cancelar (py-2). Puxamos o mesmo
+// vocabulário visual (cor, sombra, hover, disabled) e neutralizamos só
+// largura e altura, aqui, sem tocar a constante compartilhada — outros
+// lugares dependem dela como está.
+const BOTAO_CONFIRMAR_NORMAL = BOTAO_PRIMARIO.replace('w-full ', '').replace('py-3', 'py-2')
+
+// Seletor de elementos focáveis dentro do card. Usado para o foco preso:
+// como `descricao` é ReactNode, ela pode trazer um link ou botão próprio,
+// então não dá para assumir que só existem os dois botões da rodapé.
+const SELETOR_FOCAVEL =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 type Props = {
   aberto: boolean
@@ -31,6 +46,8 @@ export function Confirmacao({
   onCancelar,
 }: Props) {
   const semMovimento = useReducedMotion()
+  const tituloId = useId()
+  const cardRef = useRef<HTMLDivElement>(null)
   const botaoCancelarRef = useRef<HTMLButtonElement>(null)
   const botaoConfirmarRef = useRef<HTMLButtonElement>(null)
   // Quem tinha o foco antes de abrir — não o elemento no momento da
@@ -71,16 +88,29 @@ export function Confirmacao({
 
       if (e.key !== 'Tab') return
 
-      // Foco preso: só há dois botões, então o laço é curto — Tab no
-      // último volta ao primeiro, Shift+Tab no primeiro vai ao último.
-      const primeiro = botaoCancelarRef.current
-      const ultimo = botaoConfirmarRef.current
-      if (!primeiro || !ultimo) return
+      // Foco preso: calcula a lista de focáveis a cada Tab (não fixa em
+      // "dois botões") porque `descricao` pode trazer link ou botão
+      // próprio, e a lista muda com o conteúdo.
+      const lista = cardRef.current
+        ? Array.from(cardRef.current.querySelectorAll<HTMLElement>(SELETOR_FOCAVEL))
+        : []
+      if (lista.length === 0) return
 
-      if (e.shiftKey && document.activeElement === primeiro) {
+      const primeiro = lista[0]
+      const ultimo = lista[lista.length - 1]
+      const atual = document.activeElement as HTMLElement | null
+
+      if (!atual || !lista.includes(atual)) {
+        // Caso geral: o foco escapou do par conhecido (ex.: um clique numa
+        // área não focável do card levou o foco ao body, ou o Tab partiu
+        // de dentro de um link da descrição). Sem isto, o próximo Tab
+        // seguiria a ordem natural do documento e escaparia do diálogo.
+        e.preventDefault()
+        primeiro.focus()
+      } else if (e.shiftKey && atual === primeiro) {
         e.preventDefault()
         ultimo.focus()
-      } else if (!e.shiftKey && document.activeElement === ultimo) {
+      } else if (!e.shiftKey && atual === ultimo) {
         e.preventDefault()
         primeiro.focus()
       }
@@ -92,8 +122,6 @@ export function Confirmacao({
 
   if (!aberto) return null
 
-  const tituloId = 'confirmacao-titulo'
-
   return (
     <motion.div
       // fixed, nunca absolute: o overlay é decoração pura e não pode
@@ -104,12 +132,17 @@ export function Confirmacao({
       exit={semMovimento ? undefined : { opacity: 0 }}
       // O clique aqui é no fundo: só fecha se o alvo do clique for o
       // próprio overlay. Um clique no card propagaria até aqui, mas o
-      // alvo continuaria sendo o card — não o overlay.
+      // alvo continuaria sendo o card — não o overlay. Com `ocupado`, nem
+      // o clique no fundo fecha: a ação já está em voo (mesma razão do
+      // Esc), senão o diálogo "fecharia com sucesso" enquanto o servidor
+      // ainda está apagando.
       onClick={(e) => {
+        if (ocupado) return
         if (e.target === e.currentTarget) onCancelar()
       }}
     >
       <motion.div
+        ref={cardRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
@@ -129,8 +162,9 @@ export function Confirmacao({
           <button
             ref={botaoCancelarRef}
             type="button"
+            disabled={ocupado}
             onClick={onCancelar}
-            className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:text-tinta"
+            className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:text-tinta disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -141,8 +175,8 @@ export function Confirmacao({
             onClick={onConfirmar}
             className={
               severidade === 'perigo'
-                ? 'rounded-xl bg-falha px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50'
-                : BOTAO_PRIMARIO
+                ? 'rounded-xl bg-falha px-4 py-2 text-sm font-semibold text-tinta-viva transition-opacity hover:opacity-90 disabled:opacity-50'
+                : BOTAO_CONFIRMAR_NORMAL
             }
           >
             {rotuloConfirmar}
