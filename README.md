@@ -4,6 +4,22 @@ Importe a **fatura ou o extrato do banco em PDF** e veja, com clareza, para onde
 
 Bancos suportados hoje: **Nubank** e **Bradesco** (fatura de cartão e extrato de conta).
 
+**🔗 No ar:** [capital-financeiro.vercel.app](https://capital-financeiro.vercel.app)
+
+![Capital Financeiro — seu extrato vira gráfico, em menos de um minuto](public/og.png)
+
+---
+
+## 🖼️ Telas
+
+A tela de acesso, nos dois temas — café e papel:
+
+| Tema escuro | Tema claro |
+|:---:|:---:|
+| ![Login, tema escuro](docs/img/login-escuro.png) | ![Login, tema claro](docs/img/login-claro.png) |
+
+> Tema claro/escuro, fundo de partículas em three.js, e o card de acesso à direita com a frase à esquerda — sem rolagem, do desktop ao celular.
+
 ---
 
 ## ✨ O que ele faz
@@ -35,7 +51,7 @@ Outros comandos:
 
 ```bash
 npm run build        # typecheck (tsc -b) + build de produção
-npm test             # Vitest (183 testes)
+npm test             # Vitest (294 testes)
 npm run lint         # oxlint
 npm run fixtures -- <pasta-com-os-pdfs>   # regenera fixtures anonimizados
 ```
