@@ -26,8 +26,12 @@ confirmados OK) e enviadas ao ar:
 Iniciada a rodada de **novos parsers de banco** — spec em
 `specs/2026-07-23-novos-bancos-bb-sicredi-sicoob-caixa-design.md`. Amostras reais
 (de portais de transparência) guardadas em `.amostras-bancos/` (gitignored).
-- **Banco do Brasil:** Task 0 **feita** — colunas mapeadas com coordenadas reais (ver
-  apêndice do spec). Pronto para virar parser. Falta Task 0 do layout A (2020).
+- **Banco do Brasil:** ✅ **PRONTO E NO AR** (commit `1e825e9`) — 3º banco que o app lê.
+  Parser em `parsers/bb-extrato.ts`, confere pela progressão de saldo (novo
+  `ParseResult.balance` + ramo no `checksum.ts`), e a varredura interna (aplicação
+  automática) é marcada `internal_transfer` para não inflar o gasto. 11 testes.
+  Falta só o layout A (2020, `bb-belem.pdf`) — a ordem das colunas de data inverte;
+  o parser atual é do layout B (2023). Fazer quando aparecer um extrato nesse formato.
 - **Sicoob e Sicredi:** amostras web de texto ricas; falta Task 0.
 - **Caixa:** PARADA — o extrato pessoal do usuário veio como **imagem** (sem camada de
   texto); o app só lê texto. Retomar com PDF de texto (internet banking) ou decidir OCR.
@@ -77,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **294** (31 arquivos) |
+| Testes | **305** (32 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
