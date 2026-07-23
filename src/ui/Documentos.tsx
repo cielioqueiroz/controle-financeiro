@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { puxarDocumentos, apagarDocumento, apagarTudo, type DocumentoSalvo } from '../persist/documentos'
 import { formatBRL } from '../domain/normalize/money'
+import { Confirmacao } from './Confirmacao'
 
 type Props = {
   onFechar: () => void
@@ -29,6 +30,11 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [apagandoTudo, setApagandoTudo] = useState(false)
   const [ocupado, setOcupado] = useState(false)
+  // O handler de Esc é registrado uma vez (deps []), então lê os estados por
+  // ref. Com um diálogo de confirmação aberto por cima, o Esc é dele — não
+  // pode fechar o painel inteiro por baixo.
+  const temConfirmacao = useRef(false)
+  temConfirmacao.current = confirmando !== null || apagandoTudo
 
   async function carregar() {
     try {
@@ -41,7 +47,7 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
   useEffect(() => {
     carregar()
     function esc(e: KeyboardEvent) {
-      if (e.key === 'Escape') onFechar()
+      if (e.key === 'Escape' && !temConfirmacao.current) onFechar()
     }
     document.addEventListener('keydown', esc)
     return () => document.removeEventListener('keydown', esc)
@@ -76,6 +82,33 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
       setOcupado(false)
     }
   }
+
+  // Nomeia o documento em vez de um "tem certeza?" genérico: quem apaga
+  // precisa reconhecer qual fatura/extrato está prestes a perder.
+  const docAlvo = docs?.find((d) => d.id === confirmando)
+  const descricaoDoc = docAlvo ? (
+    <>
+      {docAlvo.doc_type === 'fatura' ? 'Fatura' : 'Extrato'} ·{' '}
+      <span className="capitalize">{docAlvo.bank}</span> ·{' '}
+      {periodoCurto(docAlvo.period_start, docAlvo.period_end)}. Os lançamentos dele saem do
+      histórico.
+    </>
+  ) : undefined
+
+  // Irreversível: mostra o tamanho do estrago (documentos + lançamentos)
+  // para a pessoa parar e ler, em vez de um genérico "apagar tudo?".
+  const totalDocs = docs?.length ?? 0
+  const totalLancamentos = docs
+    ? docs.reduce((soma, d) => soma + (contagem.get(d.id)?.qtd ?? 0), 0)
+    : 0
+  const descricaoTudo = (
+    <>
+      Isto apaga <strong className="text-tinta">{totalDocs}</strong>{' '}
+      {totalDocs === 1 ? 'documento' : 'documentos'} e{' '}
+      <strong className="text-tinta">{totalLancamentos}</strong>{' '}
+      {totalLancamentos === 1 ? 'lançamento' : 'lançamentos'}. Não dá para desfazer.
+    </>
+  )
 
   return (
     <motion.div
@@ -145,34 +178,16 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
                       </p>
                     </div>
 
-                    {confirmando === d.id ? (
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <button
-                          disabled={ocupado}
-                          onClick={() => apagar(d.id)}
-                          className="rounded-md bg-falha px-2.5 py-1 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                        >
-                          Apagar
-                        </button>
-                        <button
-                          onClick={() => setConfirmando(null)}
-                          className="rounded-md px-2 py-1 text-xs text-tinta-tenue transition-colors hover:text-tinta"
-                        >
-                          não
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmando(d.id)}
-                        aria-label="Apagar documento"
-                        title="Apagar este documento"
-                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha"
-                      >
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
-                        </svg>
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setConfirmando(d.id)}
+                      aria-label="Apagar documento"
+                      title="Apagar este documento"
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha"
+                    >
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+                      </svg>
+                    </button>
                   </li>
                 )
               })}
@@ -181,50 +196,37 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
         </div>
 
         <footer className="border-t border-carvao-800 px-6 py-4">
-          <AnimatePresence mode="wait">
-            {apagandoTudo ? (
-              <motion.div
-                key="conf"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center justify-between gap-3"
-              >
-                <p className="text-sm text-tinta-fraca">
-                  Apagar <strong className="text-tinta">todos</strong> os documentos e lançamentos?
-                </p>
-                <div className="flex shrink-0 gap-2">
-                  <button
-                    disabled={ocupado}
-                    onClick={apagarGeral}
-                    className="rounded-md bg-falha px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                  >
-                    Sim, apagar tudo
-                  </button>
-                  <button
-                    onClick={() => setApagandoTudo(false)}
-                    className="rounded-md border border-carvao-700 px-3 py-1.5 text-xs text-tinta-fraca transition-colors hover:text-tinta"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.button
-                key="btn"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setApagandoTudo(true)}
-                disabled={!docs || docs.length === 0}
-                className="text-xs font-medium text-falha transition-opacity hover:opacity-80 disabled:opacity-40"
-              >
-                Apagar tudo e recomeçar
-              </motion.button>
-            )}
-          </AnimatePresence>
+          <button
+            onClick={() => setApagandoTudo(true)}
+            disabled={!docs || docs.length === 0}
+            className="text-xs font-medium text-falha transition-opacity hover:opacity-80 disabled:opacity-40"
+          >
+            Apagar tudo e recomeçar
+          </button>
         </footer>
       </motion.div>
+
+      <Confirmacao
+        aberto={confirmando !== null}
+        titulo="Apagar este documento?"
+        descricao={descricaoDoc}
+        rotuloConfirmar="Apagar"
+        severidade="perigo"
+        ocupado={ocupado}
+        onConfirmar={() => confirmando && apagar(confirmando)}
+        onCancelar={() => setConfirmando(null)}
+      />
+
+      <Confirmacao
+        aberto={apagandoTudo}
+        titulo="Apagar tudo e recomeçar?"
+        descricao={descricaoTudo}
+        rotuloConfirmar="Apagar tudo"
+        severidade="perigo"
+        ocupado={ocupado}
+        onConfirmar={apagarGeral}
+        onCancelar={() => setApagandoTudo(false)}
+      />
     </motion.div>
   )
 }

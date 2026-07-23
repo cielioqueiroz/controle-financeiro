@@ -94,7 +94,15 @@ export function Confirmacao({
       const lista = cardRef.current
         ? Array.from(cardRef.current.querySelectorAll<HTMLElement>(SELETOR_FOCAVEL))
         : []
-      if (lista.length === 0) return
+      if (lista.length === 0) {
+        // Com `ocupado`, os dois botões ficam disabled e a lista esvazia —
+        // justo quando a ação está em voo e o diálogo mais precisa reter o
+        // usuário. Sem prender aqui, o Tab seguiria a ordem do documento e
+        // escaparia para a página por baixo. Segura o foco no próprio card.
+        e.preventDefault()
+        cardRef.current?.focus()
+        return
+      }
 
       const primeiro = lista[0]
       const ultimo = lista[lista.length - 1]
@@ -146,6 +154,9 @@ export function Confirmacao({
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
+        // Alvo de foco quando não há botão focável (ação em curso trava os
+        // dois), para o foco preso ter onde pousar sem sair do diálogo.
+        tabIndex={-1}
         className="w-full max-w-sm rounded-2xl border border-carvao-700 bg-carvao-900 p-6 shadow-2xl shadow-black/30"
         initial={semMovimento ? undefined : { opacity: 0, scale: 0.96 }}
         animate={semMovimento ? undefined : { opacity: 1, scale: 1 }}

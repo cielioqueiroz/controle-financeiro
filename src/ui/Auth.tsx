@@ -119,10 +119,10 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-sm"
+        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 px-6 py-5 shadow-2xl shadow-black/30 backdrop-blur-sm"
       >
         <motion.div
-          className="mb-3 flex justify-center"
+          className="mb-2 flex justify-center"
           initial={{ rotate: -180, scale: 0 }}
           animate={{ rotate: 0, scale: 1, y: [0, -7, 0] }}
           transition={{
@@ -134,7 +134,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
           <MoedaLogo size={44} />
         </motion.div>
 
-        <div className="mb-4 flex justify-center">
+        <div className="mb-3 flex justify-center">
           <Marca variante="destaque" />
         </div>
 
@@ -152,9 +152,9 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
             <h2 className="text-center font-display text-2xl text-tinta">
               {modo === 'criar' ? 'Criar conta' : 'Entrar'}
             </h2>
-            <p className="mt-2 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
+            <p className="mt-1.5 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
 
-            <form onSubmit={submeter} noValidate className="mt-6 space-y-3">
+            <form onSubmit={submeter} noValidate className="mt-4 space-y-3">
               {modo === 'criar' && (
                 <>
                   <input

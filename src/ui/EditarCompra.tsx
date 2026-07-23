@@ -6,6 +6,7 @@ import { criarCategoria } from '../persist/categoriasUsuario'
 import { todasCategorias, adicionarCategoriaExtra } from '../domain/categorize/categorias'
 import { formatBRL } from '../domain/normalize/money'
 import type { TransacaoSalva } from '../persist/puxar'
+import { Confirmacao } from './Confirmacao'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 
@@ -22,6 +23,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
   const [label, setLabel] = useState(tx.label ?? '')
   const [slug, setSlug] = useState(tx.category_slug ?? 'outros')
   const [salvando, setSalvando] = useState(false)
+  const [confirmandoSalvar, setConfirmandoSalvar] = useState(false)
   const [cats, setCats] = useState(() => todasCategorias())
   const [criando, setCriando] = useState(false)
   const [novoNome, setNovoNome] = useState('')
@@ -200,7 +202,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
             Cancelar
           </button>
           <button
-            onClick={salvar}
+            onClick={() => setConfirmandoSalvar(true)}
             disabled={salvando}
             className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
           >
@@ -208,6 +210,17 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
           </button>
         </footer>
       </motion.div>
+
+      <Confirmacao
+        aberto={confirmandoSalvar}
+        titulo="Salvar alterações?"
+        descricao="A compra passa a valer com o nome e a categoria que você escolheu."
+        rotuloConfirmar="Salvar"
+        severidade="normal"
+        ocupado={salvando}
+        onConfirmar={salvar}
+        onCancelar={() => setConfirmandoSalvar(false)}
+      />
     </motion.div>
   )
 }

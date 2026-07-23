@@ -32,7 +32,7 @@ export function FraseDeslogado() {
  *  exatamente a rolagem que este componente remove. */
 export function TelaAcesso({ children }: { children: ReactNode }) {
   return (
-    <div className="relative z-10 flex min-h-dvh flex-col px-4 py-6 sm:px-6 lg:px-10">
+    <div className="relative z-10 flex min-h-dvh flex-col px-4 py-3 sm:px-6 lg:px-10">
       <header className="mx-auto flex w-full max-w-[104rem] items-center justify-between gap-4">
         <motion.p
           initial={{ opacity: 0, y: -6 }}
@@ -50,7 +50,7 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
         <ThemeToggle />
       </header>
 
-      <div className="mx-auto grid w-full max-w-[104rem] flex-1 items-center gap-10 py-6 lg:grid-cols-2 lg:gap-16">
+      <div className="mx-auto grid w-full max-w-[104rem] flex-1 items-center gap-10 py-3 lg:grid-cols-2 lg:gap-16">
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
