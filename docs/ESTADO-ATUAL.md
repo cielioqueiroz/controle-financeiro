@@ -1,8 +1,35 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-07-19**.
+> Documento de continuidade. Última atualização: **2026-07-23**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+## Últimas duas rodadas (2026-07-23) — tela de acesso + acabamento
+
+Duas rodadas grandes, **verificadas no navegador pelo usuário** (rolagem e modais
+confirmados OK) e enviadas ao ar:
+
+1. **Tela de acesso em duas colunas** — frase à esquerda, card à direita, sem rolagem;
+   `MoedaLogo` novo (donut animado, cor de tema); **fim do login automático** depois de
+   redefinir a senha (o e-mail guardado só preenche o campo agora, nunca autentica —
+   apaga a classe do bug F4). Ver `specs/plans 2026-07-19-tela-de-acesso*`.
+2. **Acabamento e confirmações** — `Confirmacao.tsx`, um diálogo modal único (foco preso,
+   Esc, foco inicial no Cancelar quando é perigo) ligado em **sair da conta, apagar
+   documento, apagar tudo e salvar edição**; sistema de raio/elevação com **hover só no
+   que é clicável**; favicon legível a 16px; card OG com donut. Ver
+   `specs/plans 2026-07-19-acabamento-e-confirmacoes`.
+
+**294 testes verdes** (31 arquivos), build e lint OK.
+
+**Dívida técnica desta rodada, anotada de propósito** (não bloqueia, mas registrar):
+- `Confirmacao`: minors de teste em aberto — sem cobertura de `severidade:'normal'`, a
+  invariante do `.replace` em `BOTAO_CONFIRMAR_NORMAL` não está pinada por teste, e a
+  seção de TDD do relatório da Task 1 super-reportou o RED (2 dos 3 testes eram de
+  caracterização). Detalhe no ledger `.superpowers/sdd/progress.md`.
+- `EditarCompra` não tem teste próprio; a confirmação de salvar foi ligada sem teste
+  de integração (o de `Documentos` foi escrito).
+- Confirmar **toda** gravação de edição adiciona atrito a uma ação reversível e
+  frequente. Foi escolha explícita do usuário; remover é trivial (uma linha) se incomodar.
 
 ## Onde o código está
 
@@ -14,14 +41,8 @@
   (o repositório mantém o nome antigo de propósito: renomear quebraria caminhos).
 - **No ar:** **https://capital-financeiro.vercel.app** — projeto `capital-financeiro`
   na Vercel, conectado ao GitHub. **Todo push na `main` publica sozinho** em ~1 min.
-- Árvore limpa, `main` sincronizada com o remoto em **`83775ee`** (push feito em
-  2026-07-19). `npm test` = **275 testes verdes** (27 arquivos), `npm run build` e
-  `npm run lint` OK. Foram 26 commits em 2026-07-18 e 18 em 2026-07-19.
-
-> ⚠️ **A recuperação de senha está no ar sem nunca ter rodado num navegador.**
-> Revisada e com testes, mas tudo em jsdom. É o **item 0** da fila — faça isso antes
-> de qualquer coisa nova. Se algo estiver quebrado: `git revert 83775ee` e push,
-> que republica em ~1 min.
+- `npm test` = **294 testes verdes** (31 arquivos), `npm run build` e `npm run lint` OK.
+  As duas rodadas de 2026-07-23 foram verificadas no navegador antes do push.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -41,7 +62,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **275** (27 arquivos) |
+| Testes | **294** (31 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -96,9 +117,15 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 ## 🚧 Fila do que falta — em ordem
 
-### 0. Verificar a recuperação de senha no navegador — PRÓXIMA, é só isso
+### 0. Verificar a recuperação de senha no navegador — PARCIAL, refazer o passo 7
 
-O código está no ar e revisado; **nada foi testado contra o navegador ainda**.
+⚠️ **Atualização 2026-07-23:** o login automático pós-reset foi **removido** (agora
+sempre volta ao card de entrar com o e-mail preenchido). Isso muda o roteiro abaixo:
+o passo 4 já não "entra direto", e o passo 7 (F1: reset com sessão de outra conta
+ativa) precisa ser refeito contra o comportamento novo. O usuário verificou modais e
+rolagem em 2026-07-23, mas **não** o fluxo de troca de senha real ponta a ponta.
+
+O código está no ar e revisado; o fluxo de e-mail real ainda não foi exercido no navegador.
 
 ⚠️ **Este roteiro troca a senha de verdade** de `cielioqueiroz@hotmail.com` — não é
 ambiente de teste. Anote a senha que usar.
