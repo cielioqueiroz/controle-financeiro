@@ -35,6 +35,12 @@ export const BANCOS: Record<Bank, BankTheme> = {
     wash: 'rgba(63, 161, 16, 0.12)',
     tinta: '#F5F3EF',
   },
+  sicoob: {
+    nome: 'Sicoob',
+    accent: '#00AE9D',
+    wash: 'rgba(0, 174, 157, 0.12)',
+    tinta: '#F5F3EF',
+  },
   desconhecido: {
     nome: 'Documento',
     accent: '#8A857C',
