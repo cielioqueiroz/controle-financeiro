@@ -176,5 +176,31 @@ Notas de parser que caem do texto real:
 Ainda pendente de Task 0 (antes de codar cada um):
 - **BB layout A (2020, `bb-belem.pdf`)** — ordem das colunas de data invertida; rodar o dump.
 - **Sicoob (`sicredi-apiacas.pdf`)** e **Sicredi (`sicredi-carlinda.pdf`)** — rodar o dump.
-- Conferir se o rodapé do extrato BB declara **totais de entradas/saídas** (gabarito) ou se
-  o gabarito sai do saldo inicial→final.
+
+### Duas decisões de correção descobertas ao construir (2026-07-23)
+
+**Fork 1 — o BB não declara totais; o gabarito é o saldo.** Confirmado no dump completo do
+`bb-cmbf.pdf`: não há linha "Total" (o Bradesco tem; o BB não). Só "Saldo Anterior" e
+"S A L D O". O `checksum.ts` atual só confere contra `declaredIncome`/`declaredExpense`.
+Opções:
+- **(a) BB como `sem-gabarito`** — parser põe income/expense = null; o app mostra sem o selo
+  "confere". Mínimo, honesto, mas perde a garantia forte. A correção fica só no teste (soma
+  com sinal = saldoFinal − saldoInicial).
+- **(b) Estender `checksum.ts` com validação por saldo** — caminho novo num módulo
+  crítico de confiança; precisa de teste próprio. Mais trabalho, mas mantém o selo "confere"
+  que é o coração do app. **Recomendado**, mas é mudança em código validado — não fazer no
+  fim de sessão longa.
+
+**Fork 2 — varredura interna infla o gasto.** O BB varre o saldo para aplicação automática
+diariamente (`Resgate Automático` = C, `Aplicação`/`Aplic.BB` = D; o saldo diário volta a
+0). Se `Aplicação` (débito) virar `compra`, o "gasto real" infla com dinheiro que só foi ao
+investimento. É a mesma classe do "conta duas vezes" (fatura×extrato), mas sem mecanismo de
+vínculo. Precisa de regra nova: marcar a varredura como **interna** e não contar no gasto.
+`RawKind` hoje é `compra|encargo|pagamento|entrada` — não tem `interna`/`transferencia`.
+Opções: acrescentar um kind, ou uma marca de `link` como a do `card_payment`. Decisão de
+arquitetura, com teste.
+
+**Consequência para o plano:** o parser do BB **não** é "só acrescentar uma entrada no
+dispatcher" — ele encosta em dois pontos de correção do app (validação e dupla contagem).
+Resolver os dois forks é a primeira coisa do build, com calma, não no cansaço. Sicredi,
+Sicoob e Caixa podem ter varredura/gabarito diferentes — reavaliar por banco.
