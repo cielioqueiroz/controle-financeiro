@@ -81,7 +81,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="w-full max-w-md rounded-xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
+        className="w-full max-w-md rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
       >
         <header className="flex items-start justify-between gap-3 border-b border-carvao-800 px-6 py-4">
           <div className="min-w-0">

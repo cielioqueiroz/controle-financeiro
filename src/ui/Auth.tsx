@@ -119,7 +119,10 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 px-6 py-5 shadow-2xl shadow-black/30 backdrop-blur-sm"
+        // Hover floresce a sombra e esquenta a borda, mas NÃO levanta o card:
+        // ele não é clicável (os cliques estão nos campos e botões dentro),
+        // e subir prometeria um clique que não existe. Os internos é que sobem.
+        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 px-6 py-5 shadow-2xl shadow-black/30 backdrop-blur-sm transition-all duration-300 hover:border-carvao-600 hover:shadow-black/50"
       >
         <motion.div
           className="mb-2 flex justify-center"

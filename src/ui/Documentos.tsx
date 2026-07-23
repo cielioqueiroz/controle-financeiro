@@ -124,7 +124,7 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="w-full max-w-xl rounded-xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
+        className="w-full max-w-xl rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
       >
         <header className="flex items-center justify-between border-b border-carvao-800 px-6 py-4">
           <div>

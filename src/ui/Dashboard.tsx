@@ -223,7 +223,7 @@ export function Dashboard({ onImportar }: Props) {
           <div className="hidden items-center gap-2 sm:flex">
             <button
               onClick={() => setMostrarDocs(true)}
-              className="rounded-lg border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
+              className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
               title="Ver e apagar documentos importados"
             >
               Documentos
@@ -231,7 +231,7 @@ export function Dashboard({ onImportar }: Props) {
             {txs && txs.length > 0 && (
               <button
                 onClick={() => window.print()}
-                className="rounded-lg border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:bg-carvao-850"
+                className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
                 title="Baixar ou compartilhar em PDF"
               >
                 Baixar PDF
@@ -239,7 +239,7 @@ export function Dashboard({ onImportar }: Props) {
             )}
             <button
               onClick={onImportar}
-              className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+              className="rounded-xl bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
             >
               + Importar PDF
             </button>
@@ -298,7 +298,7 @@ export function Dashboard({ onImportar }: Props) {
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900">
+      <div className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900 shadow-lg shadow-black/20">
         {carregando ? (
           <Esqueleto />
         ) : erro ? (

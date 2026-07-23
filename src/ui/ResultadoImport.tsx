@@ -45,7 +45,7 @@ export function ResultadoImport({
 
   return (
     <div
-      className="surgir relative overflow-hidden rounded-sm border border-carvao-700 bg-carvao-900"
+      className="surgir relative overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900"
       style={{ boxShadow: `0 0 0 1px ${tema.wash}, 0 30px 80px -40px ${tema.wash}` }}
     >
       <div className="h-1.5 w-full" style={{ background: tema.accent }} />
@@ -73,7 +73,7 @@ export function ResultadoImport({
             <button
               onClick={onSalvar}
               disabled={salvando}
-              className="rounded-sm px-3 py-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50"
               style={{ background: tema.accent, color: tema.tinta }}
             >
               {salvando ? 'Salvando…' : 'Salvar no histórico'}
@@ -98,7 +98,7 @@ export function ResultadoImport({
             totalCents={baseInsights.gastoRealCents}
           />
           {houveDupla && (
-            <p className="mt-5 flex items-start gap-2 rounded-sm bg-carvao-800/60 px-4 py-3 text-xs text-tinta-fraca">
+            <p className="mt-5 flex items-start gap-2 rounded-md bg-carvao-800/60 px-4 py-3 text-xs text-tinta-fraca">
               <span className="text-ressalva">◆</span>
               <span>
                 Removi{' '}
@@ -149,7 +149,7 @@ function LinhaTransacao({
 
   return (
     <li
-      className={`surgir flex items-center gap-3 rounded-sm px-4 py-2 transition-colors hover:bg-carvao-850 ${
+      className={`surgir flex items-center gap-3 rounded-md px-4 py-2 transition-colors hover:bg-carvao-850 ${
         interno ? 'opacity-55' : ''
       }`}
     >
@@ -163,7 +163,7 @@ function LinhaTransacao({
         onChange={(e) => onCategoria(e.target.value)}
         disabled={interno}
         title="Categoria"
-        className="shrink-0 cursor-pointer appearance-none rounded-sm bg-carvao-800 px-1.5 py-1 text-base leading-none"
+        className="shrink-0 cursor-pointer appearance-none rounded-md bg-carvao-800 px-1.5 py-1 text-base leading-none"
       >
         {CATEGORIAS.map((c) => (
           <option key={c.slug} value={c.slug}>
@@ -186,7 +186,7 @@ function LinhaTransacao({
               if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
               if (e.key === 'Escape') setEditando(false)
             }}
-            className="w-full rounded-sm bg-carvao-800 px-2 py-0.5 text-sm text-tinta outline-none"
+            className="w-full rounded-md bg-carvao-800 px-2 py-0.5 text-sm text-tinta outline-none"
           />
         ) : (
           <button
@@ -196,7 +196,7 @@ function LinhaTransacao({
           >
             {t.label ?? t.description}
             {t.installment && (
-              <span className="tabular ml-2 rounded-sm bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">
+              <span className="tabular ml-2 rounded-md bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">
                 {t.installment.current}/{t.installment.total}
               </span>
             )}

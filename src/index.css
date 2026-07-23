@@ -61,8 +61,6 @@
      blending normal: partícula escura sobre fundo escuro vira relevo. */
   --color-particula: #0a0705;
   --particula-alfa: 0.55;
-
-  --radius-suave: 0.5rem;
 }
 
 /* Tema CLARO — papel quente. Inverte a hierarquia mantendo o contraste:

@@ -35,11 +35,11 @@ export function Dropzone({ onArquivo, ocupado }: Props) {
         type="button"
         disabled={ocupado}
         onClick={() => input.current?.click()}
-        className={`group relative w-full overflow-hidden rounded-sm border border-dashed px-8 py-20 text-left transition-all duration-300 ${
+        className={`group relative w-full overflow-hidden rounded-2xl border border-dashed px-8 py-20 text-left shadow-lg shadow-black/20 transition-all duration-300 ${
           sobre
-            ? 'border-tinta bg-carvao-850'
-            : 'border-carvao-600 hover:border-carvao-600/80 hover:bg-carvao-900'
-        } ${ocupado ? 'cursor-wait opacity-50' : 'cursor-pointer'}`}
+            ? '-translate-y-1 border-tinta bg-carvao-850 shadow-2xl shadow-black/40'
+            : 'border-carvao-600 hover:-translate-y-0.5 hover:border-carvao-600/80 hover:bg-carvao-900 hover:shadow-xl hover:shadow-black/30'
+        } ${ocupado ? 'cursor-wait opacity-50 hover:translate-y-0' : 'cursor-pointer'}`}
       >
         <div className="flex items-baseline gap-4">
           <span className="tabular text-xs text-tinta-tenue">01</span>
