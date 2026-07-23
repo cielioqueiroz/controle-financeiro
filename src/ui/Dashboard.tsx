@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
 import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
 import { registrarCategoriasUsuario } from '../domain/categorize/categorias'
@@ -361,29 +361,47 @@ function Conteudo({
   const [vista, setVista] = useState<'categoria' | 'dia'>('categoria')
   const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
   const dias = useMemo(() => porDia(txs), [txs])
+  const semMovimento = useReducedMotion()
+
+  // Entrada escalonada e discreta — o dashboard "se monta" de cima para
+  // baixo (tiles → resumo visual → tabelas) em vez de piscar inteiro. Curva
+  // expo para dar peso. Restrição de propósito: app de dinheiro pede calma.
+  const suave = [0.22, 1, 0.36, 1] as const
+  const entra = (delay: number) =>
+    semMovimento
+      ? {}
+      : {
+          initial: { opacity: 0, y: 10 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.45, delay, ease: suave },
+        }
 
   return (
-    <motion.div
-      key={chave}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div key={chave} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       {/* Tiles de resumo — largura total, com números que "contam" */}
       <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-3">
-        <Tile rotulo="Gasto no período" destaque>
-          <ValorAnimado valor={resumo.gastoCents} />
-        </Tile>
-        <Tile rotulo="Entradas" cor="var(--color-confere)">
-          <ValorAnimado valor={resumo.entradasCents} />
-        </Tile>
-        <Tile rotulo="Lançamentos">
-          <ValorAnimado valor={resumo.contagem} moeda={false} />
-        </Tile>
+        <motion.div {...entra(0.05)}>
+          <Tile rotulo="Gasto no período" destaque>
+            <ValorAnimado valor={resumo.gastoCents} />
+          </Tile>
+        </motion.div>
+        <motion.div {...entra(0.12)}>
+          <Tile rotulo="Entradas" cor="var(--color-confere)">
+            <ValorAnimado valor={resumo.entradasCents} />
+          </Tile>
+        </motion.div>
+        <motion.div {...entra(0.19)}>
+          <Tile rotulo="Lançamentos">
+            <ValorAnimado valor={resumo.contagem} moeda={false} />
+          </Tile>
+        </motion.div>
       </div>
 
       {/* Duas colunas no desktop: resumo visual (esq.) + tabelas largas (dir.) */}
-      <div className="grid border-t border-carvao-800 xl:grid-cols-[minmax(300px,360px)_1fr]">
+      <motion.div
+        {...entra(0.28)}
+        className="grid border-t border-carvao-800 xl:grid-cols-[minmax(300px,360px)_1fr]"
+      >
         {/* Coluna do resumo visual */}
         <aside className="space-y-6 border-carvao-800 p-5 xl:border-r">
           {resumo.porCategoria.length > 0 && (
@@ -419,7 +437,7 @@ function Conteudo({
             <ListaPorDia grupos={dias} onEditar={onEditar} />
           )}
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
