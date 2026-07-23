@@ -67,6 +67,11 @@ export type ParseResult = {
    *  dois fluxos. Null em fatura. */
   declaredIncome: number | null
   declaredExpense: number | null
+  /** Gabarito alternativo de EXTRATO por SALDO: quando o banco não declara
+   *  totais de entradas/saídas (ex.: Banco do Brasil), a conferência sai da
+   *  progressão saldoInicial→saldoFinal. Centavos, com sinal (credor > 0,
+   *  devedor < 0). Ausente/null quando o gabarito vem dos totais declarados. */
+  balance?: { initial: number; final: number } | null
   period: { start: Date; end: Date } | null
   account: AccountHint
   forward: Forward

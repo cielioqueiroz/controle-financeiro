@@ -59,6 +59,11 @@ function contraparteDe(desc: string): string | null {
 
 const PAGAMENTO_FATURA = /Pagamento de fatura|GASTOS CARTAO DE CREDITO/i
 
+/** Varredura interna do BB: o saldo é aplicado/resgatado da aplicação
+ *  automática todo dia. Entra na conferência de saldo do extrato, mas NÃO
+ *  é gasto nem entrada — é dinheiro indo e voltando da própria aplicação. */
+const VARREDURA_INTERNA = /Resgate Autom|Aplica[çc][ãa]o|Aplic\.?\s*BB|Resg\.?\s*BB/i
+
 /** Cruza todos os documentos importados e marca:
  *
  *  1. `card_payment` — transação de extrato "Pagamento de fatura" cujo
@@ -88,6 +93,13 @@ export function vincular(docs: DocParaVincular[]): LinkedTransaction[] {
   const titular = docs.map((d) => d.holderName).find(Boolean) ?? null
 
   for (const t of todas) {
+    // 0. Varredura interna do BB (conta ↔ aplicação automática).
+    if (VARREDURA_INTERNA.test(t.description)) {
+      t.link = 'internal_transfer'
+      t.linkNote = 'Aplicação automática'
+      continue
+    }
+
     // 1. Pagamento de fatura → card_payment
     if (t.kind === 'pagamento' || PAGAMENTO_FATURA.test(t.description)) {
       const valor = Math.abs(t.amountCents)

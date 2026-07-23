@@ -23,6 +23,12 @@ export const BANCOS: Record<Bank, BankTheme> = {
     wash: 'rgba(204, 9, 47, 0.12)',
     tinta: '#F5F3EF',
   },
+  bb: {
+    nome: 'Banco do Brasil',
+    accent: '#0038A8',
+    wash: 'rgba(0, 56, 168, 0.12)',
+    tinta: '#F5F3EF',
+  },
   desconhecido: {
     nome: 'Documento',
     accent: '#8A857C',

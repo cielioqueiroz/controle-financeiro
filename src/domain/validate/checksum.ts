@@ -48,6 +48,24 @@ export function validar(result: ParseResult): Validacao {
     }
   }
 
+  // Extrato por SALDO (ex.: Banco do Brasil, que não declara totais): a
+  // soma com sinal de TODAS as transações tem que igualar a variação de
+  // saldo. amountCents: saída > 0, entrada < 0; o saldo cresce com entrada,
+  // então saldoFinal = saldoInicial − Σ(amountCents), logo
+  // Σ(amountCents) = saldoInicial − saldoFinal. Inclui a varredura interna
+  // (o vínculo é que a tira do gasto, não a conferência).
+  if (result.balance != null) {
+    const soma = transactions.reduce((a, t) => a + t.amountCents, 0)
+    const esperado = result.balance.initial - result.balance.final
+    const diferenca = soma - esperado
+    return {
+      status: diferenca === 0 ? 'confere' : 'diverge',
+      contagem,
+      somaExtraida: soma,
+      diferenca,
+    }
+  }
+
   // Fatura Nubank: soma compras + encargos = "Total a pagar".
   if (declaredTotal != null) {
     const somaExtraida = transactions
