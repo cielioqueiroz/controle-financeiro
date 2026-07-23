@@ -17,19 +17,19 @@
         color: #f5f3ef;
         position: relative;
         overflow: hidden;
-        display: flex; flex-direction: column;
-        justify-content: center;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 56px;
         padding: 0 88px;
       }
       /* Eco do fundo de particulas, em versao estatica. */
       .brilho {
         position: absolute; inset: -20%;
         background:
-          radial-gradient(38% 38% at 78% 28%, rgba(217, 164, 65, 0.28), transparent 70%),
-          radial-gradient(34% 34% at 88% 74%, rgba(124, 92, 255, 0.22), transparent 70%);
+          radial-gradient(38% 38% at 82% 30%, rgba(217, 164, 65, 0.30), transparent 70%),
+          radial-gradient(34% 34% at 90% 78%, rgba(217, 164, 65, 0.16), transparent 70%);
         filter: blur(40px);
       }
-      .conteudo { position: relative; z-index: 1; }
+      .conteudo { position: relative; z-index: 1; max-width: 620px; }
       .marca {
         display: flex; align-items: center; gap: 18px;
         margin-bottom: 34px;
@@ -40,21 +40,59 @@
         letter-spacing: 0.35em; text-transform: uppercase;
         color: #a8a29a;
       }
-      /* 66px, nao 82: em 82 a segunda linha nao cabe na largura util e quebra
-         em tres linhas, empurrando o bloco contra o rodape. */
+      /* 60px: com o donut ao lado a largura util encolheu, e a segunda linha
+         precisa caber sem quebrar em tres. */
       h1 {
-        font-size: 66px; font-weight: 800;
+        font-size: 60px; font-weight: 800;
         line-height: 1.08; letter-spacing: -0.02em;
       }
       h1 .fraca { color: #a8a29a; }
       p {
-        margin-top: 30px; font-size: 27px; color: #a8a29a; max-width: 800px;
+        margin-top: 28px; font-size: 25px; color: #a8a29a; max-width: 560px;
       }
       .rodape {
         position: absolute; bottom: 54px; left: 88px;
         font-family: 'JetBrains Mono', monospace;
         font-size: 17px; letter-spacing: 0.22em;
         text-transform: uppercase; color: #6f6a62;
+      }
+      /* Donut de categorias — o que o app entrega, em tons de ambar. As
+         fatias ecoam o anel do logo, que abre em pedacos. */
+      .donut {
+        position: relative; z-index: 1; flex-shrink: 0;
+        width: 340px; height: 340px; border-radius: 50%;
+        background: conic-gradient(
+          #eac878   0deg  70deg,
+          #d9a441  70deg 148deg,
+          #b8842f 148deg 210deg,
+          #c99a3a 210deg 270deg,
+          #9a6a15 270deg 318deg,
+          #e8b85c 318deg 360deg
+        );
+        box-shadow: 0 30px 90px -30px rgba(217, 164, 65, 0.5);
+      }
+      /* Vao entre as fatias e o furo central. */
+      .donut::before {
+        content: ''; position: absolute; inset: 0; border-radius: 50%;
+        background: conic-gradient(
+          #0d0c0b 0deg 2.2deg, transparent 2.2deg 70deg,
+          #0d0c0b 70deg 72.2deg, transparent 72.2deg 148deg,
+          #0d0c0b 148deg 150.2deg, transparent 150.2deg 210deg,
+          #0d0c0b 210deg 212.2deg, transparent 212.2deg 270deg,
+          #0d0c0b 270deg 272.2deg, transparent 272.2deg 318deg,
+          #0d0c0b 318deg 320.2deg, transparent 320.2deg 360deg
+        );
+      }
+      .donut::after {
+        content: ''; position: absolute; inset: 92px;
+        border-radius: 50%; background: #0d0c0b;
+        display: grid; place-items: center;
+      }
+      .furo {
+        position: absolute; inset: 92px; z-index: 2;
+        display: grid; place-items: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700; font-size: 52px; color: #d9a441;
       }
     </style>
   </head>
@@ -63,17 +101,17 @@
     <div class="conteudo">
       <div class="marca">
         <svg width="62" height="62" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="23" fill="#d9a441" />
-          <circle cx="32" cy="32" r="23" fill="none" stroke="#7a4e12" stroke-width="2.5" opacity="0.55" />
-          <circle cx="32" cy="32" r="18.5" fill="none" stroke="#7a4e12" stroke-width="1.6" opacity="0.4" />
-          <text x="32" y="41.5" text-anchor="middle" font-family="'JetBrains Mono', monospace"
-                font-weight="800" font-size="24" fill="#0d0c0b">R$</text>
+          <circle cx="32" cy="32" r="24" fill="#d9a441" />
+          <circle cx="32" cy="32" r="24" fill="none" stroke="#4a3208" stroke-width="3" opacity="0.55" />
+          <text x="32" y="43" text-anchor="middle" font-family="'JetBrains Mono', monospace"
+                font-weight="900" font-size="30" fill="#4a3208">R$</text>
         </svg>
         <span>Capital Financeiro</span>
       </div>
       <h1>Seu extrato vira gráfico,<br /><span class="fraca">em menos de um minuto.</span></h1>
       <p>Faturas e extratos viram gastos por categoria, dia, mês e ano.</p>
     </div>
+    <div class="donut"><span class="furo">R$</span></div>
     <div class="rodape">Lido no navegador · só a transação é salva, nunca o PDF</div>
   </body>
 </html>
