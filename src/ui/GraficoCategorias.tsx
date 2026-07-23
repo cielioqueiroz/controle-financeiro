@@ -1,8 +1,12 @@
+import { motion, useReducedMotion } from 'motion/react'
 import type { CategoriaResumo } from '../domain/insights'
 import { formatBRL } from '../domain/normalize/money'
 
-/** Donut de categorias em SVG puro — sem biblioteca de gráfico. Cada
- *  fatia usa a cor da categoria. */
+/** Donut de categorias em SVG puro — sem biblioteca de gráfico. Cada fatia
+ *  usa a cor da categoria e se DESENHA ao entrar (o dasharray cresce de 0
+ *  ao arco final), varrendo o círculo em sequência. Movimento sutil, no
+ *  espírito "premium": diz "estou calculando" sem saltar. Respeita
+ *  prefers-reduced-motion. */
 export function GraficoCategorias({
   categorias,
   totalCents,
@@ -10,6 +14,7 @@ export function GraficoCategorias({
   categorias: CategoriaResumo[]
   totalCents: number
 }) {
+  const semMovimento = useReducedMotion()
   if (totalCents === 0 || categorias.length === 0) return null
 
   const R = 52
@@ -17,6 +22,9 @@ export function GraficoCategorias({
   let acumulado = 0
 
   const topo = categorias.slice(0, 8)
+  // Curva de saída "expo" — arranca rápido e assenta devagar, o que dá a
+  // sensação de peso/qualidade em vez de linear.
+  const suave = [0.22, 1, 0.36, 1] as const
 
   return (
     <div className="flex flex-wrap items-center gap-8">
@@ -27,7 +35,7 @@ export function GraficoCategorias({
           const offset = -acumulado * C
           acumulado += fracao
           return (
-            <circle
+            <motion.circle
               key={i}
               cx="65"
               cy="65"
@@ -35,10 +43,10 @@ export function GraficoCategorias({
               fill="none"
               stroke={c.cat.cor}
               strokeWidth="16"
-              strokeDasharray={`${dash} ${C - dash}`}
               strokeDashoffset={offset}
-              className="surgir"
-              style={{ animationDelay: `${i * 60}ms` }}
+              initial={semMovimento ? false : { strokeDasharray: `0 ${C}` }}
+              animate={{ strokeDasharray: `${dash} ${C - dash}` }}
+              transition={{ duration: 0.7, delay: i * 0.08, ease: suave }}
             />
           )
         })}
@@ -69,16 +77,20 @@ export function GraficoCategorias({
 
       <ul className="flex-1 space-y-1.5">
         {topo.map((c, i) => (
-          <li key={i} className="flex items-center gap-3 text-sm">
+          <motion.li
+            key={i}
+            className="flex items-center gap-3 text-sm"
+            initial={semMovimento ? false : { opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 + i * 0.05, ease: suave }}
+          >
             <span className="text-base">{c.cat.icone}</span>
             <span className="flex-1 text-tinta-fraca">{c.cat.nome}</span>
             <span className="tabular text-tinta">{formatBRL(c.totalCents)}</span>
-            <span
-              className="tabular w-12 text-right text-xs text-tinta-tenue"
-            >
+            <span className="tabular w-12 text-right text-xs text-tinta-tenue">
               {Math.round((c.totalCents / totalCents) * 100)}%
             </span>
-          </li>
+          </motion.li>
         ))}
       </ul>
     </div>
