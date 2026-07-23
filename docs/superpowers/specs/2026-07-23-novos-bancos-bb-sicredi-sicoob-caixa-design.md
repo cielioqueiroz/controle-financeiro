@@ -137,3 +137,44 @@ bancos que não funcionam. Fica para um round próprio.
   reconhecido e que os totais fecham.
 - Verificação humana só quando/se um extrato **pessoal** real aparecer — aí confirmar que o
   parser feito de conta pública também serve para conta de pessoa física.
+
+---
+
+## Task 0 REALIZADA — BB layout B (2023), coordenadas reais (2026-07-23)
+
+Rodei a extração do próprio app (`extractFromDocument` → `buildLines`, via
+`pdfjs-dist/legacy`) na amostra `bb-cmbf.pdf`. Ferramenta temporária em
+`scripts/_dump-bb.ts` (gitignored por `scripts/_*.ts`). As fronteiras de coluna
+**deixaram de ser hipótese** — são estas:
+
+| Coluna | `x` (esq.) | `right` (dir.) | Exemplo |
+|---|---|---|---|
+| Data (balancete) | 65 | — | `01/08/2023` |
+| Ag. origem | 192 | — | `0000` |
+| Lote + Histórico | 227 | — | `13105 144 Pix - Enviado` |
+| Documento | 388–445 | 466 | `80.101` / `872.131.200.057.912` |
+| **Valor** | — | **520** | `2.001,00 D` |
+| Saldo | — | 548 | `0,00 C` |
+
+Assinaturas de detecção confirmadas: `Extrato de Conta Corrente` (y=768),
+`Lançamentos` (y=659), e a linha de cabeçalho com `Dt. balancete … Valor R$ Saldo` (y=640).
+
+Notas de parser que caem do texto real:
+- **Sinal por sufixo C/D na coluna de valor** (`right≈520`): `D` = saída (`amountCents` > 0),
+  `C` = entrada (`amountCents` < 0). Ler por borda direita (`cellAtRight`), como o Bradesco.
+- **Linhas de detalhe** ficam em `x≈252`, na linha `y` logo abaixo do lançamento
+  (contraparte do PIX/TED, "Tar. agrupadas…", "Cobrança referente…"). Anexar à descrição.
+- **`Resgate Automático` (C) e `Aplicação` (D)** são varredura interna entre conta e
+  aplicação automática — **não são entrada/saída reais**. Candidatos a `link`/excluir do
+  gasto, como o `card_payment` do cartão. Decidir na implementação (provável: marcar e não
+  contar). Nas linhas de resgate o valor e o saldo às vezes colam numa célula
+  (`5.361,48 C 0,00 C`) — tratar.
+- Classificação de `kind`: `Pix - Enviado`/`Transferência enviada`/`TED`/`Pagamento de
+  Boleto` → saída; `Pix recebido`/`Transferência recebida` → entrada; `Tarifa …`/`IOF` →
+  encargo; `Saldo Anterior`/`SALDO`/`Saldo Dia` → ignorar.
+
+Ainda pendente de Task 0 (antes de codar cada um):
+- **BB layout A (2020, `bb-belem.pdf`)** — ordem das colunas de data invertida; rodar o dump.
+- **Sicoob (`sicredi-apiacas.pdf`)** e **Sicredi (`sicredi-carlinda.pdf`)** — rodar o dump.
+- Conferir se o rodapé do extrato BB declara **totais de entradas/saídas** (gabarito) ou se
+  o gabarito sai do saldo inicial→final.

@@ -21,6 +21,21 @@ confirmados OK) e enviadas ao ar:
 
 **294 testes verdes** (31 arquivos), build e lint OK.
 
+### Em andamento (2026-07-23): suporte a mais bancos
+
+Iniciada a rodada de **novos parsers de banco** — spec em
+`specs/2026-07-23-novos-bancos-bb-sicredi-sicoob-caixa-design.md`. Amostras reais
+(de portais de transparência) guardadas em `.amostras-bancos/` (gitignored).
+- **Banco do Brasil:** Task 0 **feita** — colunas mapeadas com coordenadas reais (ver
+  apêndice do spec). Pronto para virar parser. Falta Task 0 do layout A (2020).
+- **Sicoob e Sicredi:** amostras web de texto ricas; falta Task 0.
+- **Caixa:** PARADA — o extrato pessoal do usuário veio como **imagem** (sem camada de
+  texto); o app só lê texto. Retomar com PDF de texto (internet banking) ou decidir OCR.
+- **Sicredi pessoal:** usuário traz depois.
+- **Santander/Itaú:** sem material público; só com PDF real fornecido.
+- Ferramenta de Task 0: `scripts/_dump-bb.ts` (gitignored) despeja linhas com `x`/`right`.
+- Carrossel de bancos na tela de login: adiado até haver ~5 bancos reais.
+
 **Dívida técnica desta rodada, anotada de propósito** (não bloqueia, mas registrar):
 - `Confirmacao`: minors de teste em aberto — sem cobertura de `severidade:'normal'`, a
   invariante do `.replace` em `BOTAO_CONFIRMAR_NORMAL` não está pinada por teste, e a
