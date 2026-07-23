@@ -5,6 +5,7 @@ import { parseNubankExtrato } from './nubank-extrato'
 import { parseBradescoExtrato } from './bradesco-extrato'
 import { parseBradescoFatura } from './bradesco-fatura'
 import { parseBBExtrato } from './bb-extrato'
+import { parseSicrediExtrato } from './sicredi-extrato'
 import type { ParseResult } from './types'
 
 export class ParserNaoImplementadoError extends Error {
@@ -40,6 +41,9 @@ export function parse(lines: Line[]): { kind: DocKind; result: ParseResult } {
   }
   if (kind.bank === 'bb' && kind.docType === 'extrato') {
     return { kind, result: parseBBExtrato(lines) }
+  }
+  if (kind.bank === 'sicredi' && kind.docType === 'extrato') {
+    return { kind, result: parseSicrediExtrato(lines) }
   }
 
   throw new ParserNaoImplementadoError(kind)

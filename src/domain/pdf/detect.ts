@@ -1,6 +1,6 @@
 import type { Line } from './lines'
 
-export type Bank = 'bradesco' | 'nubank' | 'bb' | 'desconhecido'
+export type Bank = 'bradesco' | 'nubank' | 'bb' | 'sicredi' | 'desconhecido'
 export type DocType = 'fatura' | 'extrato' | 'desconhecido'
 export type DocKind = { bank: Bank; docType: DocType }
 
@@ -28,6 +28,10 @@ const ASSINATURAS: Array<{ kind: DocKind; marcadores: RegExp[] }> = [
   {
     kind: { bank: 'bb', docType: 'extrato' },
     marcadores: [/Extrato de Conta Corrente/i, /Dt\.?\s*balancete/i],
+  },
+  {
+    kind: { bank: 'sicredi', docType: 'extrato' },
+    marcadores: [/Sicredi/i, /Associado:/i],
   },
 ]
 

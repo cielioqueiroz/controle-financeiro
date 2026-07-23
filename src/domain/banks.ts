@@ -29,6 +29,12 @@ export const BANCOS: Record<Bank, BankTheme> = {
     wash: 'rgba(0, 56, 168, 0.12)',
     tinta: '#F5F3EF',
   },
+  sicredi: {
+    nome: 'Sicredi',
+    accent: '#3FA110',
+    wash: 'rgba(63, 161, 16, 0.12)',
+    tinta: '#F5F3EF',
+  },
   desconhecido: {
     nome: 'Documento',
     accent: '#8A857C',
