@@ -52,3 +52,4 @@ extratos/
 
 # Ferramenta de diagnóstico local (usa caminhos de PDFs reais)
 scripts/diagnostico.ts
+scripts/_*.ts
