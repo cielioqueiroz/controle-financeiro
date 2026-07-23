@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
 import { Rodape } from './Rodape'
+import { CarrosselBancos } from './CarrosselBancos'
 
 /** Frase de quem ainda não entrou — usada aqui embaixo e também no header
  *  do App quando não há Neon configurado (o modo "importa e vê" também é
@@ -51,14 +52,25 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
       </header>
 
       <div className="mx-auto grid w-full max-w-[104rem] flex-1 items-center gap-10 py-3 lg:grid-cols-2 lg:gap-16">
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-          className="font-display text-4xl leading-[1.05] text-tinta sm:text-5xl lg:text-6xl"
-        >
-          <FraseDeslogado />
-        </motion.h1>
+        <div>
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+            className="font-display text-4xl leading-[1.05] text-tinta sm:text-5xl lg:text-6xl"
+          >
+            <FraseDeslogado />
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-10 hidden lg:block"
+          >
+            <CarrosselBancos />
+          </motion.div>
+        </div>
 
         <div className="w-full">{children}</div>
       </div>
