@@ -16,6 +16,18 @@ const entradas = () =>
 const saidas = () =>
   r.transactions.filter((t) => t.amountCents > 0).reduce((a, t) => a + t.amountCents, 0)
 
+describe('parseBradescoExtrato — saldo', () => {
+  it('expõe saldo inicial e final do período', () => {
+    // COD. LANC. 0 → 55.575,13; último movimento → 46.999,01.
+    expect(r.balance).toEqual({ initial: 5557513, final: 4699901 })
+  })
+
+  it('a variação de saldo fecha com a soma dos lançamentos com sinal', () => {
+    const soma = r.transactions.reduce((a, t) => a + t.amountCents, 0)
+    expect(soma).toBe(r.balance!.initial - r.balance!.final)
+  })
+})
+
 describe('parseBradescoExtrato — gabarito', () => {
   it('lê os totais declarados na linha Total', () => {
     expect(r.declaredIncome).toBe(3326553) // 33.265,53

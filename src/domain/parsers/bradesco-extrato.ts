@@ -100,6 +100,10 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
 
   const transactions: RawTransaction[] = []
   let dataCorrente: Date | null = null
+  // Saldo pela coluna direita (saldoRight): a linha COD. LANC. traz o inicial;
+  // o final é o saldo da última âncora antes do "Total".
+  let saldoInicialCents: number | null = null
+  let saldoFinalCents: number | null = null
 
   for (let i = 0; i < fim; i++) {
     const l = lines[i]
@@ -110,6 +114,8 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
       // "COD. LANC. 0" marca o saldo inicial — atualiza data, não é transação.
       const dt = xAt(l, COL.data)?.match(DATA)
       if (dt) dataCorrente = new Date(Number(dt[3]), Number(dt[2]) - 1, Number(dt[1]))
+      const s = cellAtRight(l, COL.saldoRight, TOL)
+      if (s) saldoInicialCents = parseBRL(s)
       continue
     }
 
@@ -120,6 +126,10 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
 
     const credito = cellAtRight(l, COL.creditoRight, TOL)
     const debito = cellAtRight(l, COL.debitoRight, TOL)
+
+    // O saldo desta âncora; a última a sobreviver ao loop é o saldo final.
+    const saldoTexto = cellAtRight(l, COL.saldoRight, TOL)
+    if (saldoTexto) saldoFinalCents = parseBRL(saldoTexto)
 
     const acima = historicoVizinho(lines[i - 1], l)
     const abaixo = historicoVizinho(lines[i + 1], l)
@@ -156,6 +166,10 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
     declaredTotal: null,
     declaredIncome: income,
     declaredExpense: expense,
+    balance:
+      saldoInicialCents != null && saldoFinalCents != null
+        ? { initial: saldoInicialCents, final: saldoFinalCents }
+        : null,
     period: periodo(lines),
     account: {
       bank: 'bradesco',
