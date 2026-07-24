@@ -1,4 +1,5 @@
 import { neon } from '../lib/neon'
+import type { DocParaSaldo } from './saldos'
 
 export type DocumentoSalvo = {
   id: string
@@ -20,6 +21,24 @@ export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
     .order('imported_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as DocumentoSalvo[]
+}
+
+/** Documentos com os campos que alimentam o saldo por conta. Query SEPARADA
+ *  (não o `puxarDocumentos` do painel) e DEFENSIVA: se a migração 0002 ainda
+ *  não rodou, a coluna `end_balance_cents` não existe e o select erra — aqui
+ *  isso vira lista vazia (a fileira de saldo simplesmente não aparece), sem
+ *  contaminar o resto do dashboard. */
+export async function puxarSaldos(): Promise<DocParaSaldo[]> {
+  if (!neon) return []
+  try {
+    const { data, error } = await neon
+      .from('documents')
+      .select('bank, account_id, doc_type, period_end, end_balance_cents')
+    if (error) return []
+    return (data ?? []) as DocParaSaldo[]
+  } catch {
+    return []
+  }
 }
 
 /** Apaga um documento. As transações caem junto por ON DELETE CASCADE

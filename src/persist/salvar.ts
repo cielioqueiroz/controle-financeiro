@@ -51,27 +51,36 @@ export async function salvarDocumento(
   const accountId = await acharOuCriarConta(result, kind)
 
   // 3. Documento
-  const { data: doc, error: docErr } = await neon
+  const docBase = {
+    account_id: accountId,
+    file_hash: fileHash,
+    bank: kind.bank,
+    doc_type: kind.docType,
+    period_start: result.period?.start.toISOString().slice(0, 10) ?? null,
+    period_end: result.period?.end.toISOString().slice(0, 10) ?? null,
+    declared_total: result.declaredTotal,
+    declared_income: result.declaredIncome,
+    declared_expense: result.declaredExpense,
+    filename,
+    next_close_date: result.forward.nextCloseDate?.toISOString().slice(0, 10) ?? null,
+    next_invoice_balance: result.forward.nextInvoiceBalance,
+    total_open_balance: result.forward.totalOpenBalance,
+    future_installments_total: result.forward.futureInstallmentsTotal,
+  }
+  // Saldo final do extrato (fatura não tem). Alimenta o saldo por conta.
+  // DEFENSIVO: se a migração 0002 ainda não rodou, a coluna não existe e o
+  // insert erra citando `end_balance_cents` — nesse caso refazemos sem ela,
+  // para importar nunca quebrar antes da migração. Some sozinho depois.
+  let insercao = await neon
     .from('documents')
-    .insert({
-      account_id: accountId,
-      file_hash: fileHash,
-      bank: kind.bank,
-      doc_type: kind.docType,
-      period_start: result.period?.start.toISOString().slice(0, 10) ?? null,
-      period_end: result.period?.end.toISOString().slice(0, 10) ?? null,
-      declared_total: result.declaredTotal,
-      declared_income: result.declaredIncome,
-      declared_expense: result.declaredExpense,
-      filename,
-      next_close_date: result.forward.nextCloseDate?.toISOString().slice(0, 10) ?? null,
-      next_invoice_balance: result.forward.nextInvoiceBalance,
-      total_open_balance: result.forward.totalOpenBalance,
-      future_installments_total: result.forward.futureInstallmentsTotal,
-    })
+    .insert({ ...docBase, end_balance_cents: result.balance?.final ?? null })
     .select('id')
     .single()
-  if (docErr || !doc) throw new Error(docErr?.message ?? 'Falha ao salvar o documento')
+  if (insercao.error && /end_balance_cents/i.test(insercao.error.message)) {
+    insercao = await neon.from('documents').insert(docBase).select('id').single()
+  }
+  const doc = insercao.data
+  if (insercao.error || !doc) throw new Error(insercao.error?.message ?? 'Falha ao salvar o documento')
 
   // 4. Transações — vincula, categoriza, deduplica por hash
   const key = accountKey(result, kind)
