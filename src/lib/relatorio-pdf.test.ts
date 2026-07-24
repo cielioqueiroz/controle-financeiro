@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { montarDadosRelatorio } from './relatorio-pdf'
+import { montarDadosRelatorio, gerarRelatorioPdf } from './relatorio-pdf'
 
 const entrada = {
   periodoLabel: 'Junho 2026',
@@ -42,5 +42,15 @@ describe('montarDadosRelatorio', () => {
   it('repassa os saldos por conta', () => {
     const d = montarDadosRelatorio(entrada)
     expect(d.saldos).toEqual([{ bank: 'nubank', balanceCents: 250000, date: '2026-06-30' }])
+  })
+})
+
+describe('gerarRelatorioPdf', () => {
+  it('gera um Blob PDF (começa com %PDF-)', async () => {
+    const dados = montarDadosRelatorio(entrada)
+    const blob = await gerarRelatorioPdf(dados)
+    expect(blob.type).toContain('pdf')
+    const head = await blob.slice(0, 5).text()
+    expect(head).toBe('%PDF-')
   })
 })
