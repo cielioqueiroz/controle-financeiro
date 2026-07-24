@@ -111,6 +111,9 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 - Editar compra e criar categorias personalizadas.
 - Painel de Documentos (apagar fatura ou tudo).
 - Login com nome + apelido, saudação, tutorial guiado.
+- **Editar perfil** (2026-07-24): menu da conta → "Editar perfil" troca o apelido da
+  saudação (local) e o nome completo (Neon Auth via `updateUser`), com prévia ao vivo.
+  Componente `src/ui/EditarPerfil.tsx` (6 testes). Tutorial ganhou o passo "Do seu jeito".
 - Tema claro/escuro, responsivo, toasts no topo-centro.
 - "Baixar PDF" via `window.print()` + `@media print` — **veja a ressalva no item 3 da fila**.
 
@@ -168,14 +171,19 @@ Roteiro, em ordem (**1 e 2 já feitos em 2026-07-19**, o servidor sobe em
 Aproveite a sessão logada para conferir o **item 5** desta fila (filtro por banco
 e categorias personalizadas, que nunca foram validados contra o banco).
 
-### 1. Nome errado no e-mail de redefinição
+### 1. Nome errado no e-mail de redefinição — SOLUÇÃO LOCALIZADA (2026-07-24)
 
-O e-mail sai como **"controle-financeiro"**, não "Capital Financeiro" — é o nome
-do projeto no painel do Neon vazando para o usuário. Não é código.
+O e-mail sai como **"controle-financeiro"**, não "Capital Financeiro". Não é código.
+
+**Onde corrigir (confirmado no painel em 2026-07-24):** *Neon → Auth → Configuration
+→ Project Info → **Application Name***. O campo diz explicitamente *"This name appears
+in verification emails and auth communications."* Trocar para **"Capital Financeiro"**
+e salvar. **Não** é o "Sender address" (`auth@mail.myneon.app`, compartilhado) nem o
+nome do projeto Neon/Vercel — é um texto de exibição, seguro de mudar (não toca URL de
+Auth, JWKS ou domínio). Passo manual do usuário; nada a fazer no repositório.
 
 Vale prioridade porque **é o único e-mail que pedimos ao usuário para confiar**,
-e chegar sob um nome que ele não reconhece tem forma de phishing. Cuidado com a
-armadilha de renomeação registrada no fim deste documento.
+e chegar sob um nome que ele não reconhece tem forma de phishing.
 
 ### 2. Relatório: PDF de verdade → compartilhar → e-mail
 
