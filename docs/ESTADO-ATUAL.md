@@ -185,9 +185,10 @@ O elo que trava tudo: **o app nunca produz um arquivo PDF**. `Baixar PDF` chama
 `window.print()` ([Dashboard.tsx](../src/ui/Dashboard.tsx)), que entrega o trabalho ao
 diálogo de impressão do sistema. Não há arquivo para anexar nem compartilhar.
 
-Verificado nesta sessão: **não existe `navigator.share` no código** — o tooltip do botão
-diz "Baixar ou compartilhar em PDF", mas ele só imprime. A palavra "compartilhar"
-promete o que não entrega; corrigir isso faz parte da rodada.
+Verificado nesta sessão: **não existe `navigator.share` no código** — ele só imprime.
+**Cópia corrigida em 2026-07-24**: o tooltip e o passo do tutorial não prometem mais
+"compartilhar"; agora dizem que abre o diálogo de impressão ("Salvar como PDF" ou
+imprimir). A promessa de compartilhar de verdade (`navigator.share`) fica para esta rodada.
 
 Ordem obrigatória:
 1. **PDF real** — jsPDF/pdfmake gerando arquivo no cliente.
@@ -362,15 +363,13 @@ Todos avaliados, nenhum bloqueia:
 - `limparTokenDaUrl` não tem teste direto — roda de verdade só dentro do
   `App.test.tsx`, sem ninguém asseverar a URL depois. É a função cujo defeito
   reenviaria um token gasto, e é trivial de testar em jsdom.
-- **`CampoSenha` ficou duplicado**: existe local no `RecuperarSenha.tsx` enquanto
-  o `Auth.tsx` mantém a mesma marcação inline. A extração de 2026-07-19 hoisted
-  `CAMPO`, `BOTAO_PRIMARIO` e `IconeOlho` exatamente para evitar isso, mas parou
-  antes do composto que os junta.
+- ~~**`CampoSenha` ficou duplicado**~~ ✅ **resolvido (2026-07-24)**: extraído para
+  `src/ui/CampoSenha.tsx` e usado em `Auth.tsx` e `RecuperarSenha.tsx`.
 - **Mesma frase, severidade diferente**: senha curta é `toast.warning` no login e
   `toast.error` na recuperação — cor diferente para o mesmo texto no mesmo card.
-- **`tsconfig.app.json` e `tsconfig.test.json` são quase-duplicatas** mantidas à
-  mão (17 chaves iguais). Foi essa divergência que quebrou o build nesta rodada.
-  Um `tsconfig.base.json` que os dois estendam torna a próxima impossível.
+- ~~**`tsconfig.app.json` e `tsconfig.test.json` são quase-duplicatas**~~ ✅
+  **resolvido (2026-07-24)**: criado `tsconfig.base.json` com as 15 chaves comuns;
+  os dois o estendem e só sobrescrevem `tsBuildInfoFile`, `types` e `include/exclude`.
 - **Classificação de erro do `/reset-password`**: hoje *qualquer* 400 vira "token
   expirado". Mapear os códigos do Better Auth exigiria sondar a taxonomia de erros
   dele, que nunca foi levantada. O único gatilho realista (senha > 128 caracteres)
