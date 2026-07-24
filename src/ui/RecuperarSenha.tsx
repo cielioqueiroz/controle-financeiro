@@ -4,7 +4,7 @@ import { pedirLink, redefinirSenha } from '../lib/recuperar-senha'
 import { guardarEmailReset, lerEmailReset, esquecerEmailReset } from '../lib/perfil'
 import { limparTokenDaUrl } from '../lib/url-token'
 import { validarNovaSenha, emailValido } from './auth-validacao'
-import { IconeOlho } from './IconeOlho'
+import { CampoSenha } from './CampoSenha'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
 
 type Props = {
@@ -184,53 +184,6 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
         className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
       >
         ‹ Voltar ao login
-      </button>
-    </div>
-  )
-}
-
-/** Campo de senha com o olho de revelar. O botão é type="button": dentro de
- *  um <form>, o padrão seria submit, e clicar no olho enviaria o formulário. */
-function CampoSenha({
-  refCampo,
-  valor,
-  aoMudar,
-  visivel,
-  alternar,
-  placeholder,
-}: {
-  refCampo?: React.RefObject<HTMLInputElement | null>
-  valor: string
-  aoMudar: (v: string) => void
-  visivel: boolean
-  alternar: () => void
-  placeholder: string
-}) {
-  return (
-    <div className="relative">
-      <input
-        ref={refCampo}
-        type={visivel ? 'text' : 'password'}
-        required
-        minLength={8}
-        // O Better Auth recusa senha acima de 128 caracteres com 400 — o
-        // mesmo status que usamos para "token expirado". Barrar no teclado
-        // impede que uma senha longa demais seja reportada como link morto,
-        // destruindo um token que ainda servia.
-        maxLength={128}
-        placeholder={placeholder}
-        value={valor}
-        onChange={(e) => aoMudar(e.target.value)}
-        className={CAMPO + ' pr-11'}
-      />
-      <button
-        type="button"
-        onClick={alternar}
-        aria-label={visivel ? 'Ocultar senha' : 'Mostrar senha'}
-        aria-pressed={visivel}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-tinta-tenue transition-colors hover:text-tinta"
-      >
-        <IconeOlho aberto={visivel} />
       </button>
     </div>
   )

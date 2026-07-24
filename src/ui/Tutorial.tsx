@@ -34,10 +34,10 @@ const PASSOS: Passo[] = [
       'No botão “Documentos” você vê tudo que importou e pode apagar uma fatura específica — ou recomeçar do zero, se algo saiu errado.',
   },
   {
-    icone: '📤',
-    titulo: 'Baixe e compartilhe',
+    icone: '🖨️',
+    titulo: 'Leve o relatório',
     corpo:
-      'O botão “Baixar PDF” gera um relatório limpo do período para você guardar ou compartilhar com quem quiser.',
+      'O botão “Baixar PDF” monta um relatório limpo do período e abre o diálogo de impressão — é só escolher “Salvar como PDF” para guardar ou imprimir no papel.',
   },
 ]
 

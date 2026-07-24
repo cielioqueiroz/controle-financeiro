@@ -232,7 +232,7 @@ export function Dashboard({ onImportar }: Props) {
               <button
                 onClick={() => window.print()}
                 className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
-                title="Baixar ou compartilhar em PDF"
+                title="Abre o diálogo de impressão — escolha “Salvar como PDF” ou imprima"
               >
                 Baixar PDF
               </button>

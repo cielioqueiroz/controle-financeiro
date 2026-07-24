@@ -7,7 +7,7 @@ import { Marca } from './Marca'
 import { MoedaLogo } from './MoedaLogo'
 import { RecuperarSenha } from './RecuperarSenha'
 import { camposFaltando, mensagemCamposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
-import { IconeOlho } from './IconeOlho'
+import { CampoSenha } from './CampoSenha'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
 
 type Props = {
@@ -192,27 +192,14 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                 onChange={(e) => setEmail(e.target.value)}
                 className={CAMPO}
               />
-              <div className="relative">
-                <input
-                  ref={refs.senha}
-                  type={verSenha ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  placeholder="senha (mín. 8 caracteres)"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  className={CAMPO + ' pr-11'}
-                />
-                <button
-                  type="button"
-                  onClick={() => setVerSenha(!verSenha)}
-                  aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
-                  aria-pressed={verSenha}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-tinta-tenue transition-colors hover:text-tinta"
-                >
-                  <IconeOlho aberto={verSenha} />
-                </button>
-              </div>
+              <CampoSenha
+                refCampo={refs.senha}
+                valor={senha}
+                aoMudar={setSenha}
+                visivel={verSenha}
+                alternar={() => setVerSenha(!verSenha)}
+                placeholder="senha (mín. 8 caracteres)"
+              />
               <button
                 type="submit"
                 disabled={ocupado}
