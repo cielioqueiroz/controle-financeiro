@@ -13,7 +13,8 @@ import { ThemeToggle } from './ui/ThemeToggle'
 import { ContaMenu } from './ui/ContaMenu'
 import { Dashboard } from './ui/Dashboard'
 import { Tutorial } from './ui/Tutorial'
-import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial } from './lib/perfil'
+import { EditarPerfil } from './ui/EditarPerfil'
+import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
 import { loadTextItems, PdfProtegidoError } from './domain/pdf/load'
 import { buildLines } from './domain/pdf/lines'
 import { pareceDigitalizado } from './domain/pdf/extract'
@@ -35,6 +36,7 @@ export default function App() {
   const [logado, setLogado] = useState(false)
   const [usuario, setUsuario] = useState<{ nome: string | null; email: string | null } | null>(null)
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
+  const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [salvando, setSalvando] = useState(false)
   /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
@@ -215,6 +217,7 @@ export default function App() {
             <ThemeToggle />
             {logado && neon && (
               <ContaMenu
+                onEditarPerfil={() => setMostrarPerfil(true)}
                 onVerTutorial={() => {
                   reabrirTutorial()
                   setMostrarTutorial(true)
@@ -282,6 +285,14 @@ export default function App() {
               marcarTutorialVisto()
               setMostrarTutorial(false)
             }}
+          />
+        )}
+        {mostrarPerfil && logado && (
+          <EditarPerfil
+            nomeAtual={usuario?.nome ?? ''}
+            apelidoAtual={lerApelido() ?? ''}
+            onFechar={() => setMostrarPerfil(false)}
+            onSalvo={checarSessao}
           />
         )}
       </AnimatePresence>

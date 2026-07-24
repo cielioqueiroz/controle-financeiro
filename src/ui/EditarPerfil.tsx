@@ -1,0 +1,148 @@
+import { useEffect, useState } from 'react'
+import { motion } from 'motion/react'
+import { toast } from 'sonner'
+import { neon } from '../lib/neon'
+import { salvarApelido, primeiroNome } from '../lib/perfil'
+
+type Props = {
+  /** Nome completo atual (vem do Neon Auth, `user.name`). */
+  nomeAtual: string
+  /** Apelido atual (preferência local; é o que aparece na saudação). */
+  apelidoAtual: string
+  onFechar: () => void
+  /** Chamado após salvar, para o App recarregar a sessão e repintar a
+   *  saudação com o novo nome/apelido. */
+  onSalvo: () => void
+}
+
+/** Editor de perfil: o apelido (como quer ser chamado na saudação) e o nome
+ *  completo. O apelido é preferência local; o nome completo vai para o Neon
+ *  Auth via updateUser. Sem confirmação — é ação leve e reversível. */
+export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Props) {
+  const [nome, setNome] = useState(nomeAtual)
+  const [apelido, setApelido] = useState(apelidoAtual)
+  const [salvando, setSalvando] = useState(false)
+
+  useEffect(() => {
+    function esc(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !salvando) onFechar()
+    }
+    document.addEventListener('keydown', esc)
+    return () => document.removeEventListener('keydown', esc)
+  }, [onFechar, salvando])
+
+  // Prévia de como a saudação vai ficar: apelido vence; sem ele, o 1º nome.
+  const saudacaoPrevia = apelido.trim() || primeiroNome(nome) || 'você'
+
+  async function salvar() {
+    const apelidoLimpo = apelido.trim()
+    const nomeLimpo = nome.trim()
+
+    setSalvando(true)
+    try {
+      // Nome completo só vai ao servidor se mudou e não está vazio — não
+      // apagamos o nome do cadastro com um campo em branco.
+      if (nomeLimpo && nomeLimpo !== nomeAtual.trim()) {
+        if (!neon) throw new Error('O banco não está configurado neste ambiente.')
+        const { error } = await neon.auth.updateUser({ name: nomeLimpo })
+        if (error) throw new Error(error.message)
+      }
+      // Apelido é local: vazio limpa e volta a saudação para o 1º nome.
+      salvarApelido(apelidoLimpo)
+      toast.success('Perfil atualizado.')
+      onSalvo()
+      onFechar()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Não consegui salvar o perfil.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Editar perfil"
+      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:p-8"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !salvando) onFechar()
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+        className="w-full max-w-md rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-carvao-800 px-6 py-4">
+          <div className="min-w-0">
+            <h2 className="font-display text-xl text-tinta">Editar perfil</h2>
+            <p className="text-xs text-tinta-tenue">Como você quer ser chamado por aqui.</p>
+          </div>
+          <button
+            onClick={onFechar}
+            aria-label="Fechar"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:text-tinta"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="space-y-5 px-6 py-5">
+          <label className="block">
+            <span className="text-xs uppercase tracking-widest text-tinta-tenue">
+              Apelido — como aparece na saudação
+            </span>
+            <input
+              value={apelido}
+              onChange={(e) => setApelido(e.target.value)}
+              placeholder={primeiroNome(nome) ?? 'como quer ser chamado?'}
+              autoFocus
+              maxLength={40}
+              className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
+            />
+            <span className="mt-1 block text-[11px] text-tinta-tenue">
+              Deixe em branco para usar seu primeiro nome.
+            </span>
+          </label>
+
+          <label className="block">
+            <span className="text-xs uppercase tracking-widest text-tinta-tenue">Nome completo</span>
+            <input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="nome e sobrenome"
+              maxLength={120}
+              className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
+            />
+          </label>
+
+          <p className="rounded-lg border border-carvao-800 bg-carvao-850/60 px-3 py-2 text-sm text-tinta-fraca">
+            Vai aparecer assim: <span className="text-tinta">Olá, {saudacaoPrevia}!</span>
+          </p>
+        </div>
+
+        <footer className="flex justify-end gap-2 border-t border-carvao-800 px-6 py-4">
+          <button
+            onClick={onFechar}
+            disabled={salvando}
+            className="rounded-lg px-4 py-2 text-sm text-tinta-fraca transition-colors hover:text-tinta disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {salvando ? 'Salvando…' : 'Salvar'}
+          </button>
+        </footer>
+      </motion.div>
+    </motion.div>
+  )
+}

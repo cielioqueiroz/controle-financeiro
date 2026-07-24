@@ -13,7 +13,7 @@ const PASSOS: Passo[] = [
     icone: '📄',
     titulo: 'Importe um PDF',
     corpo:
-      'Clique em “+ Importar PDF” e solte a fatura ou o extrato do banco. Eu leio tudo aqui no navegador e guardo só os lançamentos — o PDF nunca sai do seu computador.',
+      'Clique em “+ Importar PDF” e solte a fatura ou o extrato — leio Nubank, Bradesco, Banco do Brasil, Sicredi e Sicoob. Tudo é lido aqui no navegador; guardo só os lançamentos, o PDF nunca sai do seu computador.',
   },
   {
     icone: '🗓️',
@@ -38,6 +38,12 @@ const PASSOS: Passo[] = [
     titulo: 'Leve o relatório',
     corpo:
       'O botão “Baixar PDF” monta um relatório limpo do período e abre o diálogo de impressão — é só escolher “Salvar como PDF” para guardar ou imprimir no papel.',
+  },
+  {
+    icone: '😊',
+    titulo: 'Do seu jeito',
+    corpo:
+      'No menu da conta (a bolinha com sua inicial, no topo) você abre “Editar perfil” para trocar o apelido da saudação e o nome completo quando quiser. É por lá também que você revê este tour.',
   },
 ]
 

@@ -6,12 +6,13 @@ import { Confirmacao } from './Confirmacao'
 type Props = {
   onSair: () => void
   onVerTutorial?: () => void
+  onEditarPerfil?: () => void
 }
 
 /** Menu de conta. O "Sair" mora aqui dentro, longe do toggle de tema e
  *  atrás de um clique intencional (abrir → confirmar) — antes ele ficava
  *  colado no toggle e dava para sair sem querer. */
-export function ContaMenu({ onSair, onVerTutorial }: Props) {
+export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil }: Props) {
   const [aberto, setAberto] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
   const [confirmando, setConfirmando] = useState(false)
@@ -78,6 +79,21 @@ export function ContaMenu({ onSair, onVerTutorial }: Props) {
               </p>
             </div>
 
+            {onEditarPerfil && (
+              <button
+                onClick={() => {
+                  setAberto(false)
+                  onEditarPerfil()
+                }}
+                className="flex w-full items-center gap-2 border-b border-carvao-800 px-4 py-3 text-left text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <circle cx="12" cy="8" r="3.2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5.5 19a6.5 6.5 0 0 1 13 0" />
+                </svg>
+                Editar perfil
+              </button>
+            )}
             {onVerTutorial && (
               <button
                 onClick={() => {
