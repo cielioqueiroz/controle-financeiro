@@ -23,6 +23,8 @@ import { MenuAcoes } from './MenuAcoes'
 import { ValorAnimado } from './ValorAnimado'
 import { Documentos } from './Documentos'
 import { EditarCompra } from './EditarCompra'
+import { BANCOS } from '../domain/banks'
+import type { Bank } from '../domain/pdf/detect'
 
 type Props = {
   onImportar: () => void
@@ -35,10 +37,13 @@ const PERIODOS: Array<{ id: Periodo; nome: string }> = [
   { id: 'ano', nome: 'Ano' },
 ]
 
-const BANCO_INFO: Record<string, { nome: string; cor: string }> = {
-  nubank: { nome: 'Nubank', cor: '#a05bd6' },
-  bradesco: { nome: 'Bradesco', cor: '#e8637a' },
-  desconhecido: { nome: 'Outro', cor: '#8a8377' },
+/** Nome e cor de exibição de um banco no seletor, a partir do catálogo
+ *  canônico (`domain/banks.ts`). Antes havia um mapa local que só conhecia
+ *  Nubank e Bradesco, então BB/Sicredi/Sicoob apareciam como o slug cru e
+ *  sem cor depois que o app passou a lê-los. */
+function bancoInfo(b: string): { nome: string; cor?: string } {
+  const tema = BANCOS[b as Bank]
+  return tema ? { nome: tema.nome, cor: tema.accent } : { nome: b }
 }
 
 /** Mês/Ano agrupam por fatura (competência); Dia/Semana pela data real. */
@@ -183,15 +188,18 @@ export function Dashboard({ onImportar }: Props) {
       {bancos.length >= 2 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <BancoPill ativo={banco === 'geral'} onClick={() => setBanco('geral')} nome="Total geral" />
-          {bancos.map((b) => (
-            <BancoPill
-              key={b}
-              ativo={banco === b}
-              onClick={() => setBanco(b)}
-              nome={BANCO_INFO[b]?.nome ?? b}
-              cor={BANCO_INFO[b]?.cor}
-            />
-          ))}
+          {bancos.map((b) => {
+            const info = bancoInfo(b)
+            return (
+              <BancoPill
+                key={b}
+                ativo={banco === b}
+                onClick={() => setBanco(b)}
+                nome={info.nome}
+                cor={info.cor}
+              />
+            )
+          })}
         </div>
       )}
 
