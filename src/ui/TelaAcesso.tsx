@@ -57,7 +57,7 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="font-display text-4xl leading-[1.05] text-tinta sm:text-5xl lg:text-6xl"
+            className="font-display text-3xl leading-[1.1] text-tinta sm:text-4xl lg:text-5xl"
           >
             <FraseDeslogado />
           </motion.h1>

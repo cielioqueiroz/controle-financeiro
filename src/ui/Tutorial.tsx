@@ -86,9 +86,9 @@ export function Tutorial({ nome, onFechar }: Props) {
                   <div className="text-4xl">👋</div>
                   <h2 className="mt-3 font-display text-2xl text-tinta">Olá, {nome}!</h2>
                   <p className="mt-2 text-sm leading-relaxed text-tinta-fraca">
-                    Bem-vindo(a) ao seu controle financeiro. Aqui você importa faturas e extratos
-                    em PDF e vê, com clareza, para onde o seu dinheiro foi — sem digitar nada à mão.
-                    Vou te mostrar em 30 segundos como funciona.
+                    Bem-vindo(a) ao seu controle financeiro. Importe faturas e extratos em PDF e veja,
+                    com clareza, para onde o seu dinheiro foi — sem digitar nada. Em 30 segundos eu
+                    te mostro como.
                   </p>
                 </>
               ) : (

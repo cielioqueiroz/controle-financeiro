@@ -186,7 +186,7 @@ export default function App() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-              className="screen-only mt-4 font-display text-4xl leading-[1.05] text-tinta sm:text-5xl"
+              className="screen-only mt-4 font-display text-3xl leading-[1.1] text-tinta sm:text-4xl"
             >
               {logado ? (
                 <>
