@@ -45,6 +45,21 @@ function resumo(lines: Line[], rotulo: RegExp): number | null {
   return null
 }
 
+/** Saldo do quadro-resumo pelo rótulo — como `resumo`, mas mantém o sinal
+ *  (credor > 0, devedor < 0); saldo pode ser negativo, então NÃO se aplica
+ *  o `Math.abs` que os totais de fluxo usam. */
+function saldoResumo(lines: Line[], rotulo: RegExp): number | null {
+  for (const line of lines) {
+    const r = line.cells.find(
+      (c) => Math.abs(c.x - COL.resumoLabel) <= TOL && rotulo.test(c.text.trim()),
+    )
+    if (!r) continue
+    const valor = cellAtRight(line, 535, 6)
+    if (valor) return parseBRL(valor)
+  }
+  return null
+}
+
 function periodo(lines: Line[]): { start: Date; end: Date } | null {
   const texto = lines.map((l) => l.text).join('\n')
   const m = texto.match(
@@ -149,11 +164,15 @@ export function parseNubankExtrato(lines: Line[]): ParseResult {
     futureInstallmentsTotal: null,
   }
 
+  const saldoFinal = saldoResumo(lines, /^Saldo final do per[íi]odo$/i)
+  const saldoInicial = saldoResumo(lines, /^Saldo inicial$/i)
+
   return {
     transactions,
     declaredTotal: null,
     declaredIncome: resumo(lines, /^Total de entradas$/i),
     declaredExpense: resumo(lines, /^Total de sa[íi]das$/i),
+    balance: saldoFinal != null ? { initial: saldoInicial ?? 0, final: saldoFinal } : null,
     period: per,
     account: {
       bank: 'nubank',

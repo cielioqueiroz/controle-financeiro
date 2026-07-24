@@ -15,6 +15,18 @@ const entradas = () =>
 const saidas = () =>
   r.transactions.filter((t) => t.amountCents > 0).reduce((a, t) => a + t.amountCents, 0)
 
+describe('parseNubankExtrato — saldo', () => {
+  it('expõe saldo inicial e final do período', () => {
+    // Quadro-resumo da amostra: Saldo inicial 108,24 → Saldo final 25,68.
+    expect(r.balance).toEqual({ initial: 10824, final: 2568 })
+  })
+
+  it('a variação de saldo fecha com a soma dos lançamentos com sinal', () => {
+    const soma = r.transactions.reduce((a, t) => a + t.amountCents, 0)
+    expect(soma).toBe(r.balance!.initial - r.balance!.final)
+  })
+})
+
 describe('parseNubankExtrato — gabarito', () => {
   it('lê os totais declarados de entradas e saídas', () => {
     expect(r.declaredIncome).toBe(853125) // +8.531,25
