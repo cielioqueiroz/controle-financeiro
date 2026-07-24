@@ -81,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **323** (35 arquivos) |
+| Testes | **342** (37 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -213,18 +213,23 @@ Botão de idioma trocando **todo** o texto do sistema.
 (`R$ 1.234,56` → `R$ 1,234.56`), mantendo real. **Não converter** — exigiria cotação e
 faria os números mentirem sobre as finanças do usuário.
 
-### 4. Saldo bancário por conta
+### 4. Saldo bancário por conta — ✅ CÓDIGO PRONTO (2026-07-24), falta aplicar a migração
 
-Objetivo: acumular o saldo de cada banco conforme novos extratos entram.
+Implementado nesta rodada (spec/plano em `docs/superpowers/specs|plans/2026-07-24-saldo-bancario*`):
+- Os **5 parsers de extrato** expõem `ParseResult.balance.final` (Nubank e Bradesco
+  ganharam nesta rodada; BB/Sicredi/Sicoob já tinham). Cada um conferido contra a amostra.
+- `persist/saldos.ts` — `saldosPorConta` deriva o saldo atual por conta (extrato de
+  maior `period_end`), puro e testado.
+- `salvar.ts` grava `documents.end_balance_cents`; `puxarSaldos()` lê. **Defensivo**:
+  antes da migração, o insert refaz sem a coluna e a leitura volta `[]` — importar e o
+  painel nunca quebram; a fileira de saldo só não aparece.
+- `ui/SaldoConta.tsx` + fileira no Dashboard acima do filtro de banco.
 
-Investigação já feita — **os parsers não extraem saldo hoje**:
-- `domain/parsers/bradesco-extrato.ts` lê a coluna de saldo (`COL.saldoRight`, marcador
-  `SALDO_INICIAL`), mas só para ancorar datas; não expõe o valor.
-- `domain/parsers/nubank-extrato.ts` não captura o "Saldo final do período".
-
-Três partes: **parser** (puro, testável offline) → **migração no Neon** (a tabela
-`accounts` não tem coluna de saldo; mostrar o SQL e aplicar em branch antes da produção)
-→ **card de saldo** por conta.
+⚠️ **Falta o passo gated:** aplicar `neon/migrations/0002_saldo_e_bancos.sql` numa
+**branch do Neon**, conferir (`\d public.accounts` com os 5 bancos; `documents` com
+`end_balance_cents`), depois produção. A migração também **conserta o CHECK de
+`accounts.bank`** (só permitia nubank/bradesco/desconhecido — salvar BB/Sicredi/Sicoob
+violava o constraint). Enquanto não rodar, o saldo não aparece (degradação prevista).
 
 ### 5. Verificações que nunca foram feitas contra o banco
 

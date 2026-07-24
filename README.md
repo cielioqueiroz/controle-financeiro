@@ -2,7 +2,7 @@
 
 Importe a **fatura ou o extrato do banco em PDF** e veja, com clareza, para onde o seu dinheiro foi. O app lê o PDF **dentro do navegador**, extrai os lançamentos, classifica em categorias e guarda só as transações — o PDF nunca é enviado a lugar nenhum.
 
-Bancos suportados hoje: **Nubank** e **Bradesco** (fatura de cartão e extrato de conta).
+Bancos suportados hoje: **Nubank**, **Bradesco**, **Banco do Brasil**, **Sicredi** e **Sicoob** (fatura de cartão e/ou extrato de conta, conforme o banco).
 
 **🔗 No ar:** [capital-financeiro.vercel.app](https://capital-financeiro.vercel.app)
 
@@ -29,13 +29,14 @@ A tela de acesso, nos dois temas — café e papel:
 - 🏷️ **Categoriza sozinho** (30 categorias embutidas) e deixa você **criar as suas**
 - 🔗 **Evita contar o mesmo dinheiro duas vezes** — cruza fatura × extrato e marca pagamento de fatura e transferência entre contas próprias
 - 📅 **Dia / Semana / Mês / Ano** — Mês e Ano agrupam **por fatura (competência)**; Dia e Semana pela data real da compra
-- 🏦 **Filtro por banco** — Total geral, ou só Nubank, ou só Bradesco
+- 🏦 **Filtro por banco** — Total geral ou uma conta específica, de qualquer banco suportado
+- 💵 **Saldo por conta** — mostra quanto há em cada conta, lido do extrato mais recente (com a data a que se refere)
 - 📊 **Gráficos** — donut por categoria e evolução do gasto mês a mês
 - 🔮 **Compromissos futuros** — projeta as parcelas que ainda vão cair, sem duplicar quando a fatura chegar
 - ✏️ **Editar compra** — renomear o estabelecimento e trocar a categoria
 - 🗂️ **Documentos** — ver o que foi importado e apagar uma fatura (ou tudo)
-- 📤 **Baixar/compartilhar PDF** do relatório do período
-- 👋 **Boas-vindas** — saudação pelo nome/apelido e tutorial guiado no primeiro acesso
+- 🖨️ **Relatório em PDF** — monta o relatório do período e abre o diálogo de impressão (salvar como PDF ou imprimir)
+- 👋 **Boas-vindas** — saudação pelo nome/apelido, **editar perfil** (apelido e nome) e tutorial guiado no primeiro acesso
 - 🌗 **Tema claro/escuro**, responsivo (desktop largo → mobile com menu hambúrguer)
 
 ---
@@ -51,7 +52,7 @@ Outros comandos:
 
 ```bash
 npm run build        # typecheck (tsc -b) + build de produção
-npm test             # Vitest (294 testes)
+npm test             # Vitest (342 testes)
 npm run lint         # oxlint
 npm run fixtures -- <pasta-com-os-pdfs>   # regenera fixtures anonimizados
 ```
@@ -86,7 +87,7 @@ src/
 ├── domain/            # regras de negócio puras (testáveis sem browser)
 │   ├── normalize/     # dinheiro (centavos), datas, parcelas, estabelecimento
 │   ├── pdf/           # extração de texto com coordenadas, linhas, detecção do banco
-│   ├── parsers/       # 4 parsers: fatura/extrato × Nubank/Bradesco
+│   ├── parsers/       # parsers de fatura/extrato: Nubank, Bradesco, BB, Sicredi, Sicoob
 │   ├── categorize/    # catálogo de categorias, regras e aprendizado
 │   ├── dedupe/        # hash de documento e de transação
 │   ├── link/          # vínculos entre documentos (dupla contagem)
@@ -97,7 +98,8 @@ src/
 │   ├── puxar.ts       # busca tudo uma vez, calcula a competência
 │   ├── agrupar.ts     # competência, filtros por período, agregações, projeções
 │   ├── salvar.ts      # grava documento + transações (dedup por hash)
-│   ├── documentos.ts  # listar/apagar documentos
+│   ├── documentos.ts  # listar/apagar documentos + saldos por conta
+│   ├── saldos.ts      # deriva o saldo atual de cada conta (puro)
 │   ├── editar.ts      # editar rótulo/categoria de uma transação
 │   └── categoriasUsuario.ts  # categorias personalizadas
 ├── lib/               # cliente Neon e perfil local (apelido, flag do tutorial)
@@ -136,7 +138,9 @@ E uma quarta, sobre projeção: **compromissos futuros nunca vão para o banco.*
 
 ## 📌 Estado atual
 
-Funcionando e verificado ponta a ponta contra o Neon real: importação dos 4 tipos de documento, conferência ao centavo, categorização, vínculos, persistência, login, dashboard por período, filtro por banco, edição, exclusão, gráficos, compromissos futuros, tutorial e export em PDF.
+Funcionando e verificado ponta a ponta contra o Neon real: importação de fatura e extrato dos bancos suportados, conferência ao centavo, categorização, vínculos, persistência, login, dashboard por período, filtro por banco, saldo por conta, editar perfil, edição e exclusão de lançamentos, gráficos, compromissos futuros, tutorial e relatório em PDF.
+
+> A feature de **saldo por conta** depende da migração `neon/migrations/0002_saldo_e_bancos.sql`. Enquanto ela não for aplicada, a fileira de saldo simplesmente não aparece (degradação prevista, sem erro).
 
 **O que falta** está documentado em [`docs/ESTADO-ATUAL.md`](docs/ESTADO-ATUAL.md) — leia esse arquivo para retomar o trabalho de onde parou.
 
