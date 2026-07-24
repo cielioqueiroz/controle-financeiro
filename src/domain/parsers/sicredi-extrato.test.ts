@@ -18,9 +18,10 @@ describe('detecção do Sicredi', () => {
 })
 
 describe('parseSicrediExtrato — gabarito por saldo', () => {
-  it('lê o saldo inicial', () => {
+  it('lê o saldo inicial e o final', () => {
     expect(r.balance).not.toBeNull()
     expect(r.balance!.initial).toBe(9960755) // 99.607,55
+    expect(r.balance!.final).toBe(7449462) // 74.494,62 — alimenta o saldo por conta
   })
 
   it('a soma com sinal fecha com a variação de saldo (confere ao centavo)', () => {
