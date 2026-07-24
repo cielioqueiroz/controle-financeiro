@@ -23,6 +23,9 @@ import { MenuAcoes } from './MenuAcoes'
 import { ValorAnimado } from './ValorAnimado'
 import { Documentos } from './Documentos'
 import { EditarCompra } from './EditarCompra'
+import { SaldoConta } from './SaldoConta'
+import { puxarSaldos } from '../persist/documentos'
+import { saldosPorConta, type DocParaSaldo } from '../persist/saldos'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 
@@ -103,6 +106,7 @@ export function Dashboard({ onImportar }: Props) {
   const [mostrarDocs, setMostrarDocs] = useState(false)
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const [banco, setBanco] = useState<string>('geral')
+  const [docsSaldo, setDocsSaldo] = useState<DocParaSaldo[]>([])
 
   // Aplica a edição em memória (sem reidratar tudo do banco).
   function aplicarEdicao(id: string, campos: { label: string | null; category_slug: string }) {
@@ -119,12 +123,14 @@ export function Dashboard({ onImportar }: Props) {
     try {
       // Carrega as categorias do usuário antes das transações, para que
       // categoria() já conheça as personalizadas ao renderizar.
-      const [cats, dados] = await Promise.all([
+      const [cats, dados, saldoDocs] = await Promise.all([
         puxarCategoriasUsuario().catch(() => []),
         puxarTudo(),
+        puxarSaldos().catch(() => []),
       ])
       registrarCategoriasUsuario(cats)
       setTodas(dados)
+      setDocsSaldo(saldoDocs)
       // Abre no mês da competência mais recente (faturas trazem meses passados).
       const maisRecente = dados
         .map((t) => t.competencia)
@@ -144,6 +150,10 @@ export function Dashboard({ onImportar }: Props) {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  // Saldo atual por conta, do extrato mais recente. Só aparece quando a
+  // migração 0002 já rodou e há extrato salvo (senão puxarSaldos volta []).
+  const saldos = useMemo(() => saldosPorConta(docsSaldo), [docsSaldo])
 
   // Bancos presentes e a fatia visível conforme o banco selecionado.
   const bancos = useMemo(
@@ -184,6 +194,20 @@ export function Dashboard({ onImportar }: Props) {
 
   return (
     <div className="surgir">
+      {/* Saldo atual por conta (extrato mais recente) */}
+      {saldos.length > 0 && (
+        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {saldos.map((s) => (
+            <SaldoConta
+              key={`${s.bank}-${s.accountId ?? 'sem-conta'}`}
+              bank={s.bank}
+              balanceCents={s.balanceCents}
+              date={s.date}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Seletor de banco (só se houver mais de um) */}
       {bancos.length >= 2 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
