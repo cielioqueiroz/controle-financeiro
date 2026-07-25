@@ -30,6 +30,7 @@ import { puxarSaldos } from '../persist/documentos'
 import { saldosPorConta, type DocParaSaldo } from '../persist/saldos'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
+import { mesAbrev } from '../domain/normalize/data'
 
 type Props = {
   onImportar: () => void
@@ -76,24 +77,19 @@ function mover(periodo: Periodo, ref: Date, dir: -1 | 1): Date {
   return d
 }
 
-const MESES = [
-  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
-  'jul', 'ago', 'set', 'out', 'nov', 'dez',
-]
-
 function rotulo(periodo: Periodo, ref: Date): string {
   const d = ref
   switch (periodo) {
     case 'dia':
-      return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`
+      return `${d.getDate()} ${mesAbrev(d)} ${d.getFullYear()}`
     case 'semana': {
       const dow = (d.getDay() + 6) % 7
       const ini = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dow)
       const fim = new Date(ini.getFullYear(), ini.getMonth(), ini.getDate() + 6)
-      return `${ini.getDate()} ${MESES[ini.getMonth()]} – ${fim.getDate()} ${MESES[fim.getMonth()]}`
+      return `${ini.getDate()} ${mesAbrev(ini)} – ${fim.getDate()} ${mesAbrev(fim)}`
     }
     case 'mes':
-      return `${MESES[d.getMonth()]} ${d.getFullYear()}`
+      return `${mesAbrev(d)} ${d.getFullYear()}`
     case 'ano':
       return `${d.getFullYear()}`
   }

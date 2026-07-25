@@ -1,4 +1,5 @@
 import { formatBRL } from '../domain/normalize/money'
+import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 
 export type SaldoLinha = { bank: string; balanceCents: number; date: string }
 export type CategoriaLinha = { nome: string; valorCents: number; pct: number }
@@ -47,10 +48,9 @@ export function montarDadosRelatorio(e: EntradaRelatorio): DadosRelatorio {
   }
 }
 
-const MESES_SALDO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 function dataCurta(iso: string): string {
-  const [, m, d] = iso.split('-').map(Number)
-  return `${d}/${MESES_SALDO[(m ?? 1) - 1]}`
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d}/${mesAbrev(new Date(y, (m ?? 1) - 1, d))}`
 }
 
 const NOMES_BANCO: Record<string, string> = {
@@ -79,7 +79,7 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
   y += 16
   doc.setFontSize(9).setTextColor(150)
   doc.text(
-    `${dados.agrupamento} · gerado em ${dados.geradoEm.toLocaleDateString('pt-BR')}`,
+    `${dados.agrupamento} · gerado em ${dataLongaDe(dados.geradoEm)}`,
     M,
     y,
   )

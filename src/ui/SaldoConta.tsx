@@ -1,14 +1,13 @@
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { formatBRL } from '../domain/normalize/money'
+import { mesAbrev } from '../domain/normalize/data'
 
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-
-/** "2026-06-30" → "30/jun". Formata sem `new Date` para não escorregar de
- *  fuso (a data já é local, do extrato). */
+/** "2026-06-30" → "30/jun" (mês na locale ativa). Constrói a data local para
+ *  não escorregar de fuso (a data já é local, do extrato). */
 function dataCurta(iso: string): string {
-  const [, m, d] = iso.split('-').map(Number)
-  return `${d}/${MESES[(m ?? 1) - 1]}`
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d}/${mesAbrev(new Date(y, (m ?? 1) - 1, d))}`
 }
 
 type Props = { bank: string; balanceCents: number; date: string }
