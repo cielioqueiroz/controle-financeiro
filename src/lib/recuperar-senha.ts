@@ -12,12 +12,15 @@
 const env = (import.meta as unknown as { env: Record<string, string | undefined> }).env
 const authUrl = env.VITE_NEON_AUTH_URL
 
+/** `erro` é uma CHAVE de tradução (a UI faz t(erro)); a mensagem em si vive
+ *  nos dicionários i18n. */
+export type ChaveErroReset = 'recuperar.erro.rede' | 'recuperar.erro.token'
 export type ResultadoReset =
   | { ok: true }
-  | { ok: false; erro: string; motivo: 'token' | 'rede' }
+  | { ok: false; erro: ChaveErroReset; motivo: 'token' | 'rede' }
 
-const ERRO_REDE = 'Não consegui falar com o servidor. Tente de novo.'
-const ERRO_TOKEN = 'Este link expirou ou já foi usado.'
+const ERRO_REDE: ChaveErroReset = 'recuperar.erro.rede'
+const ERRO_TOKEN: ChaveErroReset = 'recuperar.erro.token'
 
 async function postar(caminho: string, corpo: unknown): Promise<Response> {
   return fetch(`${authUrl}${caminho}`, {

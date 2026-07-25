@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { camposFaltando, mensagemCamposFaltando, validarNovaSenha, emailValido } from './auth-validacao'
+import { camposFaltando, validarNovaSenha, emailValido } from './auth-validacao'
 
 const vazio = { nome: '', email: '', senha: '' }
 
@@ -29,77 +29,44 @@ describe('camposFaltando', () => {
   })
 })
 
-describe('mensagemCamposFaltando', () => {
-  it('lista os três campos com vírgula e "e"', () => {
-    expect(mensagemCamposFaltando('criar', ['nome', 'email', 'senha']))
-      .toBe('Preencha nome, e-mail e senha para criar sua conta.')
-  })
-
-  it('liga dois campos com "e"', () => {
-    expect(mensagemCamposFaltando('entrar', ['email', 'senha']))
-      .toBe('Preencha e-mail e senha para entrar.')
-  })
-
-  it('usa possessivo quando falta só um campo', () => {
-    expect(mensagemCamposFaltando('criar', ['nome']))
-      .toBe('Preencha seu nome para criar sua conta.')
-    expect(mensagemCamposFaltando('entrar', ['senha']))
-      .toBe('Preencha sua senha para entrar.')
-    expect(mensagemCamposFaltando('entrar', ['email']))
-      .toBe('Preencha seu e-mail para entrar.')
-  })
-
-  it('retorna string vazia para lista vazia, em vez de frase com espaço duplo', () => {
-    expect(mensagemCamposFaltando('criar', [])).toBe('')
-    expect(mensagemCamposFaltando('entrar', [])).toBe('')
-  })
-})
-
-describe('validarNovaSenha', () => {
+describe('validarNovaSenha (devolve chave de i18n ou null)', () => {
   it('recusa senha vazia', () => {
-    expect(validarNovaSenha('', '')).toBe('Digite a nova senha.')
+    expect(validarNovaSenha('', '')).toBe('recuperar.erro.digite')
   })
 
   it('recusa senha com menos de 8 caracteres', () => {
-    expect(validarNovaSenha('abc123', 'abc123')).toBe(
-      'A senha precisa ter ao menos 8 caracteres.',
-    )
+    expect(validarNovaSenha('abc123', 'abc123')).toBe('validacao.senhaCurta')
   })
 
   it('recusa confirmação vazia quando a senha foi preenchida', () => {
-    expect(validarNovaSenha('senhaboa123', '')).toBe('Repita a nova senha para confirmar.')
+    expect(validarNovaSenha('senhaboa123', '')).toBe('recuperar.erro.repita')
   })
 
   it('recusa senhas diferentes', () => {
-    expect(validarNovaSenha('senhaboa123', 'senhaboa124')).toBe('As senhas não coincidem.')
+    expect(validarNovaSenha('senhaboa123', 'senhaboa124')).toBe('recuperar.erro.naoCoincidem')
   })
 
   // Espaço é caractere válido de senha: não aparar.
   it('trata espaço como caractere significativo', () => {
     expect(validarNovaSenha('senha com espaco', 'senha com espaco')).toBeNull()
-    expect(validarNovaSenha(' 12345678', '12345678')).toBe('As senhas não coincidem.')
+    expect(validarNovaSenha(' 12345678', '12345678')).toBe('recuperar.erro.naoCoincidem')
   })
 
   it('aceita senhas iguais com 8 caracteres ou mais', () => {
     expect(validarNovaSenha('senhaboa123', 'senhaboa123')).toBeNull()
   })
 
-  // Fronteira exata dos 8 caracteres: as fixtures existentes só cobriam 6
-  // (recusada) e 11 (aceita), deixando o limite em si sem teste.
   it('recusa senha com exatamente 7 caracteres', () => {
-    expect(validarNovaSenha('abcdefg', 'abcdefg')).toBe(
-      'A senha precisa ter ao menos 8 caracteres.',
-    )
+    expect(validarNovaSenha('abcdefg', 'abcdefg')).toBe('validacao.senhaCurta')
   })
 
   it('aceita senha com exatamente 8 caracteres', () => {
     expect(validarNovaSenha('abcdefgh', 'abcdefgh')).toBeNull()
   })
 
-  // Vazio vence curta, que vence divergente: uma mensagem de cada vez,
-  // sempre a mais fundamental, como já faz camposFaltando.
+  // Vazio vence curta, que vence divergente: uma queixa de cada vez.
   it('prioriza vazia sobre curta', () => {
-    expect(validarNovaSenha('', 'abc')).toBe('Digite a nova senha.')
+    expect(validarNovaSenha('', 'abc')).toBe('recuperar.erro.digite')
   })
 })
 

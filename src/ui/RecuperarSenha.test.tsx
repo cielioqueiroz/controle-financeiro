@@ -125,7 +125,7 @@ describe('RecuperarSenha — definir a nova senha', () => {
     const usuario = userEvent.setup()
     vi.mocked(redefinirSenha).mockResolvedValue({
       ok: false,
-      erro: 'Este link expirou ou já foi usado.',
+      erro: 'recuperar.erro.token',
       motivo: 'token',
     })
     montar('tok123')
@@ -145,7 +145,7 @@ describe('RecuperarSenha — definir a nova senha', () => {
 
     vi.mocked(redefinirSenha).mockResolvedValue({
       ok: false,
-      erro: 'Este link expirou ou já foi usado.',
+      erro: 'recuperar.erro.token',
       motivo: 'token',
     })
     montar('tok123')
@@ -163,7 +163,7 @@ describe('RecuperarSenha — definir a nova senha', () => {
     const usuario = userEvent.setup()
     vi.mocked(redefinirSenha).mockResolvedValue({
       ok: false,
-      erro: 'Não consegui falar com o servidor. Tente de novo.',
+      erro: 'recuperar.erro.rede',
       motivo: 'rede',
     })
     montar('tok123')
@@ -257,7 +257,7 @@ describe('RecuperarSenha — depois de trocar a senha', () => {
     const usuario = userEvent.setup()
     vi.mocked(redefinirSenha).mockResolvedValue({
       ok: false,
-      erro: 'Este link expirou ou já foi usado.',
+      erro: 'recuperar.erro.token',
       motivo: 'token',
     })
     montar('tok123')

@@ -121,6 +121,21 @@ export const pt = {
   'conta.sairDescricao': 'Você precisará entrar de novo para ver seus dados.',
   'conta.sairConfirmar': 'Sair',
 
+  // Validação de acesso (campos faltando + recuperação)
+  'campo.nome': 'nome',
+  'campo.email': 'e-mail',
+  'campo.senha': 'senha',
+  'campo.pos.nome': 'seu nome',
+  'campo.pos.email': 'seu e-mail',
+  'campo.pos.senha': 'sua senha',
+  'validacao.preenchaCriar': 'Preencha {campos} para criar sua conta.',
+  'validacao.preenchaEntrar': 'Preencha {campos} para entrar.',
+  'recuperar.erro.digite': 'Digite a nova senha.',
+  'recuperar.erro.repita': 'Repita a nova senha para confirmar.',
+  'recuperar.erro.naoCoincidem': 'As senhas não coincidem.',
+  'recuperar.erro.rede': 'Não consegui falar com o servidor. Tente de novo.',
+  'recuperar.erro.token': 'Este link expirou ou já foi usado.',
+
   // Seletor de idioma
   seletorIdioma: 'Idioma',
 }

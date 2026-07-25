@@ -51,7 +51,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
     setOcupado(false)
 
     if (!r.ok) {
-      toast.error(r.erro)
+      toast.error(t(r.erro))
       return
     }
     setEnviado(true)
@@ -68,7 +68,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
 
     const erro = validarNovaSenha(senha, confirmacao)
     if (erro) {
-      toast.error(erro)
+      toast.error(t(erro))
       refSenha.current?.focus()
       return
     }
@@ -78,7 +78,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
 
     if (!r.ok) {
       setOcupado(false)
-      toast.error(r.erro)
+      toast.error(t(r.erro))
       if (r.motivo === 'token') {
         setTokenMorto(true)
         // Token morto: fora da URL, senão um F5 volta para este mesmo

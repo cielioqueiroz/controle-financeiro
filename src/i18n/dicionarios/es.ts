@@ -106,5 +106,19 @@ export const es: Dicionario = {
   'conta.sairDescricao': 'Tendrás que entrar de nuevo para ver tus datos.',
   'conta.sairConfirmar': 'Salir',
 
+  'campo.nome': 'nombre',
+  'campo.email': 'correo',
+  'campo.senha': 'contraseña',
+  'campo.pos.nome': 'tu nombre',
+  'campo.pos.email': 'tu correo',
+  'campo.pos.senha': 'tu contraseña',
+  'validacao.preenchaCriar': 'Rellena {campos} para crear tu cuenta.',
+  'validacao.preenchaEntrar': 'Rellena {campos} para entrar.',
+  'recuperar.erro.digite': 'Escribe la nueva contraseña.',
+  'recuperar.erro.repita': 'Repite la nueva contraseña para confirmar.',
+  'recuperar.erro.naoCoincidem': 'Las contraseñas no coinciden.',
+  'recuperar.erro.rede': 'No pude contactar el servidor. Inténtalo de nuevo.',
+  'recuperar.erro.token': 'Este enlace caducó o ya se usó.',
+
   seletorIdioma: 'Idioma',
 }

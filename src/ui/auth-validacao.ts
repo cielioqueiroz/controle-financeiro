@@ -1,21 +1,10 @@
 /** Validação do formulário de acesso, separada do componente para ser
- *  testável sem renderizar React. */
+ *  testável sem renderizar React. As MENSAGENS são compostas na UI (i18n):
+ *  aqui devolvemos só a estrutura (campos faltando) e chaves de tradução. */
 
 export type ModoAcesso = 'entrar' | 'criar'
 export type CampoAcesso = 'nome' | 'email' | 'senha'
 export type CamposAcesso = { nome: string; email: string; senha: string }
-
-const ROTULO: Record<CampoAcesso, string> = {
-  nome: 'nome',
-  email: 'e-mail',
-  senha: 'senha',
-}
-
-const POSSESSIVO: Record<CampoAcesso, string> = {
-  nome: 'seu nome',
-  email: 'seu e-mail',
-  senha: 'sua senha',
-}
 
 /** Campos vazios, na ordem em que aparecem na tela.
  *  `nome` só conta no modo criar; `apelido` é opcional e nunca entra.
@@ -28,33 +17,22 @@ export function camposFaltando(modo: ModoAcesso, campos: CamposAcesso): CampoAce
   return faltando
 }
 
-/** "a", "a e b", "a, b e c" */
-function ligar(itens: string[]): string {
-  if (itens.length <= 1) return itens[0] ?? ''
-  return `${itens.slice(0, -1).join(', ')} e ${itens[itens.length - 1]}`
-}
+/** Chave de tradução do erro da nova senha (fatia de i18n). */
+export type ChaveErroSenha =
+  | 'recuperar.erro.digite'
+  | 'validacao.senhaCurta'
+  | 'recuperar.erro.repita'
+  | 'recuperar.erro.naoCoincidem'
 
-export function mensagemCamposFaltando(modo: ModoAcesso, faltando: CampoAcesso[]): string {
-  // Hoje inalcançável (todo chamador guarda com faltando.length > 0), mas
-  // sem isso a lista vazia geraria "Preencha  para entrar." com espaço duplo.
-  if (faltando.length === 0) return ''
-  const fim = modo === 'criar' ? 'para criar sua conta' : 'para entrar'
-  const lista =
-    faltando.length === 1
-      ? POSSESSIVO[faltando[0]]
-      : ligar(faltando.map((c) => ROTULO[c]))
-  return `Preencha ${lista} ${fim}.`
-}
-
-/** Valida o par senha/confirmação da redefinição. Devolve a mensagem de erro
+/** Valida o par senha/confirmação da redefinição. Devolve a CHAVE de erro
  *  ou null. A ordem importa: vazia vence curta, que vence divergente — uma
  *  queixa por vez, sempre a mais fundamental. A senha não é aparada, porque
  *  espaço é caractere válido. */
-export function validarNovaSenha(senha: string, confirmacao: string): string | null {
-  if (!senha) return 'Digite a nova senha.'
-  if (senha.length < 8) return 'A senha precisa ter ao menos 8 caracteres.'
-  if (!confirmacao) return 'Repita a nova senha para confirmar.'
-  if (senha !== confirmacao) return 'As senhas não coincidem.'
+export function validarNovaSenha(senha: string, confirmacao: string): ChaveErroSenha | null {
+  if (!senha) return 'recuperar.erro.digite'
+  if (senha.length < 8) return 'validacao.senhaCurta'
+  if (!confirmacao) return 'recuperar.erro.repita'
+  if (senha !== confirmacao) return 'recuperar.erro.naoCoincidem'
   return null
 }
 

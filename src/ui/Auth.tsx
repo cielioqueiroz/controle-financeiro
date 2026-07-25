@@ -6,10 +6,12 @@ import { salvarApelido } from '../lib/perfil'
 import { Marca } from './Marca'
 import { MoedaLogo } from './MoedaLogo'
 import { RecuperarSenha } from './RecuperarSenha'
-import { camposFaltando, mensagemCamposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
+import { camposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
+import { juntarCampos } from './mensagem-campos'
 import { CampoSenha } from './CampoSenha'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
 import { useT } from '../i18n/IdiomaProvider'
+import { localeAtual } from '../domain/normalize/locale'
 
 type Props = {
   /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
@@ -58,7 +60,16 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
     // as duas mensagens nunca competirem.
     const faltando = camposFaltando(modo, { nome, email, senha })
     if (faltando.length > 0) {
-      toast.error(mensagemCamposFaltando(modo, faltando))
+      const campos =
+        faltando.length === 1
+          ? t(`campo.pos.${faltando[0]}`)
+          : juntarCampos(
+              faltando.map((f) => t(`campo.${f}`)),
+              localeAtual(),
+            )
+      toast.error(
+        t(modo === 'criar' ? 'validacao.preenchaCriar' : 'validacao.preenchaEntrar', { campos }),
+      )
       refs[faltando[0]].current?.focus()
       return
     }

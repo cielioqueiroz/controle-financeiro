@@ -106,5 +106,19 @@ export const en: Dicionario = {
   'conta.sairDescricao': "You'll need to sign in again to see your data.",
   'conta.sairConfirmar': 'Sign out',
 
+  'campo.nome': 'name',
+  'campo.email': 'email',
+  'campo.senha': 'password',
+  'campo.pos.nome': 'your name',
+  'campo.pos.email': 'your email',
+  'campo.pos.senha': 'your password',
+  'validacao.preenchaCriar': 'Fill in {campos} to create your account.',
+  'validacao.preenchaEntrar': 'Fill in {campos} to sign in.',
+  'recuperar.erro.digite': 'Enter the new password.',
+  'recuperar.erro.repita': 'Repeat the new password to confirm.',
+  'recuperar.erro.naoCoincidem': "The passwords don't match.",
+  'recuperar.erro.rede': "Couldn't reach the server. Try again.",
+  'recuperar.erro.token': 'This link has expired or was already used.',
+
   seletorIdioma: 'Language',
 }
