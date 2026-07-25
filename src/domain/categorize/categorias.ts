@@ -43,6 +43,58 @@ export const CATEGORIAS: Categoria[] = [
   { slug: 'outros', nome: 'Outros', icone: '❓', cor: '#6b7280' },
 ]
 
+/** Nomes das categorias embutidas em en/es. Dado puro (sem import de i18n).
+ *  As categorias criadas pelo usuário NÃO entram aqui — o nome delas é dado
+ *  do usuário e nunca se traduz. */
+const NOMES_I18N: Record<string, { en: string; es: string }> = {
+  supermercado: { en: 'Groceries', es: 'Supermercado' },
+  padaria: { en: 'Bakery', es: 'Panadería' },
+  farmacia: { en: 'Pharmacy & Health', es: 'Farmacia y Salud' },
+  combustivel: { en: 'Fuel & Car', es: 'Combustible y Coche' },
+  marketplace: { en: 'Marketplace', es: 'Marketplace' },
+  assinaturas: { en: 'Subscriptions', es: 'Suscripciones' },
+  beleza: { en: 'Beauty', es: 'Belleza' },
+  telecom: { en: 'Telecom', es: 'Telecom' },
+  viagem: { en: 'Travel', es: 'Viaje' },
+  delivery: { en: 'Delivery', es: 'Delivery' },
+  educacao: { en: 'Education', es: 'Educación' },
+  papelaria: { en: 'Stationery', es: 'Papelería' },
+  servicos: { en: 'Services', es: 'Servicios' },
+  taxas: { en: 'Bank fees', es: 'Comisiones bancarias' },
+  rendimentos: { en: 'Earnings', es: 'Rendimientos' },
+  transferencia: { en: 'Transfers', es: 'Transferencias' },
+  agua: { en: 'Water', es: 'Agua' },
+  luz: { en: 'Electricity', es: 'Luz' },
+  transporte: { en: 'Transport', es: 'Transporte' },
+  restaurante: { en: 'Restaurant', es: 'Restaurante' },
+  lazer: { en: 'Leisure', es: 'Ocio' },
+  vestuario: { en: 'Clothing', es: 'Ropa' },
+  pets: { en: 'Pets', es: 'Mascotas' },
+  casa: { en: 'Home & Housing', es: 'Casa y Hogar' },
+  aluguel: { en: 'Rent', es: 'Alquiler' },
+  academia: { en: 'Gym', es: 'Gimnasio' },
+  investimentos: { en: 'Investments', es: 'Inversiones' },
+  presentes: { en: 'Gifts', es: 'Regalos' },
+  impostos: { en: 'Taxes & Fees', es: 'Impuestos y Tasas' },
+  outros: { en: 'Other', es: 'Otros' },
+}
+
+/** Idioma ativo dos nomes de categoria. Estado de módulo, ajustado pelo
+ *  IdiomaProvider — mesmo padrão da locale de moeda/datas. */
+let idiomaCat: 'pt' | 'en' | 'es' = 'pt'
+
+export function definirIdiomaCategorias(id: 'pt' | 'en' | 'es'): void {
+  idiomaCat = id
+}
+
+/** Nome de exibição de uma categoria no idioma ativo. Embutida → traduzido;
+ *  categoria do usuário (ou slug sem tradução) → o próprio `nome`. O `slug`
+ *  (chave persistida) nunca muda. */
+export function nomeCategoria(cat: Categoria): string {
+  if (idiomaCat === 'pt') return cat.nome
+  return NOMES_I18N[cat.slug]?.[idiomaCat] ?? cat.nome
+}
+
 const porSlug = new Map(CATEGORIAS.map((c) => [c.slug, c]))
 
 /** Categorias criadas pelo usuário (vêm do banco em tempo de execução).

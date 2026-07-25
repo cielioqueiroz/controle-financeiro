@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { LinhaTransacao } from './LinhaTransacao'
 import { formatBRL } from '../domain/normalize/money'
+import { nomeCategoria } from '../domain/categorize/categorias'
 import type { GrupoCategoria } from '../persist/agrupar'
 import type { TransacaoSalva } from '../persist/puxar'
 
@@ -53,7 +54,7 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-sm text-tinta">{g.cat.nome}</span>
+                  <span className="truncate text-sm text-tinta">{nomeCategoria(g.cat)}</span>
                   <span className="tabular shrink-0 text-sm text-tinta">{formatBRL(g.totalCents)}</span>
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">

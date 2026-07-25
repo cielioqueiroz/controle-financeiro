@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
 import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
-import { registrarCategoriasUsuario } from '../domain/categorize/categorias'
+import { registrarCategoriasUsuario, nomeCategoria } from '../domain/categorize/categorias'
 import {
   filtrar,
   agregar,
@@ -203,7 +203,16 @@ export function Dashboard({ onImportar }: Props) {
       const dados = montarDadosRelatorio({
         periodoLabel: label,
         agrupamento: agrupamentoDe(periodo),
-        resumo,
+        resumo: {
+          gastoCents: resumo.gastoCents,
+          entradasCents: resumo.entradasCents,
+          // Nome de categoria traduzido no idioma ativo (o slug é a chave; o
+          // PDF mostra o rótulo). montarDadosRelatorio recebe já resolvido.
+          porCategoria: resumo.porCategoria.map((c) => ({
+            cat: { nome: nomeCategoria(c.cat) },
+            totalCents: c.totalCents,
+          })),
+        },
         saldos: saldos.map((s) => ({ bank: s.bank, balanceCents: s.balanceCents, date: s.date })),
       })
       const blob = await gerarRelatorioPdf(dados)

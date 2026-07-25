@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import type { CategoriaResumo } from '../domain/insights'
 import { formatBRL } from '../domain/normalize/money'
+import { nomeCategoria } from '../domain/categorize/categorias'
 
 /** Donut de categorias em SVG puro — sem biblioteca de gráfico. Cada fatia
  *  usa a cor da categoria e se DESENHA ao entrar (o dasharray cresce de 0
@@ -85,7 +86,7 @@ export function GraficoCategorias({
             transition={{ duration: 0.4, delay: 0.25 + i * 0.05, ease: suave }}
           >
             <span className="text-base">{c.cat.icone}</span>
-            <span className="flex-1 text-tinta-fraca">{c.cat.nome}</span>
+            <span className="flex-1 text-tinta-fraca">{nomeCategoria(c.cat)}</span>
             <span className="tabular text-tinta">{formatBRL(c.totalCents)}</span>
             <span className="tabular w-12 text-right text-xs text-tinta-tenue">
               {Math.round((c.totalCents / totalCents) * 100)}%
