@@ -81,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **359** (44 arquivos) |
+| Testes | **368** (48 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -229,12 +229,21 @@ Spec/plano em `docs/superpowers/specs|plans/2026-07-24-i18n-mecanismo-e-login*`.
 (`mensagemCamposFaltando`) e os erros vindos de `lib/recuperar-senha`/`validarNovaSenha`
 ficam em pt por ora (gramática de lista por idioma) — `auth-validacao.ts` intacto.
 
+**Entregue (fatia 2 — dashboard, 2026-07-24):**
+- **Moeda por locale**: `domain/normalize/locale.ts` (var de módulo + setter) →
+  `formatBRL` usa a locale ativa (BRL sempre, só formata, **não converte**).
+- **Datas por locale**: `domain/normalize/data.ts` (`mesAbrev`/`dataLonga` via `Intl`) —
+  Dashboard, SaldoConta, CompromissosFuturos e o PDF.
+- **Nomes das 30 categorias** traduzidos (`nomeCategoria` + mapa en/es em `categorias.ts`);
+  categoria do usuário nunca traduz. Aplicado no donut, listas e PDF.
+- **Chrome do dashboard + saudação do header + menu da conta** traduzidos (~45 chaves).
+- `IdiomaProvider` aplica os setters de locale/categoria durante o render.
+
 **Próximas fatias (em ordem sugerida):**
-1. **Dashboard** — aqui entram a **moeda e as datas por locale** (`Intl.NumberFormat`/
-   `DateTimeFormat`; **BRL sempre**, só formata, **não converte**) e a decisão dos
-   **nomes das 30 categorias embutidas** (dado de domínio — traduzir ou manter?).
-2. Modais (Documentos, EditarCompra, EditarPerfil, Confirmação) e Tutorial.
-3. Toasts/erros ainda em pt (o deferido acima), quando valer o esforço da gramática.
+1. **Modais**: EditarCompra (inclui a grade de categorias), Documentos, EditarPerfil,
+   Confirmação; e o **Tutorial**.
+2. Toasts/erros ainda em pt (o deferido da fatia 1: campos-faltando e erros da lib de
+   recuperação), quando valer o esforço da gramática de lista por idioma.
 
 ### 4. Saldo bancário por conta — ✅ CÓDIGO PRONTO (2026-07-24), falta aplicar a migração
 
