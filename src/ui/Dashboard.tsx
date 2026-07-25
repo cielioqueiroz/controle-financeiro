@@ -225,62 +225,9 @@ export function Dashboard({ onImportar }: Props) {
 
   return (
     <div className="surgir">
-      {/* Saldo atual por conta (extrato mais recente) */}
-      {saldos.length > 0 && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {saldos.map((s) => (
-            <SaldoConta
-              key={`${s.bank}-${s.accountId ?? 'sem-conta'}`}
-              bank={s.bank}
-              balanceCents={s.balanceCents}
-              date={s.date}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Seletor de banco (só se houver mais de um) */}
-      {bancos.length >= 2 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <BancoPill ativo={banco === 'geral'} onClick={() => setBanco('geral')} nome="Total geral" />
-          {bancos.map((b) => {
-            const info = bancoInfo(b)
-            return (
-              <BancoPill
-                key={b}
-                ativo={banco === b}
-                onClick={() => setBanco(b)}
-                nome={info.nome}
-                cor={info.cor}
-              />
-            )
-          })}
-        </div>
-      )}
-
-      {/* Seletor de período + importar */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex gap-1 rounded-full border border-carvao-700 bg-carvao-900/60 p-1">
-          {PERIODOS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setPeriodo(p.id)}
-              className={`relative rounded-full px-4 py-1.5 text-sm transition-colors ${
-                periodo === p.id ? 'text-carvao-950' : 'text-tinta-fraca hover:text-tinta'
-              }`}
-            >
-              {periodo === p.id && (
-                <motion.span
-                  layoutId="pilula-periodo"
-                  className="absolute inset-0 rounded-full bg-tinta"
-                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                />
-              )}
-              <span className="relative z-10">{p.nome}</span>
-            </button>
-          ))}
-        </div>
-
+      {/* Ações do painel no topo-direito — preenchem a faixa ao lado da
+          saudação, em vez de ficarem lá embaixo na linha das abas. */}
+      <div className="mb-4 flex justify-end">
         <div className="flex items-center gap-2">
           {/* Desktop: ações inline */}
           <div className="hidden items-center gap-2 sm:flex">
@@ -316,6 +263,63 @@ export function Dashboard({ onImportar }: Props) {
               onBaixarPDF={txs && txs.length > 0 ? baixarPdf : undefined}
             />
           </div>
+        </div>
+      </div>
+
+      {/* Saldo atual por conta (extrato mais recente) */}
+      {saldos.length > 0 && (
+        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {saldos.map((s) => (
+            <SaldoConta
+              key={`${s.bank}-${s.accountId ?? 'sem-conta'}`}
+              bank={s.bank}
+              balanceCents={s.balanceCents}
+              date={s.date}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Seletor de banco (só se houver mais de um) */}
+      {bancos.length >= 2 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <BancoPill ativo={banco === 'geral'} onClick={() => setBanco('geral')} nome="Total geral" />
+          {bancos.map((b) => {
+            const info = bancoInfo(b)
+            return (
+              <BancoPill
+                key={b}
+                ativo={banco === b}
+                onClick={() => setBanco(b)}
+                nome={info.nome}
+                cor={info.cor}
+              />
+            )
+          })}
+        </div>
+      )}
+
+      {/* Seletor de período */}
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <div className="flex gap-1 rounded-full border border-carvao-700 bg-carvao-900/60 p-1">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setPeriodo(p.id)}
+              className={`relative rounded-full px-4 py-1.5 text-sm transition-colors ${
+                periodo === p.id ? 'text-carvao-950' : 'text-tinta-fraca hover:text-tinta'
+              }`}
+            >
+              {periodo === p.id && (
+                <motion.span
+                  layoutId="pilula-periodo"
+                  className="absolute inset-0 rounded-full bg-tinta"
+                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                />
+              )}
+              <span className="relative z-10">{p.nome}</span>
+            </button>
+          ))}
         </div>
       </div>
 
