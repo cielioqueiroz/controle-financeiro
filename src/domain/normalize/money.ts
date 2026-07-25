@@ -1,3 +1,5 @@
+import { localeAtual } from './locale'
+
 /** Converte valor monetário brasileiro para centavos (inteiro).
  *
  *  Centavos em vez de float: 0.1 + 0.2 !== 0.3 em ponto flutuante, e um
@@ -26,9 +28,10 @@ export function parseBRL(raw: string): number {
   return negative ? -value : value
 }
 
-/** Formata centavos para exibição em real. */
+/** Formata centavos para exibição em real. A moeda é SEMPRE BRL; só o
+ *  formato (separadores) segue a locale ativa — nunca converte o valor. */
 export function formatBRL(cents: number): string {
-  return (cents / 100).toLocaleString('pt-BR', {
+  return (cents / 100).toLocaleString(localeAtual(), {
     style: 'currency',
     currency: 'BRL',
   })

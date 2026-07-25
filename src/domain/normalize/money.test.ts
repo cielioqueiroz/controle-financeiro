@@ -1,5 +1,19 @@
-import { describe, it, expect } from 'vitest'
-import { parseBRL } from './money'
+import { describe, it, expect, afterEach } from 'vitest'
+import { parseBRL, formatBRL } from './money'
+import { definirLocale } from './locale'
+
+describe('formatBRL', () => {
+  afterEach(() => definirLocale('pt-BR'))
+
+  it('formata em pt-BR por padrão', () => {
+    expect(formatBRL(123456)).toMatch(/1\.234,56/)
+  })
+
+  it('segue a locale ativa mantendo BRL (en-US)', () => {
+    definirLocale('en-US')
+    expect(formatBRL(123456)).toMatch(/1,234\.56/)
+  })
+})
 
 describe('parseBRL', () => {
   it('converte valor simples para centavos', () => {
