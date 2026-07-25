@@ -6,6 +6,7 @@ import { limparTokenDaUrl } from '../lib/url-token'
 import { validarNovaSenha, emailValido } from './auth-validacao'
 import { CampoSenha } from './CampoSenha'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   /** Com token, mostra o passo de nova senha. Sem, o de pedir o link. */
@@ -25,17 +26,18 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
 
   const refEmail = useRef<HTMLInputElement>(null)
   const refSenha = useRef<HTMLInputElement>(null)
+  const { t } = useT()
 
   async function enviarLink(e: React.FormEvent) {
     e.preventDefault()
 
     if (!email.trim()) {
-      toast.error('Preencha seu e-mail para receber o link.')
+      toast.error(t('recuperar.toast.emailVazio'))
       refEmail.current?.focus()
       return
     }
     if (!emailValido(email)) {
-      toast.error('Esse e-mail não parece válido.')
+      toast.error(t('validacao.emailInvalido'))
       refEmail.current?.focus()
       return
     }
@@ -55,8 +57,8 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
     setEnviado(true)
     // O servidor responde 200 mesmo sem conta, de propósito. Afirmar o envio
     // revelaria quem tem cadastro — daí o "se houver".
-    toast.success('Se houver conta com esse e-mail, o link já está a caminho.', {
-      description: 'Confira também o spam.',
+    toast.success(t('recuperar.ajuda.enviado'), {
+      description: t('recuperar.toast.enviadoDesc'),
     })
   }
 
@@ -102,16 +104,16 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
     const emailSalvo = lerEmailReset()
     esquecerEmailReset()
     setOcupado(false)
-    toast.success('Senha alterada. Entre com a senha nova.')
+    toast.success(t('recuperar.toast.senhaAlterada'))
     onVoltar(emailSalvo ?? undefined)
   }
 
   if (token && !tokenMorto) {
     return (
       <div>
-        <h2 className="text-center font-display text-2xl text-tinta">Nova senha</h2>
+        <h2 className="text-center font-display text-2xl text-tinta">{t('recuperar.novaSenha.titulo')}</h2>
         <p className="mt-2 text-center text-sm text-tinta-fraca">
-          Escolha uma senha e repita para confirmar.
+          {t('recuperar.novaSenha.ajuda')}
         </p>
 
         <form onSubmit={salvarSenha} noValidate className="mt-6 space-y-3">
@@ -121,17 +123,17 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
             aoMudar={setSenha}
             visivel={verSenha}
             alternar={() => setVerSenha(!verSenha)}
-            placeholder="nova senha (mín. 8 caracteres)"
+            placeholder={t('recuperar.ph.novaSenha')}
           />
           <CampoSenha
             valor={confirmacao}
             aoMudar={setConfirmacao}
             visivel={verSenha}
             alternar={() => setVerSenha(!verSenha)}
-            placeholder="repita a nova senha"
+            placeholder={t('recuperar.ph.repita')}
           />
           <button type="submit" disabled={ocupado} className={BOTAO_PRIMARIO}>
-            {ocupado ? '…' : 'Salvar nova senha'}
+            {ocupado ? '…' : t('recuperar.salvar')}
           </button>
         </form>
 
@@ -146,7 +148,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
           }}
           className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
         >
-          ‹ Voltar ao login
+          {t('recuperar.voltar')}
         </button>
       </div>
     )
@@ -154,13 +156,13 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
 
   return (
     <div>
-      <h2 className="text-center font-display text-2xl text-tinta">Recuperar acesso</h2>
+      <h2 className="text-center font-display text-2xl text-tinta">{t('recuperar.titulo')}</h2>
       <p className="mt-2 text-center text-sm text-tinta-fraca">
         {tokenMorto
-          ? 'Peça um link novo para continuar.'
+          ? t('recuperar.ajuda.tokenMorto')
           : enviado
-            ? 'Se houver conta com esse e-mail, o link já está a caminho.'
-            : 'Informe seu e-mail e mandamos um link para redefinir a senha.'}
+            ? t('recuperar.ajuda.enviado')
+            : t('recuperar.ajuda.inicial')}
       </p>
 
       <form onSubmit={enviarLink} noValidate className="mt-6 space-y-3">
@@ -168,13 +170,19 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
           type="email"
           ref={refEmail}
           required
-          placeholder="seu@email.com"
+          placeholder={t('auth.ph.email')}
           value={email}
           onChange={(ev) => setEmail(ev.target.value)}
           className={CAMPO}
         />
         <button type="submit" disabled={ocupado} className={BOTAO_PRIMARIO}>
-          {ocupado ? '…' : tokenMorto ? 'Pedir um novo link' : enviado ? 'Enviar de novo' : 'Enviar link'}
+          {ocupado
+            ? '…'
+            : tokenMorto
+              ? t('recuperar.btn.pedirNovo')
+              : enviado
+                ? t('recuperar.btn.enviarDeNovo')
+                : t('recuperar.btn.enviar')}
         </button>
       </form>
 
@@ -183,7 +191,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
         onClick={() => onVoltar()}
         className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
       >
-        ‹ Voltar ao login
+        {t('recuperar.voltar')}
       </button>
     </div>
   )

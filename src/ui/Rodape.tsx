@@ -1,4 +1,5 @@
 import { neonConfigurado } from '../lib/neon'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   /** Classes extras, sobretudo a margem superior — varia por quem chama:
@@ -14,21 +15,20 @@ type Props = {
  *  `<main>` logado e no fim do `TelaAcesso` deslogado — e um único lugar
  *  evita que as duas versões divirjam. */
 export function Rodape({ className = '' }: Props) {
+  const { t } = useT()
   return (
     <footer className={`space-y-4 ${className}`.trim()}>
       <div className="screen-only flex items-center gap-3">
         <span className="h-px flex-1 bg-carvao-800" />
         <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-          {neonConfigurado
-            ? 'Lido no navegador · só a transação é salva, nunca o PDF'
-            : 'Lido no navegador · nada sai deste computador'}
+          {neonConfigurado ? t('rodape.privacidadeSalva') : t('rodape.privacidadeLocal')}
         </p>
         <span className="h-px flex-1 bg-carvao-800" />
       </div>
       <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-tinta-tenue">
         <span className="tabular">© {new Date().getFullYear()}</span>
         <span aria-hidden>·</span>
-        <span>Criado por</span>
+        <span>{t('rodape.criadoPor')}</span>
         {/* A assinatura é o único nome próprio da página: ganha corpo,
             peso e a cor da marca para não se perder no rodapé. */}
         <a

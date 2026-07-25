@@ -5,6 +5,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { SeletorIdioma } from './SeletorIdioma'
 import { Rodape } from './Rodape'
 import { CarrosselBancos } from './CarrosselBancos'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** Frase de quem ainda não entrou — usada aqui embaixo e também no header
  *  do App quando não há Neon configurado (o modo "importa e vê" também é
@@ -12,11 +13,12 @@ import { CarrosselBancos } from './CarrosselBancos'
  *  Sem tag h1 nem classes de framing: cada chamador decide isso, porque o
  *  card de acesso e o header usam tamanhos de fonte diferentes. */
 export function FraseDeslogado() {
+  const { t } = useT()
   return (
     <>
-      Seu extrato vira gráfico,{' '}
+      {t('acesso.frase1')}{' '}
       <br />
-      <span className="text-tinta-fraca">em menos de um minuto.</span>
+      <span className="text-tinta-fraca">{t('acesso.frase2')}</span>
     </>
   )
 }

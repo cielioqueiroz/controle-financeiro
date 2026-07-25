@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** Bancos que o app realmente lê — nunca 'desconhecido'. A ordem fixa dá um
  *  ritmo estável ao laço. */
@@ -16,12 +17,13 @@ const SUPORTADOS: Bank[] = ['nubank', 'bradesco', 'bb', 'sicredi', 'sicoob']
  *  `prefers-reduced-motion`: sem movimento, fica uma linha estática. */
 export function CarrosselBancos() {
   const semMovimento = useReducedMotion()
+  const { t } = useT()
   const nomes = SUPORTADOS.map((b) => BANCOS[b].nome)
 
   return (
     <div>
       <p className="tabular mb-3 text-[10px] uppercase tracking-[0.3em] text-tinta-tenue">
-        Já lê os extratos de
+        {t('acesso.bancos')}
       </p>
       <div
         className="relative overflow-hidden"

@@ -1,5 +1,6 @@
 import { IconeOlho } from './IconeOlho'
 import { CAMPO } from './estilos-campo'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   refCampo?: React.RefObject<HTMLInputElement | null>
@@ -17,6 +18,7 @@ type Props = {
  *  O botão do olho é type="button": dentro de um <form>, o padrão seria
  *  submit, e clicar no olho enviaria o formulário. */
 export function CampoSenha({ refCampo, valor, aoMudar, visivel, alternar, placeholder }: Props) {
+  const { t } = useT()
   return (
     <div className="relative">
       <input
@@ -37,7 +39,7 @@ export function CampoSenha({ refCampo, valor, aoMudar, visivel, alternar, placeh
       <button
         type="button"
         onClick={alternar}
-        aria-label={visivel ? 'Ocultar senha' : 'Mostrar senha'}
+        aria-label={visivel ? t('campo.ocultarSenha') : t('campo.mostrarSenha')}
         aria-pressed={visivel}
         className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-tinta-tenue transition-colors hover:text-tinta"
       >

@@ -9,6 +9,7 @@ import { RecuperarSenha } from './RecuperarSenha'
 import { camposFaltando, mensagemCamposFaltando, emailValido, type CampoAcesso } from './auth-validacao'
 import { CampoSenha } from './CampoSenha'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   /** Chamado após login/cadastro bem-sucedido, para o App re-checar a sessão. */
@@ -35,6 +36,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
   const [senha, setSenha] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [verSenha, setVerSenha] = useState(false)
+  const { t } = useT()
 
   // Uma ref por campo obrigatório, para focar o primeiro que estiver vazio.
   const refs: Record<CampoAcesso, React.RefObject<HTMLInputElement | null>> = {
@@ -61,12 +63,12 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
       return
     }
     if (!emailValido(email)) {
-      toast.error('Esse e-mail não parece válido.')
+      toast.error(t('validacao.emailInvalido'))
       refs.email.current?.focus()
       return
     }
     if (senha.length < 8) {
-      toast.warning('A senha precisa ter ao menos 8 caracteres.')
+      toast.warning(t('validacao.senhaCurta'))
       refs.senha.current?.focus()
       return
     }
@@ -74,7 +76,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
     // Só agora o Neon importa. Antes ficava no topo da função e engolia a
     // validação em silêncio quando o banco não estava configurado.
     if (!neon) {
-      toast.error('O banco de dados não está configurado neste ambiente.')
+      toast.error(t('auth.toast.semBanco'))
       return
     }
 
@@ -90,7 +92,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         if (error) throw new Error(error.message)
         // Apelido é preferência local (como quer ser chamado na saudação).
         salvarApelido(apelido || nome.trim().split(/\s+/)[0])
-        toast.success('Conta criada. Se pedirmos confirmação, confira seu e-mail.')
+        toast.success(t('auth.toast.criada'))
         onAutenticado()
       } else {
         const { error } = await neon.auth.signIn.email({ email, password: senha })
@@ -98,7 +100,20 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         onAutenticado()
       }
     } catch (err) {
-      toast.error(err instanceof Error ? traduzErro(err.message) : 'Falha na autenticação.')
+      if (err instanceof Error) {
+        const m = err.message
+        toast.error(
+          /invalid|credencial|password|senha/i.test(m)
+            ? t('auth.erro.credenciais')
+            : /exist|already|registered/i.test(m)
+              ? t('auth.erro.jaExiste')
+              : /verif|confirm/i.test(m)
+                ? t('auth.erro.confirme')
+                : m,
+        )
+      } else {
+        toast.error(t('auth.toast.authFalha'))
+      }
     } finally {
       setOcupado(false)
     }
@@ -110,7 +125,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
       provider: 'google',
       callbackURL: window.location.origin,
     })
-    if (error) toast.error('Falha ao entrar com o Google.')
+    if (error) toast.error(t('auth.toast.googleFalha'))
   }
 
   return (
@@ -153,9 +168,9 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         ) : (
           <>
             <h2 className="text-center font-display text-2xl text-tinta">
-              {modo === 'criar' ? 'Criar conta' : 'Entrar'}
+              {modo === 'criar' ? t('auth.criar') : t('auth.entrar')}
             </h2>
-            <p className="mt-1.5 text-center text-sm text-tinta-fraca">Seus dados financeiros, só seus.</p>
+            <p className="mt-1.5 text-center text-sm text-tinta-fraca">{t('auth.subtitulo')}</p>
 
             <form onSubmit={submeter} noValidate className="mt-4 space-y-3">
               {modo === 'criar' && (
@@ -164,7 +179,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                     type="text"
                     ref={refs.nome}
                     required
-                    placeholder="nome e sobrenome"
+                    placeholder={t('auth.ph.nome')}
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     className={CAMPO}
@@ -172,13 +187,13 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                   <div>
                     <input
                       type="text"
-                      placeholder="como quer ser chamado? (apelido, opcional)"
+                      placeholder={t('auth.ph.apelido')}
                       value={apelido}
                       onChange={(e) => setApelido(e.target.value)}
                       className={CAMPO}
                     />
                     <p className="mt-1 px-1 text-[11px] text-tinta-tenue">
-                      É assim que vamos te saudar. Se deixar em branco, usamos seu primeiro nome.
+                      {t('auth.ajuda.apelido')}
                     </p>
                   </div>
                 </>
@@ -187,7 +202,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                 type="email"
                 ref={refs.email}
                 required
-                placeholder="seu@email.com"
+                placeholder={t('auth.ph.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={CAMPO}
@@ -198,14 +213,14 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                 aoMudar={setSenha}
                 visivel={verSenha}
                 alternar={() => setVerSenha(!verSenha)}
-                placeholder="senha (mín. 8 caracteres)"
+                placeholder={t('auth.ph.senha')}
               />
               <button
                 type="submit"
                 disabled={ocupado}
                 className={BOTAO_PRIMARIO}
               >
-                {ocupado ? '…' : modo === 'criar' ? 'Criar conta' : 'Entrar'}
+                {ocupado ? '…' : modo === 'criar' ? t('auth.criar') : t('auth.entrar')}
               </button>
             </form>
 
@@ -215,13 +230,13 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
               onClick={() => setModo('recuperar')}
               className="mt-3 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
             >
-              Esqueceu a senha?
+              {t('auth.esqueceu')}
             </button>
           )}
 
           <div className="my-3 flex items-center gap-3">
             <span className="h-px flex-1 bg-carvao-800" />
-            <span className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">ou</span>
+            <span className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">{t('auth.ou')}</span>
             <span className="h-px flex-1 bg-carvao-800" />
           </div>
 
@@ -229,27 +244,20 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
             onClick={comGoogle}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-carvao-700 px-4 py-3 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:border-carvao-600 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
           >
-            <GoogleIcon /> Continuar com o Google
+            <GoogleIcon /> {t('auth.google')}
           </button>
 
           <button
             onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}
             className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
           >
-            {modo === 'entrar' ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
+            {modo === 'entrar' ? t('auth.trocarParaCriar') : t('auth.trocarParaEntrar')}
           </button>
           </>
         )}
       </motion.div>
     </div>
   )
-}
-
-function traduzErro(msg: string): string {
-  if (/invalid|credencial|password|senha/i.test(msg)) return 'E-mail ou senha incorretos.'
-  if (/exist|already|registered/i.test(msg)) return 'Este e-mail já tem conta.'
-  if (/verif|confirm/i.test(msg)) return 'Confirme seu e-mail antes de entrar.'
-  return msg
 }
 
 function GoogleIcon() {
