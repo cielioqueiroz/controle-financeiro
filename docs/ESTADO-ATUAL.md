@@ -139,7 +139,14 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 ## 🚧 Fila do que falta — em ordem
 
-### 0. Verificar a recuperação de senha no navegador — PARCIAL, refazer o passo 7
+> **Atualização 2026-07-24 (fim da sessão):** o usuário concluiu e **testou** os itens
+> **0** (recuperação de senha ponta a ponta), **1** (nome no e-mail — trocou o
+> *Application Name* no Neon) e **5** (filtro por banco e categorias personalizadas
+> conferidos logado). Itens **2** (PDF real + compartilhar) e **4** (saldo por conta)
+> foram entregues nesta sessão. **Restam as features grandes: 3 (i18n), design polish e
+> mais bancos.** O envio por **e-mail** (antigo passo 3 do item 2) foi **descartado**.
+
+### 0. ~~Verificar a recuperação de senha no navegador~~ ✅ FEITO E TESTADO (2026-07-24)
 
 ⚠️ **Atualização 2026-07-23:** o login automático pós-reset foi **removido** (agora
 sempre volta ao card de entrar com o e-mail preenchido). Isso muda o roteiro abaixo:
@@ -171,7 +178,7 @@ Roteiro, em ordem (**1 e 2 já feitos em 2026-07-19**, o servidor sobe em
 Aproveite a sessão logada para conferir o **item 5** desta fila (filtro por banco
 e categorias personalizadas, que nunca foram validados contra o banco).
 
-### 1. Nome errado no e-mail de redefinição — SOLUÇÃO LOCALIZADA (2026-07-24)
+### 1. ~~Nome errado no e-mail de redefinição~~ ✅ FEITO (2026-07-24 — Application Name trocado no Neon)
 
 O e-mail sai como **"controle-financeiro"**, não "Capital Financeiro". Não é código.
 
@@ -228,7 +235,7 @@ Implementado nesta rodada (spec/plano em `docs/superpowers/specs|plans/2026-07-2
 `accounts.bank`** (só permitia nubank/bradesco/desconhecido — salvar BB/Sicredi/Sicoob
 violava o constraint). Enquanto não rodar, o saldo não aparece (degradação prevista).
 
-### 5. Verificações que nunca foram feitas contra o banco
+### 5. ~~Verificações que nunca foram feitas contra o banco~~ ✅ FEITO E TESTADO (2026-07-24)
 
 Duas features foram implementadas numa sessão em que a rede **perdeu o DNS do Neon**, e
 ficaram validadas só por typecheck:
