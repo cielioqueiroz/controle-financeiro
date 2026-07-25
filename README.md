@@ -35,7 +35,7 @@ A tela de acesso, nos dois temas — café e papel:
 - 🔮 **Compromissos futuros** — projeta as parcelas que ainda vão cair, sem duplicar quando a fatura chegar
 - ✏️ **Editar compra** — renomear o estabelecimento e trocar a categoria
 - 🗂️ **Documentos** — ver o que foi importado e apagar uma fatura (ou tudo)
-- 🖨️ **Relatório em PDF** — monta o relatório do período e abre o diálogo de impressão (salvar como PDF ou imprimir)
+- 📤 **Relatório em PDF** — gera um arquivo PDF do período (jsPDF) e **compartilha** (WhatsApp etc. no celular) ou baixa (no desktop)
 - 👋 **Boas-vindas** — saudação pelo nome/apelido, **editar perfil** (apelido e nome) e tutorial guiado no primeiro acesso
 - 🌗 **Tema claro/escuro**, responsivo (desktop largo → mobile com menu hambúrguer)
 
@@ -52,7 +52,7 @@ Outros comandos:
 
 ```bash
 npm run build        # typecheck (tsc -b) + build de produção
-npm test             # Vitest (342 testes)
+npm test             # Vitest (350 testes)
 npm run lint         # oxlint
 npm run fixtures -- <pasta-com-os-pdfs>   # regenera fixtures anonimizados
 ```

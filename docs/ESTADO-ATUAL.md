@@ -81,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **342** (37 arquivos) |
+| Testes | **350** (39 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -185,25 +185,22 @@ Auth, JWKS ou domínio). Passo manual do usuário; nada a fazer no repositório.
 Vale prioridade porque **é o único e-mail que pedimos ao usuário para confiar**,
 e chegar sob um nome que ele não reconhece tem forma de phishing.
 
-### 2. Relatório: PDF de verdade → compartilhar → e-mail
+### 2. Relatório: PDF de verdade → compartilhar — ✅ CONCLUÍDO (2026-07-24)
 
-**Decisão tomada:** fazer a corrente completa numa rodada própria, com spec.
+Spec/plano em `docs/superpowers/specs|plans/2026-07-24-relatorio-pdf-compartilhar*`.
 
-O elo que trava tudo: **o app nunca produz um arquivo PDF**. `Baixar PDF` chama
-`window.print()` ([Dashboard.tsx](../src/ui/Dashboard.tsx)), que entrega o trabalho ao
-diálogo de impressão do sistema. Não há arquivo para anexar nem compartilhar.
+- **PDF real**: `src/lib/relatorio-pdf.ts` gera um Blob com **jsPDF + jspdf-autotable**
+  (cabeçalho, totais, saldo por conta, tabela por categoria), a partir de
+  `montarDadosRelatorio` (pura, testada). jsPDF entra por **import dinâmico** — fica em
+  chunk próprio, fora do bundle inicial.
+- **Compartilhar/baixar**: `src/lib/compartilhar.ts` — `navigator.share` com o arquivo no
+  celular; download no desktop; cancelar a folha não é erro.
+- O botão virou **"Baixar / Compartilhar PDF"** e o `window.print()` saiu de cena.
+  (O CSS `@media print` e o bloco `somente-impressao` ficaram órfãos — limpeza trivial
+  quando/se incomodar.)
 
-Verificado nesta sessão: **não existe `navigator.share` no código** — ele só imprime.
-**Cópia corrigida em 2026-07-24**: o tooltip e o passo do tutorial não prometem mais
-"compartilhar"; agora dizem que abre o diálogo de impressão ("Salvar como PDF" ou
-imprimir). A promessa de compartilhar de verdade (`navigator.share`) fica para esta rodada.
-
-Ordem obrigatória:
-1. **PDF real** — jsPDF/pdfmake gerando arquivo no cliente.
-2. **Compartilhar** — `navigator.share` com o arquivo (abre WhatsApp, Telegram etc. no celular).
-3. **E-mail** — botão ao lado do compartilhar, corpo já personalizado com o nome do
-   usuário cadastrado. Exige **serverless function na Vercel** (a chave do serviço de
-   e-mail, tipo Resend, não pode ficar no navegador). Agora que o deploy existe, é viável.
+**E-mail: descartado do roadmap (decisão do usuário, 2026-07-24).** Era o passo 3
+(botão de enviar por e-mail via serverless + Resend). Não será feito.
 
 ### 3. i18n pt/en/es
 
