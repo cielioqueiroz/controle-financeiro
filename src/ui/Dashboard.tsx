@@ -466,17 +466,22 @@ function Conteudo({
         {...entra(0.28)}
         className="grid border-t border-carvao-800 xl:grid-cols-[minmax(300px,360px)_1fr]"
       >
-        {/* Coluna do resumo visual */}
-        <aside className="space-y-6 border-carvao-800 p-5 xl:border-r">
-          {resumo.porCategoria.length > 0 && (
-            <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
-          )}
-          {serie.length >= 2 && (
-            <div className="screen-only">
-              <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={onIrParaMes} />
-            </div>
-          )}
-          {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
+        {/* Coluna do resumo visual. O aside estica para o divisor ir até o
+            fim; o conteúdo é sticky para o donut acompanhar a rolagem da lista
+            longa ao lado, em vez de deixar um vazio embaixo (só no layout de
+            duas colunas, xl+). */}
+        <aside className="border-carvao-800 p-5 xl:border-r">
+          <div className="space-y-6 xl:sticky xl:top-4">
+            {resumo.porCategoria.length > 0 && (
+              <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
+            )}
+            {serie.length >= 2 && (
+              <div className="screen-only">
+                <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={onIrParaMes} />
+              </div>
+            )}
+            {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
+          </div>
         </aside>
 
         {/* Coluna das tabelas */}
