@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
+import { SeletorIdioma } from './SeletorIdioma'
 import { Rodape } from './Rodape'
 import { CarrosselBancos } from './CarrosselBancos'
 
@@ -48,7 +49,10 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
           />
           <Marca />
         </motion.p>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <SeletorIdioma />
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="mx-auto grid w-full max-w-[104rem] flex-1 items-center gap-10 py-3 lg:grid-cols-2 lg:gap-16">
