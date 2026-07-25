@@ -56,7 +56,7 @@ export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF }: Props) {
             </button>
             {onBaixarPDF && (
               <button onClick={() => { setAberto(false); onBaixarPDF() }} className={item}>
-                <span aria-hidden>⬇️</span> Baixar PDF
+                <span aria-hidden>📤</span> Baixar / Compartilhar PDF
               </button>
             )}
           </motion.div>

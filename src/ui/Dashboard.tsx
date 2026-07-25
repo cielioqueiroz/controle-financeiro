@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
+import { toast } from 'sonner'
 import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
 import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
 import { registrarCategoriasUsuario } from '../domain/categorize/categorias'
@@ -107,6 +108,7 @@ export function Dashboard({ onImportar }: Props) {
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const [banco, setBanco] = useState<string>('geral')
   const [docsSaldo, setDocsSaldo] = useState<DocParaSaldo[]>([])
+  const [gerandoPdf, setGerandoPdf] = useState(false)
 
   // Aplica a edição em memória (sem reidratar tudo do banco).
   function aplicarEdicao(id: string, campos: { label: string | null; category_slug: string }) {
@@ -192,6 +194,34 @@ export function Dashboard({ onImportar }: Props) {
     setRef(new Date(y, m - 1, 1))
   }
 
+  // Gera o PDF do período e compartilha (celular) ou baixa (desktop). jsPDF
+  // entra por import dinâmico só aqui — fora do bundle inicial.
+  async function baixarPdf() {
+    if (!txs || txs.length === 0) return
+    setGerandoPdf(true)
+    try {
+      const { montarDadosRelatorio, gerarRelatorioPdf } = await import('../lib/relatorio-pdf')
+      const { baixarOuCompartilhar } = await import('../lib/compartilhar')
+      const label = rotulo(periodo, ref)
+      const dados = montarDadosRelatorio({
+        periodoLabel: label,
+        agrupamento: agrupamentoDe(periodo),
+        resumo,
+        saldos: saldos.map((s) => ({ bank: s.bank, balanceCents: s.balanceCents, date: s.date })),
+      })
+      const blob = await gerarRelatorioPdf(dados)
+      const slug = label.toLowerCase().replace(/\s+/g, '-')
+      await baixarOuCompartilhar(blob, `relatorio-${slug}.pdf`, {
+        title: `Relatório · ${label}`,
+        text: `Meu relatório de ${label} — Capital Financeiro.`,
+      })
+    } catch {
+      toast.error('Não consegui gerar o PDF.')
+    } finally {
+      setGerandoPdf(false)
+    }
+  }
+
   return (
     <div className="surgir">
       {/* Saldo atual por conta (extrato mais recente) */}
@@ -262,11 +292,12 @@ export function Dashboard({ onImportar }: Props) {
             </button>
             {txs && txs.length > 0 && (
               <button
-                onClick={() => window.print()}
-                className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
-                title="Abre o diálogo de impressão — escolha “Salvar como PDF” ou imprima"
+                onClick={baixarPdf}
+                disabled={gerandoPdf}
+                className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:opacity-50"
+                title="Gera um PDF do período e abre o compartilhamento (ou baixa)"
               >
-                Baixar PDF
+                {gerandoPdf ? 'Gerando…' : 'Baixar / Compartilhar PDF'}
               </button>
             )}
             <button
@@ -281,7 +312,7 @@ export function Dashboard({ onImportar }: Props) {
             <MenuAcoes
               onImportar={onImportar}
               onDocumentos={() => setMostrarDocs(true)}
-              onBaixarPDF={txs && txs.length > 0 ? () => window.print() : undefined}
+              onBaixarPDF={txs && txs.length > 0 ? baixarPdf : undefined}
             />
           </div>
         </div>
