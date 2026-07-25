@@ -1,3 +1,5 @@
+import { useT } from '../i18n/IdiomaProvider'
+
 type Props = {
   mensagem: string
   onTentar: () => void
@@ -7,6 +9,7 @@ type Props = {
  *  mensagem e uma saída — "Tentar de novo" — em vez de um texto vermelho
  *  solto. Um erro de rede não deveria ser um beco sem saída. */
 export function ErroCarregar({ mensagem, onTentar }: Props) {
+  const { t } = useT()
   return (
     <div className="px-8 py-20 text-center">
       <div
@@ -18,13 +21,13 @@ export function ErroCarregar({ mensagem, onTentar }: Props) {
           <circle cx="12" cy="12" r="9" />
         </svg>
       </div>
-      <p className="font-display text-xl text-tinta">Não consegui carregar</p>
+      <p className="font-display text-xl text-tinta">{t('estado.erroTitulo')}</p>
       <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-fraca">{mensagem}</p>
       <button
         onClick={onTentar}
         className="mt-6 rounded-sm border border-carvao-700 px-5 py-2 text-sm text-tinta transition-colors hover:border-carvao-600 hover:bg-carvao-850"
       >
-        Tentar de novo
+        {t('estado.tentarDeNovo')}
       </button>
     </div>
   )

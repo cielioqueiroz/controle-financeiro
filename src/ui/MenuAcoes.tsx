@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   onImportar: () => void
@@ -12,6 +13,7 @@ type Props = {
 export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF }: Props) {
   const [aberto, setAberto] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { t } = useT()
 
   useEffect(() => {
     if (!aberto) return
@@ -28,7 +30,7 @@ export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF }: Props) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setAberto((v) => !v)}
-        aria-label="Menu"
+        aria-label={t('dash.menu')}
         aria-expanded={aberto}
         className="grid h-10 w-10 place-items-center rounded-lg border border-carvao-700 bg-carvao-900 text-tinta transition-colors hover:bg-carvao-850"
       >
@@ -49,14 +51,14 @@ export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF }: Props) {
             className="absolute right-0 z-30 mt-2 w-52 origin-top-right overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 shadow-xl shadow-black/30"
           >
             <button onClick={() => { setAberto(false); onImportar() }} className={item}>
-              <span aria-hidden>＋</span> Importar PDF
+              <span aria-hidden>＋</span> {t('dash.importar').replace('+ ', '')}
             </button>
             <button onClick={() => { setAberto(false); onDocumentos() }} className={item}>
-              <span aria-hidden>🗂️</span> Documentos
+              <span aria-hidden>🗂️</span> {t('dash.documentos')}
             </button>
             {onBaixarPDF && (
               <button onClick={() => { setAberto(false); onBaixarPDF() }} className={item}>
-                <span aria-hidden>📤</span> Baixar / Compartilhar PDF
+                <span aria-hidden>📤</span> {t('dash.baixarPdf')}
               </button>
             )}
           </motion.div>

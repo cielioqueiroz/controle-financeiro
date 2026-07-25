@@ -63,6 +63,64 @@ export const pt = {
   'rodape.privacidadeLocal': 'Lido no navegador · nada sai deste computador',
   'rodape.criadoPor': 'Criado por',
 
+  // Dashboard — tiles, período, ações, listas
+  'dash.gasto': 'Gasto no período',
+  'dash.entradas': 'Entradas',
+  'dash.lancamentos': 'Lançamentos',
+  'dash.dia': 'Dia',
+  'dash.semana': 'Semana',
+  'dash.mes': 'Mês',
+  'dash.ano': 'Ano',
+  'dash.porFatura': 'por fatura',
+  'dash.porData': 'por data da compra',
+  'dash.totalGeral': 'Total geral',
+  'dash.documentos': 'Documentos',
+  'dash.baixarPdf': 'Baixar / Compartilhar PDF',
+  'dash.gerando': 'Gerando…',
+  'dash.importar': '+ Importar PDF',
+  'dash.periodoAnterior': 'Período anterior',
+  'dash.proximoPeriodo': 'Próximo período',
+  'dash.porCategoria': 'Por categoria',
+  'dash.porDia': 'Por dia',
+  'dash.gastoReal': 'gasto real',
+  'dash.menu': 'Menu',
+  'dash.docTooltip': 'Ver e apagar documentos importados',
+  'dash.pdfTooltip': 'Gera um PDF do período e abre o compartilhamento (ou baixa)',
+
+  // Estados (vazio / erro)
+  'estado.vazioTitulo': 'Nada por aqui ainda',
+  'estado.vazioCorpo':
+    'Não há lançamentos salvos neste período. Importe uma fatura ou extrato para começar a ver para onde o dinheiro foi.',
+  'estado.erroTitulo': 'Não consegui carregar',
+  'estado.tentarDeNovo': 'Tentar de novo',
+
+  // Saldo por conta
+  'saldo.rotulo': 'Saldo',
+  'saldo.em': 'em {data}',
+
+  // Compromissos futuros
+  'comp.titulo': 'Compromissos futuros',
+  'comp.aVencerSing': '{n} parcela a vencer',
+  'comp.aVencerPlur': '{n} parcelas a vencer',
+  'comp.somaVencer': 'soma a vencer',
+
+  // Cabeçalho logado
+  'header.ola': 'Olá, {nome}!',
+  'header.sub': 'Importe a fatura, o resto a gente calcula.',
+  'header.voltar': '‹ Voltar ao histórico',
+  'header.ateLogo': 'Até logo, {quem}!',
+  'header.sessaoEncerrada': 'Sua sessão foi encerrada neste navegador.',
+
+  // Menu da conta
+  'conta.aria': 'Conta',
+  'conta.conectadoComo': 'Conectado como',
+  'conta.editarPerfil': 'Editar perfil',
+  'conta.verTutorial': 'Ver tutorial',
+  'conta.sair': 'Sair da conta',
+  'conta.sairTitulo': 'Sair da conta?',
+  'conta.sairDescricao': 'Você precisará entrar de novo para ver seus dados.',
+  'conta.sairConfirmar': 'Sair',
+
   // Seletor de idioma
   seletorIdioma: 'Idioma',
 }

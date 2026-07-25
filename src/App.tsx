@@ -15,6 +15,7 @@ import { Dashboard } from './ui/Dashboard'
 import { Tutorial } from './ui/Tutorial'
 import { EditarPerfil } from './ui/EditarPerfil'
 import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
+import { useT } from './i18n/IdiomaProvider'
 import { loadTextItems, PdfProtegidoError } from './domain/pdf/load'
 import { buildLines } from './domain/pdf/lines'
 import { pareceDigitalizado } from './domain/pdf/extract'
@@ -38,6 +39,7 @@ export default function App() {
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const { t } = useT()
   /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
    *  quando muda (nova chave). */
@@ -192,7 +194,7 @@ export default function App() {
             >
               {logado ? (
                 <>
-                  Olá, {comoChamar(usuario?.nome, usuario?.email)}!{' '}
+                  {t('header.ola', { nome: comoChamar(usuario?.nome, usuario?.email) })}{' '}
                   <motion.span
                     aria-hidden
                     className="inline-block origin-[70%_80%]"
@@ -202,7 +204,7 @@ export default function App() {
                     👋
                   </motion.span>
                   <br />
-                  <span className="text-tinta-fraca">Importe a fatura, o resto a gente calcula.</span>
+                  <span className="text-tinta-fraca">{t('header.sub')}</span>
                 </>
               ) : (
                 // Modo "importa e vê" (neonConfigurado false, ver lib/neon.ts):
@@ -230,8 +232,8 @@ export default function App() {
                     await neon?.auth.signOut()
                     setLogado(false)
                     setUsuario(null)
-                    toast.success(`Até logo, ${quem}!`, {
-                      description: 'Sua sessão foi encerrada neste navegador.',
+                    toast.success(t('header.ateLogo', { quem }), {
+                      description: t('header.sessaoEncerrada'),
                     })
                   } catch (err) {
                     toast.error(
@@ -267,7 +269,7 @@ export default function App() {
                 onClick={() => setImportando(false)}
                 className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
               >
-                ‹ Voltar ao histórico
+                {t('header.voltar')}
               </button>
             )}
             <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />

@@ -2,6 +2,7 @@ import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev } from '../domain/normalize/data'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** "2026-06-30" → "30/jun" (mês na locale ativa). Constrói a data local para
  *  não escorregar de fuso (a data já é local, do extrato). */
@@ -17,17 +18,18 @@ type Props = { bank: string; balanceCents: number; date: string }
 export function SaldoConta({ bank, balanceCents, date }: Props) {
   const tema = BANCOS[bank as Bank] ?? BANCOS.desconhecido
   const negativo = balanceCents < 0
+  const { t } = useT()
   return (
     <div className="rounded-xl border border-carvao-700 bg-carvao-900/80 px-4 py-3">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: tema.accent }} aria-hidden />
-        <span className="text-[10px] uppercase tracking-widest text-tinta-tenue">Saldo</span>
+        <span className="text-[10px] uppercase tracking-widest text-tinta-tenue">{t('saldo.rotulo')}</span>
         <span className="truncate text-sm text-tinta">{tema.nome}</span>
       </div>
       <p className={`tabular mt-1 text-lg ${negativo ? 'text-falha' : 'text-tinta'}`}>
         {formatBRL(balanceCents)}
       </p>
-      <p className="text-[11px] text-tinta-tenue">em {dataCurta(date)}</p>
+      <p className="text-[11px] text-tinta-tenue">{t('saldo.em', { data: dataCurta(date) })}</p>
     </div>
   )
 }

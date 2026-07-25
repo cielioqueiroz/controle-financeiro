@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { formatBRL } from '../domain/normalize/money'
+import { mesAbrev } from '../domain/normalize/data'
+import { useT } from '../i18n/IdiomaProvider'
 import type { MesFuturo } from '../persist/agrupar'
 
 type Props = {
   meses: MesFuturo[]
 }
 
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-
 function rotuloMes(comp: string): string {
   const [y, m] = comp.split('-').map(Number)
-  return `${MESES[m - 1]} ${y}`
+  return `${mesAbrev(new Date(y, (m ?? 1) - 1, 1))} ${y}`
 }
 
 /** Compromissos futuros: as parcelas que ainda vão cair, mês a mês. É
@@ -19,6 +19,7 @@ function rotuloMes(comp: string): string {
  *  duplica quando a próxima fatura chegar. */
 export function CompromissosFuturos({ meses }: Props) {
   const [aberto, setAberto] = useState<string | null>(null)
+  const { t } = useT()
   if (meses.length === 0) return null
 
   const totalCents = meses.reduce((a, m) => a + m.totalCents, 0)
@@ -29,15 +30,15 @@ export function CompromissosFuturos({ meses }: Props) {
       <div className="flex items-baseline justify-between border-b border-carvao-800 px-5 py-4">
         <div>
           <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-            Compromissos futuros
+            {t('comp.titulo')}
           </p>
           <p className="text-xs text-tinta-fraca">
-            {qtd} {qtd === 1 ? 'parcela a vencer' : 'parcelas a vencer'}
+            {t(qtd === 1 ? 'comp.aVencerSing' : 'comp.aVencerPlur', { n: qtd })}
           </p>
         </div>
         <div className="text-right">
           <p className="tabular text-xl text-tinta">{formatBRL(totalCents)}</p>
-          <p className="text-[10px] text-tinta-tenue">soma a vencer</p>
+          <p className="text-[10px] text-tinta-tenue">{t('comp.somaVencer')}</p>
         </div>
       </div>
 

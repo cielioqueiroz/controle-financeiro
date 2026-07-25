@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import type { CategoriaResumo } from '../domain/insights'
 import { formatBRL } from '../domain/normalize/money'
 import { nomeCategoria } from '../domain/categorize/categorias'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** Donut de categorias em SVG puro — sem biblioteca de gráfico. Cada fatia
  *  usa a cor da categoria e se DESENHA ao entrar (o dasharray cresce de 0
@@ -16,6 +17,7 @@ export function GraficoCategorias({
   totalCents: number
 }) {
   const semMovimento = useReducedMotion()
+  const { t } = useT()
   if (totalCents === 0 || categorias.length === 0) return null
 
   const R = 52
@@ -60,7 +62,7 @@ export function GraficoCategorias({
           fill="var(--color-tinta)"
           fontSize="9"
         >
-          gasto real
+          {t('dash.gastoReal')}
         </text>
         <text
           x="65"

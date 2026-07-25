@@ -31,17 +31,19 @@ import { saldosPorConta, type DocParaSaldo } from '../persist/saldos'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { mesAbrev } from '../domain/normalize/data'
+import { useT } from '../i18n/IdiomaProvider'
+import type { Dicionario } from '../i18n/dicionarios/pt'
 
 type Props = {
   onImportar: () => void
 }
 
-const PERIODOS: Array<{ id: Periodo; nome: string }> = [
-  { id: 'dia', nome: 'Dia' },
-  { id: 'semana', nome: 'Semana' },
-  { id: 'mes', nome: 'Mês' },
-  { id: 'ano', nome: 'Ano' },
-]
+const PERIODOS = [
+  { id: 'dia', chave: 'dash.dia' },
+  { id: 'semana', chave: 'dash.semana' },
+  { id: 'mes', chave: 'dash.mes' },
+  { id: 'ano', chave: 'dash.ano' },
+] as const satisfies ReadonlyArray<{ id: Periodo; chave: keyof Dicionario }>
 
 /** Nome e cor de exibição de um banco no seletor, a partir do catálogo
  *  canônico (`domain/banks.ts`). Antes havia um mapa local que só conhecia
@@ -53,8 +55,8 @@ function bancoInfo(b: string): { nome: string; cor?: string } {
 }
 
 /** Mês/Ano agrupam por fatura (competência); Dia/Semana pela data real. */
-function agrupamentoDe(periodo: Periodo): string {
-  return periodo === 'mes' || periodo === 'ano' ? 'por fatura' : 'por data da compra'
+function agrupamentoDe(periodo: Periodo): keyof Dicionario {
+  return periodo === 'mes' || periodo === 'ano' ? 'dash.porFatura' : 'dash.porData'
 }
 
 /** Move a data de referência um período para trás/frente. */
@@ -106,6 +108,7 @@ export function Dashboard({ onImportar }: Props) {
   const [banco, setBanco] = useState<string>('geral')
   const [docsSaldo, setDocsSaldo] = useState<DocParaSaldo[]>([])
   const [gerandoPdf, setGerandoPdf] = useState(false)
+  const { t } = useT()
 
   // Aplica a edição em memória (sem reidratar tudo do banco).
   function aplicarEdicao(id: string, campos: { label: string | null; category_slug: string }) {
@@ -202,7 +205,7 @@ export function Dashboard({ onImportar }: Props) {
       const label = rotulo(periodo, ref)
       const dados = montarDadosRelatorio({
         periodoLabel: label,
-        agrupamento: agrupamentoDe(periodo),
+        agrupamento: t(agrupamentoDe(periodo)),
         resumo: {
           gastoCents: resumo.gastoCents,
           entradasCents: resumo.entradasCents,
@@ -239,25 +242,25 @@ export function Dashboard({ onImportar }: Props) {
             <button
               onClick={() => setMostrarDocs(true)}
               className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
-              title="Ver e apagar documentos importados"
+              title={t('dash.docTooltip')}
             >
-              Documentos
+              {t('dash.documentos')}
             </button>
             {txs && txs.length > 0 && (
               <button
                 onClick={baixarPdf}
                 disabled={gerandoPdf}
                 className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:opacity-50"
-                title="Gera um PDF do período e abre o compartilhamento (ou baixa)"
+                title={t('dash.pdfTooltip')}
               >
-                {gerandoPdf ? 'Gerando…' : 'Baixar / Compartilhar PDF'}
+                {gerandoPdf ? t('dash.gerando') : t('dash.baixarPdf')}
               </button>
             )}
             <button
               onClick={onImportar}
               className="rounded-xl bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
             >
-              + Importar PDF
+              {t('dash.importar')}
             </button>
           </div>
           {/* Mobile: hambúrguer */}
@@ -288,7 +291,7 @@ export function Dashboard({ onImportar }: Props) {
       {/* Seletor de banco (só se houver mais de um) */}
       {bancos.length >= 2 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <BancoPill ativo={banco === 'geral'} onClick={() => setBanco('geral')} nome="Total geral" />
+          <BancoPill ativo={banco === 'geral'} onClick={() => setBanco('geral')} nome={t('dash.totalGeral')} />
           {bancos.map((b) => {
             const info = bancoInfo(b)
             return (
@@ -322,7 +325,7 @@ export function Dashboard({ onImportar }: Props) {
                   transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                 />
               )}
-              <span className="relative z-10">{p.nome}</span>
+              <span className="relative z-10">{t(p.chave)}</span>
             </button>
           ))}
         </div>
@@ -343,7 +346,7 @@ export function Dashboard({ onImportar }: Props) {
         <button
           onClick={() => setRef((r) => mover(periodo, r, -1))}
           className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
-          aria-label="Período anterior"
+          aria-label={t('dash.periodoAnterior')}
         >
           ‹
         </button>
@@ -358,14 +361,14 @@ export function Dashboard({ onImportar }: Props) {
           >
             <h2 className="font-display text-2xl capitalize text-tinta">{rotulo(periodo, ref)}</h2>
             <p className="tabular mt-0.5 text-[10px] uppercase tracking-widest text-tinta-tenue">
-              {agrupamentoDe(periodo)}
+              {t(agrupamentoDe(periodo))}
             </p>
           </motion.div>
         </AnimatePresence>
         <button
           onClick={() => setRef((r) => mover(periodo, r, 1))}
           className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
-          aria-label="Próximo período"
+          aria-label={t('dash.proximoPeriodo')}
         >
           ›
         </button>
@@ -435,6 +438,7 @@ function Conteudo({
   const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
   const dias = useMemo(() => porDia(txs), [txs])
   const semMovimento = useReducedMotion()
+  const { t } = useT()
 
   // Entrada escalonada e discreta — o dashboard "se monta" de cima para
   // baixo (tiles → resumo visual → tabelas) em vez de piscar inteiro. Curva
@@ -454,17 +458,17 @@ function Conteudo({
       {/* Tiles de resumo — largura total, com números que "contam" */}
       <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-3">
         <motion.div {...entra(0.05)}>
-          <Tile rotulo="Gasto no período" destaque>
+          <Tile rotulo={t('dash.gasto')} destaque>
             <ValorAnimado valor={resumo.gastoCents} />
           </Tile>
         </motion.div>
         <motion.div {...entra(0.12)}>
-          <Tile rotulo="Entradas" cor="var(--color-confere)">
+          <Tile rotulo={t('dash.entradas')} cor="var(--color-confere)">
             <ValorAnimado valor={resumo.entradasCents} />
           </Tile>
         </motion.div>
         <motion.div {...entra(0.19)}>
-          <Tile rotulo="Lançamentos">
+          <Tile rotulo={t('dash.lancamentos')}>
             <ValorAnimado valor={resumo.contagem} moeda={false} />
           </Tile>
         </motion.div>
@@ -497,14 +501,14 @@ function Conteudo({
         <div className="min-w-0 border-t border-carvao-800 xl:border-t-0">
           <div className="flex items-center justify-between px-5 py-3">
             <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-              Lançamentos
+              {t('dash.lancamentos')}
             </p>
             <div className="flex gap-0.5 rounded-full border border-carvao-700 bg-carvao-900 p-0.5">
               <AbaVista ativa={vista === 'categoria'} onClick={() => setVista('categoria')}>
-                Por categoria
+                {t('dash.porCategoria')}
               </AbaVista>
               <AbaVista ativa={vista === 'dia'} onClick={() => setVista('dia')}>
-                Por dia
+                {t('dash.porDia')}
               </AbaVista>
             </div>
           </div>
@@ -607,18 +611,16 @@ function Tile({
 
 
 function Vazio({ onImportar }: { onImportar: () => void }) {
+  const { t } = useT()
   return (
     <div className="px-8 py-20 text-center">
-      <p className="font-display text-xl text-tinta">Nada por aqui ainda</p>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-fraca">
-        Não há lançamentos salvos neste período. Importe uma fatura ou extrato para começar a ver
-        para onde o dinheiro foi.
-      </p>
+      <p className="font-display text-xl text-tinta">{t('estado.vazioTitulo')}</p>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-fraca">{t('estado.vazioCorpo')}</p>
       <button
         onClick={onImportar}
         className="mt-6 rounded-sm bg-tinta px-5 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
       >
-        + Importar PDF
+        {t('dash.importar')}
       </button>
     </div>
   )
