@@ -159,6 +159,19 @@ body {
       opacity 0.15s ease,
       box-shadow 0.15s ease;
   }
+
+  /* Foco visível por teclado nos clicáveis — a regra de foco acima só cobria
+     os campos, então botões e links ficavam sem anel para quem navega por
+     teclado. Só :focus-visible (não :focus), para o clique de mouse não
+     acender o anel. Mesmo âmbar dos campos, para o foco falar uma língua só;
+     o box-shadow segue o border-radius próprio de cada elemento. */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  summary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-marca) 40%, transparent);
+  }
 }
 
 /* Números tabulares — coluna de valores sem tremer. */
