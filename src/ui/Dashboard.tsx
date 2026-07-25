@@ -25,6 +25,7 @@ import { ValorAnimado } from './ValorAnimado'
 import { Documentos } from './Documentos'
 import { EditarCompra } from './EditarCompra'
 import { SaldoConta } from './SaldoConta'
+import { ErroCarregar } from './ErroCarregar'
 import { puxarSaldos } from '../persist/documentos'
 import { saldosPorConta, type DocParaSaldo } from '../persist/saldos'
 import { BANCOS } from '../domain/banks'
@@ -332,7 +333,7 @@ export function Dashboard({ onImportar }: Props) {
       <div className="mb-6 flex items-center justify-center gap-6">
         <button
           onClick={() => setRef((r) => mover(periodo, r, -1))}
-          className="grid h-8 w-8 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+          className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
           aria-label="Período anterior"
         >
           ‹
@@ -354,7 +355,7 @@ export function Dashboard({ onImportar }: Props) {
         </AnimatePresence>
         <button
           onClick={() => setRef((r) => mover(periodo, r, 1))}
-          className="grid h-8 w-8 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+          className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
           aria-label="Próximo período"
         >
           ›
@@ -365,7 +366,7 @@ export function Dashboard({ onImportar }: Props) {
         {carregando ? (
           <Esqueleto />
         ) : erro ? (
-          <p className="px-8 py-16 text-center text-sm text-falha">{erro}</p>
+          <ErroCarregar mensagem={erro} onTentar={carregar} />
         ) : vazio ? (
           <Vazio onImportar={onImportar} />
         ) : (
