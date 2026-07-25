@@ -3,6 +3,11 @@ import { type Idioma, lerIdioma, salvarIdioma } from './idioma'
 import { pt, type Dicionario } from './dicionarios/pt'
 import { en } from './dicionarios/en'
 import { es } from './dicionarios/es'
+import { definirLocale, type LocaleBCP47 } from '../domain/normalize/locale'
+import { definirIdiomaCategorias } from '../domain/categorize/categorias'
+
+/** Idioma → locale BCP-47 (para moeda/datas). */
+const BCP47: Record<Idioma, LocaleBCP47> = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }
 
 const DICTS: Record<Idioma, Dicionario> = { pt, en, es }
 
@@ -33,6 +38,14 @@ const IdiomaContext = createContext<Ctx>({
 
 export function IdiomaProvider({ children }: { children: ReactNode }) {
   const [idioma, setIdiomaState] = useState<Idioma>(() => lerIdioma())
+
+  // Aplica a locale de moeda/datas e o idioma das categorias DURANTE o render
+  // (não em efeito) — assim a primeira pintura já sai no idioma certo. É
+  // idempotente: só grava variáveis de módulo lidas por formatBRL/mesAbrev/
+  // nomeCategoria.
+  definirLocale(BCP47[idioma])
+  definirIdiomaCategorias(idioma)
+
   const valor = useMemo<Ctx>(
     () => ({
       idioma,
