@@ -38,6 +38,7 @@ A tela de acesso, nos dois temas — café e papel:
 - 📤 **Relatório em PDF** — gera um arquivo PDF do período (jsPDF) e **compartilha** (WhatsApp etc. no celular) ou baixa (no desktop)
 - 👋 **Boas-vindas** — saudação pelo nome/apelido, **editar perfil** (apelido e nome) e tutorial guiado no primeiro acesso
 - 🌗 **Tema claro/escuro**, responsivo (desktop largo → mobile com menu hambúrguer)
+- 🌍 **Idiomas** — seletor pt/en/es (em implementação por fatias; começou pela tela de acesso). A moeda mantém BRL, só formata pela locale (não converte)
 
 ---
 
@@ -52,7 +53,7 @@ Outros comandos:
 
 ```bash
 npm run build        # typecheck (tsc -b) + build de produção
-npm test             # Vitest (350 testes)
+npm test             # Vitest (359 testes)
 npm run lint         # oxlint
 npm run fixtures -- <pasta-com-os-pdfs>   # regenera fixtures anonimizados
 ```

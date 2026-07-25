@@ -81,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **352** (40 arquivos) |
+| Testes | **359** (44 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -212,13 +212,29 @@ Spec/plano em `docs/superpowers/specs|plans/2026-07-24-relatorio-pdf-compartilha
 **E-mail: descartado do roadmap (decisão do usuário, 2026-07-24).** Era o passo 3
 (botão de enviar por e-mail via serverless + Resend). Não será feito.
 
-### 3. i18n pt/en/es
+### 3. i18n pt/en/es — 🚧 EM ANDAMENTO (1ª fatia entregue 2026-07-24)
 
-Botão de idioma trocando **todo** o texto do sistema.
+Botão de idioma trocando **todo** o texto do sistema, **feito por fatias**.
+Spec/plano em `docs/superpowers/specs|plans/2026-07-24-i18n-mecanismo-e-login*`.
 
-**Decisão pendente, importante:** a moeda deve apenas **formatar** conforme a locale
-(`R$ 1.234,56` → `R$ 1,234.56`), mantendo real. **Não converter** — exigiria cotação e
-faria os números mentirem sobre as finanças do usuário.
+**Entregue (fatia 1 — mecanismo + tela de acesso):**
+- `src/i18n/idioma.ts` (detecção + storage `cf:idioma`), dicionários `pt/en/es`
+  (pt = fonte da verdade; en/es tipados, chave faltando quebra o build),
+  `IdiomaProvider` + `useT` (**default pt** → componentes funcionam sem provider, os
+  testes atuais não precisaram de wrapper), `SeletorIdioma` (PT/EN/ES) no cabeçalho.
+- Tela de acesso 100% traduzida (Auth, RecuperarSenha, CampoSenha, CarrosselBancos,
+  TelaAcesso, Rodape). **en/es são minhas traduções — o usuário nativo revisa.**
+
+**Deferido dentro da fatia:** a mensagem composta de "campos faltando"
+(`mensagemCamposFaltando`) e os erros vindos de `lib/recuperar-senha`/`validarNovaSenha`
+ficam em pt por ora (gramática de lista por idioma) — `auth-validacao.ts` intacto.
+
+**Próximas fatias (em ordem sugerida):**
+1. **Dashboard** — aqui entram a **moeda e as datas por locale** (`Intl.NumberFormat`/
+   `DateTimeFormat`; **BRL sempre**, só formata, **não converte**) e a decisão dos
+   **nomes das 30 categorias embutidas** (dado de domínio — traduzir ou manter?).
+2. Modais (Documentos, EditarCompra, EditarPerfil, Confirmação) e Tutorial.
+3. Toasts/erros ainda em pt (o deferido acima), quando valer o esforço da gramática.
 
 ### 4. Saldo bancário por conta — ✅ CÓDIGO PRONTO (2026-07-24), falta aplicar a migração
 
