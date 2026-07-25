@@ -81,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **350** (39 arquivos) |
+| Testes | **352** (40 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -143,8 +143,11 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 > **0** (recuperação de senha ponta a ponta), **1** (nome no e-mail — trocou o
 > *Application Name* no Neon) e **5** (filtro por banco e categorias personalizadas
 > conferidos logado). Itens **2** (PDF real + compartilhar) e **4** (saldo por conta)
-> foram entregues nesta sessão. **Restam as features grandes: 3 (i18n), design polish e
-> mais bancos.** O envio por **e-mail** (antigo passo 3 do item 2) foi **descartado**.
+> foram entregues nesta sessão, junto do **polimento de design** (erro coeso, foco por
+> teclado, alvos de toque, donut sticky, ações no topo-direito). **Restam as features
+> grandes: 3 (i18n) e mais bancos** (esta bloqueada até vir amostra de PDF de texto).
+> O envio por **e-mail** (antigo passo 3 do item 2) foi **descartado**.
+> Spec/plano do design em `docs/superpowers/specs/2026-07-24-polimento-design-design.md`.
 
 ### 0. ~~Verificar a recuperação de senha no navegador~~ ✅ FEITO E TESTADO (2026-07-24)
 
