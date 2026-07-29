@@ -1,6 +1,28 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-07-23**.
+> Documento de continuidade. Última atualização: **2026-07-29**.
+
+## Rodada 2026-07-29 — i18n fechado de verdade + performance + confete
+
+Três entregas, todas verificadas (suíte completa, build, lint, tsc, medidor de
+overflow e smoke de runtime no Chromium com troca pt→en sem erro de console):
+
+1. **i18n 100%**: fatia final dos modais/Tutorial (planejada) **e** as superfícies
+   que tinham ficado de fora — tela de importação inteira (Dropzone, ResultadoImport,
+   toasts de importar/salvar do App), ThemeToggle, LinhaTransacao e o **relatório
+   jsPDF** (via `tAtual` em `src/i18n/traduzir.ts`, t sem React). `interpolarNos`
+   (`src/i18n/interpolarNos.tsx`) injeta spans estilizados em frase traduzida.
+2. **Code-splitting do pdf.js**: import dinâmico memoizado em `domain/pdf/load.ts` —
+   chunk inicial de 1.340 kB → ~938 kB (gzip 381 → 262). Só quem importa PDF baixa.
+3. **Confete** (`src/ui/Celebracao.tsx`): dispara quando o total lido **confere ao
+   centavo**; camada `fixed` + `overflow-hidden` + `pointer-events-none` (não entra
+   no layout de rolagem) e respeita `prefers-reduced-motion`. Testado.
+
+Também: teste direto de `limparTokenDaUrl` (dívida antiga quitada) e `rotuloTipo`
+saiu do domain (rótulo é da UI). **374 testes (52 arquivos).**
+
+⚠️ **Único pendente gated**: aplicar `neon/migrations/0002_saldo_e_bancos.sql`
+(ver item 4 da fila) — sem credencial de banco neste ambiente, é passo manual.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -81,7 +103,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **369** (50 arquivos) |
+| Testes | **374** (52 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve

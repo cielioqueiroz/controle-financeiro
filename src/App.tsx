@@ -8,6 +8,7 @@ import { TelaAcesso, FraseDeslogado } from './ui/TelaAcesso'
 import { Rodape } from './ui/Rodape'
 import { Dropzone } from './ui/Dropzone'
 import { ResultadoImport } from './ui/ResultadoImport'
+import { Celebracao } from './ui/Celebracao'
 import { Auth } from './ui/Auth'
 import { ThemeToggle } from './ui/ThemeToggle'
 import { ContaMenu } from './ui/ContaMenu'
@@ -40,6 +41,7 @@ export default function App() {
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const [celebrando, setCelebrando] = useState(false)
   const { t } = useT()
   /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
@@ -88,6 +90,7 @@ export default function App() {
 
       if (v.status === 'confere') {
         toast.success(t('importar.toastConfere', { n: v.contagem }))
+        setCelebrando(true) // bateu ao centavo: momento de confete
       } else if (v.status === 'sem-gabarito') {
         toast.warning(t('importar.toastSemGabarito', { n: v.contagem }))
       } else {
@@ -170,6 +173,7 @@ export default function App() {
     <div className="grao min-h-dvh">
       <FundoAnimado />
       <Notificacoes />
+      <Celebracao ativo={celebrando} onFim={() => setCelebrando(false)} />
 
       <main className="relative z-10 mx-auto w-full max-w-[104rem] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
         <header className="screen-only mb-8 flex items-start justify-between gap-4 sm:mb-10">
