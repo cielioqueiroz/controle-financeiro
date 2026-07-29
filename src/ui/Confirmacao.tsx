@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { BOTAO_PRIMARIO } from './estilos-campo'
+import { useT } from '../i18n/IdiomaProvider'
 
 // BOTAO_PRIMARIO nasceu para o botão de largura cheia do card de acesso
 // (w-full, py-3). Aqui ele divide a linha com o Cancelar, num
@@ -46,6 +47,7 @@ export function Confirmacao({
   onCancelar,
 }: Props) {
   const semMovimento = useReducedMotion()
+  const { t } = useT()
   const tituloId = useId()
   const cardRef = useRef<HTMLDivElement>(null)
   const botaoCancelarRef = useRef<HTMLButtonElement>(null)
@@ -177,7 +179,7 @@ export function Confirmacao({
             onClick={onCancelar}
             className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:text-tinta disabled:opacity-50"
           >
-            Cancelar
+            {t('geral.cancelar')}
           </button>
           <button
             ref={botaoConfirmarRef}

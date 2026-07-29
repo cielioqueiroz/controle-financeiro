@@ -3,6 +3,8 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { puxarDocumentos, apagarDocumento, apagarTudo, type DocumentoSalvo } from '../persist/documentos'
 import { formatBRL } from '../domain/normalize/money'
+import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
+import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './Confirmacao'
 
 type Props = {
@@ -13,19 +15,32 @@ type Props = {
   contagem: Map<string, { qtd: number; totalCents: number }>
 }
 
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-
 function periodoCurto(ini: string | null, fim: string | null): string {
   const fmt = (s: string | null) => {
     if (!s) return '?'
-    const [, m, d] = s.split('-')
-    return `${d}/${MESES[Number(m) - 1]}`
+    const [y, m, d] = s.split('-').map(Number)
+    return `${String(d).padStart(2, '0')}/${mesAbrev(new Date(y, m - 1, d))}`
   }
   if (!ini && !fim) return '—'
   return `${fmt(ini)} – ${fmt(fim)}`
 }
 
+/** Envolve os números da frase em <strong> — mantém o destaque visual das
+ *  contagens sem quebrar a frase traduzida em pedaços por idioma. */
+function realcarNumeros(texto: string) {
+  return texto.split(/(\d+)/).map((parte, k) =>
+    /^\d+$/.test(parte) ? (
+      <strong key={k} className="text-tinta">
+        {parte}
+      </strong>
+    ) : (
+      parte
+    ),
+  )
+}
+
 export function Documentos({ onFechar, onMudou, contagem }: Props) {
+  const { t } = useT()
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [apagandoTudo, setApagandoTudo] = useState(false)
@@ -40,7 +55,7 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
     try {
       setDocs(await puxarDocumentos())
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Falha ao listar documentos.')
+      toast.error(e instanceof Error ? e.message : t('docs.toastListaFalha'))
     }
   }
 
@@ -58,12 +73,12 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
     setOcupado(true)
     try {
       await apagarDocumento(id)
-      toast.success('Documento apagado.')
+      toast.success(t('docs.toastApagado'))
       setConfirmando(null)
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Falha ao apagar.')
+      toast.error(e instanceof Error ? e.message : t('docs.toastApagarFalha'))
     } finally {
       setOcupado(false)
     }
@@ -73,11 +88,11 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
     setOcupado(true)
     try {
       await apagarTudo()
-      toast.success('Tudo apagado. Você começa do zero.')
+      toast.success(t('docs.toastTudoApagado'))
       onMudou()
       onFechar()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Falha ao apagar tudo.')
+      toast.error(e instanceof Error ? e.message : t('docs.toastApagarTudoFalha'))
     } finally {
       setOcupado(false)
     }
@@ -86,14 +101,13 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
   // Nomeia o documento em vez de um "tem certeza?" genérico: quem apaga
   // precisa reconhecer qual fatura/extrato está prestes a perder.
   const docAlvo = docs?.find((d) => d.id === confirmando)
-  const descricaoDoc = docAlvo ? (
-    <>
-      {docAlvo.doc_type === 'fatura' ? 'Fatura' : 'Extrato'} ·{' '}
-      <span className="capitalize">{docAlvo.bank}</span> ·{' '}
-      {periodoCurto(docAlvo.period_start, docAlvo.period_end)}. Os lançamentos dele saem do
-      histórico.
-    </>
-  ) : undefined
+  const descricaoDoc = docAlvo
+    ? t('docs.confApagarDesc', {
+        tipo: t(docAlvo.doc_type === 'fatura' ? 'doc.fatura' : 'doc.extrato'),
+        banco: docAlvo.bank.charAt(0).toUpperCase() + docAlvo.bank.slice(1),
+        periodo: periodoCurto(docAlvo.period_start, docAlvo.period_end),
+      })
+    : undefined
 
   // Irreversível: mostra o tamanho do estrago (documentos + lançamentos)
   // para a pessoa parar e ler, em vez de um genérico "apagar tudo?".
@@ -101,13 +115,13 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
   const totalLancamentos = docs
     ? docs.reduce((soma, d) => soma + (contagem.get(d.id)?.qtd ?? 0), 0)
     : 0
-  const descricaoTudo = (
-    <>
-      Isto apaga <strong className="text-tinta">{totalDocs}</strong>{' '}
-      {totalDocs === 1 ? 'documento' : 'documentos'} e{' '}
-      <strong className="text-tinta">{totalLancamentos}</strong>{' '}
-      {totalLancamentos === 1 ? 'lançamento' : 'lançamentos'}. Não dá para desfazer.
-    </>
+  const descricaoTudo = realcarNumeros(
+    t('docs.confTudoDesc', {
+      docs: t(totalDocs === 1 ? 'docs.contDoc1' : 'docs.contDocs', { n: totalDocs }),
+      lanc: t(totalLancamentos === 1 ? 'docs.contLanc1' : 'docs.contLanc', {
+        n: totalLancamentos,
+      }),
+    }),
   )
 
   return (
@@ -128,12 +142,12 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
       >
         <header className="flex items-center justify-between border-b border-carvao-800 px-6 py-4">
           <div>
-            <h2 className="font-display text-xl text-tinta">Documentos importados</h2>
-            <p className="text-xs text-tinta-fraca">Apague uma fatura/extrato ou recomece do zero.</p>
+            <h2 className="font-display text-xl text-tinta">{t('docs.titulo')}</h2>
+            <p className="text-xs text-tinta-fraca">{t('docs.subtitulo')}</p>
           </div>
           <button
             onClick={onFechar}
-            aria-label="Fechar"
+            aria-label={t('geral.fechar')}
             className="grid h-8 w-8 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:text-tinta"
           >
             ✕
@@ -142,11 +156,9 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
 
         <div className="max-h-[55vh] overflow-y-auto px-3 py-2">
           {docs === null ? (
-            <p className="px-4 py-10 text-center text-sm text-tinta-fraca">Carregando…</p>
+            <p className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.carregando')}</p>
           ) : docs.length === 0 ? (
-            <p className="px-4 py-10 text-center text-sm text-tinta-fraca">
-              Nenhum documento importado ainda.
-            </p>
+            <p className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.vazio')}</p>
           ) : (
             <ul className="space-y-1">
               {docs.map((d) => {
@@ -168,20 +180,21 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm text-tinta">
-                        {ehFatura ? 'Fatura' : 'Extrato'} · <span className="capitalize">{d.bank}</span>
+                        {t(ehFatura ? 'doc.fatura' : 'doc.extrato')} ·{' '}
+                        <span className="capitalize">{d.bank}</span>
                         <span className="text-tinta-tenue"> · {periodoCurto(d.period_start, d.period_end)}</span>
                       </p>
                       <p className="tabular text-[11px] text-tinta-tenue">
-                        {c ? `${c.qtd} lançamentos` : '—'}
-                        {c && c.totalCents > 0 ? ` · ${formatBRL(c.totalCents)}` : ''} · importado em{' '}
-                        {new Date(d.imported_at).toLocaleDateString('pt-BR')}
+                        {c ? t('docs.nLancamentos', { n: c.qtd }) : '—'}
+                        {c && c.totalCents > 0 ? ` · ${formatBRL(c.totalCents)}` : ''} ·{' '}
+                        {t('docs.importadoEm', { data: dataLongaDe(new Date(d.imported_at)) })}
                       </p>
                     </div>
 
                     <button
                       onClick={() => setConfirmando(d.id)}
-                      aria-label="Apagar documento"
-                      title="Apagar este documento"
+                      aria-label={t('docs.apagarDoc')}
+                      title={t('docs.apagarDocTitle')}
                       className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha"
                     >
                       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -201,16 +214,16 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
             disabled={!docs || docs.length === 0}
             className="text-xs font-medium text-falha transition-opacity hover:opacity-80 disabled:opacity-40"
           >
-            Apagar tudo e recomeçar
+            {t('docs.apagarTudo')}
           </button>
         </footer>
       </motion.div>
 
       <Confirmacao
         aberto={confirmando !== null}
-        titulo="Apagar este documento?"
+        titulo={t('docs.confApagarTitulo')}
         descricao={descricaoDoc}
-        rotuloConfirmar="Apagar"
+        rotuloConfirmar={t('docs.apagar')}
         severidade="perigo"
         ocupado={ocupado}
         onConfirmar={() => confirmando && apagar(confirmando)}
@@ -219,9 +232,9 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
 
       <Confirmacao
         aberto={apagandoTudo}
-        titulo="Apagar tudo e recomeçar?"
+        titulo={t('docs.confTudoTitulo')}
         descricao={descricaoTudo}
-        rotuloConfirmar="Apagar tudo"
+        rotuloConfirmar={t('docs.apagarTudoCurto')}
         severidade="perigo"
         ocupado={ocupado}
         onConfirmar={apagarGeral}

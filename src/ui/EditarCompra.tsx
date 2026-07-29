@@ -3,8 +3,9 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { editarTransacao } from '../persist/editar'
 import { criarCategoria } from '../persist/categoriasUsuario'
-import { todasCategorias, adicionarCategoriaExtra } from '../domain/categorize/categorias'
+import { todasCategorias, adicionarCategoriaExtra, nomeCategoria } from '../domain/categorize/categorias'
 import { formatBRL } from '../domain/normalize/money'
+import { useT } from '../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../persist/puxar'
 import { Confirmacao } from './Confirmacao'
 
@@ -30,10 +31,11 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
   const [novoIcone, setNovoIcone] = useState('🏷️')
   const [novaCor, setNovaCor] = useState(CORES[0])
   const [salvandoCat, setSalvandoCat] = useState(false)
+  const { t } = useT()
 
   async function criarNova() {
     if (!novoNome.trim()) {
-      toast.error('Dê um nome para a categoria.')
+      toast.error(t('editar.toastNomeCat'))
       return
     }
     setSalvandoCat(true)
@@ -44,9 +46,9 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
       setSlug(nova.slug)
       setCriando(false)
       setNovoNome('')
-      toast.success(`Categoria "${nova.nome}" criada.`)
+      toast.success(t('editar.toastCatCriada', { nome: nova.nome }))
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Falha ao criar a categoria.')
+      toast.error(e instanceof Error ? e.message : t('editar.toastCatFalha'))
     } finally {
       setSalvandoCat(false)
     }
@@ -58,10 +60,10 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
     try {
       await editarTransacao(tx.id, { label: labelLimpo, category_slug: slug })
       onSalvo(tx.id, { label: labelLimpo, category_slug: slug })
-      toast.success('Compra atualizada.')
+      toast.success(t('editar.toastOk'))
       onFechar()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Falha ao salvar.')
+      toast.error(e instanceof Error ? e.message : t('editar.toastFalha'))
     } finally {
       setSalvando(false)
     }
@@ -85,7 +87,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
       >
         <header className="flex items-start justify-between gap-3 border-b border-carvao-800 px-6 py-4">
           <div className="min-w-0">
-            <h2 className="font-display text-xl text-tinta">Editar compra</h2>
+            <h2 className="font-display text-xl text-tinta">{t('editar.titulo')}</h2>
             <p className="truncate text-xs text-tinta-tenue" title={tx.description}>
               {tx.date.slice(8, 10)}/{tx.date.slice(5, 7)} · {tx.description} ·{' '}
               <span className="tabular">{formatBRL(tx.amount_cents)}</span>
@@ -93,7 +95,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
           </div>
           <button
             onClick={onFechar}
-            aria-label="Fechar"
+            aria-label={t('geral.fechar')}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:text-tinta"
           >
             ✕
@@ -103,7 +105,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
         <div className="space-y-5 px-6 py-5">
           <label className="block">
             <span className="text-xs uppercase tracking-widest text-tinta-tenue">
-              Nome do estabelecimento
+              {t('editar.nomeEstab')}
             </span>
             <input
               value={label}
@@ -113,12 +115,12 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
               className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
             />
             <span className="mt-1 block text-[11px] text-tinta-tenue">
-              Deixe em branco para usar o texto original do banco.
+              {t('editar.nomeAjuda')}
             </span>
           </label>
 
           <div>
-            <span className="text-xs uppercase tracking-widest text-tinta-tenue">Categoria</span>
+            <span className="text-xs uppercase tracking-widest text-tinta-tenue">{t('editar.categoria')}</span>
             <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
               {cats.map((c) => (
                 <button
@@ -132,7 +134,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
                   style={slug === c.slug ? { background: c.cor } : undefined}
                 >
                   <span>{c.icone}</span>
-                  <span className="truncate">{c.nome}</span>
+                  <span className="truncate">{nomeCategoria(c)}</span>
                 </button>
               ))}
               <button
@@ -140,7 +142,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
                 className="flex items-center gap-1.5 rounded-lg border border-dashed border-carvao-600 px-2.5 py-1.5 text-left text-xs text-tinta-fraca transition-colors hover:border-tinta-tenue hover:text-tinta"
               >
                 <span aria-hidden>＋</span>
-                <span className="truncate">Nova</span>
+                <span className="truncate">{t('editar.nova')}</span>
               </button>
             </div>
 
@@ -151,13 +153,13 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
                     value={novoIcone}
                     onChange={(e) => setNovoIcone(e.target.value)}
                     maxLength={2}
-                    aria-label="Emoji da categoria"
+                    aria-label={t('editar.emojiAria')}
                     className="w-12 rounded-md border border-carvao-700 bg-carvao-950 px-2 py-1.5 text-center text-base outline-none"
                   />
                   <input
                     value={novoNome}
                     onChange={(e) => setNovoNome(e.target.value)}
-                    placeholder="Nome da nova categoria"
+                    placeholder={t('editar.novaCatPh')}
                     className="flex-1 rounded-md border border-carvao-700 bg-carvao-950 px-3 py-1.5 text-sm text-tinta outline-none placeholder:text-tinta-tenue"
                   />
                 </div>
@@ -179,14 +181,14 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
                     onClick={() => setCriando(false)}
                     className="rounded-md px-3 py-1.5 text-xs text-tinta-tenue transition-colors hover:text-tinta"
                   >
-                    Cancelar
+                    {t('geral.cancelar')}
                   </button>
                   <button
                     onClick={criarNova}
                     disabled={salvandoCat}
                     className="rounded-md bg-tinta px-3 py-1.5 text-xs font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
-                    {salvandoCat ? 'Criando…' : 'Criar categoria'}
+                    {salvandoCat ? t('editar.criando') : t('editar.criarCat')}
                   </button>
                 </div>
               </div>
@@ -199,23 +201,23 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
             onClick={onFechar}
             className="rounded-lg px-4 py-2 text-sm text-tinta-fraca transition-colors hover:text-tinta"
           >
-            Cancelar
+            {t('geral.cancelar')}
           </button>
           <button
             onClick={() => setConfirmandoSalvar(true)}
             disabled={salvando}
             className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {salvando ? 'Salvando…' : 'Salvar'}
+            {salvando ? t('geral.salvando') : t('geral.salvar')}
           </button>
         </footer>
       </motion.div>
 
       <Confirmacao
         aberto={confirmandoSalvar}
-        titulo="Salvar alterações?"
-        descricao="A compra passa a valer com o nome e a categoria que você escolheu."
-        rotuloConfirmar="Salvar"
+        titulo={t('editar.confirmaTitulo')}
+        descricao={t('editar.confirmaDesc')}
+        rotuloConfirmar={t('geral.salvar')}
         severidade="normal"
         ocupado={salvando}
         onConfirmar={salvar}

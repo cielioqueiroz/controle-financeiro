@@ -81,7 +81,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **368** (48 arquivos) |
+| Testes | **369** (50 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -144,8 +144,9 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 > *Application Name* no Neon) e **5** (filtro por banco e categorias personalizadas
 > conferidos logado). Itens **2** (PDF real + compartilhar) e **4** (saldo por conta)
 > foram entregues nesta sessão, junto do **polimento de design** (erro coeso, foco por
-> teclado, alvos de toque, donut sticky, ações no topo-direito). **Restam as features
-> grandes: 3 (i18n) e mais bancos** (esta bloqueada até vir amostra de PDF de texto).
+> teclado, alvos de toque, donut sticky, ações no topo-direito). **Atualização
+> 2026-07-29: o item 3 (i18n) foi CONCLUÍDO** — resta só "mais bancos" (bloqueada até
+> vir amostra de PDF de texto) e o passo gated do item 4 (migração 0002 no Neon).
 > O envio por **e-mail** (antigo passo 3 do item 2) foi **descartado**.
 > Spec/plano do design em `docs/superpowers/specs/2026-07-24-polimento-design-design.md`.
 
@@ -212,7 +213,15 @@ Spec/plano em `docs/superpowers/specs|plans/2026-07-24-relatorio-pdf-compartilha
 **E-mail: descartado do roadmap (decisão do usuário, 2026-07-24).** Era o passo 3
 (botão de enviar por e-mail via serverless + Resend). Não será feito.
 
-### 3. i18n pt/en/es — 🚧 EM ANDAMENTO (1ª fatia entregue 2026-07-24)
+### 3. i18n pt/en/es — ✅ COMPLETO (fatia final 2026-07-29)
+
+**Fatia final (2026-07-29):** modais (EditarPerfil, EditarCompra, Documentos,
+Confirmacao) e Tutorial 100% por `t()`; `Documentos` formata período/data pela
+locale ativa (`mesAbrev`/`dataLongaDe`, fim do array `MESES` fixo) e as contagens
+ganharam singular (`docs.contDoc1`/`docs.contLanc1`); destaque de números do
+"apagar tudo" preservado por `realcarNumeros` (independe do idioma). Teste de
+modal em en: `src/ui/Tutorial.i18n.test.tsx`. **Todas as superfícies + toasts
+traduzidos; en/es seguem aguardando revisão do usuário nativo.**
 
 Botão de idioma trocando **todo** o texto do sistema, **feito por fatias**.
 Spec/plano em `docs/superpowers/specs|plans/2026-07-24-i18n-mecanismo-e-login*`.

@@ -136,6 +136,95 @@ export const pt = {
   'recuperar.erro.rede': 'Não consegui falar com o servidor. Tente de novo.',
   'recuperar.erro.token': 'Este link expirou ou já foi usado.',
 
+  // Genéricos
+  'geral.cancelar': 'Cancelar',
+  'geral.salvar': 'Salvar',
+  'geral.salvando': 'Salvando…',
+  'geral.fechar': 'Fechar',
+  'doc.fatura': 'Fatura',
+  'doc.extrato': 'Extrato',
+
+  // Editar perfil
+  'perfil.subtitulo': 'Como você quer ser chamado por aqui.',
+  'perfil.apelidoLabel': 'Apelido — como aparece na saudação',
+  'perfil.apelidoPh': 'como quer ser chamado?',
+  'perfil.apelidoAjuda': 'Deixe em branco para usar seu primeiro nome.',
+  'perfil.nomeLabel': 'Nome completo',
+  'perfil.previaPrefixo': 'Vai aparecer assim:',
+  'perfil.toastOk': 'Perfil atualizado.',
+  'perfil.toastFalha': 'Não consegui salvar o perfil.',
+
+  // Editar compra
+  'editar.titulo': 'Editar compra',
+  'editar.nomeEstab': 'Nome do estabelecimento',
+  'editar.nomeAjuda': 'Deixe em branco para usar o texto original do banco.',
+  'editar.categoria': 'Categoria',
+  'editar.nova': 'Nova',
+  'editar.novaCatPh': 'Nome da nova categoria',
+  'editar.emojiAria': 'Emoji da categoria',
+  'editar.criarCat': 'Criar categoria',
+  'editar.criando': 'Criando…',
+  'editar.toastNomeCat': 'Dê um nome para a categoria.',
+  'editar.toastCatCriada': 'Categoria "{nome}" criada.',
+  'editar.toastCatFalha': 'Falha ao criar a categoria.',
+  'editar.toastOk': 'Compra atualizada.',
+  'editar.toastFalha': 'Falha ao salvar.',
+  'editar.confirmaTitulo': 'Salvar alterações?',
+  'editar.confirmaDesc': 'A compra passa a valer com o nome e a categoria que você escolheu.',
+
+  // Documentos
+  'docs.titulo': 'Documentos importados',
+  'docs.subtitulo': 'Apague uma fatura/extrato ou recomece do zero.',
+  'docs.carregando': 'Carregando…',
+  'docs.vazio': 'Nenhum documento importado ainda.',
+  'docs.nLancamentos': '{n} lançamentos',
+  'docs.importadoEm': 'importado em {data}',
+  'docs.apagarDoc': 'Apagar documento',
+  'docs.apagarDocTitle': 'Apagar este documento',
+  'docs.apagarTudo': 'Apagar tudo e recomeçar',
+  'docs.apagar': 'Apagar',
+  'docs.toastListaFalha': 'Falha ao listar documentos.',
+  'docs.toastApagado': 'Documento apagado.',
+  'docs.toastApagarFalha': 'Falha ao apagar.',
+  'docs.toastTudoApagado': 'Tudo apagado. Você começa do zero.',
+  'docs.toastApagarTudoFalha': 'Falha ao apagar tudo.',
+  'docs.confApagarTitulo': 'Apagar este documento?',
+  'docs.confApagarDesc': '{tipo} · {banco} · {periodo}. Os lançamentos dele saem do histórico.',
+  'docs.confTudoTitulo': 'Apagar tudo e recomeçar?',
+  'docs.confTudoDesc': 'Isto apaga {docs} e {lanc}. Não dá para desfazer.',
+  'docs.contDocs': '{n} documentos',
+  'docs.contDoc1': '{n} documento',
+  'docs.contLanc': '{n} lançamentos',
+  'docs.contLanc1': '{n} lançamento',
+  'docs.apagarTudoCurto': 'Apagar tudo',
+
+  // Tutorial
+  'tutorial.pular': 'Pular',
+  'tutorial.voltar': 'Voltar',
+  'tutorial.proximo': 'Próximo',
+  'tutorial.boraVer': 'Bora ver',
+  'tutorial.comecar': 'Começar!',
+  'tutorial.boasVindas':
+    'Bem-vindo(a) ao seu controle financeiro. Importe faturas e extratos em PDF e veja, com clareza, para onde o seu dinheiro foi — sem digitar nada. Em 30 segundos eu te mostro como.',
+  'tutorial.p1t': 'Importe um PDF',
+  'tutorial.p1c':
+    'Clique em "+ Importar PDF" e solte a fatura ou o extrato — leio Nubank, Bradesco, Banco do Brasil, Sicredi e Sicoob. Tudo é lido aqui no navegador; guardo só os lançamentos, o PDF nunca sai do seu computador.',
+  'tutorial.p2t': 'Veja por período',
+  'tutorial.p2c':
+    'Alterne entre Dia, Semana, Mês e Ano. O Mês agrupa pela fatura (competência), então bate com o valor que você realmente paga naquele mês.',
+  'tutorial.p3t': 'Ajuste as compras',
+  'tutorial.p3c':
+    'Cada compra ganha uma categoria automática. Passe o mouse sobre a linha e clique no lápis para renomear o estabelecimento ou trocar a categoria do seu jeito.',
+  'tutorial.p4t': 'Seus documentos',
+  'tutorial.p4c':
+    'No botão "Documentos" você vê tudo que importou e pode apagar uma fatura específica — ou recomeçar do zero, se algo saiu errado.',
+  'tutorial.p5t': 'Leve o relatório',
+  'tutorial.p5c':
+    'O botão "Baixar PDF" monta um relatório limpo do período e abre o diálogo de impressão — é só escolher "Salvar como PDF" para guardar ou imprimir no papel.',
+  'tutorial.p6t': 'Do seu jeito',
+  'tutorial.p6c':
+    'No menu da conta (a bolinha com sua inicial, no topo) você abre "Editar perfil" para trocar o apelido da saudação e o nome completo quando quiser. É por lá também que você revê este tour.',
+
   // Seletor de idioma
   seletorIdioma: 'Idioma',
 }

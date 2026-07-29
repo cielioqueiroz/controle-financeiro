@@ -1,56 +1,29 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useT } from '../i18n/IdiomaProvider'
+import type { Dicionario } from '../i18n/dicionarios/pt'
 
 type Props = {
   nome: string
   onFechar: () => void
 }
 
-type Passo = { icone: string; titulo: string; corpo: string }
+type Passo = { icone: string; titulo: keyof Dicionario; corpo: keyof Dicionario }
 
 const PASSOS: Passo[] = [
-  {
-    icone: '📄',
-    titulo: 'Importe um PDF',
-    corpo:
-      'Clique em “+ Importar PDF” e solte a fatura ou o extrato — leio Nubank, Bradesco, Banco do Brasil, Sicredi e Sicoob. Tudo é lido aqui no navegador; guardo só os lançamentos, o PDF nunca sai do seu computador.',
-  },
-  {
-    icone: '🗓️',
-    titulo: 'Veja por período',
-    corpo:
-      'Alterne entre Dia, Semana, Mês e Ano. O Mês agrupa pela fatura (competência), então bate com o valor que você realmente paga naquele mês.',
-  },
-  {
-    icone: '🏷️',
-    titulo: 'Ajuste as compras',
-    corpo:
-      'Cada compra ganha uma categoria automática. Passe o mouse sobre a linha e clique no lápis para renomear o estabelecimento ou trocar a categoria do seu jeito.',
-  },
-  {
-    icone: '🗂️',
-    titulo: 'Seus documentos',
-    corpo:
-      'No botão “Documentos” você vê tudo que importou e pode apagar uma fatura específica — ou recomeçar do zero, se algo saiu errado.',
-  },
-  {
-    icone: '🖨️',
-    titulo: 'Leve o relatório',
-    corpo:
-      'O botão “Baixar PDF” monta um relatório limpo do período e abre o diálogo de impressão — é só escolher “Salvar como PDF” para guardar ou imprimir no papel.',
-  },
-  {
-    icone: '😊',
-    titulo: 'Do seu jeito',
-    corpo:
-      'No menu da conta (a bolinha com sua inicial, no topo) você abre “Editar perfil” para trocar o apelido da saudação e o nome completo quando quiser. É por lá também que você revê este tour.',
-  },
+  { icone: '📄', titulo: 'tutorial.p1t', corpo: 'tutorial.p1c' },
+  { icone: '🗓️', titulo: 'tutorial.p2t', corpo: 'tutorial.p2c' },
+  { icone: '🏷️', titulo: 'tutorial.p3t', corpo: 'tutorial.p3c' },
+  { icone: '🗂️', titulo: 'tutorial.p4t', corpo: 'tutorial.p4c' },
+  { icone: '🖨️', titulo: 'tutorial.p5t', corpo: 'tutorial.p5c' },
+  { icone: '😊', titulo: 'tutorial.p6t', corpo: 'tutorial.p6c' },
 ]
 
 /** Tutorial guiado de boas-vindas: passos curtos mostrando como usar o
  *  app. Aparece uma vez para quem nunca viu (flag no navegador) e pode ser
  *  reaberto pelo menu de conta. */
 export function Tutorial({ nome, onFechar }: Props) {
+  const { t } = useT()
   const [i, setI] = useState(-1) // -1 = tela de boas-vindas
   const total = PASSOS.length
   const boasVindas = i < 0
@@ -75,7 +48,7 @@ export function Tutorial({ nome, onFechar }: Props) {
             onClick={onFechar}
             className="absolute right-4 top-4 text-[11px] uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
           >
-            Pular
+            {t('tutorial.pular')}
           </button>
 
           <AnimatePresence mode="wait">
@@ -90,11 +63,11 @@ export function Tutorial({ nome, onFechar }: Props) {
               {boasVindas ? (
                 <>
                   <div className="text-4xl">👋</div>
-                  <h2 className="mt-3 font-display text-2xl text-tinta">Olá, {nome}!</h2>
+                  <h2 className="mt-3 font-display text-2xl text-tinta">
+                    {t('header.ola', { nome })}
+                  </h2>
                   <p className="mt-2 text-sm leading-relaxed text-tinta-fraca">
-                    Bem-vindo(a) ao seu controle financeiro. Importe faturas e extratos em PDF e veja,
-                    com clareza, para onde o seu dinheiro foi — sem digitar nada. Em 30 segundos eu
-                    te mostro como.
+                    {t('tutorial.boasVindas')}
                   </p>
                 </>
               ) : (
@@ -104,9 +77,9 @@ export function Tutorial({ nome, onFechar }: Props) {
                     <span className="tabular text-xs text-tinta-tenue">
                       {i + 1}/{total}
                     </span>
-                    <h2 className="font-display text-2xl text-tinta">{passo!.titulo}</h2>
+                    <h2 className="font-display text-2xl text-tinta">{t(passo!.titulo)}</h2>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-tinta-fraca">{passo!.corpo}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-tinta-fraca">{t(passo!.corpo)}</p>
                 </>
               )}
             </motion.div>
@@ -132,7 +105,7 @@ export function Tutorial({ nome, onFechar }: Props) {
                 onClick={() => setI((v) => v - 1)}
                 className="rounded-lg px-3 py-1.5 text-sm text-tinta-fraca transition-colors hover:text-tinta"
               >
-                Voltar
+                {t('tutorial.voltar')}
               </button>
             )}
             {ultimo ? (
@@ -140,14 +113,14 @@ export function Tutorial({ nome, onFechar }: Props) {
                 onClick={onFechar}
                 className="rounded-lg bg-marca px-4 py-1.5 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
               >
-                Começar!
+                {t('tutorial.comecar')}
               </button>
             ) : (
               <button
                 onClick={() => setI((v) => v + 1)}
                 className="rounded-lg bg-tinta px-4 py-1.5 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
               >
-                {boasVindas ? 'Bora ver' : 'Próximo'}
+                {t(boasVindas ? 'tutorial.boraVer' : 'tutorial.proximo')}
               </button>
             )}
           </div>

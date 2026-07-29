@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido, primeiroNome } from '../lib/perfil'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   /** Nome completo atual (vem do Neon Auth, `user.name`). */
@@ -22,6 +23,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
   const [nome, setNome] = useState(nomeAtual)
   const [apelido, setApelido] = useState(apelidoAtual)
   const [salvando, setSalvando] = useState(false)
+  const { t } = useT()
 
   useEffect(() => {
     function esc(e: KeyboardEvent) {
@@ -43,17 +45,17 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
       // Nome completo só vai ao servidor se mudou e não está vazio — não
       // apagamos o nome do cadastro com um campo em branco.
       if (nomeLimpo && nomeLimpo !== nomeAtual.trim()) {
-        if (!neon) throw new Error('O banco não está configurado neste ambiente.')
+        if (!neon) throw new Error(t('auth.toast.semBanco'))
         const { error } = await neon.auth.updateUser({ name: nomeLimpo })
         if (error) throw new Error(error.message)
       }
       // Apelido é local: vazio limpa e volta a saudação para o 1º nome.
       salvarApelido(apelidoLimpo)
-      toast.success('Perfil atualizado.')
+      toast.success(t('perfil.toastOk'))
       onSalvo()
       onFechar()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Não consegui salvar o perfil.')
+      toast.error(e instanceof Error ? e.message : t('perfil.toastFalha'))
     } finally {
       setSalvando(false)
     }
@@ -66,7 +68,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
       exit={{ opacity: 0 }}
       role="dialog"
       aria-modal="true"
-      aria-label="Editar perfil"
+      aria-label={t('conta.editarPerfil')}
       className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:p-8"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget && !salvando) onFechar()
@@ -80,12 +82,12 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
       >
         <header className="flex items-start justify-between gap-3 border-b border-carvao-800 px-6 py-4">
           <div className="min-w-0">
-            <h2 className="font-display text-xl text-tinta">Editar perfil</h2>
-            <p className="text-xs text-tinta-tenue">Como você quer ser chamado por aqui.</p>
+            <h2 className="font-display text-xl text-tinta">{t('conta.editarPerfil')}</h2>
+            <p className="text-xs text-tinta-tenue">{t('perfil.subtitulo')}</p>
           </div>
           <button
             onClick={onFechar}
-            aria-label="Fechar"
+            aria-label={t('geral.fechar')}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:text-tinta"
           >
             ✕
@@ -95,34 +97,35 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
         <div className="space-y-5 px-6 py-5">
           <label className="block">
             <span className="text-xs uppercase tracking-widest text-tinta-tenue">
-              Apelido — como aparece na saudação
+              {t('perfil.apelidoLabel')}
             </span>
             <input
               value={apelido}
               onChange={(e) => setApelido(e.target.value)}
-              placeholder={primeiroNome(nome) ?? 'como quer ser chamado?'}
+              placeholder={primeiroNome(nome) ?? t('perfil.apelidoPh')}
               autoFocus
               maxLength={40}
               className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
             />
             <span className="mt-1 block text-[11px] text-tinta-tenue">
-              Deixe em branco para usar seu primeiro nome.
+              {t('perfil.apelidoAjuda')}
             </span>
           </label>
 
           <label className="block">
-            <span className="text-xs uppercase tracking-widest text-tinta-tenue">Nome completo</span>
+            <span className="text-xs uppercase tracking-widest text-tinta-tenue">{t('perfil.nomeLabel')}</span>
             <input
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder="nome e sobrenome"
+              placeholder={t('auth.ph.nome')}
               maxLength={120}
               className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
             />
           </label>
 
           <p className="rounded-lg border border-carvao-800 bg-carvao-850/60 px-3 py-2 text-sm text-tinta-fraca">
-            Vai aparecer assim: <span className="text-tinta">Olá, {saudacaoPrevia}!</span>
+            {t('perfil.previaPrefixo')}{' '}
+            <span className="text-tinta">{t('header.ola', { nome: saudacaoPrevia })}</span>
           </p>
         </div>
 
@@ -132,14 +135,14 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
             disabled={salvando}
             className="rounded-lg px-4 py-2 text-sm text-tinta-fraca transition-colors hover:text-tinta disabled:opacity-50"
           >
-            Cancelar
+            {t('geral.cancelar')}
           </button>
           <button
             onClick={salvar}
             disabled={salvando}
             className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {salvando ? 'Salvando…' : 'Salvar'}
+            {salvando ? t('geral.salvando') : t('geral.salvar')}
           </button>
         </footer>
       </motion.div>
