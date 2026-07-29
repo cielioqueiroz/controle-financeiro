@@ -43,6 +43,10 @@ vi.mock('./lib/neon', () => ({
       signIn: { email: authMocks.signInEmail, social: vi.fn() },
       signOut: vi.fn(() => Promise.resolve({ error: null })),
     },
+    // Ao logar, o App puxa as regras aprendidas (persist/regras). Sem `from`
+    // no mock isso virava rejeição não tratada e sujava a saída da suíte —
+    // nada aqui depende das regras, então vazio basta.
+    from: () => ({ select: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }),
   },
   neonConfigurado: true,
 }))

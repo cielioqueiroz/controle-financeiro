@@ -32,6 +32,13 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil }: Props) {
 
   useEffect(() => {
     if (!aberto) return
+    // Com o diálogo aberto, quem manda é ele: o Confirmacao vive num portal
+    // pendurado no <body> (ver Portal.tsx), logo FORA deste `ref`. Se estes
+    // ouvintes continuassem valendo, o mousedown no próprio botão "Sair"
+    // contaria como clique fora — o menu e o diálogo sumiriam antes de o
+    // clique virar `onConfirmar`, e não dava para sair da conta. O diálogo
+    // já trata Esc e clique no véu por conta própria.
+    if (confirmando) return
     function fora(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setAberto(false)
@@ -50,7 +57,7 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil }: Props) {
       document.removeEventListener('mousedown', fora)
       document.removeEventListener('keydown', esc)
     }
-  }, [aberto])
+  }, [aberto, confirmando])
 
   const inicial = (email?.[0] ?? '?').toUpperCase()
 
