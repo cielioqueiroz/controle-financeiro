@@ -1,6 +1,8 @@
 # Estado atual do projeto — retomada
 
 > Documento de continuidade. Última atualização: **2026-07-29**.
+> Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
+> **o que já foi decidido** e **o que vem a seguir**.
 
 ## Rodada 2026-07-29 — i18n fechado de verdade + performance + confete
 
@@ -21,12 +23,36 @@ overflow e smoke de runtime no Chromium com troca pt→en sem erro de console):
 Também: teste direto de `limparTokenDaUrl` (dívida antiga quitada) e `rotuloTipo`
 saiu do domain (rótulo é da UI). **374 testes (52 arquivos).**
 
+### Correção 2026-07-29 (tarde) — "Não consegui gerar o PDF"
+
+Usuário relatou o toast de erro ao baixar, e que só existia compartilhar.
+**Duas causas, ambas corrigidas:**
+
+1. **Chunk obsoleto depois de deploy (a causa do erro).** O hash do chunk do
+   jsPDF muda a cada build (`DQmrqhaM`→`y4HQsXkL`→`Mhhn8_ys` só nesta sessão).
+   Aba aberta antes do deploy pede um arquivo que não existe mais e o import
+   dinâmico rejeita com *"Failed to fetch dynamically imported module"* —
+   **confirmado no Chromium contra o build de produção**. O `catch {}` sem
+   binding transformava isso em "não consegui gerar o PDF", culpando o
+   recurso errado. Agora `lib/chunk.ts` (`ehFalhaDeChunk`, 5 testes) detecta e
+   o toast oferece **Recarregar**. Vale para qualquer import dinâmico futuro.
+2. **Baixar e compartilhar eram uma decisão automática.** `baixarOuCompartilhar`
+   escolhia sozinho: no Chrome/Edge do **Windows** `canShare({files})` é true,
+   então o desktop caía sempre no share e o download sumia. Agora
+   `lib/compartilhar.ts` expõe `baixarArquivo`, `compartilharArquivo` e
+   `podeCompartilharArquivo` (7 testes), e a UI tem **dois botões** — o de
+   compartilhar só aparece onde há suporte. Se o share falhar (ex.:
+   `NotAllowedError` por user activation expirada durante a geração), **cai
+   para o download** em vez de perder um PDF já pronto. Pinado em
+   `Dashboard.pdf.test.tsx` (3 testes).
+
+Todo `catch` de PDF agora faz `console.error` com o erro real.
+**386 testes (53 arquivos).**
+
 ✅ **Migração 0002 CONFERIDA EM PRODUÇÃO (2026-07-29)**: o usuário verificou no
 SQL Editor do Neon — `documents.end_balance_cents` existe e o CHECK de
 `accounts.bank` já aceita os 5 bancos (aplicada por ele em 2026-07-24, 20:33).
 O item 4 da fila está 100% encerrado; **nenhuma pendência de banco restante**.
-> Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
-> **o que já foi decidido** e **o que vem a seguir**.
 
 ## Últimas duas rodadas (2026-07-23) — tela de acesso + acabamento
 
@@ -105,7 +131,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **374** (52 arquivos) |
+| Testes | **386** (53 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve

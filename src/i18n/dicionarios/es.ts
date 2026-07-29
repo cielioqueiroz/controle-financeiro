@@ -65,7 +65,10 @@ export const es: Dicionario = {
   'dash.porData': 'por fecha de compra',
   'dash.totalGeral': 'Total general',
   'dash.documentos': 'Documentos',
-  'dash.baixarPdf': 'Descargar / Compartir PDF',
+  'dash.baixarPdf': 'Descargar PDF',
+  'dash.compartilharPdf': 'Compartir',
+  'dash.baixarTooltip': 'Guarda el informe del período en tu equipo',
+  'dash.compartilharTooltip': 'Abre el compartir del sistema con el informe',
   'dash.gerando': 'Generando…',
   'dash.importar': '+ Importar PDF',
   'dash.periodoAnterior': 'Período anterior',
@@ -253,6 +256,12 @@ export const es: Dicionario = {
   'pdf.categoria': 'Categoría',
   'pdf.valor': 'Importe',
   'pdf.geradoPor': 'Generado por',
+  'pdf.baixado': 'Informe descargado.',
+  'pdf.erroGerar': 'No pude generar el PDF.',
+  'pdf.textoCompartilhar': 'Mi informe de {periodo} — Capital Financeiro.',
+
+  'app.versaoNova': 'Hay una versión nueva. Recarga para continuar.',
+  'app.recarregar': 'Recargar',
 
   seletorIdioma: 'Idioma',
 }

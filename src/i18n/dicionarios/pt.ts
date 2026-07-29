@@ -75,7 +75,10 @@ export const pt = {
   'dash.porData': 'por data da compra',
   'dash.totalGeral': 'Total geral',
   'dash.documentos': 'Documentos',
-  'dash.baixarPdf': 'Baixar / Compartilhar PDF',
+  'dash.baixarPdf': 'Baixar PDF',
+  'dash.compartilharPdf': 'Compartilhar',
+  'dash.baixarTooltip': 'Salva o relatório do período no seu computador',
+  'dash.compartilharTooltip': 'Abre o compartilhamento do sistema com o relatório',
   'dash.gerando': 'Gerando…',
   'dash.importar': '+ Importar PDF',
   'dash.periodoAnterior': 'Período anterior',
@@ -279,6 +282,13 @@ export const pt = {
   'pdf.categoria': 'Categoria',
   'pdf.valor': 'Valor',
   'pdf.geradoPor': 'Gerado por',
+  'pdf.baixado': 'Relatório baixado.',
+  'pdf.erroGerar': 'Não consegui gerar o PDF.',
+  'pdf.textoCompartilhar': 'Meu relatório de {periodo} — Capital Financeiro.',
+
+  // Aba desatualizada depois de um deploy
+  'app.versaoNova': 'Saiu uma versão nova. Recarregue para continuar.',
+  'app.recarregar': 'Recarregar',
 
   // Seletor de idioma
   seletorIdioma: 'Idioma',

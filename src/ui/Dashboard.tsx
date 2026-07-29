@@ -21,6 +21,8 @@ import { CompromissosFuturos } from './CompromissosFuturos'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { ListaPorDia } from './ListaPorDia'
 import { MenuAcoes } from './MenuAcoes'
+import { podeCompartilharArquivo } from '../lib/compartilhar'
+import { ehFalhaDeChunk } from '../lib/chunk'
 import { ValorAnimado } from './ValorAnimado'
 import { Documentos } from './Documentos'
 import { EditarCompra } from './EditarCompra'
@@ -49,6 +51,22 @@ const PERIODOS = [
  *  canônico (`domain/banks.ts`). Antes havia um mapa local que só conhecia
  *  Nubank e Bradesco, então BB/Sicredi/Sicoob apareciam como o slug cru e
  *  sem cor depois que o app passou a lê-los. */
+function IconeBaixar() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  )
+}
+
+function IconeCompartilhar() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L8 8m4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+    </svg>
+  )
+}
+
 function bancoInfo(b: string): { nome: string; cor?: string } {
   const tema = BANCOS[b as Bank]
   return tema ? { nome: tema.nome, cor: tema.accent } : { nome: b }
@@ -108,6 +126,9 @@ export function Dashboard({ onImportar }: Props) {
   const [banco, setBanco] = useState<string>('geral')
   const [docsSaldo, setDocsSaldo] = useState<DocParaSaldo[]>([])
   const [gerandoPdf, setGerandoPdf] = useState(false)
+  // Capacidade do navegador, estável na sessão: decidida uma vez, não a cada
+  // render. Some no desktop sem Web Share — lá só existe baixar.
+  const [podeCompartilhar] = useState(podeCompartilharArquivo)
   const { t } = useT()
 
   // Aplica a edição em memória (sem reidratar tudo do banco).
@@ -194,38 +215,86 @@ export function Dashboard({ onImportar }: Props) {
     setRef(new Date(y, m - 1, 1))
   }
 
-  // Gera o PDF do período e compartilha (celular) ou baixa (desktop). jsPDF
-  // entra por import dinâmico só aqui — fora do bundle inicial.
+  // Aba aberta antes de um deploy pede um chunk que não existe mais. Culpar
+  // o PDF nesse caso manda a pessoa investigar a coisa errada — o conserto é
+  // recarregar, então o toast oferece exatamente isso.
+  function avisarFalha(e: unknown) {
+    if (ehFalhaDeChunk(e)) {
+      toast.error(t('app.versaoNova'), {
+        action: { label: t('app.recarregar'), onClick: () => window.location.reload() },
+        duration: 10000,
+      })
+      return
+    }
+    toast.error(t('pdf.erroGerar'))
+  }
+
+  // Monta o PDF do período. jsPDF entra por import dinâmico só aqui — fora
+  // do bundle inicial. Devolve o blob e o nome do arquivo; quem chama decide
+  // se baixa ou compartilha.
+  async function montarPdf(): Promise<{ blob: Blob; nome: string; label: string }> {
+    const { montarDadosRelatorio, gerarRelatorioPdf } = await import('../lib/relatorio-pdf')
+    const label = rotulo(periodo, ref)
+    const dados = montarDadosRelatorio({
+      periodoLabel: label,
+      agrupamento: t(agrupamentoDe(periodo)),
+      resumo: {
+        gastoCents: resumo.gastoCents,
+        entradasCents: resumo.entradasCents,
+        // Nome de categoria traduzido no idioma ativo (o slug é a chave; o
+        // PDF mostra o rótulo). montarDadosRelatorio recebe já resolvido.
+        porCategoria: resumo.porCategoria.map((c) => ({
+          cat: { nome: nomeCategoria(c.cat) },
+          totalCents: c.totalCents,
+        })),
+      },
+      saldos: saldos.map((s) => ({ bank: s.bank, balanceCents: s.balanceCents, date: s.date })),
+    })
+    const blob = await gerarRelatorioPdf(dados)
+    const slug = label.toLowerCase().replace(/\s+/g, '-')
+    return { blob, nome: `relatorio-${slug}.pdf`, label }
+  }
+
   async function baixarPdf() {
-    if (!txs || txs.length === 0) return
+    if (!txs || txs.length === 0 || gerandoPdf) return
     setGerandoPdf(true)
     try {
-      const { montarDadosRelatorio, gerarRelatorioPdf } = await import('../lib/relatorio-pdf')
-      const { baixarOuCompartilhar } = await import('../lib/compartilhar')
-      const label = rotulo(periodo, ref)
-      const dados = montarDadosRelatorio({
-        periodoLabel: label,
-        agrupamento: t(agrupamentoDe(periodo)),
-        resumo: {
-          gastoCents: resumo.gastoCents,
-          entradasCents: resumo.entradasCents,
-          // Nome de categoria traduzido no idioma ativo (o slug é a chave; o
-          // PDF mostra o rótulo). montarDadosRelatorio recebe já resolvido.
-          porCategoria: resumo.porCategoria.map((c) => ({
-            cat: { nome: nomeCategoria(c.cat) },
-            totalCents: c.totalCents,
-          })),
-        },
-        saldos: saldos.map((s) => ({ bank: s.bank, balanceCents: s.balanceCents, date: s.date })),
-      })
-      const blob = await gerarRelatorioPdf(dados)
-      const slug = label.toLowerCase().replace(/\s+/g, '-')
-      await baixarOuCompartilhar(blob, `relatorio-${slug}.pdf`, {
-        title: `Relatório · ${label}`,
-        text: `Meu relatório de ${label} — Capital Financeiro.`,
-      })
-    } catch {
-      toast.error('Não consegui gerar o PDF.')
+      const { blob, nome } = await montarPdf()
+      const { baixarArquivo } = await import('../lib/compartilhar')
+      baixarArquivo(blob, nome)
+      toast.success(t('pdf.baixado'))
+    } catch (e) {
+      // O erro real vai para o console: sem isso, um defeito de geração fica
+      // indistinguível de um de download para quem for depurar.
+      console.error('Falha ao gerar/baixar o PDF:', e)
+      avisarFalha(e)
+    } finally {
+      setGerandoPdf(false)
+    }
+  }
+
+  async function compartilharPdf() {
+    if (!txs || txs.length === 0 || gerandoPdf) return
+    setGerandoPdf(true)
+    try {
+      const { blob, nome, label } = await montarPdf()
+      const { compartilharArquivo, baixarArquivo } = await import('../lib/compartilhar')
+      try {
+        await compartilharArquivo(blob, nome, {
+          title: `${t('pdf.relatorio')} · ${label}`,
+          text: t('pdf.textoCompartilhar', { periodo: label }),
+        })
+      } catch (e) {
+        // Compartilhar falhou (sem suporte, ou user activation expirada
+        // enquanto o PDF era gerado — NotAllowedError). O arquivo já existe:
+        // baixar é a saída útil, muito melhor que só dizer "não consegui".
+        console.warn('Compartilhar indisponível, baixando:', e)
+        baixarArquivo(blob, nome)
+        toast.success(t('pdf.baixado'))
+      }
+    } catch (e) {
+      console.error('Falha ao gerar o PDF:', e)
+      avisarFalha(e)
     } finally {
       setGerandoPdf(false)
     }
@@ -247,14 +316,28 @@ export function Dashboard({ onImportar }: Props) {
               {t('dash.documentos')}
             </button>
             {txs && txs.length > 0 && (
-              <button
-                onClick={baixarPdf}
-                disabled={gerandoPdf}
-                className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:opacity-50"
-                title={t('dash.pdfTooltip')}
-              >
-                {gerandoPdf ? t('dash.gerando') : t('dash.baixarPdf')}
-              </button>
+              <>
+                <button
+                  onClick={baixarPdf}
+                  disabled={gerandoPdf}
+                  className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:opacity-50"
+                  title={t('dash.baixarTooltip')}
+                >
+                  <IconeBaixar />
+                  {gerandoPdf ? t('dash.gerando') : t('dash.baixarPdf')}
+                </button>
+                {podeCompartilhar && (
+                  <button
+                    onClick={compartilharPdf}
+                    disabled={gerandoPdf}
+                    className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:opacity-50"
+                    title={t('dash.compartilharTooltip')}
+                  >
+                    <IconeCompartilhar />
+                    {t('dash.compartilharPdf')}
+                  </button>
+                )}
+              </>
             )}
             <button
               onClick={onImportar}
@@ -269,6 +352,9 @@ export function Dashboard({ onImportar }: Props) {
               onImportar={onImportar}
               onDocumentos={() => setMostrarDocs(true)}
               onBaixarPDF={txs && txs.length > 0 ? baixarPdf : undefined}
+              onCompartilharPDF={
+                txs && txs.length > 0 && podeCompartilhar ? compartilharPdf : undefined
+              }
             />
           </div>
         </div>

@@ -6,11 +6,13 @@ type Props = {
   onImportar: () => void
   onDocumentos: () => void
   onBaixarPDF?: () => void
+  /** Só chega quando o aparelho compartilha arquivos (Web Share nível 2). */
+  onCompartilharPDF?: () => void
 }
 
 /** Menu hambúrguer com as ações do painel. Usado no mobile (no desktop as
  *  ações aparecem inline). */
-export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF }: Props) {
+export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF, onCompartilharPDF }: Props) {
   const [aberto, setAberto] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { t } = useT()
@@ -58,7 +60,12 @@ export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF }: Props) {
             </button>
             {onBaixarPDF && (
               <button onClick={() => { setAberto(false); onBaixarPDF() }} className={item}>
-                <span aria-hidden>📤</span> {t('dash.baixarPdf')}
+                <span aria-hidden>⬇️</span> {t('dash.baixarPdf')}
+              </button>
+            )}
+            {onCompartilharPDF && (
+              <button onClick={() => { setAberto(false); onCompartilharPDF() }} className={item}>
+                <span aria-hidden>📤</span> {t('dash.compartilharPdf')}
               </button>
             )}
           </motion.div>
