@@ -195,10 +195,12 @@ export default function App() {
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="tabular flex items-center gap-2 text-[11px] uppercase tracking-[0.35em] text-tinta-tenue"
+              // Só posiciona: a tipografia do logotipo mora na Marca (mesma
+              // dupla que a TelaAcesso usa no topo dela).
+              className="flex items-center gap-2.5"
             >
               <motion.span
-                className="inline-block h-1.5 w-1.5 rounded-full bg-marca"
+                className="inline-block h-2 w-2 rounded-full bg-marca"
                 animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               />

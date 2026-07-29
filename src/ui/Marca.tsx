@@ -23,9 +23,17 @@ export function Marca({ variante = 'cabecalho' }: Props) {
   const semMovimento = useReducedMotion()
 
   const cabecalho = variante === 'cabecalho'
+  // O topo já foi 11px com tracking 0.35em: nesse tamanho o espaçamento
+  // largo dissolvia a palavra em letras soltas e o logotipo sumia na
+  // página. Mais corpo, mais peso e menos tracking — continua sendo a
+  // versão discreta do topo, mas agora se lê como um nome.
+  // No celular o nome divide a linha com o seletor de idioma e o botão de
+  // tema: com o tracking do desktop a linha estourava os 375px (o toggle
+  // saía da tela). Menos espaçamento e um corpo menor até `sm` resolvem sem
+  // devolver o logotipo ao tamanho de rodapé que ele tinha.
   const classe = cabecalho
-    ? 'tabular text-[11px] uppercase tracking-[0.35em]'
-    : 'font-display text-[26px] tracking-tight'
+    ? 'tabular text-[12px] font-semibold uppercase tracking-[0.12em] sm:text-[15px] sm:tracking-[0.2em]'
+    : 'font-display text-[30px] font-semibold tracking-tight sm:text-[34px]'
 
   return (
     <motion.span

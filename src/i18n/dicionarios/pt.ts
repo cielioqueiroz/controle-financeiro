@@ -63,8 +63,7 @@ export const pt = {
   'recuperar.toast.senhaAlterada': 'Senha alterada. Entre com a senha nova.',
 
   // Rodapé
-  'rodape.privacidadeSalva': 'Lido no navegador · só a transação é salva, nunca o PDF',
-  'rodape.privacidadeLocal': 'Lido no navegador · nada sai deste computador',
+  'rodape.lema': 'Do extrato ao gráfico · cada centavo no lugar certo',
   'rodape.criadoPor': 'Criado por',
 
   // Dashboard — tiles, período, ações, listas

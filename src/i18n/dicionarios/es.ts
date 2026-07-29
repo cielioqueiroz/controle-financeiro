@@ -54,8 +54,7 @@ export const es: Dicionario = {
   'recuperar.toast.enviadoDesc': 'Revisa también el spam.',
   'recuperar.toast.senhaAlterada': 'Contraseña cambiada. Entra con la nueva.',
 
-  'rodape.privacidadeSalva': 'Leído en el navegador · solo se guarda la transacción, nunca el PDF',
-  'rodape.privacidadeLocal': 'Leído en el navegador · nada sale de este equipo',
+  'rodape.lema': 'Del extracto al gráfico · cada centavo en su lugar',
   'rodape.criadoPor': 'Creado por',
 
   'dash.gasto': 'Gastado en el período',

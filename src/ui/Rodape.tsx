@@ -1,4 +1,3 @@
-import { neonConfigurado } from '../lib/neon'
 import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
@@ -10,10 +9,15 @@ type Props = {
   className?: string
 }
 
-/** Rodapé da aplicação: linha de privacidade + assinatura. Componente
- *  próprio porque tem que aparecer nos dois estados de topo — dentro do
- *  `<main>` logado e no fim do `TelaAcesso` deslogado — e um único lugar
- *  evita que as duas versões divirjam. */
+/** Rodapé da aplicação: lema + assinatura. Componente próprio porque tem
+ *  que aparecer nos dois estados de topo — dentro do `<main>` logado e no
+ *  fim do `TelaAcesso` deslogado — e um único lugar evita que as duas
+ *  versões divirjam.
+ *
+ *  O lema fala do produto (extrato → gráfico, cada centavo no lugar) e não
+ *  muda com o modo: antes esta linha explicava a privacidade e tinha uma
+ *  versão para cada modo (com e sem Neon), o que fazia o rodapé depender de
+ *  configuração para dizer a mesma coisa. */
 export function Rodape({ className = '' }: Props) {
   const { t } = useT()
   return (
@@ -21,7 +25,7 @@ export function Rodape({ className = '' }: Props) {
       <div className="screen-only flex items-center gap-3">
         <span className="h-px flex-1 bg-carvao-800" />
         <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-          {neonConfigurado ? t('rodape.privacidadeSalva') : t('rodape.privacidadeLocal')}
+          {t('rodape.lema')}
         </p>
         <span className="h-px flex-1 bg-carvao-800" />
       </div>

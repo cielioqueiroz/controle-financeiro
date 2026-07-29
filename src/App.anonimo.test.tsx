@@ -35,15 +35,15 @@ describe('App — visitante anônimo sem Neon configurado', () => {
     expect(screen.queryByText(/^Olá,/)).not.toBeInTheDocument()
   })
 
-  // O <footer> (rodapé de privacidade + assinatura) mora dentro do <main>
+  // O <footer> (lema + assinatura) mora dentro do <main>
   // deste branch. TelaAcesso.test.tsx cobre o outro caminho (o retorno
   // antecipado de `precisaLogin`) — juntos os dois provam que o rodapé
   // sobrevive nos dois returns de App.tsx.
-  it('mostra o rodapé, com a linha de privacidade do modo sem Neon', async () => {
+  it('mostra o rodapé, com o lema, mesmo no modo sem Neon', async () => {
     render(<App />)
 
     expect(
       await screen.findByRole('contentinfo'),
-    ).toHaveTextContent('Lido no navegador · nada sai deste computador')
+    ).toHaveTextContent('Do extrato ao gráfico · cada centavo no lugar certo')
   })
 })

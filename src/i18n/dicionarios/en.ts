@@ -54,8 +54,7 @@ export const en: Dicionario = {
   'recuperar.toast.enviadoDesc': 'Check your spam folder too.',
   'recuperar.toast.senhaAlterada': 'Password changed. Sign in with the new one.',
 
-  'rodape.privacidadeSalva': 'Read in the browser · only the transaction is saved, never the PDF',
-  'rodape.privacidadeLocal': 'Read in the browser · nothing leaves this computer',
+  'rodape.lema': 'From statement to chart · every cent in its place',
   'rodape.criadoPor': 'Created by',
 
   'dash.gasto': 'Spent in period',
