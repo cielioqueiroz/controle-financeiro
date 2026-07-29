@@ -37,6 +37,10 @@ export const pt = {
   'validacao.senhaCurta': 'A senha precisa ter ao menos 8 caracteres.',
 
   // Campo de senha (aria)
+  'campo.rotulo.nome': 'Nome completo',
+  'campo.rotulo.apelido': 'Apelido',
+  'campo.rotulo.email': 'E-mail',
+  'campo.rotulo.senha': 'Senha',
   'campo.mostrarSenha': 'Mostrar senha',
   'campo.ocultarSenha': 'Ocultar senha',
 
@@ -172,6 +176,8 @@ export const pt = {
   'editar.toastCatFalha': 'Falha ao criar a categoria.',
   'editar.toastOk': 'Compra atualizada.',
   'editar.toastFalha': 'Falha ao salvar.',
+  'editar.toastAprendeu': 'Compra atualizada — e vou lembrar desta categoria.',
+  'editar.toastNaoAprendeu': 'Compra atualizada, mas não consegui memorizar a categoria.',
   'editar.confirmaTitulo': 'Salvar alterações?',
   'editar.confirmaDesc': 'A compra passa a valer com o nome e a categoria que você escolheu.',
 

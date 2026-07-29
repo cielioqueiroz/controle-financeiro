@@ -30,6 +30,10 @@ export const es: Dicionario = {
   'validacao.emailInvalido': 'Ese correo no parece válido.',
   'validacao.senhaCurta': 'La contraseña debe tener al menos 8 caracteres.',
 
+  'campo.rotulo.nome': 'Nombre completo',
+  'campo.rotulo.apelido': 'Apodo',
+  'campo.rotulo.email': 'Correo',
+  'campo.rotulo.senha': 'Contraseña',
   'campo.mostrarSenha': 'Mostrar contraseña',
   'campo.ocultarSenha': 'Ocultar contraseña',
 
@@ -153,6 +157,8 @@ export const es: Dicionario = {
   'editar.toastCatFalha': 'No se pudo crear la categoría.',
   'editar.toastOk': 'Compra actualizada.',
   'editar.toastFalha': 'No se pudo guardar.',
+  'editar.toastAprendeu': 'Compra actualizada — recordaré esta categoría.',
+  'editar.toastNaoAprendeu': 'Compra actualizada, pero no pude memorizar la categoría.',
   'editar.confirmaTitulo': '¿Guardar cambios?',
   'editar.confirmaDesc': 'La compra pasará a valer con el nombre y la categoría que elegiste.',
 

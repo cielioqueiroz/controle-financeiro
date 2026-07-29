@@ -23,6 +23,52 @@ overflow e smoke de runtime no Chromium com troca pt→en sem erro de console):
 Também: teste direto de `limparTokenDaUrl` (dívida antiga quitada) e `rotuloTipo`
 saiu do domain (rótulo é da UI). **374 testes (52 arquivos).**
 
+### Code review completo (2026-07-29) — achados e correções
+
+Revisão de segurança + design. **Nada explorável encontrado**; o modelo de
+isolamento está correto (RLS nas 5 tabelas, políticas por `auth.user_id()`,
+o cliente **nunca** manda `user_id`, e um usuário não consegue criar categoria
+"global"). Sem XSS (zero `innerHTML`/`eval`), sem segredo versionado.
+
+**Corrigido nesta rodada:**
+
+1. **O aprendizado de categorias não existia na prática.** `aprendizado.ts`
+   (`regraDaCorrecao`, `mesclarRegras`) só era chamado pelos próprios testes, e
+   a tabela `merchant_rules` — criada no schema inicial, com RLS — nunca foi
+   lida nem escrita. `salvar.ts` chamava `categoriaDe(t)` **sem regras**, então
+   toda correção do usuário era esquecida e a mesma loja voltava errada todo
+   mês. Docs afirmavam o contrário. Agora: `persist/regras.ts`
+   (`puxarRegras`/`salvarRegra`, com limpeza do mesmo padrão antes de inserir
+   para não acumular regras concorrentes), o App carrega as regras no login,
+   `EditarCompra` grava a regra quando a categoria muda (falha aqui **não**
+   desfaz a edição), e a prévia da importação já mostra as categorias
+   corrigidas. **`salvarDocumento` agora exige `regras`** — parâmetro sem
+   default de propósito, para o compilador impedir que outro ponto de chamada
+   volte a categorizar só pelas globais. Contrato pinado em
+   `aprendizado.round-trip.test.ts` (5 testes, sem rede).
+2. **Sem cabeçalhos de segurança** → `vercel.json` com `X-Frame-Options: DENY`
+   + CSP `frame-ancestors 'none'` (clickjacking), `nosniff`, HSTS,
+   `Referrer-Policy` e `Permissions-Policy`. **CSP completo ficou de fora de
+   propósito**: quebraria Google Fonts, o worker do pdf.js e a API do Neon, e
+   `vercel.json` não vale no preview local — não daria para testar antes de
+   publicar. Fazer com calma, medindo em preview deploy.
+3. **Acessibilidade da tela de acesso**: os campos tinham só `placeholder`
+   (não é nome acessível — some ao digitar). Agora têm `aria-label` + o
+   `autoComplete` certo (`name`/`nickname`/`email`/`current-password` vs
+   `new-password`). Sem `<label>` visível, para não mexer no desenho do card.
+4. **Código morto removido**: `hashTransacao` (o dedupe real usa
+   `chaveTransacao`+`sha256`), `dataLonga` e `removerCategoriaExtra`.
+
+**Não corrigido, por decisão:** `npm audit` acusa 5 CVEs (1 crítica) no
+`better-auth 1.4.18`, transitivo do `@neondatabase/neon-js`. **Todas** são de
+recursos de *servidor* de auth (oidc-provider, mcp, organization, SCIM) que
+este app não roda — quem roda é a Neon — e verifiquei que o bundle **não
+contém** `oidc-provider`. A correção exige bump *major* de um SDK em beta, o
+que mexeria em todo o login sem ganho real. **Não rodar `npm audit fix
+--force`.** Reavaliar quando a Neon publicar SDK estável.
+
+**395 testes (55 arquivos).**
+
 ### Correção 2026-07-29 (noite) — modais presos ao container + tema claro padrão
 
 Usuário mostrou o véu do modal cobrindo só a faixa do painel e a confirmação
@@ -162,7 +208,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **390** (54 arquivos) |
+| Testes | **395** (55 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -177,7 +223,7 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 **Ingestão e cálculo**
 - 4 parsers (fatura + extrato × Nubank + Bradesco), cada um conferindo o total contra o gabarito do PDF.
-- Categorização por regras (30 categorias) + aprendizado; dedupe por hash de documento e de transação.
+- Categorização por regras (30 categorias) + **aprendizado ligado em 2026-07-29** (corrigir a categoria de uma compra ensina o app para as próximas importações, via `merchant_rules`); dedupe por hash de documento e de transação.
 - Vínculos entre documentos removem a dupla contagem (fatura × extrato).
 - **Competência**: Mês/Ano agrupam pela fatura (`documents.period_end`); Dia/Semana pela data real.
 

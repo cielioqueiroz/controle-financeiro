@@ -9,6 +9,9 @@ type Props = {
   visivel: boolean
   alternar: () => void
   placeholder: string
+  /** Dica de preenchimento do navegador: 'current-password' no login,
+   *  'new-password' no cadastro e na redefinição. */
+  autoComplete?: string
 }
 
 /** Campo de senha com o olho de revelar. Único para login, cadastro e
@@ -17,7 +20,15 @@ type Props = {
  *
  *  O botão do olho é type="button": dentro de um <form>, o padrão seria
  *  submit, e clicar no olho enviaria o formulário. */
-export function CampoSenha({ refCampo, valor, aoMudar, visivel, alternar, placeholder }: Props) {
+export function CampoSenha({
+  refCampo,
+  valor,
+  aoMudar,
+  visivel,
+  alternar,
+  placeholder,
+  autoComplete,
+}: Props) {
   const { t } = useT()
   return (
     <div className="relative">
@@ -25,6 +36,9 @@ export function CampoSenha({ refCampo, valor, aoMudar, visivel, alternar, placeh
         ref={refCampo}
         type={visivel ? 'text' : 'password'}
         required
+        // Placeholder não serve de nome acessível (some ao digitar).
+        aria-label={t('campo.rotulo.senha')}
+        autoComplete={autoComplete}
         minLength={8}
         // O Better Auth recusa senha acima de 128 caracteres com 400 — o
         // mesmo status que usamos para "token expirado". Barrar no teclado

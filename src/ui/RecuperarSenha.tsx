@@ -124,6 +124,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
             visivel={verSenha}
             alternar={() => setVerSenha(!verSenha)}
             placeholder={t('recuperar.ph.novaSenha')}
+            autoComplete="new-password"
           />
           <CampoSenha
             valor={confirmacao}
@@ -131,6 +132,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
             visivel={verSenha}
             alternar={() => setVerSenha(!verSenha)}
             placeholder={t('recuperar.ph.repita')}
+            autoComplete="new-password"
           />
           <button type="submit" disabled={ocupado} className={BOTAO_PRIMARIO}>
             {ocupado ? '…' : t('recuperar.salvar')}

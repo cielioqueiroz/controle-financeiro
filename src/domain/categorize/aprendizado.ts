@@ -1,5 +1,4 @@
 import { normalizeMerchant } from '../normalize/merchant'
-import type { RawTransaction } from '../parsers/types'
 import { extrairCNPJ, type Regra } from './regras'
 
 /** Cria uma regra do usuário a partir de uma correção manual.
@@ -7,8 +6,12 @@ import { extrairCNPJ, type Regra } from './regras'
  *  Corrigir a categoria de uma transação ensina o app para sempre: a
  *  próxima ocorrência do mesmo estabelecimento já entra certa. Usa o CNPJ
  *  quando há (chave estável); senão, o merchant normalizado. Prioridade
- *  alta (1000) para vencer qualquer regra global. Ver spec, "Aprendizado". */
-export function regraDaCorrecao(tx: RawTransaction, categoria: string): Regra {
+ *  alta (1000) para vencer qualquer regra global. Ver spec, "Aprendizado".
+ *
+ *  Pede só `description` (e não uma RawTransaction inteira) porque quem
+ *  corrige é o editor de compras, que trabalha com uma TransacaoSalva —
+ *  e a regra sai da descrição, nada mais. */
+export function regraDaCorrecao(tx: { description: string }, categoria: string): Regra {
   const cnpj = extrairCNPJ(tx.description)
   if (cnpj) {
     return { padrao: cnpj, tipo: 'cnpj', categoria, prioridade: 1000 }

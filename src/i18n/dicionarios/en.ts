@@ -30,6 +30,10 @@ export const en: Dicionario = {
   'validacao.emailInvalido': "That email doesn't look valid.",
   'validacao.senhaCurta': 'The password must be at least 8 characters.',
 
+  'campo.rotulo.nome': 'Full name',
+  'campo.rotulo.apelido': 'Nickname',
+  'campo.rotulo.email': 'Email',
+  'campo.rotulo.senha': 'Password',
   'campo.mostrarSenha': 'Show password',
   'campo.ocultarSenha': 'Hide password',
 
@@ -153,6 +157,8 @@ export const en: Dicionario = {
   'editar.toastCatFalha': 'Failed to create the category.',
   'editar.toastOk': 'Purchase updated.',
   'editar.toastFalha': 'Failed to save.',
+  'editar.toastAprendeu': "Purchase updated — I'll remember this category.",
+  'editar.toastNaoAprendeu': "Purchase updated, but I couldn't memorize the category.",
   'editar.confirmaTitulo': 'Save changes?',
   'editar.confirmaDesc': 'The purchase will use the name and category you chose.',
 

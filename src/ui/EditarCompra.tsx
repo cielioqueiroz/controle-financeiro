@@ -3,6 +3,8 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { editarTransacao } from '../persist/editar'
 import { criarCategoria } from '../persist/categoriasUsuario'
+import { salvarRegra } from '../persist/regras'
+import { regraDaCorrecao } from '../domain/categorize/aprendizado'
 import { todasCategorias, adicionarCategoriaExtra, nomeCategoria } from '../domain/categorize/categorias'
 import { formatBRL } from '../domain/normalize/money'
 import { useT } from '../i18n/IdiomaProvider'
@@ -17,11 +19,14 @@ type Props = {
   onFechar: () => void
   /** Devolve os campos alterados para o dashboard atualizar em memória. */
   onSalvo: (id: string, campos: { label: string | null; category_slug: string }) => void
+  /** Avisa que uma regra nova foi aprendida, para quem guarda as regras
+   *  recarregá-las (a próxima importação já usa a correção). */
+  onAprendeu?: () => void
 }
 
 /** Editor de uma compra: renomeia o estabelecimento (label) e troca a
  *  categoria. A descrição original do banco fica visível, mas imutável. */
-export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
+export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
   const [label, setLabel] = useState(tx.label ?? '')
   const [slug, setSlug] = useState(tx.category_slug ?? 'outros')
   const [salvando, setSalvando] = useState(false)
@@ -59,10 +64,25 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
   async function salvar() {
     setSalvando(true)
     const labelLimpo = label.trim() || null
+    const trocouCategoria = slug !== (tx.category_slug ?? 'outros')
     try {
       await editarTransacao(tx.id, { label: labelLimpo, category_slug: slug })
       onSalvo(tx.id, { label: labelLimpo, category_slug: slug })
-      toast.success(t('editar.toastOk'))
+
+      // Aprende com a correção: a próxima compra do mesmo estabelecimento
+      // já nasce nesta categoria. Falhar aqui NÃO desfaz a edição, que já
+      // foi gravada — o aviso é discreto de propósito.
+      if (trocouCategoria) {
+        try {
+          await salvarRegra(regraDaCorrecao(tx, slug))
+          onAprendeu?.()
+          toast.success(t('editar.toastAprendeu'))
+        } catch {
+          toast.warning(t('editar.toastNaoAprendeu'))
+        }
+      } else {
+        toast.success(t('editar.toastOk'))
+      }
       onFechar()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t('editar.toastFalha'))

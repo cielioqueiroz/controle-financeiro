@@ -186,10 +186,16 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
             <form onSubmit={submeter} noValidate className="mt-4 space-y-3">
               {modo === 'criar' && (
                 <>
+                  {/* aria-label, e não <label> visível: o card é enxuto de
+                      propósito. Mas placeholder não é nome acessível — some
+                      ao digitar e leitores de tela o anunciam de forma
+                      inconsistente. */}
                   <input
                     type="text"
                     ref={refs.nome}
                     required
+                    aria-label={t('campo.rotulo.nome')}
+                    autoComplete="name"
                     placeholder={t('auth.ph.nome')}
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
@@ -198,6 +204,8 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                   <div>
                     <input
                       type="text"
+                      aria-label={t('campo.rotulo.apelido')}
+                      autoComplete="nickname"
                       placeholder={t('auth.ph.apelido')}
                       value={apelido}
                       onChange={(e) => setApelido(e.target.value)}
@@ -213,6 +221,8 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                 type="email"
                 ref={refs.email}
                 required
+                aria-label={t('campo.rotulo.email')}
+                autoComplete="email"
                 placeholder={t('auth.ph.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -225,6 +235,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                 visivel={verSenha}
                 alternar={() => setVerSenha(!verSenha)}
                 placeholder={t('auth.ph.senha')}
+                autoComplete={modo === 'criar' ? 'new-password' : 'current-password'}
               />
               <button
                 type="submit"

@@ -38,6 +38,9 @@ import type { Dicionario } from '../i18n/dicionarios/pt'
 
 type Props = {
   onImportar: () => void
+  /** Repassa ao editor de compras: uma correção de categoria vira regra
+   *  aprendida, e quem guarda as regras (o App) precisa recarregá-las. */
+  onAprendeu?: () => void
 }
 
 const PERIODOS = [
@@ -115,7 +118,7 @@ function rotulo(periodo: Periodo, ref: Date): string {
   }
 }
 
-export function Dashboard({ onImportar }: Props) {
+export function Dashboard({ onImportar, onAprendeu }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [ref, setRef] = useState<Date>(new Date())
   const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
@@ -494,6 +497,7 @@ export function Dashboard({ onImportar }: Props) {
             tx={editando}
             onFechar={() => setEditando(null)}
             onSalvo={aplicarEdicao}
+            onAprendeu={onAprendeu}
           />
         )}
       </AnimatePresence>

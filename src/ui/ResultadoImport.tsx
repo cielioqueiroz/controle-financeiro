@@ -7,6 +7,7 @@ import { dataLongaDe } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { validar } from '../domain/validate/checksum'
 import { construirInsights, type TxView } from '../domain/insights'
+import type { Regra } from '../domain/categorize/regras'
 import { CATEGORIAS, nomeCategoria } from '../domain/categorize/categorias'
 import { useT } from '../i18n/IdiomaProvider'
 import { interpolarNos } from '../i18n/interpolarNos'
@@ -15,6 +16,9 @@ import { GraficoCategorias } from './GraficoCategorias'
 type Props = {
   kind: DocKind
   result: ParseResult
+  /** Regras aprendidas do usuário — a prévia mostra as categorias já
+   *  corrigidas, iguais às que serão gravadas ao salvar. */
+  regras: Regra[]
   podeSalvar: boolean
   salvando: boolean
   onSalvar: () => void
@@ -30,6 +34,7 @@ const diaMes = (d: Date) =>
 export function ResultadoImport({
   kind,
   result,
+  regras,
   podeSalvar,
   salvando,
   onSalvar,
@@ -38,7 +43,10 @@ export function ResultadoImport({
   const { t } = useT()
   const tema = BANCOS[kind.bank]
   const conf = validar(result)
-  const baseInsights = useMemo(() => construirInsights(result, kind), [result, kind])
+  const baseInsights = useMemo(
+    () => construirInsights(result, kind, regras),
+    [result, kind, regras],
+  )
 
   // Correções locais de categoria e rótulo (persistência vem na fatia 1).
   const [override, setOverride] = useState<Record<number, string>>({})

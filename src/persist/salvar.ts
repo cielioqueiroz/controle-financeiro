@@ -2,7 +2,8 @@ import { neon } from '../lib/neon'
 import type { ParseResult, RawTransaction } from '../domain/parsers/types'
 import type { DocKind } from '../domain/pdf/detect'
 import { hashDocumento, chaveTransacao, sha256 } from '../domain/dedupe/hash'
-import { categoriaDe } from '../domain/categorize/regras'
+import { categoriaDe, REGRAS_GLOBAIS, type Regra } from '../domain/categorize/regras'
+import { mesclarRegras } from '../domain/categorize/aprendizado'
 import { vincular, paraVincular } from '../domain/link/vinculos'
 
 export type ResultadoSalvar =
@@ -28,8 +29,16 @@ export async function salvarDocumento(
   kind: DocKind,
   fileBytes: ArrayBuffer,
   filename: string,
+  /** Regras aprendidas com as correções do usuário. **Obrigatório de
+   *  propósito**: com valor padrão, um ponto de chamada esquecido voltaria
+   *  em silêncio a categorizar só pelas globais — que foi exatamente o bug
+   *  (o app tinha o aprendizado pronto e nunca o usava). Passe `[]` quando
+   *  de fato não houver regras. */
+  regrasUsuario: Regra[],
 ): Promise<ResultadoSalvar> {
   if (!neon) return { status: 'sem-persistencia' }
+
+  const regras = mesclarRegras(regrasUsuario, REGRAS_GLOBAIS)
 
   const { data: sess } = await neon.auth.getSession()
   if (!sess?.session) throw new Error('Faça login para salvar.')
@@ -108,7 +117,7 @@ export async function salvarDocumento(
         amount_cents: t.amountCents,
         direction: t.amountCents >= 0 ? 'out' : 'in',
         kind: kindParaBanco(t.kind, t.link),
-        category_slug: categoriaDe(t),
+        category_slug: categoriaDe(t, regras),
         installment: t.installment,
         fx: t.fx,
         hash,

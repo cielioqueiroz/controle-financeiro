@@ -15,9 +15,3 @@ export function dataLongaDe(d: Date): string {
   }).format(d)
 }
 
-/** Como `dataLongaDe`, mas a partir de um ISO YYYY-MM-DD. Constrói a data em
- *  horário local para não escorregar de fuso. */
-export function dataLonga(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  return dataLongaDe(new Date(y, (m ?? 1) - 1, d))
-}

@@ -26,6 +26,8 @@ import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
 import { dataLongaDe } from './domain/normalize/data'
 import { salvarDocumento } from './persist/salvar'
+import { puxarRegras } from './persist/regras'
+import type { Regra } from './domain/categorize/regras'
 import type { DocKind } from './domain/pdf/detect'
 import type { ParseResult } from './domain/parsers/types'
 
@@ -42,6 +44,10 @@ export default function App() {
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [celebrando, setCelebrando] = useState(false)
+  /** Regras aprendidas com as correções do usuário. Carregadas no login e
+   *  recarregadas quando ele corrige uma compra, para que a prévia da
+   *  próxima importação já reflita a correção. */
+  const [regras, setRegras] = useState<Regra[]>([])
   const { t } = useT()
   /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
    *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
@@ -62,6 +68,13 @@ export default function App() {
     const u = (data as { user?: { name?: string; email?: string } } | null)?.user
     setUsuario(logou ? { nome: u?.name ?? null, email: u?.email ?? null } : null)
     if (logou && tutorialPendente()) setMostrarTutorial(true)
+    if (logou) recarregarRegras()
+  }
+
+  /** Sem regras o app ainda funciona (cai nas globais), então falha aqui
+   *  não interrompe nada — `puxarRegras` já devolve [] em erro. */
+  async function recarregarRegras() {
+    setRegras(await puxarRegras())
   }
 
   useEffect(() => {
@@ -109,7 +122,7 @@ export default function App() {
     if (estado.fase !== 'pronto') return
     setSalvando(true)
     try {
-      const r = await salvarDocumento(estado.result, estado.kind, estado.bytes, estado.nome)
+      const r = await salvarDocumento(estado.result, estado.kind, estado.bytes, estado.nome, regras)
       if (r.status === 'salvo') {
         toast.success(
           r.jaExistiam > 0
@@ -256,6 +269,7 @@ export default function App() {
             <ResultadoImport
               kind={estado.kind}
               result={estado.result}
+              regras={regras}
               podeSalvar={logado}
               salvando={salvando}
               onSalvar={salvar}
@@ -266,7 +280,7 @@ export default function App() {
             />
           </div>
         ) : logado && !importando ? (
-          <Dashboard onImportar={() => setImportando(true)} />
+          <Dashboard onImportar={() => setImportando(true)} onAprendeu={recarregarRegras} />
         ) : (
           <div className="mx-auto max-w-2xl">
             {logado && (

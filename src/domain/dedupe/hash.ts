@@ -25,6 +25,3 @@ export function chaveTransacao(tx: RawTransaction, accountKey: string): string {
   return `${accountKey}|${dia}|${tx.amountCents}|${merchant}`
 }
 
-export function hashTransacao(tx: RawTransaction, accountKey: string): Promise<string> {
-  return sha256(chaveTransacao(tx, accountKey))
-}

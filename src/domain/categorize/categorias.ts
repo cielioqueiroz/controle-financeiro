@@ -110,10 +110,6 @@ export function adicionarCategoriaExtra(cat: Categoria): void {
   extras.set(cat.slug, cat)
 }
 
-export function removerCategoriaExtra(slug: string): void {
-  extras.delete(slug)
-}
-
 /** Todas as categorias para o seletor: embutidas + do usuário, com "Outros"
  *  sempre por último. */
 export function todasCategorias(): Categoria[] {

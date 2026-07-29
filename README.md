@@ -53,7 +53,7 @@ Outros comandos:
 
 ```bash
 npm run build        # typecheck (tsc -b) + build de produção
-npm test             # Vitest (390 testes)
+npm test             # Vitest (395 testes)
 npm run lint         # oxlint
 npm run fixtures -- <pasta-com-os-pdfs>   # regenera fixtures anonimizados
 ```
