@@ -23,6 +23,7 @@ import { parse, ParserNaoImplementadoError } from './domain/parsers'
 import { validar } from './domain/validate/checksum'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
+import { dataLongaDe } from './domain/normalize/data'
 import { salvarDocumento } from './persist/salvar'
 import type { DocKind } from './domain/pdf/detect'
 import type { ParseResult } from './domain/parsers/types'
@@ -68,7 +69,7 @@ export default function App() {
 
   async function importar(file: File) {
     if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
-      toast.error('Isso não parece um PDF.')
+      toast.error(t('importar.naoPdf'))
       return
     }
     setEstado({ fase: 'lendo' })
@@ -76,7 +77,7 @@ export default function App() {
       const bytes = await file.arrayBuffer()
       const items = await loadTextItems(new File([bytes], file.name, { type: file.type }))
       if (pareceDigitalizado(items)) {
-        toast.error('PDF digitalizado — ainda não sei ler imagem, só texto.')
+        toast.error(t('importar.digitalizado'))
         setEstado({ fase: 'vazio' })
         return
       }
@@ -86,17 +87,18 @@ export default function App() {
       setEstado({ fase: 'pronto', kind, result, bytes, nome: file.name })
 
       if (v.status === 'confere') {
-        toast.success(`${v.contagem} lançamentos — bate com o banco ao centavo.`)
+        toast.success(t('importar.toastConfere', { n: v.contagem }))
       } else if (v.status === 'sem-gabarito') {
-        toast.warning(`${v.contagem} lançamentos lidos, sem total para conferir.`)
+        toast.warning(t('importar.toastSemGabarito', { n: v.contagem }))
       } else {
-        toast.error('O total lido não fechou com o do banco. Confira antes de salvar.')
+        toast.error(t('importar.toastNaoFechou'))
       }
     } catch (err) {
       setEstado({ fase: 'vazio' })
-      if (err instanceof PdfProtegidoError) toast.error('PDF protegido por senha.')
-      else if (err instanceof ParserNaoImplementadoError) toast.warning(err.message + '. Em breve.')
-      else toast.error('Não consegui ler este arquivo.')
+      if (err instanceof PdfProtegidoError) toast.error(t('importar.protegido'))
+      else if (err instanceof ParserNaoImplementadoError)
+        toast.warning(t('importar.emBreve', { msg: err.message }))
+      else toast.error(t('importar.naoLi'))
     }
   }
 
@@ -107,19 +109,18 @@ export default function App() {
       const r = await salvarDocumento(estado.result, estado.kind, estado.bytes, estado.nome)
       if (r.status === 'salvo') {
         toast.success(
-          `Salvo: ${r.inseridas} novos lançamentos` +
-            (r.jaExistiam > 0 ? `, ${r.jaExistiam} já existiam.` : '.'),
+          r.jaExistiam > 0
+            ? t('salvar.okComExistentes', { n: r.inseridas, ja: r.jaExistiam })
+            : t('salvar.okNovos', { n: r.inseridas }),
         )
         // Volta ao histórico, que recarrega e mostra o que acabou de entrar.
         setEstado({ fase: 'vazio' })
         setImportando(false)
       } else if (r.status === 'documento-duplicado') {
-        toast.warning(
-          `Este documento já foi importado em ${new Date(r.importadoEm).toLocaleDateString('pt-BR')}.`,
-        )
+        toast.warning(t('salvar.duplicado', { data: dataLongaDe(new Date(r.importadoEm)) }))
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Falha ao salvar.')
+      toast.error(err instanceof Error ? err.message : t('salvar.falha'))
     } finally {
       setSalvando(false)
     }

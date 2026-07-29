@@ -1,4 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
+import { useT } from '../i18n/IdiomaProvider'
+import { interpolarNos } from '../i18n/interpolarNos'
 
 type Props = {
   onArquivo: (file: File) => void
@@ -6,6 +8,7 @@ type Props = {
 }
 
 export function Dropzone({ onArquivo, ocupado }: Props) {
+  const { t } = useT()
   const [sobre, setSobre] = useState(false)
   const input = useRef<HTMLInputElement>(null)
 
@@ -45,12 +48,12 @@ export function Dropzone({ onArquivo, ocupado }: Props) {
           <span className="tabular text-xs text-tinta-tenue">01</span>
           <div>
             <p className="font-display text-2xl text-tinta">
-              {ocupado ? 'Lendo o documento…' : 'Solte a fatura ou o extrato aqui'}
+              {ocupado ? t('drop.tituloLendo') : t('drop.titulo')}
             </p>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-tinta-fraca">
-              PDF do banco, do jeito que ele te mandou. O arquivo é lido{' '}
-              <span className="text-tinta">no seu navegador</span> e não sai
-              deste computador.
+              {interpolarNos(t('drop.corpo'), {
+                navegador: <span className="text-tinta">{t('drop.navegador')}</span>,
+              })}
             </p>
           </div>
         </div>
@@ -58,7 +61,7 @@ export function Dropzone({ onArquivo, ocupado }: Props) {
         <div className="mt-10 flex items-center gap-3 pl-11">
           <span className="h-px w-8 bg-carvao-600" />
           <span className="tabular text-[11px] uppercase tracking-[0.2em] text-tinta-tenue">
-            {ocupado ? 'processando' : 'ou clique para escolher'}
+            {ocupado ? t('drop.processando') : t('drop.clique')}
           </span>
         </div>
       </button>

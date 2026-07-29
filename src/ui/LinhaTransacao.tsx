@@ -1,5 +1,6 @@
-import { categoria } from '../domain/categorize/categorias'
+import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import { formatBRL } from '../domain/normalize/money'
+import { useT } from '../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../persist/puxar'
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
  *  descrição, categoria (desktop) e valor, com um lápis no hover para
  *  editar. Zebra via `even:`. Reutilizada nas visões por dia e categoria. */
 export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Props) {
+  const { t: tr } = useT()
   const cat = categoria(t.category_slug ?? 'outros')
   const interno = t.kind === 'internal_transfer' || t.kind === 'card_payment'
   return (
@@ -27,7 +29,7 @@ export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Prop
         {t.date.slice(8, 10)}/{t.date.slice(5, 7)}
       </span>
       {!semIcone && (
-        <span className="shrink-0 text-base" title={cat.nome}>
+        <span className="shrink-0 text-base" title={nomeCategoria(cat)}>
           {cat.icone}
         </span>
       )}
@@ -40,14 +42,17 @@ export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Prop
         )}
       </span>
       {mostrarCategoria && (
-        <span className="hidden w-32 shrink-0 truncate text-xs text-tinta-tenue lg:block" title={cat.nome}>
-          {cat.nome}
+        <span
+          className="hidden w-32 shrink-0 truncate text-xs text-tinta-tenue lg:block"
+          title={nomeCategoria(cat)}
+        >
+          {nomeCategoria(cat)}
         </span>
       )}
       <button
         onClick={() => onEditar(t)}
-        aria-label="Editar compra"
-        title="Renomear / trocar categoria"
+        aria-label={tr('editar.titulo')}
+        title={tr('linha.renomearTitle')}
         className="screen-only grid h-7 w-7 shrink-0 place-items-center rounded-md text-tinta-tenue opacity-0 transition-all hover:bg-carvao-800 hover:text-tinta focus:opacity-100 group-hover:opacity-100"
       >
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.7">

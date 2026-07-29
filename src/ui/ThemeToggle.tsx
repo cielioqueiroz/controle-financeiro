@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
+import { useT } from '../i18n/IdiomaProvider'
 
 type Tema = 'dark' | 'light'
 
@@ -12,6 +13,7 @@ function temaInicial(): Tema {
 /** Alterna claro/escuro. Grava a escolha e estampa data-theme no <html>,
  *  que faz as variáveis de cor inverterem (ver index.css). */
 export function ThemeToggle() {
+  const { t } = useT()
   const [tema, setTema] = useState<Tema>('dark')
 
   useEffect(() => {
@@ -32,8 +34,8 @@ export function ThemeToggle() {
   return (
     <button
       onClick={alternar}
-      aria-label={claro ? 'Mudar para tema escuro' : 'Mudar para tema claro'}
-      title={claro ? 'Tema escuro' : 'Tema claro'}
+      aria-label={t(claro ? 'tema.paraEscuro' : 'tema.paraClaro')}
+      title={t(claro ? 'tema.escuro' : 'tema.claro')}
       className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
     >
       <motion.span

@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react'
-import { BANCOS, rotuloTipo } from '../domain/banks'
+import { BANCOS } from '../domain/banks'
 import type { DocKind } from '../domain/pdf/detect'
 import type { ParseResult } from '../domain/parsers/types'
 import { formatBRL } from '../domain/normalize/money'
+import { dataLongaDe } from '../domain/normalize/data'
+import { localeAtual } from '../domain/normalize/locale'
 import { validar } from '../domain/validate/checksum'
 import { construirInsights, type TxView } from '../domain/insights'
-import { CATEGORIAS } from '../domain/categorize/categorias'
+import { CATEGORIAS, nomeCategoria } from '../domain/categorize/categorias'
+import { useT } from '../i18n/IdiomaProvider'
+import { interpolarNos } from '../i18n/interpolarNos'
 import { GraficoCategorias } from './GraficoCategorias'
 
 type Props = {
@@ -17,7 +21,11 @@ type Props = {
   onLimpar: () => void
 }
 
-const dm = (d: Date) => d.toLocaleDateString('pt-BR')
+const dm = (d: Date) => dataLongaDe(d)
+
+/** Dia/mês curtos na locale ativa (rótulo da linha de transação). */
+const diaMes = (d: Date) =>
+  new Intl.DateTimeFormat(localeAtual(), { day: '2-digit', month: '2-digit' }).format(d)
 
 export function ResultadoImport({
   kind,
@@ -27,6 +35,7 @@ export function ResultadoImport({
   onSalvar,
   onLimpar,
 }: Props) {
+  const { t } = useT()
   const tema = BANCOS[kind.bank]
   const conf = validar(result)
   const baseInsights = useMemo(() => construirInsights(result, kind), [result, kind])
@@ -59,12 +68,20 @@ export function ResultadoImport({
             >
               {tema.nome}
             </span>
-            <span className="text-sm text-tinta-fraca">{rotuloTipo(kind.docType)}</span>
+            <span className="text-sm text-tinta-fraca">
+              {t(
+                kind.docType === 'fatura'
+                  ? 'tipo.fatura'
+                  : kind.docType === 'extrato'
+                    ? 'tipo.extrato'
+                    : 'tipo.desconhecido',
+              )}
+            </span>
           </div>
           {result.period && (
             <p className="tabular mt-3 text-xs uppercase tracking-widest text-tinta-tenue">
               {dm(result.period.start)} — {dm(result.period.end)}
-              {result.account.last4 && ` · final ${result.account.last4}`}
+              {result.account.last4 && ` · ${t('import.final', { n: result.account.last4 })}`}
             </p>
           )}
         </div>
@@ -76,14 +93,14 @@ export function ResultadoImport({
               className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50"
               style={{ background: tema.accent, color: tema.tinta }}
             >
-              {salvando ? 'Salvando…' : 'Salvar no histórico'}
+              {salvando ? t('geral.salvando') : t('import.salvarHistorico')}
             </button>
           )}
           <button
             onClick={onLimpar}
             className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
           >
-            Limpar ✕
+            {t('import.limpar')} ✕
           </button>
         </div>
       </header>
@@ -101,13 +118,18 @@ export function ResultadoImport({
             <p className="mt-5 flex items-start gap-2 rounded-md bg-carvao-800/60 px-4 py-3 text-xs text-tinta-fraca">
               <span className="text-ressalva">◆</span>
               <span>
-                Removi{' '}
-                <span className="tabular text-tinta">
-                  {formatBRL(baseInsights.gastoIngenuoCents - baseInsights.gastoRealCents)}
-                </span>{' '}
-                de pagamentos de fatura e transferências entre suas contas — dinheiro que
-                apareceria contado duas vezes. O gasto real é{' '}
-                <span className="tabular text-tinta">{formatBRL(baseInsights.gastoRealCents)}</span>.
+                {interpolarNos(t('import.dupla'), {
+                  removido: (
+                    <span className="tabular text-tinta">
+                      {formatBRL(baseInsights.gastoIngenuoCents - baseInsights.gastoRealCents)}
+                    </span>
+                  ),
+                  real: (
+                    <span className="tabular text-tinta">
+                      {formatBRL(baseInsights.gastoRealCents)}
+                    </span>
+                  ),
+                })}
               </span>
             </p>
           )}
@@ -144,6 +166,7 @@ function LinhaTransacao({
   onCategoria: (slug: string) => void
   onLabel: (txt: string) => void
 }) {
+  const { t: tr } = useT()
   const [editando, setEditando] = useState(false)
   const interno = t.link !== null
 
@@ -154,7 +177,7 @@ function LinhaTransacao({
       }`}
     >
       <span className="tabular w-11 shrink-0 text-xs text-tinta-tenue">
-        {dm(t.date).slice(0, 5)}
+        {diaMes(t.date)}
       </span>
 
       {/* Seletor de categoria */}
@@ -162,12 +185,12 @@ function LinhaTransacao({
         value={t.categoriaSlug}
         onChange={(e) => onCategoria(e.target.value)}
         disabled={interno}
-        title="Categoria"
+        title={tr('editar.categoria')}
         className="shrink-0 cursor-pointer appearance-none rounded-md bg-carvao-800 px-1.5 py-1 text-base leading-none"
       >
         {CATEGORIAS.map((c) => (
           <option key={c.slug} value={c.slug}>
-            {c.icone} {c.nome}
+            {c.icone} {nomeCategoria(c)}
           </option>
         ))}
       </select>
@@ -192,7 +215,7 @@ function LinhaTransacao({
           <button
             onClick={() => setEditando(true)}
             className="block max-w-full truncate text-left text-sm text-tinta hover:underline"
-            title="Clique para renomear"
+            title={tr('import.renomear')}
           >
             {t.label ?? t.description}
             {t.installment && (
@@ -235,12 +258,13 @@ function Veredito({
         ? 'var(--color-ressalva)'
         : 'var(--color-falha)'
 
+  const { t } = useT()
   const titulo =
     conf.status === 'confere'
-      ? 'Confere com o banco'
+      ? t('import.confereTitulo')
       : conf.status === 'sem-gabarito'
-        ? 'Lido, sem total para conferir'
-        : 'O total não fechou'
+        ? t('import.semGabaritoTitulo')
+        : t('import.naoFechouTitulo')
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 px-8 py-6">
@@ -256,10 +280,10 @@ function Veredito({
             {titulo}
           </p>
           <p className="tabular text-xs text-tinta-tenue">
-            {conf.contagem} lançamentos
+            {t('docs.nLancamentos', { n: conf.contagem })}
             {conf.diferenca != null &&
               conf.diferenca !== 0 &&
-              ` · faltam ${formatBRL(Math.abs(conf.diferenca))}`}
+              ` · ${t('import.faltam', { v: formatBRL(Math.abs(conf.diferenca)) })}`}
           </p>
         </div>
       </div>
@@ -267,7 +291,7 @@ function Veredito({
       {total != null && (
         <div className="text-right">
           <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-            Total declarado
+            {t('import.totalDeclarado')}
           </p>
           <p className="tabular text-2xl" style={{ color: accent }}>
             {formatBRL(total)}

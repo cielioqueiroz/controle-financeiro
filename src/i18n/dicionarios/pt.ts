@@ -225,6 +225,61 @@ export const pt = {
   'tutorial.p6c':
     'No menu da conta (a bolinha com sua inicial, no topo) você abre "Editar perfil" para trocar o apelido da saudação e o nome completo quando quiser. É por lá também que você revê este tour.',
 
+  // Importação — dropzone
+  'drop.tituloLendo': 'Lendo o documento…',
+  'drop.titulo': 'Solte a fatura ou o extrato aqui',
+  'drop.corpo': 'PDF do banco, do jeito que ele te mandou. O arquivo é lido {navegador} e não sai deste computador.',
+  'drop.navegador': 'no seu navegador',
+  'drop.processando': 'processando',
+  'drop.clique': 'ou clique para escolher',
+
+  // Importação — toasts do fluxo
+  'importar.naoPdf': 'Isso não parece um PDF.',
+  'importar.digitalizado': 'PDF digitalizado — ainda não sei ler imagem, só texto.',
+  'importar.toastConfere': '{n} lançamentos — bate com o banco ao centavo.',
+  'importar.toastSemGabarito': '{n} lançamentos lidos, sem total para conferir.',
+  'importar.toastNaoFechou': 'O total lido não fechou com o do banco. Confira antes de salvar.',
+  'importar.protegido': 'PDF protegido por senha.',
+  'importar.naoLi': 'Não consegui ler este arquivo.',
+  'importar.emBreve': '{msg}. Em breve.',
+  'salvar.okNovos': 'Salvo: {n} novos lançamentos.',
+  'salvar.okComExistentes': 'Salvo: {n} novos lançamentos, {ja} já existiam.',
+  'salvar.duplicado': 'Este documento já foi importado em {data}.',
+  'salvar.falha': 'Falha ao salvar.',
+
+  // Importação — cartão de resultado
+  'tipo.fatura': 'Fatura de cartão',
+  'tipo.extrato': 'Extrato de conta',
+  'tipo.desconhecido': 'Desconhecido',
+  'import.salvarHistorico': 'Salvar no histórico',
+  'import.limpar': 'Limpar',
+  'import.final': 'final {n}',
+  'import.dupla':
+    'Removi {removido} de pagamentos de fatura e transferências entre suas contas — dinheiro que apareceria contado duas vezes. O gasto real é {real}.',
+  'import.confereTitulo': 'Confere com o banco',
+  'import.semGabaritoTitulo': 'Lido, sem total para conferir',
+  'import.naoFechouTitulo': 'O total não fechou',
+  'import.faltam': 'faltam {v}',
+  'import.totalDeclarado': 'Total declarado',
+  'import.renomear': 'Clique para renomear',
+
+  // Linha de transação (histórico) e tema
+  'linha.renomearTitle': 'Renomear / trocar categoria',
+  'tema.paraEscuro': 'Mudar para tema escuro',
+  'tema.paraClaro': 'Mudar para tema claro',
+  'tema.escuro': 'Tema escuro',
+  'tema.claro': 'Tema claro',
+
+  // Relatório em PDF (e cabeçalho de impressão)
+  'pdf.relatorio': 'Relatório',
+  'pdf.geradoEm': 'gerado em {data}',
+  'pdf.saidas': 'Saídas',
+  'pdf.saldoPeriodo': 'Saldo do período',
+  'pdf.saldoPorConta': 'Saldo por conta',
+  'pdf.categoria': 'Categoria',
+  'pdf.valor': 'Valor',
+  'pdf.geradoPor': 'Gerado por',
+
   // Seletor de idioma
   seletorIdioma: 'Idioma',
 }

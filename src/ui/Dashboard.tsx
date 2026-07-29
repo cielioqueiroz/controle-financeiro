@@ -337,7 +337,7 @@ export function Dashboard({ onImportar }: Props) {
           Capital Financeiro
         </p>
         <h1 className="font-display text-3xl text-tinta">
-          Relatório · <span className="capitalize">{rotulo(periodo, ref)}</span>
+          {t('pdf.relatorio')} · <span className="capitalize">{rotulo(periodo, ref)}</span>
         </h1>
       </div>
 

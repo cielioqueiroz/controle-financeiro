@@ -49,5 +49,3 @@ export const BANCOS: Record<Bank, BankTheme> = {
   },
 }
 
-export const rotuloTipo = (t: string): string =>
-  t === 'fatura' ? 'Fatura de cartão' : t === 'extrato' ? 'Extrato de conta' : 'Desconhecido'

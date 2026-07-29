@@ -1,5 +1,6 @@
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
+import { tAtual as t } from '../i18n/traduzir'
 
 export type SaldoLinha = { bank: string; balanceCents: number; date: string }
 export type CategoriaLinha = { nome: string; valorCents: number; pct: number }
@@ -75,31 +76,35 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
   doc.text('CAPITAL FINANCEIRO', M, y)
   y += 22
   doc.setFontSize(20).setTextColor(20)
-  doc.text(`Relatório · ${dados.periodoLabel}`, M, y)
+  doc.text(`${t('pdf.relatorio')} · ${dados.periodoLabel}`, M, y)
   y += 16
   doc.setFontSize(9).setTextColor(150)
   doc.text(
-    `${dados.agrupamento} · gerado em ${dataLongaDe(dados.geradoEm)}`,
+    `${dados.agrupamento} · ${t('pdf.geradoEm', { data: dataLongaDe(dados.geradoEm) })}`,
     M,
     y,
   )
   y += 28
 
   doc.setFontSize(11).setTextColor(40)
-  doc.text(`Entradas: ${formatBRL(dados.entradasCents)}`, M, y)
+  doc.text(`${t('dash.entradas')}: ${formatBRL(dados.entradasCents)}`, M, y)
   y += 16
-  doc.text(`Saídas: ${formatBRL(dados.saidasCents)}`, M, y)
+  doc.text(`${t('pdf.saidas')}: ${formatBRL(dados.saidasCents)}`, M, y)
   y += 16
-  doc.text(`Saldo do período: ${formatBRL(dados.saldoPeriodoCents)}`, M, y)
+  doc.text(`${t('pdf.saldoPeriodo')}: ${formatBRL(dados.saldoPeriodoCents)}`, M, y)
   y += 24
 
   if (dados.saldos.length > 0) {
-    doc.setFontSize(12).setTextColor(20).text('Saldo por conta', M, y)
+    doc.setFontSize(12).setTextColor(20).text(t('pdf.saldoPorConta'), M, y)
     y += 16
     doc.setFontSize(10).setTextColor(60)
     for (const s of dados.saldos) {
       const nome = NOMES_BANCO[s.bank] ?? s.bank
-      doc.text(`${nome}: ${formatBRL(s.balanceCents)}  (em ${dataCurta(s.date)})`, M, y)
+      doc.text(
+        `${nome}: ${formatBRL(s.balanceCents)}  (${t('saldo.em', { data: dataCurta(s.date) })})`,
+        M,
+        y,
+      )
       y += 15
     }
     y += 12
@@ -107,7 +112,7 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
 
   autoTable(doc, {
     startY: y,
-    head: [['Categoria', 'Valor', '%']],
+    head: [[t('pdf.categoria'), t('pdf.valor'), '%']],
     body: dados.categorias.map((c) => [c.nome, formatBRL(c.valorCents), `${c.pct.toFixed(1)}%`]),
     styles: { fontSize: 10 },
     headStyles: { fillColor: [40, 40, 40] },
@@ -116,7 +121,7 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
 
   const fim = doc.internal.pageSize.getHeight() - 24
   doc.setFontSize(8).setTextColor(160)
-  doc.text('Gerado por Capital Financeiro · capital-financeiro.vercel.app', M, fim)
+  doc.text(`${t('pdf.geradoPor')} Capital Financeiro · capital-financeiro.vercel.app`, M, fim)
 
   return doc.output('blob')
 }

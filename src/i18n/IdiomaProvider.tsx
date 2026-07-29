@@ -1,26 +1,12 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import { type Idioma, lerIdioma, salvarIdioma } from './idioma'
-import { pt, type Dicionario } from './dicionarios/pt'
-import { en } from './dicionarios/en'
-import { es } from './dicionarios/es'
+import { type Dicionario } from './dicionarios/pt'
+import { traduzir } from './traduzir'
 import { definirLocale, type LocaleBCP47 } from '../domain/normalize/locale'
 import { definirIdiomaCategorias } from '../domain/categorize/categorias'
 
 /** Idioma → locale BCP-47 (para moeda/datas). */
 const BCP47: Record<Idioma, LocaleBCP47> = { pt: 'pt-BR', en: 'en-US', es: 'es-ES' }
-
-const DICTS: Record<Idioma, Dicionario> = { pt, en, es }
-
-function traduzir(
-  idioma: Idioma,
-  chave: keyof Dicionario,
-  params?: Record<string, string | number>,
-): string {
-  // Idioma ativo → pt como rede de segurança (nunca undefined em runtime).
-  const bruto = DICTS[idioma][chave] ?? pt[chave]
-  if (!params) return bruto
-  return bruto.replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`))
-}
 
 type Ctx = {
   idioma: Idioma
