@@ -21,6 +21,12 @@
   --color-tinta-fraca: #a8a29a;
   --color-tinta-tenue: #6f6a62;
 
+  /* Véu dos modais. Tem valor PRÓPRIO porque precisa ser escuro nos DOIS
+     temas: usar --color-carvao-950 parecia certo no escuro e não escurecia
+     nada no claro (lá aquela variável é creme), deixando o diálogo boiando
+     sobre a página legível. Um véu que não escurece não é véu. */
+  --color-veu: #17120c;
+
   /* Marca — âmbar/dourado. Cor de identidade (logotipo, favicon, foco,
      ponto pulsante). É separada de --color-confere de propósito: aquela
      carrega SEMÂNTICA de "o total bate", e misturar as duas faria o toast
@@ -66,16 +72,22 @@
 /* Tema CLARO — papel quente. Inverte a hierarquia mantendo o contraste:
    página bege, cartões quase brancos (sobressaem), tinta escura. */
 :root[data-theme="light"] {
-  --color-carvao-950: #ece6db; /* página */
-  --color-carvao-900: #fbf9f5; /* cartão (mais claro que a página) */
-  --color-carvao-850: #f2eee6; /* hover */
-  --color-carvao-800: #e7e1d5; /* preenchimentos sutis */
-  --color-carvao-700: #d8d0c2; /* bordas */
-  --color-carvao-600: #c0b7a6; /* bordas fortes */
+  /* Papel quente, não bege sujo: a página é levemente mais funda que os
+     cartões e os cartões são quase brancos — no claro, ELEVAÇÃO = mais
+     branco + sombra suave (no escuro é o contrário). Antes página e cartão
+     eram dois cremes vizinhos e tudo lia como uma superfície só, chapada. */
+  --color-carvao-950: #efebe2; /* página */
+  --color-carvao-900: #fffefc; /* cartão — quase branco, destaca da página */
+  --color-carvao-850: #f7f4ee; /* hover */
+  --color-carvao-800: #ede8de; /* preenchimentos sutis */
+  --color-carvao-700: #e0d9cb; /* bordas */
+  --color-carvao-600: #c5bcaa; /* bordas fortes */
 
-  --color-tinta: #211e1a;
-  --color-tinta-fraca: #57514a;
-  --color-tinta-tenue: #8a8377;
+  --color-tinta: #191510;
+  --color-tinta-fraca: #574f45;
+  /* Era #8a8377: ~3.0:1 sobre a página, fraco demais para os rótulos de
+     10–11px que usam esta cor. */
+  --color-tinta-tenue: #776f63;
 
   --color-particula: #6b5744; /* cafe sobre o creme */
   --particula-alfa: 0.30;
@@ -91,6 +103,22 @@
 
 :root {
   color-scheme: dark;
+}
+
+/* Sombra de elemento flutuante (modais, menus). Precisa de valor por tema:
+   no escuro a sombra é um preto denso que afunda o fundo; sobre creme o
+   mesmo preto vira uma mancha cinza suja em volta do cartão. No claro a
+   elevação se lê por uma sombra ampla e MUITO suave, mais um contorno. */
+.sombra-flutuante {
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.5),
+    0 0 0 1px rgb(0 0 0 / 0.25);
+}
+:root[data-theme="light"] .sombra-flutuante {
+  box-shadow:
+    0 20px 40px -12px rgb(60 45 25 / 0.18),
+    0 4px 12px -4px rgb(60 45 25 / 0.10),
+    0 0 0 1px rgb(60 45 25 / 0.06);
 }
 
 body {

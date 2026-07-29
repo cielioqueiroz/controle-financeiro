@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido, primeiroNome } from '../lib/perfil'
 import { useT } from '../i18n/IdiomaProvider'
+import { Portal, useTravarRolagem } from './Portal'
 
 type Props = {
   /** Nome completo atual (vem do Neon Auth, `user.name`). */
@@ -24,6 +25,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
   const [apelido, setApelido] = useState(apelidoAtual)
   const [salvando, setSalvando] = useState(false)
   const { t } = useT()
+  useTravarRolagem(true)
 
   useEffect(() => {
     function esc(e: KeyboardEvent) {
@@ -62,6 +64,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
   }
 
   return (
+    <Portal>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -69,7 +72,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
       role="dialog"
       aria-modal="true"
       aria-label={t('conta.editarPerfil')}
-      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-veu/60 p-4 backdrop-blur-md sm:p-8"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget && !salvando) onFechar()
       }}
@@ -78,7 +81,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="w-full max-w-md rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
+        className="w-full max-w-md sombra-flutuante rounded-2xl border border-carvao-700 bg-carvao-900"
       >
         <header className="flex items-start justify-between gap-3 border-b border-carvao-800 px-6 py-4">
           <div className="min-w-0">
@@ -147,5 +150,6 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
         </footer>
       </motion.div>
     </motion.div>
+    </Portal>
   )
 }

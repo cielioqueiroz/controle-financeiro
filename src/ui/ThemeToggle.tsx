@@ -4,10 +4,15 @@ import { useT } from '../i18n/IdiomaProvider'
 
 type Tema = 'dark' | 'light'
 
+/** Escolha salva > preferência do sistema > **claro**.
+ *
+ *  O padrão é claro (era escuro): é o tema que o dono do produto quer que
+ *  as pessoas vejam de primeira. Quem já escolheu um tema mantém o dele, e
+ *  quem tem o sistema em escuro continua sendo respeitado. */
 function temaInicial(): Tema {
   const salvo = localStorage.getItem('tema')
   if (salvo === 'light' || salvo === 'dark') return salvo
-  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 /** Alterna claro/escuro. Grava a escolha e estampa data-theme no <html>,

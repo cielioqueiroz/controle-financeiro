@@ -40,6 +40,27 @@
       rel="stylesheet"
     />
     <title>Capital Financeiro</title>
+    <!-- Tema ANTES da primeira pintura. O React só estampa data-theme depois
+         de montar; sem isto a página nasce com o padrão do CSS (escuro) e
+         pisca para o claro. Mesma regra do ThemeToggle: escolha salva >
+         preferência do sistema > claro. Se duplicar a regra aqui incomodar,
+         o jeito é o CSS nascer claro — não tirar este bloco. -->
+    <script>
+      (function () {
+        try {
+          var salvo = localStorage.getItem('tema')
+          var tema =
+            salvo === 'light' || salvo === 'dark'
+              ? salvo
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.dataset.theme = tema
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

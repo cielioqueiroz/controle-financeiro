@@ -8,6 +8,7 @@ import { formatBRL } from '../domain/normalize/money'
 import { useT } from '../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../persist/puxar'
 import { Confirmacao } from './Confirmacao'
+import { Portal, useTravarRolagem } from './Portal'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 
@@ -32,6 +33,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
   const [novaCor, setNovaCor] = useState(CORES[0])
   const [salvandoCat, setSalvandoCat] = useState(false)
   const { t } = useT()
+  useTravarRolagem(true)
 
   async function criarNova() {
     if (!novoNome.trim()) {
@@ -70,11 +72,12 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
   }
 
   return (
+    <Portal>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-veu/60 p-4 backdrop-blur-md sm:p-8"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onFechar()
       }}
@@ -83,7 +86,7 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="w-full max-w-md rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
+        className="w-full max-w-md sombra-flutuante rounded-2xl border border-carvao-700 bg-carvao-900"
       >
         <header className="flex items-start justify-between gap-3 border-b border-carvao-800 px-6 py-4">
           <div className="min-w-0">
@@ -224,5 +227,6 @@ export function EditarCompra({ tx, onFechar, onSalvo }: Props) {
         onCancelar={() => setConfirmandoSalvar(false)}
       />
     </motion.div>
+    </Portal>
   )
 }

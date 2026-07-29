@@ -6,6 +6,7 @@ import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './Confirmacao'
+import { Portal, useTravarRolagem } from './Portal'
 
 type Props = {
   onFechar: () => void
@@ -41,6 +42,7 @@ function realcarNumeros(texto: string) {
 
 export function Documentos({ onFechar, onMudou, contagem }: Props) {
   const { t } = useT()
+  useTravarRolagem(true)
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [apagandoTudo, setApagandoTudo] = useState(false)
@@ -125,11 +127,12 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
   )
 
   return (
+    <Portal>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-veu/60 p-4 backdrop-blur-md sm:p-8"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onFechar()
       }}
@@ -138,7 +141,7 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="w-full max-w-xl rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/40"
+        className="w-full max-w-xl sombra-flutuante rounded-2xl border border-carvao-700 bg-carvao-900"
       >
         <header className="flex items-center justify-between border-b border-carvao-800 px-6 py-4">
           <div>
@@ -241,5 +244,6 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
         onCancelar={() => setApagandoTudo(false)}
       />
     </motion.div>
+    </Portal>
   )
 }

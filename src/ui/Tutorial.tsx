@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useT } from '../i18n/IdiomaProvider'
+import { Portal, useTravarRolagem } from './Portal'
 import type { Dicionario } from '../i18n/dicionarios/pt'
 
 type Props = {
@@ -29,19 +30,21 @@ export function Tutorial({ nome, onFechar }: Props) {
   const boasVindas = i < 0
   const passo = boasVindas ? null : PASSOS[i]
   const ultimo = i === total - 1
+  useTravarRolagem(true)
 
   return (
+    <Portal>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-veu/60 p-4 backdrop-blur-md"
     >
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="w-full max-w-md overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900 shadow-2xl shadow-black/50"
+        className="w-full max-w-md sombra-flutuante overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900"
       >
         <div className="relative px-8 pb-6 pt-9">
           <button
@@ -127,5 +130,6 @@ export function Tutorial({ nome, onFechar }: Props) {
         </div>
       </motion.div>
     </motion.div>
+    </Portal>
   )
 }

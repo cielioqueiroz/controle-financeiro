@@ -23,6 +23,37 @@ overflow e smoke de runtime no Chromium com troca pt→en sem erro de console):
 Também: teste direto de `limparTokenDaUrl` (dívida antiga quitada) e `rotuloTipo`
 saiu do domain (rótulo é da UI). **374 testes (52 arquivos).**
 
+### Correção 2026-07-29 (noite) — modais presos ao container + tema claro padrão
+
+Usuário mostrou o véu do modal cobrindo só a faixa do painel e a confirmação
+nascendo no rodapé, fora da tela.
+
+**Causa raiz (medida no Chromium, não deduzida):** `.surgir` — a classe de
+entrada do dashboard — anima `transform` com `animation-fill-mode: both`, e um
+elemento assim **vira bloco de contenção para descendentes `fixed`, para
+sempre**, mesmo depois da animação. Repro isolado: o mesmo `fixed inset-0`
+media **1248×18px** dentro do `.surgir` e **1280×800** fora dele.
+
+- **`ui/Portal.tsx`**: pendura os overlays no `<body>` via `createPortal`.
+  Aplicado em Confirmacao, Documentos, EditarCompra, EditarPerfil, Tutorial e
+  Celebracao. Renderiza no **mesmo commit** (sem gate de montagem) porque o
+  Confirmacao foca o Cancelar num efeito de montagem — adiar deixava as refs
+  nulas e derrubou 2 testes de foco. Imune a qualquer transform futuro.
+- **`useTravarRolagem`** trava o scroll do fundo, com **contador** (Documentos
+  + Confirmação empilhados: fechar o de cima não pode destravar).
+- **`--color-veu`**: os véus usavam `bg-carvao-950/70`, que no tema **claro é
+  creme** — não escurecia nada. Agora é uma cor própria, escura nos dois temas.
+- Verificado no build de produção: overlay portado = 1280×800 = viewport.
+
+**Tema claro virou o padrão** (`ThemeToggle.temaInicial`: escolha salva >
+preferência do sistema > claro) + script no `index.html` que estampa
+`data-theme` **antes da primeira pintura**, senão a página nascia escura e
+piscava. Paleta clara refeita: página `#efebe2` e cartão `#fffefc` (no claro,
+elevação = mais branco + sombra suave; antes eram dois cremes vizinhos e tudo
+lia chapado), `--color-tinta-tenue` de `#8a8377` → `#776f63` (o anterior dava
+~3:1 nos rótulos de 10–11px) e `.sombra-flutuante` com valor por tema.
+**390 testes (54 arquivos).**
+
 ### Correção 2026-07-29 (tarde) — "Não consegui gerar o PDF"
 
 Usuário relatou o toast de erro ao baixar, e que só existia compartilhar.
@@ -131,7 +162,7 @@ npm test && npm run build && npm run lint
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
 | Entradas (junho) | R$ 41.853,57 |
-| Testes | **386** (53 arquivos) |
+| Testes | **390** (54 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve

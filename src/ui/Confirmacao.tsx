@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { BOTAO_PRIMARIO } from './estilos-campo'
 import { useT } from '../i18n/IdiomaProvider'
+import { Portal, useTravarRolagem } from './Portal'
 
 // BOTAO_PRIMARIO nasceu para o botão de largura cheia do card de acesso
 // (w-full, py-3). Aqui ele divide a linha com o Cancelar, num
@@ -130,13 +131,18 @@ export function Confirmacao({
     return () => document.removeEventListener('keydown', aoTeclar)
   }, [aberto, ocupado, onCancelar])
 
+  useTravarRolagem(aberto)
+
   if (!aberto) return null
 
   return (
+    <Portal>
     <motion.div
       // fixed, nunca absolute: o overlay é decoração pura e não pode
       // entrar no fluxo de rolagem de um container rolável por baixo.
-      className="fixed inset-0 z-50 grid place-items-center bg-carvao-950/70 p-4 backdrop-blur-sm"
+      // O Portal é o que garante que o `fixed` valha para a JANELA (ver
+      // Portal.tsx: um ancestral com transform sequestraria o inset-0).
+      className="fixed inset-0 z-[60] grid place-items-center bg-veu/65 p-4 backdrop-blur-md"
       initial={semMovimento ? undefined : { opacity: 0 }}
       animate={semMovimento ? undefined : { opacity: 1 }}
       exit={semMovimento ? undefined : { opacity: 0 }}
@@ -159,7 +165,7 @@ export function Confirmacao({
         // Alvo de foco quando não há botão focável (ação em curso trava os
         // dois), para o foco preso ter onde pousar sem sair do diálogo.
         tabIndex={-1}
-        className="w-full max-w-sm rounded-2xl border border-carvao-700 bg-carvao-900 p-6 shadow-2xl shadow-black/30"
+        className="w-full max-w-sm sombra-flutuante rounded-2xl border border-carvao-700 bg-carvao-900 p-6"
         initial={semMovimento ? undefined : { opacity: 0, scale: 0.96 }}
         animate={semMovimento ? undefined : { opacity: 1, scale: 1 }}
         exit={semMovimento ? undefined : { opacity: 0, scale: 0.96 }}
@@ -197,5 +203,6 @@ export function Confirmacao({
         </div>
       </motion.div>
     </motion.div>
+    </Portal>
   )
 }

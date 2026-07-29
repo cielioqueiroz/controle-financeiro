@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
+import { Portal } from './Portal'
 
 /** Cores do confete: marca (âmbar), confere (oliva) e neutros do tema.
  *  Vars de CSS para acompanhar o tema claro/escuro automaticamente. */
@@ -59,6 +60,7 @@ export function Celebracao({ ativo, onFim }: Props) {
   if (!ativo || semMovimento) return null
 
   return (
+    <Portal>
     <div
       aria-hidden
       data-testid="celebracao"
@@ -93,5 +95,6 @@ export function Celebracao({ ativo, onFim }: Props) {
         />
       ))}
     </div>
+    </Portal>
   )
 }
