@@ -21,8 +21,10 @@ overflow e smoke de runtime no Chromium com troca pt→en sem erro de console):
 Também: teste direto de `limparTokenDaUrl` (dívida antiga quitada) e `rotuloTipo`
 saiu do domain (rótulo é da UI). **374 testes (52 arquivos).**
 
-⚠️ **Único pendente gated**: aplicar `neon/migrations/0002_saldo_e_bancos.sql`
-(ver item 4 da fila) — sem credencial de banco neste ambiente, é passo manual.
+✅ **Migração 0002 CONFERIDA EM PRODUÇÃO (2026-07-29)**: o usuário verificou no
+SQL Editor do Neon — `documents.end_balance_cents` existe e o CHECK de
+`accounts.bank` já aceita os 5 bancos (aplicada por ele em 2026-07-24, 20:33).
+O item 4 da fila está 100% encerrado; **nenhuma pendência de banco restante**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -276,7 +278,7 @@ ficam em pt por ora (gramática de lista por idioma) — `auth-validacao.ts` int
 2. Toasts/erros ainda em pt (o deferido da fatia 1: campos-faltando e erros da lib de
    recuperação), quando valer o esforço da gramática de lista por idioma.
 
-### 4. Saldo bancário por conta — ✅ CÓDIGO PRONTO (2026-07-24), falta aplicar a migração
+### 4. Saldo bancário por conta — ✅ CONCLUÍDO (migração conferida em produção 2026-07-29)
 
 Implementado nesta rodada (spec/plano em `docs/superpowers/specs|plans/2026-07-24-saldo-bancario*`):
 - Os **5 parsers de extrato** expõem `ParseResult.balance.final` (Nubank e Bradesco
@@ -288,11 +290,10 @@ Implementado nesta rodada (spec/plano em `docs/superpowers/specs|plans/2026-07-2
   painel nunca quebram; a fileira de saldo só não aparece.
 - `ui/SaldoConta.tsx` + fileira no Dashboard acima do filtro de banco.
 
-⚠️ **Falta o passo gated:** aplicar `neon/migrations/0002_saldo_e_bancos.sql` numa
-**branch do Neon**, conferir (`\d public.accounts` com os 5 bancos; `documents` com
-`end_balance_cents`), depois produção. A migração também **conserta o CHECK de
-`accounts.bank`** (só permitia nubank/bradesco/desconhecido — salvar BB/Sicredi/Sicoob
-violava o constraint). Enquanto não rodar, o saldo não aparece (degradação prevista).
+✅ **Migração aplicada e conferida em produção (2026-07-29):**
+`documents.end_balance_cents` existe e `accounts_bank_check` aceita
+nubank/bradesco/bb/sicredi/sicoob/desconhecido (verificado via
+`pg_get_constraintdef` no SQL Editor do Neon). Saldo por conta ativo.
 
 ### 5. ~~Verificações que nunca foram feitas contra o banco~~ ✅ FEITO E TESTADO (2026-07-24)
 
