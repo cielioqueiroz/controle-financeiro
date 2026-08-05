@@ -108,7 +108,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
               placeholder={primeiroNome(nome) ?? t('perfil.apelidoPh')}
               autoFocus
               maxLength={40}
-              className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
+              className="mt-1.5 w-full rounded-lg border border-campo-borda bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
             />
             <span className="mt-1 block text-[11px] text-tinta-tenue">
               {t('perfil.apelidoAjuda')}
@@ -122,7 +122,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
               onChange={(e) => setNome(e.target.value)}
               placeholder={t('auth.ph.nome')}
               maxLength={120}
-              className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
+              className="mt-1.5 w-full rounded-lg border border-campo-borda bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
             />
           </label>
 

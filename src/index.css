@@ -2,7 +2,12 @@
 
 @theme {
   /* Tipografia quadrada/geométrica: Archivo (grotesca de traços retos) no
-     texto e JetBrains Mono (dígitos quadrados) nos números. */
+     texto e JetBrains Mono (dígitos quadrados) nos números.
+     Archivo entra como fonte VARIÁVEL (eixos wdth 62–125 e wght 400–800 num
+     arquivo só, no lugar dos 5 pesos estáticos de antes): menos bytes e, de
+     quebra, um eixo de LARGURA. É dele que sai a voz dos títulos — display e
+     corpo são a mesma família em larguras diferentes, então há hierarquia
+     real sem carregar uma segunda fonte. */
   --font-display: "Archivo", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-sans: "Archivo", system-ui, sans-serif;
@@ -17,9 +22,23 @@
   --color-carvao-700: #2f2c28;
   --color-carvao-600: #45403a;
 
+  /* Borda de CAMPO (input/select/textarea). Token próprio, separado das
+     bordas de cartão, porque as duas coisas têm exigências diferentes:
+     contorno de cartão é decoração (pode ser sutil), mas a borda de um campo
+     é o que diz "aqui se digita" — a WCAG pede 3:1 para isso. As bordas do
+     app estavam em ~1,8:1. Subir o token dos cartões junto engrossaria o
+     desenho inteiro; um token só para campos resolve onde importa. */
+  --color-campo-borda: #6a635a;
+
   --color-tinta: #f5f3ef;
   --color-tinta-fraca: #a8a29a;
-  --color-tinta-tenue: #6f6a62;
+  /* Era #6f6a62: media 3.0–3.5:1 contra as quatro superfícies escuras, abaixo
+     dos 4.5:1 de AA — e esta é a cor de TODOS os rótulos de 10–11px do painel.
+     O tema claro já tinha sido corrigido por este mesmo motivo numa rodada
+     anterior; o escuro tinha ficado para trás. #8c867d dá 4.50–5.19:1 nas
+     quatro (cartão, página, hover e preenchimento), mantendo matiz e
+     saturação — é o mesmo cinza-café, só legível. */
+  --color-tinta-tenue: #8c867d;
 
   /* Véu dos modais. Tem valor PRÓPRIO porque precisa ser escuro nos DOIS
      temas: usar --color-carvao-950 parecia certo no escuro e não escurecia
@@ -50,7 +69,10 @@
      verde=certo/vermelho=errado é leitura aprendida e não vale trocar. */
   --color-confere: #6b8f4e;
   --color-ressalva: #c8862a;
-  --color-falha: #d64545;
+  /* Era #d64545: 4.27:1 sobre o cartão, logo abaixo de AA — e agora carrega
+     o saldo negativo do painel, que é texto que precisa ser lido. #d95252
+     sobe para 4.70:1 sem virar rosa. */
+  --color-falha: #d95252;
 
   /* Texto sobre fundo de cor viva (ex.: botão de perigo em --color-falha).
      Não usa --color-tinta porque aquela inverte por tema (fica escura no
@@ -85,18 +107,26 @@
 
   --color-tinta: #191510;
   --color-tinta-fraca: #574f45;
-  /* Era #8a8377: ~3.0:1 sobre a página, fraco demais para os rótulos de
-     10–11px que usam esta cor. */
-  --color-tinta-tenue: #776f63;
+  /* Era #8a8377 (~3.0:1), depois #776f63 — que passava no cartão (4.9:1) mas
+     ainda ficava em 4.16:1 sobre a página e 4.06:1 sobre os preenchimentos.
+     #6f685d fecha as quatro superfícies em 4.50–5.46:1. */
+  --color-tinta-tenue: #6f685d;
 
   --color-particula: #6b5744; /* cafe sobre o creme */
   --particula-alfa: 0.30;
 
-  /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro. */
-  --color-marca: #9a6a15;
+  --color-campo-borda: #9c8f77;
+
+  /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro.
+     `marca` era #9a6a15 e dava 3.97:1 sobre a página — passa como texto grande,
+     mas a assinatura do rodapé usa esta cor em 16px semibold, que é texto
+     normal para a WCAG. `ressalva` era #9c6415 (4.35:1 na página) e agora
+     carrega o selo "em aberto" das faturas. Ambas escurecidas o mínimo para
+     fechar 4.5:1 mantendo o matiz âmbar. */
+  --color-marca: #8e6213;
   --color-moeda-traco: #3d2a06;
   --color-confere: #4f6b39;
-  --color-ressalva: #9c6415;
+  --color-ressalva: #945f14;
   --color-falha: #b3323a;
   color-scheme: light;
 }
@@ -145,17 +175,35 @@ body {
     cursor: not-allowed;
   }
   /* Títulos em Archivo pedem peso e tracking apertado para o ar quadrado
-     (é só o padrão; utilitários de peso ainda sobrescrevem). */
+     (é só o padrão; utilitários de peso ainda sobrescrevem).
+     `font-stretch: 108%` é o que separa título de corpo: mesma família, meia
+     largura a mais. Fica arquitetônico sem virar outra fonte — e sem custo de
+     rede, porque o eixo já vem no arquivo variável.
+     `text-wrap: balance` evita o título de duas linhas com uma palavra órfã
+     na segunda; `font-optical-sizing` deixa o desenho acompanhar o tamanho. */
   .font-display {
     font-weight: 700;
-    letter-spacing: -0.02em;
+    font-stretch: 108%;
+    letter-spacing: -0.025em;
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+
+  /* Parágrafos com quebra "bonita": evita a última linha com uma palavra só.
+     Ignorado em silêncio por quem não suporta. */
+  p {
+    text-wrap: pretty;
   }
 
   /* Hover/foco bacana nos campos: borda realça ao passar o mouse e um anel
      verde suave ao focar. */
+  /* Todo campo nasce com a borda de 3:1. Fica no @layer base para que um
+     `border-*` do Tailwind no componente ainda possa mandar quando houver
+     motivo — mas o padrão passa a ser o acessível, não o invisível. */
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
+    border-color: var(--color-campo-borda);
     transition:
       border-color 0.15s ease,
       box-shadow 0.15s ease,
@@ -202,11 +250,25 @@ body {
   }
 }
 
-/* Números tabulares — coluna de valores sem tremer. */
-.tabular {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
+/* Números tabulares — coluna de valores sem tremer.
+ *
+ * Fica em @layer components de propósito. Regra SEM layer vence utilitário do
+ * Tailwind (o inverso da armadilha já anotada para o @layer base), então uma
+ * `letter-spacing` aqui, sem layer, atropelaria o `tracking-widest` dos
+ * rótulos de 10px que também usam .tabular. Em components, o utilitário volta
+ * a mandar e cada uso decide.
+ *
+ * Peso 500 e tracking levemente negativo: JetBrains Mono é uma fonte de
+ * CÓDIGO, e no corpo grande dos totais o desenho padrão fica largo e solto.
+ * Apertado e meio grau mais pesado, o número lê como dinheiro. */
+@layer components {
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
 }
 
 /* Grão de papel sobre o fundo. */

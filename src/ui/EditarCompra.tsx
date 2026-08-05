@@ -135,7 +135,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
               onChange={(e) => setLabel(e.target.value)}
               placeholder={tx.description}
               autoFocus
-              className="mt-1.5 w-full rounded-lg border border-carvao-700 bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
+              className="mt-1.5 w-full rounded-lg border border-campo-borda bg-carvao-850 px-3 py-2 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue focus:border-carvao-600"
             />
             <span className="mt-1 block text-[11px] text-tinta-tenue">
               {t('editar.nomeAjuda')}
@@ -177,13 +177,13 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
                     onChange={(e) => setNovoIcone(e.target.value)}
                     maxLength={2}
                     aria-label={t('editar.emojiAria')}
-                    className="w-12 rounded-md border border-carvao-700 bg-carvao-950 px-2 py-1.5 text-center text-base outline-none"
+                    className="w-12 rounded-md border border-campo-borda bg-carvao-950 px-2 py-1.5 text-center text-base outline-none"
                   />
                   <input
                     value={novoNome}
                     onChange={(e) => setNovoNome(e.target.value)}
                     placeholder={t('editar.novaCatPh')}
-                    className="flex-1 rounded-md border border-carvao-700 bg-carvao-950 px-3 py-1.5 text-sm text-tinta outline-none placeholder:text-tinta-tenue"
+                    className="flex-1 rounded-md border border-campo-borda bg-carvao-950 px-3 py-1.5 text-sm text-tinta outline-none placeholder:text-tinta-tenue"
                   />
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
