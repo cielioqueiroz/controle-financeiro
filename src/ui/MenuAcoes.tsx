@@ -5,6 +5,7 @@ import { useT } from '../i18n/IdiomaProvider'
 type Props = {
   onImportar: () => void
   onDocumentos: () => void
+  onCategorias: () => void
   onBaixarPDF?: () => void
   /** Só chega quando o aparelho compartilha arquivos (Web Share nível 2). */
   onCompartilharPDF?: () => void
@@ -12,7 +13,13 @@ type Props = {
 
 /** Menu hambúrguer com as ações do painel. Usado no mobile (no desktop as
  *  ações aparecem inline). */
-export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF, onCompartilharPDF }: Props) {
+export function MenuAcoes({
+  onImportar,
+  onDocumentos,
+  onCategorias,
+  onBaixarPDF,
+  onCompartilharPDF,
+}: Props) {
   const [aberto, setAberto] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { t } = useT()
@@ -57,6 +64,9 @@ export function MenuAcoes({ onImportar, onDocumentos, onBaixarPDF, onCompartilha
             </button>
             <button onClick={() => { setAberto(false); onDocumentos() }} className={item}>
               <span aria-hidden>🗂️</span> {t('dash.documentos')}
+            </button>
+            <button onClick={() => { setAberto(false); onCategorias() }} className={item}>
+              <span aria-hidden>🏷️</span> {t('dash.categorias')}
             </button>
             {onBaixarPDF && (
               <button onClick={() => { setAberto(false); onBaixarPDF() }} className={item}>

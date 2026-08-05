@@ -11,6 +11,7 @@ import {
   porDia,
   evolucaoMensal,
   projecaoFutura,
+  maioresSaidas,
   type Periodo,
   type PontoMes,
   type MesFuturo,
@@ -18,18 +19,31 @@ import {
 import { GraficoCategorias } from './GraficoCategorias'
 import { GraficoEvolucao } from './GraficoEvolucao'
 import { CompromissosFuturos } from './CompromissosFuturos'
+import { MaioresSaidas } from './MaioresSaidas'
+import { Recorrencias } from './Recorrencias'
+import {
+  detectarRecorrencias,
+  alertasDe,
+  competenciaMaisRecente,
+  type Recorrencia,
+  type Alerta,
+} from '../domain/recorrencias'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { ListaPorDia } from './ListaPorDia'
+import { ListaTodos } from './ListaTodos'
 import { MenuAcoes } from './MenuAcoes'
 import { podeCompartilharArquivo } from '../lib/compartilhar'
 import { ehFalhaDeChunk } from '../lib/chunk'
 import { ValorAnimado } from './ValorAnimado'
 import { Documentos } from './Documentos'
+import { Categorias } from './Categorias'
 import { EditarCompra } from './EditarCompra'
 import { SaldoConta } from './SaldoConta'
+import { SaldoAberto } from './SaldoAberto'
 import { ErroCarregar } from './ErroCarregar'
-import { puxarSaldos } from '../persist/documentos'
-import { saldosPorConta, type DocParaSaldo } from '../persist/saldos'
+import { puxarSaldos, type DocDoPainel } from '../persist/documentos'
+import { saldosPorConta } from '../persist/saldos'
+import { faturasAbertas } from '../persist/aberto'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { mesAbrev } from '../domain/normalize/data'
@@ -125,9 +139,10 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [mostrarDocs, setMostrarDocs] = useState(false)
+  const [mostrarCats, setMostrarCats] = useState(false)
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const [banco, setBanco] = useState<string>('geral')
-  const [docsSaldo, setDocsSaldo] = useState<DocParaSaldo[]>([])
+  const [docsSaldo, setDocsSaldo] = useState<DocDoPainel[]>([])
   const [gerandoPdf, setGerandoPdf] = useState(false)
   // Capacidade do navegador, estável na sessão: decidida uma vez, não a cada
   // render. Some no desktop sem Web Share — lá só existe baixar.
@@ -181,6 +196,10 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
   // migração 0002 já rodou e há extrato salvo (senão puxarSaldos volta []).
   const saldos = useMemo(() => saldosPorConta(docsSaldo), [docsSaldo])
 
+  // Saldo em aberto do cartão, declarado pela fatura mais recente de cada
+  // conta. Dado que já era gravado desde sempre e nunca era lido.
+  const abertos = useMemo(() => faturasAbertas(docsSaldo), [docsSaldo])
+
   // Bancos presentes e a fatia visível conforme o banco selecionado.
   const bancos = useMemo(
     () => [...new Set((todas ?? []).map((t) => t.bank))].filter(Boolean).sort(),
@@ -203,6 +222,41 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
       cur.qtd += 1
       if (t.kind === 'expense') cur.totalCents += t.amount_cents
       m.set(t.document_id, cur)
+    }
+    return m
+  }, [todas])
+  // Pagamentos de fatura de todo o histórico. O painel de Documentos deriva
+  // deles quais faturas estão quitadas — cruzamento que a importação sozinha
+  // não faz quando fatura e extrato entram em dias diferentes.
+  const pagamentos = useMemo(
+    () =>
+      (todas ?? [])
+        .filter((t) => t.kind === 'card_payment')
+        .map((t) => ({
+          id: t.id,
+          date: t.date,
+          amount_cents: t.amount_cents,
+          kind: t.kind,
+        })),
+    [todas],
+  )
+  // Recorrências olham TODO o histórico do banco selecionado, não só o
+  // período visível: detectar "se repete todo mês" exige mais de um mês.
+  const recorrencias = useMemo(
+    () => (visiveis ? detectarRecorrencias(visiveis) : []),
+    [visiveis],
+  )
+  const alertas = useMemo(
+    () => alertasDe(recorrencias, competenciaMaisRecente(visiveis ?? [])),
+    [recorrencias, visiveis],
+  )
+  // Quantas transações usam cada categoria — o painel de Categorias usa isso
+  // para dizer o tamanho do estrago antes de apagar uma.
+  const usoPorSlug = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const t of todas ?? []) {
+      const s = t.category_slug ?? 'outros'
+      m.set(s, (m.get(s) ?? 0) + 1)
     }
     return m
   }, [todas])
@@ -318,6 +372,13 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
             >
               {t('dash.documentos')}
             </button>
+            <button
+              onClick={() => setMostrarCats(true)}
+              className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
+              title={t('dash.catTooltip')}
+            >
+              {t('dash.categorias')}
+            </button>
             {txs && txs.length > 0 && (
               <>
                 <button
@@ -354,6 +415,7 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
             <MenuAcoes
               onImportar={onImportar}
               onDocumentos={() => setMostrarDocs(true)}
+              onCategorias={() => setMostrarCats(true)}
               onBaixarPDF={txs && txs.length > 0 ? baixarPdf : undefined}
               onCompartilharPDF={
                 txs && txs.length > 0 && podeCompartilhar ? compartilharPdf : undefined
@@ -363,15 +425,23 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
         </div>
       </div>
 
-      {/* Saldo atual por conta (extrato mais recente) */}
-      {saldos.length > 0 && (
+      {/* Saldo atual por conta (extrato) + saldo em aberto do cartão (fatura) */}
+      {(saldos.length > 0 || abertos.length > 0) && (
         <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {saldos.map((s) => (
             <SaldoConta
-              key={`${s.bank}-${s.accountId ?? 'sem-conta'}`}
+              key={`saldo-${s.bank}-${s.accountId ?? 'sem-conta'}`}
               bank={s.bank}
               balanceCents={s.balanceCents}
               date={s.date}
+            />
+          ))}
+          {abertos.map((a) => (
+            <SaldoAberto
+              key={`aberto-${a.bank}-${a.accountId ?? 'sem-conta'}`}
+              bank={a.bank}
+              abertoCents={a.abertoCents}
+              proximoFechamento={a.proximoFechamento}
             />
           ))}
         </div>
@@ -478,6 +548,8 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
             onEditar={setEditando}
             serie={serie}
             futuros={futuros}
+            recorrencias={recorrencias}
+            alertas={alertas}
             compAtiva={compAtiva}
             onIrParaMes={irParaMes}
           />
@@ -488,8 +560,19 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
         {mostrarDocs && (
           <Documentos
             contagem={contagemPorDoc}
+            pagamentos={pagamentos}
             onFechar={() => setMostrarDocs(false)}
             onMudou={carregar}
+          />
+        )}
+        {mostrarCats && (
+          <Categorias
+            usoPorSlug={usoPorSlug}
+            onFechar={() => setMostrarCats(false)}
+            onMudou={() => {
+              carregar()
+              onAprendeu?.()
+            }}
           />
         )}
         {editando && (
@@ -512,6 +595,8 @@ function Conteudo({
   onEditar,
   serie,
   futuros,
+  recorrencias,
+  alertas,
   compAtiva,
   onIrParaMes,
 }: {
@@ -521,12 +606,15 @@ function Conteudo({
   onEditar: (t: TransacaoSalva) => void
   serie: PontoMes[]
   futuros: MesFuturo[]
+  recorrencias: Recorrencia[]
+  alertas: Alerta[]
   compAtiva: string
   onIrParaMes: (competencia: string) => void
 }) {
-  const [vista, setVista] = useState<'categoria' | 'dia'>('categoria')
+  const [vista, setVista] = useState<'categoria' | 'dia' | 'todos'>('categoria')
   const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
   const dias = useMemo(() => porDia(txs), [txs])
+  const maiores = useMemo(() => maioresSaidas(txs, 5), [txs])
   const semMovimento = useReducedMotion()
   const { t } = useT()
 
@@ -546,7 +634,7 @@ function Conteudo({
   return (
     <motion.div key={chave} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       {/* Tiles de resumo — largura total, com números que "contam" */}
-      <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-2 lg:grid-cols-4">
         <motion.div {...entra(0.05)}>
           <Tile rotulo={t('dash.gasto')} destaque>
             <ValorAnimado valor={resumo.gastoCents} />
@@ -558,6 +646,17 @@ function Conteudo({
           </Tile>
         </motion.div>
         <motion.div {...entra(0.19)}>
+          {/* Saldo negativo em --color-falha; positivo fica na tinta normal.
+              Verde é de --color-confere ("o total bate") e usar aqui diluiria
+              essa semântica — ver decisões de design no ESTADO-ATUAL. */}
+          <Tile
+            rotulo={t('dash.saldoMes')}
+            cor={resumo.saldoCents < 0 ? 'var(--color-falha)' : undefined}
+          >
+            <ValorAnimado valor={resumo.saldoCents} />
+          </Tile>
+        </motion.div>
+        <motion.div {...entra(0.26)}>
           <Tile rotulo={t('dash.lancamentos')}>
             <ValorAnimado valor={resumo.contagem} moeda={false} />
           </Tile>
@@ -574,15 +673,22 @@ function Conteudo({
             longa ao lado, em vez de deixar um vazio embaixo (só no layout de
             duas colunas, xl+). */}
         <aside className="border-carvao-800 p-5 xl:border-r">
-          <div className="space-y-6 xl:sticky xl:top-4">
+          {/* max-h + overflow no sticky: a coluna ganhou dois cards nesta
+              rodada (maiores saídas, recorrências) e passou a poder ficar
+              MAIS ALTA que a janela. Elemento sticky mais alto que a viewport
+              gruda e o que sobra embaixo fica inalcançável — a rolagem da
+              página move o irmão, não ele. Com o teto, a própria coluna rola. */}
+          <div className="space-y-6 xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
             {resumo.porCategoria.length > 0 && (
               <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
             )}
+            <MaioresSaidas itens={maiores} onEditar={onEditar} />
             {serie.length >= 2 && (
               <div className="screen-only">
                 <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={onIrParaMes} />
               </div>
             )}
+            <Recorrencias recorrencias={recorrencias} alertas={alertas} />
             {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
           </div>
         </aside>
@@ -600,13 +706,18 @@ function Conteudo({
               <AbaVista ativa={vista === 'dia'} onClick={() => setVista('dia')}>
                 {t('dash.porDia')}
               </AbaVista>
+              <AbaVista ativa={vista === 'todos'} onClick={() => setVista('todos')}>
+                {t('dash.todos')}
+              </AbaVista>
             </div>
           </div>
 
           {vista === 'categoria' ? (
             <ListaPorCategoria grupos={grupos} totalCents={resumo.gastoCents} onEditar={onEditar} />
-          ) : (
+          ) : vista === 'dia' ? (
             <ListaPorDia grupos={dias} onEditar={onEditar} />
+          ) : (
+            <ListaTodos txs={txs} onEditar={onEditar} />
           )}
         </div>
       </motion.div>

@@ -53,6 +53,21 @@ export async function criarCategoria(c: {
   }
 }
 
+/** Renomeia / troca ícone e cor de uma categoria do usuário. O `slug` NUNCA
+ *  muda: é ele que as transações guardam, e mexer nele órfãozaria todas as
+ *  compras já classificadas. */
+export async function editarCategoria(
+  id: string,
+  campos: { nome: string; icone: string; cor: string },
+): Promise<void> {
+  if (!neon) throw new Error('Sem conexão.')
+  const { error } = await neon
+    .from('categories')
+    .update({ nome: campos.nome.trim(), icone: campos.icone, cor: campos.cor })
+    .eq('id', id)
+  if (error) throw error
+}
+
 export async function apagarCategoria(id: string): Promise<void> {
   if (!neon) return
   const { error } = await neon.from('categories').delete().eq('id', id)

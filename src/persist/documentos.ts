@@ -1,5 +1,6 @@
 import { neon } from '../lib/neon'
 import type { DocParaSaldo } from './saldos'
+import type { DocParaAberto } from './aberto'
 
 export type DocumentoSalvo = {
   id: string
@@ -23,19 +24,29 @@ export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
   return (data ?? []) as DocumentoSalvo[]
 }
 
-/** Documentos com os campos que alimentam o saldo por conta. Query SEPARADA
- *  (não o `puxarDocumentos` do painel) e DEFENSIVA: se a migração 0002 ainda
- *  não rodou, a coluna `end_balance_cents` não existe e o select erra — aqui
- *  isso vira lista vazia (a fileira de saldo simplesmente não aparece), sem
- *  contaminar o resto do dashboard. */
-export async function puxarSaldos(): Promise<DocParaSaldo[]> {
+/** Uma linha de `documents` com tudo que o painel deriva dela: o saldo final
+ *  do extrato (`saldos.ts`) e o saldo em aberto da fatura (`aberto.ts`). */
+export type DocDoPainel = DocParaSaldo & DocParaAberto
+
+/** Documentos com os campos que alimentam o saldo por conta E o saldo em
+ *  aberto do cartão. Query SEPARADA (não o `puxarDocumentos` do painel) e
+ *  DEFENSIVA: se a migração 0002 ainda não rodou, a coluna
+ *  `end_balance_cents` não existe e o select erra — aqui isso vira lista
+ *  vazia (as fileiras simplesmente não aparecem), sem contaminar o resto do
+ *  dashboard. As outras quatro colunas são do schema 0001 e sempre existem.
+ *
+ *  O nome continua `puxarSaldos` de propósito: `Dashboard.pdf.test.tsx`
+ *  mocka este módulo por nome, e renomear quebraria o mock sem ganho. */
+export async function puxarSaldos(): Promise<DocDoPainel[]> {
   if (!neon) return []
   try {
     const { data, error } = await neon
       .from('documents')
-      .select('bank, account_id, doc_type, period_end, end_balance_cents')
+      .select(
+        'bank, account_id, doc_type, period_end, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
+      )
     if (error) return []
-    return (data ?? []) as DocParaSaldo[]
+    return (data ?? []) as DocDoPainel[]
   } catch {
     return []
   }

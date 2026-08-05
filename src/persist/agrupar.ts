@@ -62,6 +62,9 @@ export function filtrar<T extends TxAgrupavel>(txs: T[], periodo: Periodo, ref: 
 export type Resumo = {
   gastoCents: number
   entradasCents: number
+  /** Entradas menos gasto. Positivo = sobrou. Vínculos não entram (não são
+   *  gasto nem entrada), então o número é o que de fato sobrou no período. */
+  saldoCents: number
   contagem: number
   porCategoria: CategoriaResumo[]
 }
@@ -91,6 +94,7 @@ export function agregar(txs: TxAgrupavel[]): Resumo {
   return {
     gastoCents,
     entradasCents,
+    saldoCents: entradasCents - gastoCents,
     contagem: txs.length,
     porCategoria: [...mapa.values()].sort((a, b) => b.totalCents - a.totalCents),
   }
@@ -208,6 +212,23 @@ export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
   }
   for (const m of meses.values()) m.itens.sort((a, b) => b.amountCents - a.amountCents)
   return [...meses.values()].sort((a, b) => (a.competencia < b.competencia ? -1 : 1))
+}
+
+/** As n maiores despesas do período, da maior para a menor.
+ *
+ *  Só `kind === 'expense'`: entrada não é saída, e vínculo
+ *  (`card_payment`/`internal_transfer`) é dinheiro que só mudou de lugar —
+ *  incluí-lo poria a quitação da fatura no topo do ranking todo mês,
+ *  escondendo os gastos de verdade.
+ *
+ *  Copia antes de ordenar: a lista que chega é a mesma que o dashboard usa
+ *  noutros cálculos, e `sort` muta no lugar. */
+export function maioresSaidas<T extends TxAgrupavel>(txs: T[], n = 5): T[] {
+  return txs
+    .filter((t) => t.kind === 'expense')
+    .slice()
+    .sort((a, b) => b.amount_cents - a.amount_cents)
+    .slice(0, n)
 }
 
 export type GrupoDia<T> = {

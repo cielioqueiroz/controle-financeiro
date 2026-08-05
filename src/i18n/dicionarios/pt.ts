@@ -69,6 +69,7 @@ export const pt = {
   // Dashboard — tiles, período, ações, listas
   'dash.gasto': 'Gasto no período',
   'dash.entradas': 'Entradas',
+  'dash.saldoMes': 'Saldo do período',
   'dash.lancamentos': 'Lançamentos',
   'dash.dia': 'Dia',
   'dash.semana': 'Semana',
@@ -103,6 +104,67 @@ export const pt = {
   // Saldo por conta
   'saldo.rotulo': 'Saldo',
   'saldo.em': 'em {data}',
+
+  // Saldo em aberto do cartão (declarado pela fatura)
+  'aberto.rotulo': 'Em aberto',
+  'aberto.fecha': 'fecha em {data}',
+
+  // Maiores saídas do período
+  'maiores.titulo': 'Maiores saídas do período',
+
+  // Recorrências detectadas
+  'rec.titulo': 'Recorrências',
+  'rec.contagem': '{n} detectadas no histórico',
+  'rec.contagem1': '{n} detectada no histórico',
+  'rec.dia': 'dia {d}',
+  'rec.variavel': 'valor varia',
+  'rec.verTodas': 'ver mais {n}',
+  'rec.verMenos': 'ver menos',
+  'rec.alertaValor': '{nome} mudou de {de} para {para}',
+  'rec.alertaSumiu': '{nome} não veio neste mês',
+
+  // Busca de lançamentos
+  'dash.todos': 'Todos',
+  'busca.placeholder': 'Procurar por estabelecimento…',
+  'busca.rotulo': 'Procurar lançamento',
+  'busca.categoria': 'Filtrar por categoria',
+  'busca.todasCategorias': 'Todas as categorias',
+  'busca.resultados': '{n} lançamentos',
+  'busca.resultado1': '{n} lançamento',
+  'busca.vazio': 'Nada encontrado com esses filtros.',
+
+  // Painel de categorias e regras aprendidas
+  'dash.categorias': 'Categorias',
+  'dash.catTooltip': 'Suas categorias e o que o app aprendeu',
+  'cats.titulo': 'Categorias',
+  'cats.subtitulo': 'Suas categorias e o que o app aprendeu com suas correções',
+  'cats.suas': 'Suas categorias',
+  'cats.semSuas': 'Você ainda não criou nenhuma categoria.',
+  'cats.carregando': 'Carregando…',
+  'cats.usoN': '{n} lançamentos',
+  'cats.editar': 'Editar',
+  'cats.apagar': 'Apagar',
+  'cats.editarNome': 'Editar a categoria {nome}',
+  'cats.apagarNome': 'Apagar a categoria {nome}',
+  'cats.esquecerNome': 'Esquecer a regra de {padrao}',
+  'cats.nome': 'Nome da categoria',
+  'cats.icone': 'Ícone',
+  'cats.regras': 'Aprendizado',
+  'cats.regrasAjuda':
+    'Quando você corrige a categoria de uma compra, o app passa a usar a mesma categoria nas próximas. Aqui dá para desfazer.',
+  'cats.semRegras': 'O app ainda não aprendeu nenhuma regra.',
+  'cats.esquecer': 'Esquecer',
+  'cats.confApagarTitulo': 'Apagar esta categoria?',
+  'cats.confApagarUsada':
+    'A categoria "{nome}" está em {n} lançamentos. Eles não serão apagados, mas passam a aparecer como Outros.',
+  'cats.confApagarLivre': 'A categoria "{nome}" não está em nenhum lançamento.',
+  'cats.toastSalva': 'Categoria atualizada.',
+  'cats.toastApagada': 'Categoria apagada.',
+  'cats.toastRegraEsquecida': 'Regra esquecida.',
+  'cats.toastFalha': 'Não consegui carregar as categorias.',
+  'cats.toastSalvarFalha': 'Não consegui salvar a categoria.',
+  'cats.toastApagarFalha': 'Não consegui apagar a categoria.',
+  'cats.toastRegraFalha': 'Não consegui esquecer a regra.',
 
   // Compromissos futuros
   'comp.titulo': 'Compromissos futuros',
@@ -149,6 +211,8 @@ export const pt = {
   'geral.fechar': 'Fechar',
   'doc.fatura': 'Fatura',
   'doc.extrato': 'Extrato',
+  'doc.quitada': 'quitada',
+  'doc.emAberto': 'em aberto',
 
   // Editar perfil
   'perfil.subtitulo': 'Como você quer ser chamado por aqui.',

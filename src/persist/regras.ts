@@ -53,3 +53,20 @@ export async function salvarRegra(regra: Regra): Promise<void> {
   })
   if (error) throw error
 }
+
+/** Esquece uma regra aprendida. Simétrico do `salvarRegra`: apaga pelo par
+ *  (padrão, tipo), que é o que identifica a regra na prática — o insert já
+ *  garante que existe no máximo uma linha por par.
+ *
+ *  Existe porque, até agora, o aprendizado era irreversível e invisível: o
+ *  app decorava a correção e o usuário não tinha como ver nem desfazer. */
+export async function apagarRegra(regra: Pick<Regra, 'padrao' | 'tipo'>): Promise<void> {
+  if (!neon) return
+  const tipo = regra.tipo === 'cnpj' ? 'cnpj' : 'contains'
+  const { error } = await neon
+    .from('merchant_rules')
+    .delete()
+    .eq('padrao', regra.padrao)
+    .eq('match_type', tipo)
+  if (error) throw error
+}

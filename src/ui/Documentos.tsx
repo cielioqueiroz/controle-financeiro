@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { puxarDocumentos, apagarDocumento, apagarTudo, type DocumentoSalvo } from '../persist/documentos'
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
+import { faturasQuitadas, type PagamentoParaQuitacao } from '../domain/quitacao'
 import { Confirmacao } from './Confirmacao'
 import { Portal, useTravarRolagem } from './Portal'
 
@@ -14,6 +15,9 @@ type Props = {
   onMudou: () => void
   /** Contagem/soma por documento, vinda do dashboard (já em memória). */
   contagem: Map<string, { qtd: number; totalCents: number }>
+  /** Pagamentos de fatura de todo o histórico, vindos do dashboard (já em
+   *  memória). Deles se deriva qual fatura está quitada. */
+  pagamentos: PagamentoParaQuitacao[]
 }
 
 function periodoCurto(ini: string | null, fim: string | null): string {
@@ -40,7 +44,7 @@ function realcarNumeros(texto: string) {
   )
 }
 
-export function Documentos({ onFechar, onMudou, contagem }: Props) {
+export function Documentos({ onFechar, onMudou, contagem, pagamentos }: Props) {
   const { t } = useT()
   useTravarRolagem(true)
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
@@ -110,6 +114,15 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
         periodo: periodoCurto(docAlvo.period_start, docAlvo.period_end),
       })
     : undefined
+
+  // Faturas quitadas, derivado de todo o histórico de pagamentos. Só as
+  // faturas entram: um extrato que por acaso tenha `declared_total` igual ao
+  // de um pagamento CONSUMIRIA aquele pagamento (a regra é um-para-um) e
+  // deixaria a fatura de verdade marcada como em aberto.
+  const quitadas = useMemo(
+    () => faturasQuitadas((docs ?? []).filter((d) => d.doc_type === 'fatura'), pagamentos),
+    [docs, pagamentos],
+  )
 
   // Irreversível: mostra o tamanho do estrago (documentos + lançamentos)
   // para a pessoa parar e ler, em vez de um genérico "apagar tudo?".
@@ -186,6 +199,17 @@ export function Documentos({ onFechar, onMudou, contagem }: Props) {
                         {t(ehFatura ? 'doc.fatura' : 'doc.extrato')} ·{' '}
                         <span className="capitalize">{d.bank}</span>
                         <span className="text-tinta-tenue"> · {periodoCurto(d.period_start, d.period_end)}</span>
+                        {ehFatura && d.declared_total != null && (
+                          <span
+                            className={`ml-2 rounded-full px-2 py-0.5 text-[10px] ${
+                              quitadas.has(d.id)
+                                ? 'bg-confere/15 text-confere'
+                                : 'bg-ressalva/15 text-ressalva'
+                            }`}
+                          >
+                            {t(quitadas.has(d.id) ? 'doc.quitada' : 'doc.emAberto')}
+                          </span>
+                        )}
                       </p>
                       <p className="tabular text-[11px] text-tinta-tenue">
                         {c ? t('docs.nLancamentos', { n: c.qtd }) : '—'}

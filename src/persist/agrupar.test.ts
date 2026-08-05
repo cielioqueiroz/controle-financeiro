@@ -8,6 +8,7 @@ import {
   porDia,
   evolucaoMensal,
   projecaoFutura,
+  maioresSaidas,
   type TxAgrupavel,
   type TxParcela,
 } from './agrupar'
@@ -76,6 +77,85 @@ describe('agregar', () => {
     const r = agregar(txs)
     expect(r.gastoCents).toBe(5000)
     expect(r.entradasCents).toBe(2000)
+  })
+
+  it('saldo do período é entradas menos gasto', () => {
+    const txs = [
+      tx({ amount_cents: 42000, kind: 'expense', category_slug: 'aluguel' }),
+      tx({ amount_cents: -152000, kind: 'income', category_slug: null }),
+    ]
+    const r = agregar(txs)
+    expect(r.gastoCents).toBe(42000)
+    expect(r.entradasCents).toBe(152000)
+    expect(r.saldoCents).toBe(110000)
+  })
+
+  it('saldo negativo quando se gasta mais do que entra', () => {
+    const txs = [
+      tx({ amount_cents: 200000, kind: 'expense', category_slug: 'outros' }),
+      tx({ amount_cents: -50000, kind: 'income', category_slug: null }),
+    ]
+    expect(agregar(txs).saldoCents).toBe(-150000)
+  })
+
+  it('vínculos não entram no saldo (não são gasto nem entrada)', () => {
+    const txs = [
+      tx({ amount_cents: 832424, kind: 'card_payment', category_slug: null }),
+      tx({ amount_cents: -152000, kind: 'income', category_slug: null }),
+    ]
+    expect(agregar(txs).saldoCents).toBe(152000)
+  })
+})
+
+describe('maioresSaidas', () => {
+  const item = (over: Partial<TxAgrupavel> & { id?: string }) => ({
+    id: 'x',
+    date: '2026-06-05',
+    competencia: '2026-06',
+    amount_cents: 1000,
+    kind: 'expense',
+    category_slug: 'outros',
+    ...over,
+  })
+
+  it('ordena por valor desc e corta em n', () => {
+    const txs = [
+      item({ id: 'a', amount_cents: 42000 }),
+      item({ id: 'b', amount_cents: 31000 }),
+      item({ id: 'c', amount_cents: 22840 }),
+      item({ id: 'd', amount_cents: 14280 }),
+    ]
+    expect(maioresSaidas(txs, 2).map((t) => t.id)).toEqual(['a', 'b'])
+  })
+
+  it('só despesas — entradas e vínculos ficam de fora', () => {
+    const txs = [
+      item({ id: 'gasto', amount_cents: 1000 }),
+      item({ id: 'entrada', amount_cents: -900000, kind: 'income' }),
+      item({ id: 'quitacao', amount_cents: 800000, kind: 'card_payment' }),
+    ]
+    expect(maioresSaidas(txs).map((t) => t.id)).toEqual(['gasto'])
+  })
+
+  it('devolve menos que n quando não há despesas suficientes', () => {
+    expect(maioresSaidas([item({ id: 'a' })], 5)).toHaveLength(1)
+  })
+
+  it('lista vazia devolve lista vazia', () => {
+    expect(maioresSaidas([], 5)).toEqual([])
+  })
+
+  it('não muta a lista recebida', () => {
+    const txs = [item({ id: 'a', amount_cents: 100 }), item({ id: 'b', amount_cents: 200 })]
+    maioresSaidas(txs)
+    expect(txs.map((t) => t.id)).toEqual(['a', 'b'])
+  })
+
+  it('n padrão é 5', () => {
+    const txs = Array.from({ length: 9 }, (_, i) =>
+      item({ id: `t${i}`, amount_cents: (i + 1) * 100 }),
+    )
+    expect(maioresSaidas(txs)).toHaveLength(5)
   })
 })
 

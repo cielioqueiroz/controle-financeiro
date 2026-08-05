@@ -1,8 +1,173 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-07-29**.
+> Documento de continuidade. Última atualização: **2026-08-05**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+## Rodada 2026-08-05 — funcionalidades derivadas (3 fatias)
+
+### Code review da própria rodada — 3 bugs achados e corrigidos
+
+Revisão feita depois das três fatias, sobre o código recém-escrito.
+
+1. **Chave de React duplicada nos alertas.** `Alerta` tinha `chave` (o
+   estabelecimento) mas não a série de origem. A mesma loja pode ter série de
+   **saída** (a cobrança) e de **entrada** (o estorno), e as duas podem sumir
+   no mesmo mês — dois alertas indistinguíveis, com a mesma chave na lista.
+   Campo `origem` novo, pinado por teste.
+2. **O filtro de categoria mentia ao trocar de período.** Se a categoria
+   escolhida não existisse no mês novo, o `<select>` caía visualmente em
+   "todas" (nenhuma `option` casava com o `value`) enquanto o estado seguia
+   filtrando: a tela mostrava "0 lançamentos" com um filtro que ninguém via.
+   Resolvido derivando `catEfetiva` em vez de guardar estado que pode
+   apodrecer — o que se vê e o que se filtra não têm como divergir.
+3. **Coluna lateral `sticky` podia ficar inalcançável.** A coluna ganhou dois
+   cards nesta rodada e passou a poder ficar mais alta que a janela. Elemento
+   `sticky` mais alto que a viewport gruda e o que sobra embaixo não é
+   alcançável — a rolagem da página move o irmão, não ele. Resolvido com
+   `max-h` + `overflow-y-auto` no contêiner grudado.
+
+Mais dois acabamentos: os botões "Apagar" do painel de Categorias ganharam
+`aria-label` com o nome da categoria (havia **dois botões "Apagar" idênticos**
+na tela com a confirmação aberta — o teste tinha de adivinhar "o último"), e
+`faturasQuitadas` saiu do corpo do render para um `useMemo`.
+
+> **Nota de método:** o bug do casamento de faturas (a mais antiga roubando o
+> pagamento da mais nova) foi achado porque o teste original só asseverava
+> `size === 1` — passava com a implementação certa e com a errada. Vale a
+> lição já registrada neste documento: *teste que passa dos dois jeitos é pior
+> que nenhum*. A correção foi verificada por mutação.
+
+### Tipografia e cores — medidas, não opinadas
+
+**Tipografia.** Archivo passou a ser carregada como **fonte variável**
+(`wdth 62–125`, `wght 400–800`) no lugar dos 5 pesos estáticos: um arquivo em
+vez de cinco, e de quebra um eixo de LARGURA. `.font-display` agora usa
+`font-stretch: 108%` — display e corpo são a mesma família em larguras
+diferentes, então há hierarquia real **sem carregar uma segunda fonte**.
+Também: `text-wrap: balance` nos títulos, `text-wrap: pretty` nos parágrafos.
+
+`.tabular` (as cifras) foi **movida para `@layer components`** e ganhou peso
+500 e tracking −0.015em. O layer importa: regra sem layer vence utilitário do
+Tailwind — o inverso da armadilha do `@layer base` já anotada aqui — então uma
+`letter-spacing` solta atropelaria o `tracking-widest` dos rótulos de 10px que
+também usam `.tabular`.
+
+**Cores.** Medi o contraste WCAG de todos os pares que o app usa. Seis
+falhavam AA e foram corrigidos com o **menor ajuste possível preservando
+matiz e saturação** (resolvidos por busca, não escolhidos a olho):
+
+| Token | Antes | Depois | Motivo |
+|---|---|---|---|
+| `tinta-tenue` (escuro) | `#6f6a62` | `#8c867d` | 3,0–3,5:1 → 4,50–5,19:1 |
+| `falha` (escuro) | `#d64545` | `#d95252` | 4,27:1 → 4,70:1 |
+| `tinta-tenue` (claro) | `#776f63` | `#6f685d` | 4,06:1 na página → 4,50+ |
+| `marca` (claro) | `#9a6a15` | `#8e6213` | 3,97:1 → 4,52:1 |
+| `ressalva` (claro) | `#9c6415` | `#945f14` | 4,35:1 → 5,33:1 |
+
+O caso do `tinta-tenue` escuro é o mais amplo: é a cor de **todos** os rótulos
+de 10–11px do painel. O tema claro já tinha sido corrigido por esse motivo
+numa rodada anterior; o escuro tinha ficado para trás.
+
+**`--color-campo-borda`, token novo.** As bordas de campo estavam em ~1,8:1,
+abaixo dos 3:1 que a WCAG pede para identificar um controle. Subir o token dos
+cartões junto engrossaria o desenho inteiro, então campos ganharam token
+próprio (`#6a635a` escuro / `#9c8f77` claro, ambos ≥3:1). Aplicado em
+`estilos-campo.ts`, `ListaTodos`, `Categorias`, `EditarCompra` e
+`EditarPerfil`. **As bordas de cartão não mudaram** — aquilo é decoração.
+
+Origem: `docs/img/exemplo.jpeg`, print de um app de finanças de terceiro, usado
+como referência **de funcionalidades** (nenhuma decisão de aparência foi tomada).
+Spec em `docs/superpowers/specs/2026-08-05-funcionalidades-derivadas-design.md`;
+plano da fatia 1 em `docs/superpowers/plans/2026-08-05-funcionalidades-derivadas-fatia-1.md`.
+
+**Decisão estruturante:** metade do que o print mostra (falta pagar, contas
+pagas, datas, recorrências, poupança) nasce, naquele app, de dado **digitado**.
+O Capital Financeiro continua **100% retrospectivo** — só entrou o que dá para
+**derivar** do que já é importado. Poupança/investimentos foi **descartado**.
+
+### Fatia 1 — dado morto e derivações
+
+1. **Saldo em aberto do cartão** (`persist/aberto.ts`, `ui/SaldoAberto.tsx`).
+   O achado da rodada: `salvar.ts:74-77` gravava `total_open_balance`,
+   `next_invoice_balance`, `next_close_date` e `future_installments_total`
+   desde sempre e **nenhuma linha do app lia**. São colunas do schema **0001**,
+   então não houve migração. `puxarSaldos()` alargou o select (mesmo
+   `try/catch` defensivo) e passou a devolver `DocDoPainel`.
+   O nome `puxarSaldos` **não** mudou de propósito: `Dashboard.pdf.test.tsx`
+   mocka o módulo por nome.
+2. **Fatura quitada vs em aberto** (`domain/quitacao.ts`, selo em `Documentos`).
+   Conserta um buraco real: `vincular()` só cruza documentos do **lote da
+   importação**, então fatura e extrato importados em dias diferentes nunca se
+   encontravam. Aqui a regra roda sobre todo o histórico salvo.
+   **Casa por par mais próximo primeiro, não fatura a fatura** — a primeira
+   versão deixava a fatura mais antiga roubar o pagamento que casava exatamente
+   com uma mais nova de igual valor. Pinado por teste e **verificado por
+   mutação** (inverter a ordenação derruba 2 testes).
+3. **Tile "Saldo do período"** (`agregar().saldoCents`).
+4. **Card "Maiores saídas do período"** (`maioresSaidas()`, `ui/MaioresSaidas.tsx`).
+
+### Fatia 2 — recorrências e alertas (`domain/recorrencias.ts`)
+
+Detecção pura, sem cadastro. Cobre as abas *Recorrências* **e** *Datas do mês*
+do print de uma vez: o `diaTipico` (mediana do dia) **é** o calendário.
+
+Três filtros, cada um por um motivo registrado no código: parceladas ficam de
+fora (já são `CompromissosFuturos`), vínculos ficam de fora (a quitação
+lideraria a lista sem significar nada) e exige **mediana de 1 cobrança por
+competência** — é o que separa assinatura de supermercado, que também aparece
+todo mês mas com 27 compras.
+
+**Alertas** (`valor-mudou`, `sumiu`) — a única funcionalidade da rodada que o
+app do print **não tem**. Duas travas contra alerta que grita à toa:
+`valor-mudou` só dispara para série de **valor fixo** (senão a conta de luz
+alertaria todo mês) e exige **>10% E >R$ 5,00**; `sumiu` compara contra a
+**competência mais recente com dado** (senão o mês sem fatura importada
+acusaria tudo) e tem teto de 3 meses (senão série de 2024 gritaria para sempre).
+
+### Fatia 3 — busca e gestão do aprendizado
+
+- **Vista "Todos"** (`domain/busca.ts`, `ui/ListaTodos.tsx`): terceira opção do
+  seletor que já existia, com busca por texto e filtro por categoria. A busca
+  casa contra `label ?? description` e ignora acento e caixa.
+- **Painel de Categorias** (`ui/Categorias.tsx`): renomear/ícone/cor/apagar as
+  suas, **e ver/desfazer as regras aprendidas**. Fecha o terceiro achado da
+  rodada: `merchant_rules` **não tinha nenhuma UI** — o usuário corrigia uma
+  categoria, o app decorava e não havia como ver nem desfazer. Novos
+  `apagarRegra` e `editarCategoria`. Apagar categoria em uso avisa **quantos
+  lançamentos** vão passar a exibir "Outros".
+
+### Verificação
+
+**504 testes (66 arquivos)**, build e lint limpos (só os 3 avisos
+pré-existentes), `medir-overflow.py` OK em 1280×800 e 390×844 depois da
+mudança de largura de fonte.
+
+⚠️ **`npm test` não checa tipos.** O erro de tipo introduzido pelo campo
+`origem` nas fixtures passou pela suíte inteira e só caiu no `tsc -b` do
+`npm run build`. **Rodar os dois sempre** — verde no Vitest não é verde.
+
+⚠️ **Não verificado logado**: a senha da conta de teste não é versionada, então
+as telas novas foram exercidas por teste de componente, não contra dados reais
+no navegador. É o que falta o usuário conferir.
+
+⚠️ **Referência de "Entradas" do diagnóstico está defasada.** O gasto real de
+junho continua **R$ 41.012,25** (bate ao centavo), mas entradas deu
+**R$ 50.281,18** contra os R$ 41.853,57 da tabela abaixo. **Não é regressão**:
+`scripts/diagnostico.ts` importa só `domain/pdf`, `domain/parsers`,
+`domain/link/vinculos`, `domain/categorize` e `normalize/merchant` — nenhum
+arquivo tocado nesta rodada — e `git log` não mostra commit nessa cadeia desde
+29/07. A causa é o conjunto de PDFs da pasta (há um
+`BradescoCartoes14-07-2026`). **Confirmar e recalibrar a tabela.**
+
+### Novos números de referência (2026-08-05)
+
+| Medida | Valor |
+|---|---|
+| Gasto real total (junho, competência) | **R$ 41.012,25** (inalterado) |
+| Entradas (junho, medido) | **R$ 50.281,18** (a confirmar) |
+| Vinculado (fora da conta) | R$ 23.353,68 |
+| Testes | **502** (66 arquivos) |
 
 ## Rodada 2026-07-29 — i18n fechado de verdade + performance + confete
 
