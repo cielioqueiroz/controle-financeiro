@@ -251,7 +251,7 @@ Ele fala com o dev server por HTTP, não com o disco, e a porta não muda.
 **Nenhuma edição necessária** — o passo existe para registrar que foi conferido,
 não presumido.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add scripts/
