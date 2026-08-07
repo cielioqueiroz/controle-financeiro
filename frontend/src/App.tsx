@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { toast } from 'sonner'
+import { NavPrincipal } from './navegacao/NavPrincipal'
+import { ROTAS } from './navegacao/rotas'
 import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
@@ -183,6 +186,7 @@ export default function App() {
   }
 
   return (
+    <BrowserRouter>
     <div className="grao min-h-dvh">
       <FundoAnimado />
       <Notificacoes />
@@ -266,8 +270,14 @@ export default function App() {
           </div>
         </header>
 
+        {logado && <NavPrincipal />}
+
+        {/* A prévia da importação é estado TRANSITÓRIO (um PDF já lido,
+            esperando confirmação), não um lugar onde se navega — por isso
+            fica acima do <Routes>, e não numa rota. Vira a página
+            /importar na próxima task, junto com o Dropzone. */}
         {estado.fase === 'pronto' ? (
-          <div className="mx-auto max-w-4xl">
+          <div className="mx-auto mt-6 max-w-4xl">
             <ResultadoImport
               kind={estado.kind}
               result={estado.result}
@@ -281,20 +291,39 @@ export default function App() {
               }}
             />
           </div>
-        ) : logado && !importando ? (
-          <Dashboard onImportar={() => setImportando(true)} onAprendeu={recarregarRegras} />
         ) : (
-          <div className="mx-auto max-w-2xl">
-            {logado && (
-              <button
-                onClick={() => setImportando(false)}
-                className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
-              >
-                {t('header.voltar')}
-              </button>
-            )}
-            <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
-          </div>
+          // Todas as rotas ainda renderizam o mesmo conteúdo de sempre.
+          // Esta task entrega só a navegação: separar o conteúdo por
+          // página é o passo seguinte, e misturar os dois tornaria
+          // impossível saber qual deles quebrou o quê.
+          <Routes>
+            {ROTAS.map((r) => (
+              <Route
+                key={r.caminho}
+                path={r.caminho}
+                element={
+                  logado && !importando ? (
+                    <Dashboard
+                      onImportar={() => setImportando(true)}
+                      onAprendeu={recarregarRegras}
+                    />
+                  ) : (
+                    <div className="mx-auto mt-6 max-w-2xl">
+                      {logado && (
+                        <button
+                          onClick={() => setImportando(false)}
+                          className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                        >
+                          {t('header.voltar')}
+                        </button>
+                      )}
+                      <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
+                    </div>
+                  )
+                }
+              />
+            ))}
+          </Routes>
         )}
 
         <Rodape className="mt-16" />
@@ -320,5 +349,6 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </BrowserRouter>
   )
 }
