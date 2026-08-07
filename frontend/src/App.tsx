@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { toast } from 'sonner'
 import { NavPrincipal } from './navegacao/NavPrincipal'
 import { ROTAS } from './navegacao/rotas'
+import { DadosProvider } from './dados/DadosProvider'
 import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
@@ -291,39 +292,43 @@ export default function App() {
               }}
             />
           </div>
-        ) : (
-          // Todas as rotas ainda renderizam o mesmo conteúdo de sempre.
-          // Esta task entrega só a navegação: separar o conteúdo por
-          // página é o passo seguinte, e misturar os dois tornaria
-          // impossível saber qual deles quebrou o quê.
-          <Routes>
-            {ROTAS.map((r) => (
-              <Route
-                key={r.caminho}
-                path={r.caminho}
-                element={
-                  logado && !importando ? (
+        ) : logado && !importando ? (
+          // O provider fica DENTRO do ramo logado de propósito: ele busca o
+          // histórico na montagem, e montá-lo deslogado (ou no modo "importa
+          // e vê") seria uma ida ao banco sem sessão.
+          //
+          // Todas as rotas ainda renderizam o mesmo conteúdo de sempre —
+          // esta fatia separa o conteúdo por página nas tasks seguintes.
+          // Misturar as duas coisas tornaria impossível saber qual delas
+          // quebrou o quê.
+          <DadosProvider>
+            <Routes>
+              {ROTAS.map((r) => (
+                <Route
+                  key={r.caminho}
+                  path={r.caminho}
+                  element={
                     <Dashboard
                       onImportar={() => setImportando(true)}
                       onAprendeu={recarregarRegras}
                     />
-                  ) : (
-                    <div className="mx-auto mt-6 max-w-2xl">
-                      {logado && (
-                        <button
-                          onClick={() => setImportando(false)}
-                          className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
-                        >
-                          {t('header.voltar')}
-                        </button>
-                      )}
-                      <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
-                    </div>
-                  )
-                }
-              />
-            ))}
-          </Routes>
+                  }
+                />
+              ))}
+            </Routes>
+          </DadosProvider>
+        ) : (
+          <div className="mx-auto mt-6 max-w-2xl">
+            {logado && (
+              <button
+                onClick={() => setImportando(false)}
+                className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
+              >
+                {t('header.voltar')}
+              </button>
+            )}
+            <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
+          </div>
         )}
 
         <Rodape className="mt-16" />

@@ -46,6 +46,7 @@ vi.mock('../lib/compartilhar', () => ({
 }))
 
 import { Dashboard } from './Dashboard'
+import { DadosProvider } from '../dados/DadosProvider'
 
 beforeEach(() => {
   baixarArquivo.mockClear()
@@ -55,7 +56,14 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 async function abrir() {
-  render(<Dashboard onImportar={vi.fn()} />)
+  // O Dashboard passou a ler o histórico do DadosProvider, em vez de
+  // buscá-lo ele mesmo. Os mocks de puxar/categoriasUsuario/documentos lá
+  // em cima continuam valendo — quem os chama agora é o provider.
+  render(
+    <DadosProvider>
+      <Dashboard onImportar={vi.fn()} />
+    </DadosProvider>,
+  )
   // Espera o carregamento terminar (os botões só existem com dados).
   return await screen.findAllByRole('button', { name: /Baixar PDF/ })
 }

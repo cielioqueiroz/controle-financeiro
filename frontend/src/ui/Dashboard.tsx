@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
-import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
-import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
-import { registrarCategoriasUsuario, nomeCategoria } from '../domain/categorize/categorias'
+import type { TransacaoSalva } from '../persist/puxar'
+import { nomeCategoria } from '../domain/categorize/categorias'
 import {
   filtrar,
   agregar,
@@ -41,13 +40,13 @@ import { EditarCompra } from './EditarCompra'
 import { SaldoConta } from './SaldoConta'
 import { SaldoAberto } from './SaldoAberto'
 import { ErroCarregar } from './ErroCarregar'
-import { puxarSaldos, type DocDoPainel } from '../persist/documentos'
 import { saldosPorConta } from '../persist/saldos'
 import { faturasAbertas } from '../persist/aberto'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDados } from '../dados/DadosProvider'
 import type { Dicionario } from '../i18n/dicionarios/pt'
 
 type Props = {
@@ -135,62 +134,34 @@ function rotulo(periodo: Periodo, ref: Date): string {
 export function Dashboard({ onImportar, onAprendeu }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [ref, setRef] = useState<Date>(new Date())
-  const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState<string | null>(null)
   const [mostrarDocs, setMostrarDocs] = useState(false)
   const [mostrarCats, setMostrarCats] = useState(false)
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const [banco, setBanco] = useState<string>('geral')
-  const [docsSaldo, setDocsSaldo] = useState<DocDoPainel[]>([])
   const [gerandoPdf, setGerandoPdf] = useState(false)
+  // O histórico vem do provider — carregado uma vez para todas as páginas.
+  const {
+    todas,
+    docsSaldo,
+    carregando,
+    erro,
+    recarregar: carregar,
+    aplicarEdicao,
+    competenciaInicial,
+  } = useDados()
   // Capacidade do navegador, estável na sessão: decidida uma vez, não a cada
   // render. Some no desktop sem Web Share — lá só existe baixar.
   const [podeCompartilhar] = useState(podeCompartilharArquivo)
   const { t } = useT()
 
-  // Aplica a edição em memória (sem reidratar tudo do banco).
-  function aplicarEdicao(id: string, campos: { label: string | null; category_slug: string }) {
-    setTodas((atual) =>
-      atual ? atual.map((t) => (t.id === id ? { ...t, ...campos } : t)) : atual,
-    )
-  }
-
-  // Busca tudo uma vez; navegar entre períodos é fatiamento no cliente.
-  // Reutilizado para recarregar após apagar um documento.
-  const carregar = useCallback(async () => {
-    setCarregando(true)
-    setErro(null)
-    try {
-      // Carrega as categorias do usuário antes das transações, para que
-      // categoria() já conheça as personalizadas ao renderizar.
-      const [cats, dados, saldoDocs] = await Promise.all([
-        puxarCategoriasUsuario().catch(() => []),
-        puxarTudo(),
-        puxarSaldos().catch(() => []),
-      ])
-      registrarCategoriasUsuario(cats)
-      setTodas(dados)
-      setDocsSaldo(saldoDocs)
-      // Abre no mês da competência mais recente (faturas trazem meses passados).
-      const maisRecente = dados
-        .map((t) => t.competencia)
-        .sort()
-        .at(-1)
-      if (maisRecente) {
-        const [y, m] = maisRecente.split('-').map(Number)
-        setRef(new Date(y, m - 1, 1))
-      }
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Falha ao carregar')
-    } finally {
-      setCarregando(false)
-    }
-  }, [])
-
+  // Abre no mês da competência mais recente: faturas trazem meses passados,
+  // e abrir no mês corrente mostraria tela vazia para quem acabou de
+  // importar a fatura de junho em agosto.
   useEffect(() => {
-    carregar()
-  }, [carregar])
+    if (!competenciaInicial) return
+    const [y, m] = competenciaInicial.split('-').map(Number)
+    setRef(new Date(y, m - 1, 1))
+  }, [competenciaInicial])
 
   // Saldo atual por conta, do extrato mais recente. Só aparece quando a
   // migração 0002 já rodou e há extrato salvo (senão puxarSaldos volta []).
