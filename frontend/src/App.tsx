@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { NavPrincipal } from './navegacao/NavPrincipal'
-import { ROTAS } from './navegacao/rotas'
 import { DadosProvider } from './dados/DadosProvider'
 import { Faturas } from './paginas/Faturas'
 import { Categorias } from './paginas/Categorias'
+import { Painel } from './paginas/Painel'
+import { Lancamentos } from './paginas/Lancamentos'
+import { Recorrencias } from './paginas/Recorrencias'
+import { Datas } from './paginas/Datas'
+import { Importacao } from './paginas/Importacao'
 import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
 import { TelaAcesso, FraseDeslogado } from './ui/TelaAcesso'
 import { Rodape } from './ui/Rodape'
-import { Dropzone } from './ui/Dropzone'
-import { ResultadoImport } from './ui/ResultadoImport'
 import { Celebracao } from './ui/Celebracao'
 import { Auth } from './ui/Auth'
 import { ThemeToggle } from './ui/ThemeToggle'
 import { ContaMenu } from './ui/ContaMenu'
-import { Dashboard } from './ui/Dashboard'
 import { Tutorial } from './ui/Tutorial'
 import { EditarPerfil } from './ui/EditarPerfil'
 import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
@@ -55,10 +56,10 @@ export default function App() {
    *  próxima importação já reflita a correção. */
   const [regras, setRegras] = useState<Regra[]>([])
   const { t } = useT()
-  /** Logado, o padrão é ver o histórico (Dashboard). Este flag abre o
-   *  fluxo de importar por cima dele. Também força o Dashboard a recarregar
-   *  quando muda (nova chave). */
-  const [importando, setImportando] = useState(false)
+  /** Ligado por um instante quando um documento acaba de ser gravado. A
+   *  página de importação o consome para levar de volta ao Painel — onde o
+   *  dado recém-importado aparece. */
+  const [recemSalvo, setRecemSalvo] = useState(false)
   // Lido na montagem. Quem clica no link do e-mail quer redefinir, mesmo já
   // tendo sessão ativa — por isso o token vence o `logado` abaixo NA ENTRADA.
   // Essa precedência só vale até o fluxo de recuperação terminar: o próprio
@@ -137,7 +138,7 @@ export default function App() {
         )
         // Volta ao histórico, que recarrega e mostra o que acabou de entrar.
         setEstado({ fase: 'vazio' })
-        setImportando(false)
+        setRecemSalvo(true)
       } else if (r.status === 'documento-duplicado') {
         toast.warning(t('salvar.duplicado', { data: dataLongaDe(new Date(r.importadoEm)) }))
       }
@@ -275,68 +276,53 @@ export default function App() {
 
         {logado && <NavPrincipal />}
 
-        {/* A prévia da importação é estado TRANSITÓRIO (um PDF já lido,
-            esperando confirmação), não um lugar onde se navega — por isso
-            fica acima do <Routes>, e não numa rota. Vira a página
-            /importar na próxima task, junto com o Dropzone. */}
-        {estado.fase === 'pronto' ? (
-          <div className="mx-auto mt-6 max-w-4xl">
-            <ResultadoImport
-              kind={estado.kind}
-              result={estado.result}
-              regras={regras}
-              podeSalvar={logado}
-              salvando={salvando}
-              onSalvar={salvar}
-              onLimpar={() => {
-                setEstado({ fase: 'vazio' })
-                setImportando(false)
-              }}
-            />
-          </div>
-        ) : logado && !importando ? (
+        {logado ? (
           // O provider fica DENTRO do ramo logado de propósito: ele busca o
           // histórico na montagem, e montá-lo deslogado (ou no modo "importa
           // e vê") seria uma ida ao banco sem sessão.
-          //
-          // Todas as rotas ainda renderizam o mesmo conteúdo de sempre —
-          // esta fatia separa o conteúdo por página nas tasks seguintes.
-          // Misturar as duas coisas tornaria impossível saber qual delas
-          // quebrou o quê.
           <DadosProvider>
             <Routes>
+              <Route path="/" element={<Painel onAprendeu={recarregarRegras} />} />
+              <Route
+                path="/lancamentos"
+                element={<Lancamentos onAprendeu={recarregarRegras} />}
+              />
               <Route path="/faturas" element={<Faturas />} />
               <Route path="/categorias" element={<Categorias onAprendeu={recarregarRegras} />} />
-              {/* As rotas ainda sem página própria caem no Painel. Cada task
-                  seguinte tira uma daqui e lhe dá conteúdo próprio. */}
-              {ROTAS.filter((r) => r.caminho !== '/faturas' && r.caminho !== '/categorias').map(
-                (r) => (
-                  <Route
-                    key={r.caminho}
-                    path={r.caminho}
-                    element={
-                      <Dashboard
-                        onImportar={() => setImportando(true)}
-                        onAprendeu={recarregarRegras}
-                      />
-                    }
+              <Route path="/recorrencias" element={<Recorrencias />} />
+              <Route path="/datas" element={<Datas />} />
+              <Route
+                path="/importar"
+                element={
+                  <Importacao
+                    estado={estado}
+                    regras={regras}
+                    logado={logado}
+                    salvando={salvando}
+                    recemSalvo={recemSalvo}
+                    onArquivo={importar}
+                    onSalvar={salvar}
+                    onLimpar={() => setEstado({ fase: 'vazio' })}
+                    onConsumirRecemSalvo={() => setRecemSalvo(false)}
                   />
-                ),
-              )}
+                }
+              />
+              {/* URL desconhecida volta ao Painel em vez de tela branca. */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </DadosProvider>
         ) : (
-          <div className="mx-auto mt-6 max-w-2xl">
-            {logado && (
-              <button
-                onClick={() => setImportando(false)}
-                className="mb-4 text-sm text-tinta-tenue transition-colors hover:text-tinta"
-              >
-                {t('header.voltar')}
-              </button>
-            )}
-            <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
-          </div>
+          // Modo "importa e vê": sem Neon configurado não há sessão, nem
+          // histórico para navegar — só a importação avulsa.
+          <Importacao
+            estado={estado}
+            regras={regras}
+            logado={logado}
+            salvando={salvando}
+            onArquivo={importar}
+            onSalvar={salvar}
+            onLimpar={() => setEstado({ fase: 'vazio' })}
+          />
         )}
 
         <Rodape className="mt-16" />

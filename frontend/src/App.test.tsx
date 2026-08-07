@@ -64,11 +64,11 @@ vi.mock('./domain/pdf/load', () => ({
   PdfProtegidoError: class PdfProtegidoError extends Error {},
 }))
 
-// O Dashboard puxa dados reais (persist/puxar etc.) — fora do escopo deste
+// O Painel puxa dados reais (persist/puxar etc.) — fora do escopo deste
 // teste, que só quer saber qual card aparece por cima. Um marcador simples
 // já prova "saiu do card de recuperação e chegou na tela de logado".
-vi.mock('./ui/Dashboard', () => ({
-  Dashboard: () => <div>DASHBOARD_STUB</div>,
+vi.mock('./paginas/Painel', () => ({
+  Painel: () => <div>DASHBOARD_STUB</div>,
 }))
 
 const { redefinirSenha } = await import('./lib/recuperar-senha')
@@ -144,7 +144,7 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
   it('token de reset na URL vence uma sessão já ativa (T1)', async () => {
     // Quem clica no link do e-mail está pedindo explicitamente para
     // redefinir a senha — isso vale mesmo se o navegador já tiver uma
-    // sessão logada. O Dashboard não pode aparecer por cima do formulário
+    // sessão logada. O Painel não pode aparecer por cima do formulário
     // de nova senha nesse caso.
     authMocks.setSessaoAtiva(true)
     comTokenNaUrl()

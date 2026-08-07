@@ -45,8 +45,9 @@ vi.mock('../lib/compartilhar', () => ({
   podeCompartilharArquivo: () => true,
 }))
 
-import { Dashboard } from './Dashboard'
+import { Painel } from './Painel'
 import { DadosProvider } from '../dados/DadosProvider'
+import { MemoryRouter } from 'react-router-dom'
 
 beforeEach(() => {
   baixarArquivo.mockClear()
@@ -60,9 +61,11 @@ async function abrir() {
   // buscá-lo ele mesmo. Os mocks de puxar/categoriasUsuario/documentos lá
   // em cima continuam valendo — quem os chama agora é o provider.
   render(
-    <DadosProvider>
-      <Dashboard onImportar={vi.fn()} />
-    </DadosProvider>,
+    <MemoryRouter>
+      <DadosProvider>
+        <Painel />
+      </DadosProvider>
+    </MemoryRouter>,
   )
   // Espera o carregamento terminar (os botões só existem com dados).
   return await screen.findAllByRole('button', { name: /Baixar PDF/ })

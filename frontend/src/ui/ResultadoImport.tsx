@@ -144,7 +144,12 @@ export function ResultadoImport({
         </section>
       )}
 
-      <ul className="max-h-[46vh] overflow-y-auto px-3 py-2">
+      {/* Sem `max-h`+`overflow-y-auto`: a prévia virou a página /importar em
+          2026-08-07, e rolagem interna dentro de uma página que já rola é a
+          barra dupla que esconde conteúdo atrás da própria barra. Aqui a
+          lista flui e a pessoa confere a importação inteira com a rolagem
+          normal da página. */}
+      <ul className="px-3 py-2">
         {transacoes.map((t) => (
           <LinhaTransacao
             key={t.id}
