@@ -1,8 +1,52 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-05**.
+> Documento de continuidade. Última atualização: **2026-08-07**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+## ⚠️ Rodada 2026-08-07 — REFORMA EM ANDAMENTO (leia antes de tudo)
+
+**A estrutura de pastas mudou.** O que era `src/` agora é `frontend/src/`.
+Monorepo com npm workspaces: `frontend/` (app React) e `backend/`
+(migrations SQL hoje; a API é a Fatia 1b). `scripts/` continua na raiz.
+`neon/migrations/` virou `backend/db/migrations/`.
+
+Spec: `docs/superpowers/specs/2026-08-07-reforma-arquitetura-e-design-design.md`
+Plano da fatia 1a: `docs/superpowers/plans/2026-08-07-reforma-fatia-1a-arquitetura.md`
+
+**Duas armadilhas novas desta mudança:**
+
+1. **`vite.config.ts` tem `envDir: '..'`.** O `.env.local` fica na RAIZ, não em
+   `frontend/`. Sem isso o Vite não acharia as `VITE_*` e elas virariam
+   `undefined` **em silêncio** — `neonConfigurado` daria false e o app cairia
+   no modo "importa e vê", sem login e sem erro de build para denunciar.
+2. **`tests/fixtures/` foi para `frontend/tests/fixtures/`** de propósito: 13
+   testes fazem `readFileSync('tests/fixtures/…')` relativo ao CWD, e com o
+   Vitest rodando de `frontend/` eles continuam resolvendo sem edição. Os
+   scripts da raiz, esses sim, apontam para `frontend/tests/fixtures/`.
+
+### Estado das fatias
+
+| Fatia | O que é | Estado |
+|---|---|---|
+| 1a | `frontend/` + `backend/` com workspaces | ✅ **no ar** |
+| 4a | seletor de idioma fora da UI (código i18n intacto) | ✅ **no ar** |
+| 2 | router + 7 páginas de navegação | 🚧 a fazer |
+| 3 | design system novo + gráficos interativos | 🚧 a fazer |
+| 1b | backend real (Vercel Functions) | ⛔ **bloqueada**: falta `DATABASE_URL` no `.env.local` |
+| 4b | CSP completa medida em preview deploy | 🚧 a fazer |
+
+**Decisões desta rodada:** nginx/apache foi **descartado** (o app está na
+Vercel, não há servidor próprio nem painel de banco exposto); o backend será
+**real**, em Vercel Functions, com o RLS preservado via
+`set_config('request.jwt.claims')` numa role sem BYPASSRLS.
+
+**A barra de rolagem do `Dashboard.tsx` (o `xl:max-h`+`overflow-y-auto` da
+coluna sticky) NÃO foi removida ainda** — sai na Fatia 2, quando as páginas
+tornarem a coluna desnecessária. Tirá-la antes reintroduz o bug que ela
+conserta (conteúdo inalcançável embaixo do sticky).
+
+**505 testes (66 arquivos)**, build e lint limpos, medidor de overflow OK.
 
 ## Rodada 2026-08-05 — funcionalidades derivadas (3 fatias)
 
