@@ -1,0 +1,9 @@
+{
+  "name": "@capital/backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"(sem testes ainda — Fatia 1b)\" && exit 0"
+  }
+}
