@@ -11,7 +11,6 @@ import { Lancamentos } from './paginas/Lancamentos'
 import { Recorrencias } from './paginas/Recorrencias'
 import { Datas } from './paginas/Datas'
 import { Importacao } from './paginas/Importacao'
-import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
 import { TelaAcesso, FraseDeslogado } from './ui/TelaAcesso'
@@ -158,14 +157,13 @@ export default function App() {
   // este return não pode subir daqui, sob pena de quebrar a ordem deles.
   if (precisaLogin) {
     return (
-      <div className="grao min-h-dvh">
-        {/* <FundoAnimado /> e <Notificacoes /> ocupam a mesma posição neste
-            <div> raiz nos dois returns (aqui e no de baixo). É essa
-            reconciliação posicional do React que mantém o contexto WebGL do
-            fundo vivo (não recriado a cada troca de branch) e deixa o toast
-            "Até logo" sobreviver à transição logado→deslogado. Mover um dos
-            dois em só um dos returns quebra as duas coisas em silêncio. */}
-        <FundoAnimado />
+      <div className="min-h-dvh">
+        {/* <Notificacoes /> ocupa a MESMA posição neste <div> raiz nos dois
+            returns (aqui e no de baixo). É a reconciliação posicional do
+            React que deixa o toast "Até logo" sobreviver à transição
+            logado→deslogado; mover um dos dois quebra isso em silêncio.
+            (O <FundoAnimado/> em three.js dividia esta posição e saiu em
+            2026-08-07 — era decoração de 515 kB.) */}
         <Notificacoes />
         <TelaAcesso>
           <Auth
@@ -191,8 +189,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-    <div className="grao min-h-dvh">
-      <FundoAnimado />
+    <div className="min-h-dvh">
       <Notificacoes />
       <Celebracao ativo={celebrando} onFim={() => setCelebrando(false)} />
 

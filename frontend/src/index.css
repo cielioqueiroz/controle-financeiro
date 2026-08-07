@@ -1,168 +1,188 @@
 @import "tailwindcss";
+@import "./fontes.css";
+
+/* ============================================================
+   CAPITAL FINANCEIRO — direção "livro-razão"
+   ============================================================
+
+   De onde vem: o app existe para CONFERIR. Ele lê o extrato ou a fatura em
+   PDF e bate o total contra o gabarito declarado pelo banco, ao centavo.
+   Isso é conciliação contábil, e é desse mundo que o desenho tira tudo —
+   colunas de débito e crédito, régua de formulário, números alinhados à
+   direita, "estar no vermelho".
+
+   O que SAIU, e por quê: o visual anterior era café escuro + âmbar/dourado
+   + cantos de 16px + brilho + grão de papel + partículas em three.js. Fora
+   o peso (515 kB só de three.js), aquele conjunto — fundo creme perto de
+   #F4F1EA, display serifada de alto contraste, acento terracota — é hoje o
+   visual PADRÃO de página gerada por IA. O usuário reconheceu isso de olho
+   e pediu para sair. Papel creme, portanto, está fora de propósito.
+
+   Contraste: TODOS os pares abaixo são medidos, não opinados. Rodar
+   `python scripts/medir-contraste.py` depois de mexer em qualquer cor —
+   ele reprova o build do olho humano. A borda de campo do tema claro já foi
+   corrigida assim (#8b97a6 → #7f8c9d: 2.62:1 → 3.19:1, matiz e saturação
+   preservados, achado por busca).
+   ============================================================ */
 
 @theme {
-  /* Tipografia quadrada/geométrica: Archivo (grotesca de traços retos) no
-     texto e JetBrains Mono (dígitos quadrados) nos números.
-     Archivo entra como fonte VARIÁVEL (eixos wdth 62–125 e wght 400–800 num
-     arquivo só, no lugar dos 5 pesos estáticos de antes): menos bytes e, de
-     quebra, um eixo de LARGURA. É dele que sai a voz dos títulos — display e
-     corpo são a mesma família em larguras diferentes, então há hierarquia
-     real sem carregar uma segunda fonte. */
-  --font-display: "Archivo", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-sans: "Archivo", system-ui, sans-serif;
+  /* ---------- Tipografia ----------
+     Uma família (IBM Plex), três vozes. Sem serifada decorativa: aquilo é
+     metade da assinatura do visual-padrão-de-IA que estamos deixando.
 
-  /* Superfícies e tinta — valores padrão (tema ESCURO). O tema claro
-     sobrescreve estas mesmas variáveis em :root[data-theme="light"], então
-     as classes (bg-carvao-950, text-tinta…) invertem sem tocar no HTML. */
-  --color-carvao-950: #1c1610; /* pagina — cafe escuro */
-  --color-carvao-900: #131211;
-  --color-carvao-850: #191816;
-  --color-carvao-800: #22201d;
-  --color-carvao-700: #2f2c28;
-  --color-carvao-600: #45403a;
+     • Mono é a voz principal dos NÚMEROS, e os números são o herói desta
+       tela. Livro-caixa se lê em coluna alinhada, não em fonte bonita.
+     • Condensed nos rótulos de coluna, como cabeçalho de formulário
+       bancário — dá hierarquia sem trocar de família.
+     • Sans no corpo. */
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-condensada: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  --font-display: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
 
-  /* Borda de CAMPO (input/select/textarea). Token próprio, separado das
-     bordas de cartão, porque as duas coisas têm exigências diferentes:
-     contorno de cartão é decoração (pode ser sutil), mas a borda de um campo
-     é o que diz "aqui se digita" — a WCAG pede 3:1 para isso. As bordas do
-     app estavam em ~1,8:1. Subir o token dos cartões junto engrossaria o
-     desenho inteiro; um token só para campos resolve onde importa. */
-  --color-campo-borda: #6a635a;
+  /* ---------- Superfícies (tema CLARO é o padrão) ----------
+     Papel frio de formulário/impressão fiscal, não creme. A elevação sobe
+     para o BRANCO (o cartão é mais claro que a página) e o "afundado"
+     desce — as três superfícies são distinguíveis sem sombra nenhuma. */
+  --color-papel: #f6f7f9;
+  --color-cartao: #ffffff;
+  --color-afundado: #eef1f5;
+  --color-borda: #d7dde5;
+  --color-borda-forte: #b9c3ce;
+  /* Contorno de campo tem token próprio: a WCAG pede 3:1 para dizer "aqui
+     se digita", enquanto borda de cartão é decoração e pode ser sutil.
+     Engrossar as duas juntas engrossaria o desenho inteiro. */
+  --color-campo-borda: #7f8c9d;
 
-  --color-tinta: #f5f3ef;
-  --color-tinta-fraca: #a8a29a;
-  /* Era #6f6a62: media 3.0–3.5:1 contra as quatro superfícies escuras, abaixo
-     dos 4.5:1 de AA — e esta é a cor de TODOS os rótulos de 10–11px do painel.
-     O tema claro já tinha sido corrigido por este mesmo motivo numa rodada
-     anterior; o escuro tinha ficado para trás. #8c867d dá 4.50–5.19:1 nas
-     quatro (cartão, página, hover e preenchimento), mantendo matiz e
-     saturação — é o mesmo cinza-café, só legível. */
-  --color-tinta-tenue: #8c867d;
+  /* ---------- Tinta ---------- */
+  --color-tinta: #0f1a24;
+  --color-tinta-fraca: #42525f;
+  --color-tinta-tenue: #5d6b78;
+  /* Sobre fundo de cor viva (botão de perigo, selo). Não usa --color-tinta
+     porque aquela inverte por tema; esta é sempre clara. */
+  --color-tinta-viva: #ffffff;
 
-  /* Véu dos modais. Tem valor PRÓPRIO porque precisa ser escuro nos DOIS
-     temas: usar --color-carvao-950 parecia certo no escuro e não escurecia
-     nada no claro (lá aquela variável é creme), deixando o diálogo boiando
-     sobre a página legível. Um véu que não escurece não é véu. */
-  --color-veu: #17120c;
+  /* ---------- Marca ----------
+     Azul de carimbo de conferência. Substitui o âmbar/dourado, que além de
+     genérico se confundia com o amarelo de ressalva. */
+  --color-marca: #1b5e8f;
 
-  /* Marca — âmbar/dourado. Cor de identidade (logotipo, favicon, foco,
-     ponto pulsante). É separada de --color-confere de propósito: aquela
-     carrega SEMÂNTICA de "o total bate", e misturar as duas faria o toast
-     de sucesso parecer aviso. */
-  --color-marca: #d9a441;
+  /* Traço e brilho da moeda do logotipo. Têm valor próprio porque a face da
+     moeda é sempre --color-marca nos dois temas: o resto dela segue a face,
+     não a página. Sem estes dois o logo nasceria sem cor — o `var()` cairia
+     em nada. */
+  --color-moeda-traco: #0a2d47;
+  --color-moeda-brilho: #eaf4fb;
 
-  /* Traço e brilho da moeda do logo. A face é sempre --color-marca (âmbar)
-     nos dois temas — o resto da moeda segue a face, não a página, por isso
-     o traço tem valor próprio por tema (não necessariamente igual ao da UI
-     ao redor). O traço era #065f37 fixo, verde da paleta anterior; o brilho
-     era var(--color-tinta), que no tema claro é escura e fazia o "reflexo"
-     ler como sombra sobre o âmbar.
-     --color-moeda-brilho só é definida aqui: a face é âmbar nos dois temas,
-     então o reflexo sobre ela também é o mesmo claro nos dois — só o traço
-     muda por tema, porque só ele precisa de contraste diferente contra o
-     resto da UI. */
-  --color-moeda-traco: #4a3208;
-  --color-moeda-brilho: #fff8ec;
+  /* ---------- Semântica contábil ----------
+     Crédito e débito, não "sucesso" e "erro". No extrato brasileiro entrada
+     é crédito e saída é débito, e "estar no vermelho" é literal — a cor
+     aqui carrega o vocabulário do assunto, não uma convenção de UI.
+     NUNCA aparecem sozinhas: sempre com sinal (+/−) ou rótulo, porque cor
+     sozinha não é informação para quem não a distingue. */
+  --color-credito: #1c6b4a;
+  --color-debito: #b3261e;
+  --color-ressalva: #8a5a00;
+  /* "O total bate ao centavo" — o momento que o app existe para produzir. */
+  --color-confere: #1c6b4a;
+  --color-falha: #b3261e;
 
-  /* Estados. O verde de "confere" ficou dessaturado para caber no café —
-     verde=certo/vermelho=errado é leitura aprendida e não vale trocar. */
-  --color-confere: #6b8f4e;
-  --color-ressalva: #c8862a;
-  /* Era #d64545: 4.27:1 sobre o cartão, logo abaixo de AA — e agora carrega
-     o saldo negativo do painel, que é texto que precisa ser lido. #d95252
-     sobe para 4.70:1 sem virar rosa. */
-  --color-falha: #d95252;
+  /* Véu dos modais: escuro nos DOIS temas. Usar a cor da página fazia o véu
+     não escurecer nada no tema claro, e véu que não escurece não é véu. */
+  --color-veu: #0b1219;
 
-  /* Texto sobre fundo de cor viva (ex.: botão de perigo em --color-falha).
-     Não usa --color-tinta porque aquela inverte por tema (fica escura no
-     tema claro) — e --color-falha já muda de tom por tema exatamente para
-     manter contraste com um texto sempre claro. Mesmo valor de
-     --color-moeda-brilho, mas com nome próprio: aquela é sobre a face
-     âmbar da moeda, esta é sobre botão/selo colorido — usos diferentes que
-     coincidem em valor, não a mesma coisa. */
-  --color-tinta-viva: #fff8ec;
+  /* ---------- Séries dos gráficos ----------
+     Oito matizes em ordem FIXA — jamais cicladas, jamais geradas. Uma nona
+     categoria vira "Outros", não uma cor nova.
+     Validadas por script (scripts/validate_palette.js da skill dataviz)
+     contra estas superfícies exatas: banda de luminosidade, piso de croma,
+     separação para daltonismo (pior par adjacente ΔE 9.1 protan) e piso de
+     visão normal (ΔE 19.6) — todos PASSAM.
+     No claro, quatro delas ficam abaixo de 3:1 contra o papel: por isso o
+     donut e as barras SEMPRE trazem rótulo direto com nome e valor. Isso
+     não é enfeite, é a condição que torna a paleta legal. */
+  --color-serie-1: #2a78d6;
+  --color-serie-2: #eb6834;
+  --color-serie-3: #1baf7a;
+  --color-serie-4: #eda100;
+  --color-serie-5: #e87ba4;
+  --color-serie-6: #008300;
+  --color-serie-7: #4a3aa7;
+  --color-serie-8: #e34948;
 
-  /* Partículas do fundo animado. Variável própria porque o fundo não deve
-     seguir a cor de "confere" (verde de sucesso) — são coisas diferentes, e
-     cada tema pede o seu tom. Aqui, tom café mais escuro que a página, com
-     blending normal: partícula escura sobre fundo escuro vira relevo. */
-  --color-particula: #0a0705;
-  --particula-alfa: 0.55;
+  /* Compatibilidade: nomes antigos usados por componentes ainda não
+     migrados. Apontam para os tokens novos para nada nascer sem cor
+     durante a transição. */
+  --color-carvao-950: #f6f7f9;
+  --color-carvao-900: #ffffff;
+  --color-carvao-850: #eef1f5;
+  --color-carvao-800: #e4e9ef;
+  --color-carvao-700: #d7dde5;
+  --color-carvao-600: #b9c3ce;
 }
 
-/* Tema CLARO — papel quente. Inverte a hierarquia mantendo o contraste:
-   página bege, cartões quase brancos (sobressaem), tinta escura. */
-:root[data-theme="light"] {
-  /* Papel quente, não bege sujo: a página é levemente mais funda que os
-     cartões e os cartões são quase brancos — no claro, ELEVAÇÃO = mais
-     branco + sombra suave (no escuro é o contrário). Antes página e cartão
-     eram dois cremes vizinhos e tudo lia como uma superfície só, chapada. */
-  --color-carvao-950: #efebe2; /* página */
-  --color-carvao-900: #fffefc; /* cartão — quase branco, destaca da página */
-  --color-carvao-850: #f7f4ee; /* hover */
-  --color-carvao-800: #ede8de; /* preenchimentos sutis */
-  --color-carvao-700: #e0d9cb; /* bordas */
-  --color-carvao-600: #c5bcaa; /* bordas fortes */
+/* ---------- Tema ESCURO ----------
+   Azul-ferro profundo, não café nem preto puro: é a mesma tinta da versão
+   clara, virada do avesso. No escuro a elevação inverte — o cartão é mais
+   CLARO que a página. */
+:root[data-theme="dark"] {
+  --color-papel: #0d1319;
+  --color-cartao: #161d25;
+  --color-afundado: #1d252e;
+  --color-borda: #2b3641;
+  --color-borda-forte: #3d4a57;
+  --color-campo-borda: #6b7887;
 
-  --color-tinta: #191510;
-  --color-tinta-fraca: #574f45;
-  /* Era #8a8377 (~3.0:1), depois #776f63 — que passava no cartão (4.9:1) mas
-     ainda ficava em 4.16:1 sobre a página e 4.06:1 sobre os preenchimentos.
-     #6f685d fecha as quatro superfícies em 4.50–5.46:1. */
-  --color-tinta-tenue: #6f685d;
+  --color-tinta: #e9eef3;
+  --color-tinta-fraca: #a8b5c1;
+  --color-tinta-tenue: #8b98a5;
 
-  --color-particula: #6b5744; /* cafe sobre o creme */
-  --particula-alfa: 0.30;
+  --color-marca: #6bb3e8;
+  /* Só o TRAÇO muda por tema: a face da moeda é âmbar-azul nos dois, então
+     o reflexo sobre ela é o mesmo claro — mas o contorno precisa de
+     contraste diferente contra o resto da interface. */
+  --color-moeda-traco: #06202f;
+  --color-credito: #5fbf8f;
+  --color-debito: #f0817a;
+  --color-ressalva: #d9a441;
+  --color-confere: #5fbf8f;
+  --color-falha: #f0817a;
 
-  --color-campo-borda: #9c8f77;
+  /* As mesmas oito matizes, RE-ESCALONADAS para a superfície escura — não
+     um flip automático da paleta clara. Revalidadas contra #161d25: todas
+     ≥ 3:1, pior par adjacente ΔE 8.4 protan. */
+  --color-serie-1: #3987e5;
+  --color-serie-2: #d95926;
+  --color-serie-3: #199e70;
+  --color-serie-4: #c98500;
+  --color-serie-5: #d55181;
+  --color-serie-6: #008300;
+  --color-serie-7: #9085e9;
+  --color-serie-8: #e66767;
 
-  /* Sobre o creme, os tons claros não têm contraste: escurecem no tema claro.
-     `marca` era #9a6a15 e dava 3.97:1 sobre a página — passa como texto grande,
-     mas a assinatura do rodapé usa esta cor em 16px semibold, que é texto
-     normal para a WCAG. `ressalva` era #9c6415 (4.35:1 na página) e agora
-     carrega o selo "em aberto" das faturas. Ambas escurecidas o mínimo para
-     fechar 4.5:1 mantendo o matiz âmbar. */
-  --color-marca: #8e6213;
-  --color-moeda-traco: #3d2a06;
-  --color-confere: #4f6b39;
-  --color-ressalva: #945f14;
-  --color-falha: #b3323a;
-  color-scheme: light;
-}
+  --color-carvao-950: #0d1319;
+  --color-carvao-900: #161d25;
+  --color-carvao-850: #1d252e;
+  --color-carvao-800: #232c36;
+  --color-carvao-700: #2b3641;
+  --color-carvao-600: #3d4a57;
 
-:root {
   color-scheme: dark;
 }
 
-/* Sombra de elemento flutuante (modais, menus). Precisa de valor por tema:
-   no escuro a sombra é um preto denso que afunda o fundo; sobre creme o
-   mesmo preto vira uma mancha cinza suja em volta do cartão. No claro a
-   elevação se lê por uma sombra ampla e MUITO suave, mais um contorno. */
-.sombra-flutuante {
-  box-shadow:
-    0 25px 50px -12px rgb(0 0 0 / 0.5),
-    0 0 0 1px rgb(0 0 0 / 0.25);
-}
-:root[data-theme="light"] .sombra-flutuante {
-  box-shadow:
-    0 20px 40px -12px rgb(60 45 25 / 0.18),
-    0 4px 12px -4px rgb(60 45 25 / 0.10),
-    0 0 0 1px rgb(60 45 25 / 0.06);
+:root {
+  color-scheme: light;
 }
 
 body {
-  background: var(--color-carvao-950);
+  background: var(--color-papel);
   color: var(--color-tinta);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  transition:
-    background-color 0.4s ease,
-    color 0.4s ease;
 }
 
-/* Mãozinha em tudo que é clicável (o Tailwind v4 não põe por padrão). */
 @layer base {
+  /* Mãozinha em tudo que é clicável (o Tailwind v4 não põe por padrão). */
   button:not(:disabled),
   a,
   select:not(:disabled),
@@ -174,118 +194,116 @@ body {
   button:disabled {
     cursor: not-allowed;
   }
-  /* Títulos em Archivo pedem peso e tracking apertado para o ar quadrado
-     (é só o padrão; utilitários de peso ainda sobrescrevem).
-     `font-stretch: 108%` é o que separa título de corpo: mesma família, meia
-     largura a mais. Fica arquitetônico sem virar outra fonte — e sem custo de
-     rede, porque o eixo já vem no arquivo variável.
-     `text-wrap: balance` evita o título de duas linhas com uma palavra órfã
-     na segunda; `font-optical-sizing` deixa o desenho acompanhar o tamanho. */
+
+  /* Títulos: condensada com tracking apertado. A largura estreita é o que
+     separa título de corpo — mesma família, outra proporção. */
   .font-display {
-    font-weight: 700;
-    font-stretch: 108%;
-    letter-spacing: -0.025em;
-    font-optical-sizing: auto;
+    font-family: var(--font-condensada);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
 
-  /* Parágrafos com quebra "bonita": evita a última linha com uma palavra só.
-     Ignorado em silêncio por quem não suporta. */
   p {
     text-wrap: pretty;
   }
 
-  /* Hover/foco bacana nos campos: borda realça ao passar o mouse e um anel
-     verde suave ao focar. */
-  /* Todo campo nasce com a borda de 3:1. Fica no @layer base para que um
-     `border-*` do Tailwind no componente ainda possa mandar quando houver
-     motivo — mas o padrão passa a ser o acessível, não o invisível. */
+  /* Campos nascem com a borda de 3:1. Fica em @layer base para que um
+     `border-*` do Tailwind ainda possa mandar quando houver motivo — mas o
+     padrão passa a ser o acessível, não o invisível. */
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
     border-color: var(--color-campo-borda);
     transition:
       border-color 0.15s ease,
-      box-shadow 0.15s ease,
-      background-color 0.15s ease;
+      box-shadow 0.15s ease;
   }
   input:hover:not(:focus):not(:disabled),
   textarea:hover:not(:focus),
   select:hover:not(:disabled) {
-    border-color: var(--color-carvao-600);
+    border-color: var(--color-borda-forte);
   }
   input:focus,
   textarea:focus,
   select:focus {
     outline: none;
-    border-color: color-mix(in oklab, var(--color-marca) 60%, var(--color-carvao-600));
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-marca) 22%, transparent);
+    border-color: var(--color-marca);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-marca) 25%, transparent);
   }
 
-  /* Clicáveis ganham uma transição suave para o hover ficar gostoso. */
   button,
   a,
   [role="button"],
   summary {
     transition:
-      background-color 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease,
-      transform 0.12s ease,
-      opacity 0.15s ease,
-      box-shadow 0.15s ease;
+      background-color 0.12s ease,
+      border-color 0.12s ease,
+      color 0.12s ease,
+      opacity 0.12s ease;
   }
 
-  /* Foco visível por teclado nos clicáveis — a regra de foco acima só cobria
-     os campos, então botões e links ficavam sem anel para quem navega por
-     teclado. Só :focus-visible (não :focus), para o clique de mouse não
-     acender o anel. Mesmo âmbar dos campos, para o foco falar uma língua só;
-     o box-shadow segue o border-radius próprio de cada elemento. */
+  /* Foco por teclado. Só :focus-visible, para o clique de mouse não acender
+     o anel. */
   button:focus-visible,
   a:focus-visible,
   [role="button"]:focus-visible,
   summary:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-marca) 40%, transparent);
+    outline: 2px solid var(--color-marca);
+    outline-offset: 2px;
   }
 }
 
-/* Números tabulares — coluna de valores sem tremer.
- *
- * Fica em @layer components de propósito. Regra SEM layer vence utilitário do
- * Tailwind (o inverso da armadilha já anotada para o @layer base), então uma
- * `letter-spacing` aqui, sem layer, atropelaria o `tracking-widest` dos
- * rótulos de 10px que também usam .tabular. Em components, o utilitário volta
- * a mandar e cada uso decide.
- *
- * Peso 500 e tracking levemente negativo: JetBrains Mono é uma fonte de
- * CÓDIGO, e no corpo grande dos totais o desenho padrão fica largo e solto.
- * Apertado e meio grau mais pesado, o número lê como dinheiro. */
 @layer components {
+  /* Números tabulares — a coluna de valores não pode tremer ao mudar de
+     dígito. É o comportamento de um livro-caixa, e o motivo de os números
+     serem mono nesta interface.
+     Fica em @layer components de propósito: regra SEM layer vence utilitário
+     do Tailwind, e uma letter-spacing solta aqui atropelaria o tracking dos
+     rótulos pequenos que também usam .tabular. */
   .tabular {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
-    font-weight: 500;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
+  }
+
+  /* Rótulo de coluna, no capricho de um cabeçalho de formulário bancário. */
+  .rotulo {
+    font-family: var(--font-condensada);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-tinta-tenue);
+  }
+
+  /* A régua do razão: a linha que separa lançamentos. 1px, sem sombra. */
+  .regua {
+    border-bottom: 1px solid var(--color-borda);
   }
 }
 
-/* Grão de papel sobre o fundo. */
-.grao::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+/* Modais e menus. Elevação por CONTORNO + sombra curta, não por borrão:
+   sombra difusa larga é assinatura de template. */
+.sombra-flutuante {
+  box-shadow:
+    0 1px 2px rgb(15 26 36 / 0.06),
+    0 8px 24px -8px rgb(15 26 36 / 0.18),
+    0 0 0 1px var(--color-borda);
+}
+:root[data-theme="dark"] .sombra-flutuante {
+  box-shadow:
+    0 8px 24px -8px rgb(0 0 0 / 0.6),
+    0 0 0 1px var(--color-borda);
 }
 
+/* Entrada discreta. Uma animação só, curta: app de dinheiro pede calma, e
+   efeito espalhado é o que faz uma tela parecer gerada. */
 @keyframes surgir {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -293,68 +311,67 @@ body {
   }
 }
 
-@keyframes carimbo {
-  0% {
-    opacity: 0;
-    transform: scale(1.15) rotate(-3deg);
-  }
-  60% {
-    transform: scale(0.97) rotate(0.5deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
+.surgir {
+  animation: surgir 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes pulso {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.35;
   }
   50% {
     opacity: 1;
   }
 }
-
-.surgir {
-  animation: surgir 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.carimbo {
-  animation: carimbo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
 .pulso {
   animation: pulso 1.4s ease-in-out infinite;
+}
+/* `carimbo` é a entrada do selo de "confere" — a única celebração que
+   sobrou, e a que fala a língua do assunto. */
+@keyframes carimbo {
+  0% {
+    opacity: 0;
+    transform: scale(1.4) rotate(-8deg);
+  }
+  60% {
+    transform: scale(0.96) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-2deg);
+  }
+}
+.carimbo {
+  animation: carimbo 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .surgir,
   .carimbo,
-  .pulso,
-  body {
+  .pulso {
     animation: none;
-    transition: none;
   }
 }
 
-/* Toasts — fundo colorido e cheio por tipo (sonner marca data-type).
-   Cor viva para chamar atenção; título/descrição herdam a cor. */
+/* Toasts. Fundo da superfície + uma barra da cor semântica na lateral, em
+   vez do retângulo inteiro colorido: menos gritante e legível nos dois
+   temas sem par de cores próprio. */
 [data-sonner-toast] {
-  border: none !important;
-  background: var(--color-carvao-800);
-  color: var(--color-tinta);
+  background: var(--color-cartao) !important;
+  color: var(--color-tinta) !important;
+  border: 1px solid var(--color-borda) !important;
+  border-radius: 3px !important;
+  border-left-width: 3px !important;
 }
 [data-sonner-toast][data-type="success"] {
-  background: var(--color-confere);
-  color: #04240f;
+  border-left-color: var(--color-confere) !important;
 }
 [data-sonner-toast][data-type="error"] {
-  background: var(--color-falha);
-  color: #ffffff;
+  border-left-color: var(--color-falha) !important;
 }
 [data-sonner-toast][data-type="warning"] {
-  background: var(--color-ressalva);
-  color: #241a00;
+  border-left-color: var(--color-ressalva) !important;
 }
 
 /* Cabeçalho que só aparece no PDF impresso. */
@@ -362,50 +379,25 @@ body {
   display: none;
 }
 
-/* Camada do fundo animado. `fixed` é o ponto central: elemento fixo sai do
-   fluxo e não entra no scrollWidth/scrollHeight da página. Foi exatamente
-   isso que faltava no brilho antigo, que criava barra de rolagem ao animar.
-   z-index 0 (e não -1) porque `main` já é `relative z-10`; z-index negativo
-   sumiria atrás do fundo de qualquer ancestral opaco. */
-#bg-animation {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  pointer-events: none;
-  /* Canvas é elemento substituído: sem width/height explícitos, ele resolve
-     para o tamanho INTRÍNSECO (os atributos width/height, escritos em pixels
-     de dispositivo pelo renderer) em vez de respeitar `inset: 0`. Em telas
-     HiDPI (devicePixelRatio 2) isso deixa o canvas com o dobro do tamanho do
-     viewport, mostrando só o quadrante superior esquerdo, esticado. */
-  width: 100%;
-  height: 100%;
-}
-
-/* Impressão / Baixar PDF — relatório limpo em papel branco. Esconde
-   enfeites e controles; força paleta clara para não gastar tinta. */
+/* Impressão: papel branco, tinta preta, sem enfeite. */
 @media print {
   .somente-impressao {
     display: block !important;
   }
-  .grao::after,
-  #bg-animation,
   button,
   select,
   .screen-only {
     display: none !important;
   }
   :root,
-  :root[data-theme="light"] {
-    --color-carvao-950: #ffffff;
-    --color-carvao-900: #ffffff;
-    --color-carvao-850: #f6f6f4;
-    --color-carvao-800: #eeece8;
-    --color-carvao-700: #dddad4;
-    --color-carvao-600: #c2bdb4;
-    --color-tinta: #17150f;
-    --color-tinta-fraca: #45413a;
-    --color-tinta-tenue: #6f6a60;
+  :root[data-theme="dark"] {
+    --color-papel: #ffffff;
+    --color-cartao: #ffffff;
+    --color-afundado: #f4f4f4;
+    --color-borda: #d0d0d0;
+    --color-tinta: #111111;
+    --color-tinta-fraca: #3a3a3a;
+    --color-tinta-tenue: #5a5a5a;
     color-scheme: light;
   }
   body {

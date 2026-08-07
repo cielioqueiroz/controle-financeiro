@@ -1,98 +1,137 @@
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
 import type { CategoriaResumo } from '../domain/insights'
 import { formatBRL } from '../domain/normalize/money'
 import { nomeCategoria } from '../domain/categorize/categorias'
 import { useT } from '../i18n/IdiomaProvider'
 
-/** Donut de categorias em SVG puro — sem biblioteca de gráfico. Cada fatia
- *  usa a cor da categoria e se DESENHA ao entrar (o dasharray cresce de 0
- *  ao arco final), varrendo o círculo em sequência. Movimento sutil, no
- *  espírito "premium": diz "estou calculando" sem saltar. Respeita
- *  prefers-reduced-motion. */
-export function GraficoCategorias({
-  categorias,
-  totalCents,
-}: {
+type Props = {
   categorias: CategoriaResumo[]
   totalCents: number
-}) {
+}
+
+const R = 52
+const CIRC = 2 * Math.PI * R
+/** Vão de 2px entre fatias. Sem ele, duas categorias de cor parecida viram
+ *  um bloco só — o vão é o que separa as fatias antes da cor. */
+const VAO = 2
+
+/** Gasto por categoria, em SVG próprio — sem biblioteca de gráfico.
+ *
+ *  **A cor é da CATEGORIA, não da posição no ranking.** A mesma categoria
+ *  tem a mesma cor no donut, na lista e no seletor, e trocar o mês não
+ *  repinta o que sobrou. Por isso a paleta aqui não é a lista fixa de oito
+ *  matizes validadas: a identidade vence.
+ *
+ *  O preço disso é que duas cores de categoria podem ficar próximas para
+ *  quem tem daltonismo — então **o rótulo direto ao lado não é enfeite, é a
+ *  condição que torna o gráfico legível**: cada fatia aparece na lista com
+ *  ícone, nome, valor e percentual. Identidade nunca depende só da cor.
+ *
+ *  Interativo: passar o mouse (ou focar pelo teclado) destaca a fatia e
+ *  mostra o valor dela no centro; clicar abre os lançamentos da categoria. */
+export function GraficoCategorias({ categorias, totalCents }: Props) {
   const semMovimento = useReducedMotion()
+  const navigate = useNavigate()
   const { t } = useT()
+  const [ativa, setAtiva] = useState<number | null>(null)
+
   if (totalCents === 0 || categorias.length === 0) return null
 
-  const R = 52
-  const C = 2 * Math.PI * R
-  let acumulado = 0
-
   const topo = categorias.slice(0, 8)
-  // Curva de saída "expo" — arranca rápido e assenta devagar, o que dá a
-  // sensação de peso/qualidade em vez de linear.
   const suave = [0.22, 1, 0.36, 1] as const
 
-  return (
-    <div className="flex flex-wrap items-center gap-8">
-      <svg viewBox="0 0 130 130" className="h-40 w-40 shrink-0 -rotate-90">
-        {topo.map((c, i) => {
-          const fracao = c.totalCents / totalCents
-          const dash = fracao * C
-          const offset = -acumulado * C
-          acumulado += fracao
-          return (
-            <motion.circle
-              key={i}
-              cx="65"
-              cy="65"
-              r={R}
-              fill="none"
-              stroke={c.cat.cor}
-              strokeWidth="16"
-              strokeDashoffset={offset}
-              initial={semMovimento ? false : { strokeDasharray: `0 ${C}` }}
-              animate={{ strokeDasharray: `${dash} ${C - dash}` }}
-              transition={{ duration: 0.7, delay: i * 0.08, ease: suave }}
-            />
-          )
-        })}
-        <text
-          x="65"
-          y="60"
-          transform="rotate(90 65 65)"
-          textAnchor="middle"
-          className="tabular"
-          fill="var(--color-tinta)"
-          fontSize="9"
-        >
-          {t('dash.gastoReal')}
-        </text>
-        <text
-          x="65"
-          y="74"
-          transform="rotate(90 65 65)"
-          textAnchor="middle"
-          className="tabular"
-          fill="var(--color-tinta)"
-          fontSize="11"
-          fontWeight="600"
-        >
-          {formatBRL(totalCents).replace('R$', '').trim()}
-        </text>
-      </svg>
+  const emFoco = ativa !== null ? topo[ativa] : null
+  const rotuloCentro = emFoco ? nomeCategoria(emFoco.cat) : t('dash.gastoReal')
+  const valorCentro = emFoco ? emFoco.totalCents : totalCents
 
-      <ul className="flex-1 space-y-1.5">
+  function abrir(slug: string) {
+    navigate(`/lancamentos?cat=${encodeURIComponent(slug)}`)
+  }
+
+  let acumulado = 0
+
+  return (
+    <div className="flex flex-wrap items-center gap-6">
+      <div className="relative shrink-0">
+        <svg
+          viewBox="0 0 130 130"
+          className="h-40 w-40 -rotate-90"
+          role="img"
+          aria-label={`Gasto por categoria, total ${formatBRL(totalCents)}`}
+        >
+          {topo.map((c, i) => {
+            const fracao = c.totalCents / totalCents
+            const arco = Math.max(fracao * CIRC - VAO, 1)
+            const offset = -acumulado * CIRC
+            acumulado += fracao
+            const destacada = ativa === i
+            return (
+              <motion.circle
+                key={c.cat.slug}
+                cx="65"
+                cy="65"
+                r={R}
+                fill="none"
+                stroke={c.cat.cor}
+                strokeWidth={destacada ? 20 : 15}
+                strokeDashoffset={offset}
+                opacity={ativa === null || destacada ? 1 : 0.35}
+                initial={semMovimento ? false : { strokeDasharray: `0 ${CIRC}` }}
+                animate={{ strokeDasharray: `${arco} ${CIRC - arco}` }}
+                transition={{ duration: 0.6, delay: i * 0.06, ease: suave }}
+                style={{ transition: 'stroke-width .12s, opacity .12s' }}
+              />
+            )
+          })}
+        </svg>
+
+        {/* O texto do centro fica em HTML, fora do SVG girado: dentro dele
+            precisaria de um rotate(90) de correção em cada nó, e a fonte
+            não herdaria os tokens. */}
+        <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
+          <div>
+            <p className="rotulo max-w-[7rem] truncate !text-[9px]">{rotuloCentro}</p>
+            <p className="tabular mt-0.5 text-base font-semibold text-tinta">
+              {formatBRL(valorCentro).replace('R$', '').trim()}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* A lista É a legenda, e é obrigatória — ver o comentário do topo. */}
+      <ul className="min-w-[15rem] flex-1 space-y-px">
         {topo.map((c, i) => (
           <motion.li
-            key={i}
-            className="flex items-center gap-3 text-sm"
-            initial={semMovimento ? false : { opacity: 0, x: -8 }}
+            key={c.cat.slug}
+            initial={semMovimento ? false : { opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 + i * 0.05, ease: suave }}
+            transition={{ duration: 0.35, delay: 0.2 + i * 0.04, ease: suave }}
           >
-            <span className="text-base">{c.cat.icone}</span>
-            <span className="flex-1 text-tinta-fraca">{nomeCategoria(c.cat)}</span>
-            <span className="tabular text-tinta">{formatBRL(c.totalCents)}</span>
-            <span className="tabular w-12 text-right text-xs text-tinta-tenue">
-              {Math.round((c.totalCents / totalCents) * 100)}%
-            </span>
+            <button
+              onClick={() => abrir(c.cat.slug)}
+              onMouseEnter={() => setAtiva(i)}
+              onMouseLeave={() => setAtiva(null)}
+              onFocus={() => setAtiva(i)}
+              onBlur={() => setAtiva(null)}
+              className="flex w-full items-center gap-2.5 rounded-sm px-2 py-1 text-left text-sm transition-colors hover:bg-afundado"
+              aria-label={`${nomeCategoria(c.cat)}: ${formatBRL(c.totalCents)}, ${Math.round((c.totalCents / totalCents) * 100)}% do total. Ver lançamentos.`}
+            >
+              <span
+                aria-hidden
+                className="h-2.5 w-2.5 shrink-0 rounded-[1px]"
+                style={{ background: c.cat.cor }}
+              />
+              <span aria-hidden className="text-sm">
+                {c.cat.icone}
+              </span>
+              <span className="flex-1 truncate text-tinta-fraca">{nomeCategoria(c.cat)}</span>
+              <span className="tabular text-tinta">{formatBRL(c.totalCents)}</span>
+              <span className="tabular w-10 text-right text-xs text-tinta-tenue">
+                {Math.round((c.totalCents / totalCents) * 100)}%
+              </span>
+            </button>
           </motion.li>
         ))}
       </ul>

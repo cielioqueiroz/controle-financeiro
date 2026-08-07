@@ -33,12 +33,12 @@
     />
     <meta name="twitter:image" content="https://capital-financeiro.vercel.app/og.png" />
     <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400..700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- As fontes agora vêm do próprio domínio (src/fontes.css +
+         public/fonts). O Google Fonts saiu daqui para que a CSP possa ser
+         `font-src 'self'`: foi a quebra das fontes que fez a política
+         completa ficar de fora em 2026-07-29. -->
+    <link rel="preload" href="/fonts/ibm-plex-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-mono-500-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>Capital Financeiro</title>
     <!-- Tema ANTES da primeira pintura. O React só estampa data-theme depois
          de montar; sem isto a página nasce com o padrão do CSS (escuro) e
