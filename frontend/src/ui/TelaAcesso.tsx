@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
-import { SeletorIdioma } from './SeletorIdioma'
 import { Rodape } from './Rodape'
 import { CarrosselBancos } from './CarrosselBancos'
 import { useT } from '../i18n/IdiomaProvider'
@@ -53,8 +52,12 @@ export function TelaAcesso({ children }: { children: ReactNode }) {
           />
           <Marca />
         </motion.p>
+        {/* O <SeletorIdioma/> ficava aqui, ao lado do ThemeToggle. Saiu da
+            interface a pedido do usuário; o mecanismo de i18n continua
+            inteiro em src/i18n/ (dicionários pt/en/es, IdiomaProvider,
+            useT) e o componente segue existindo e testado. Voltar é
+            reinserir a linha e o import. */}
         <div className="flex items-center gap-2">
-          <SeletorIdioma />
           <ThemeToggle />
         </div>
       </header>
