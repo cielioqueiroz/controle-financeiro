@@ -10,8 +10,8 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
-import { extractFromDocument } from '../src/domain/pdf/extract'
-import type { TextItem } from '../src/domain/pdf/types'
+import { extractFromDocument } from '../frontend/src/domain/pdf/extract'
+import type { TextItem } from '../frontend/src/domain/pdf/types'
 
 const require = createRequire(import.meta.url)
 
@@ -121,7 +121,7 @@ async function main() {
   }
 
   const pdfjs = require('pdfjs-dist/legacy/build/pdf.mjs')
-  await mkdir('tests/fixtures', { recursive: true })
+  await mkdir('frontend/tests/fixtures', { recursive: true })
 
   const problemas: string[] = []
 
@@ -135,7 +135,7 @@ async function main() {
 
     problemas.push(...auditar(saida, anonimos))
 
-    const destino = `tests/fixtures/${saida}.items.json`
+    const destino = `frontend/tests/fixtures/${saida}.items.json`
     await writeFile(destino, JSON.stringify(anonimos, null, 2))
     console.log(`${destino}: ${anonimos.length} items, ${doc.numPages} páginas`)
   }
