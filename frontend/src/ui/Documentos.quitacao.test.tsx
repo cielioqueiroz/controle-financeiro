@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { Documentos } from './Documentos'
+import { ConteudoDocumentos } from './Documentos'
 
 vi.mock('../persist/documentos', () => ({
   puxarDocumentos: vi.fn().mockResolvedValue([
@@ -41,7 +41,6 @@ vi.mock('../persist/documentos', () => ({
 }))
 
 const props = {
-  onFechar: () => {},
   onMudou: () => {},
   contagem: new Map<string, { qtd: number; totalCents: number }>(),
 }
@@ -51,7 +50,7 @@ describe('Documentos — selo de quitação', () => {
 
   it('marca como quitada a fatura que tem pagamento correspondente', async () => {
     render(
-      <Documentos
+      <ConteudoDocumentos
         {...props}
         pagamentos={[
           { id: 'p1', date: '2026-06-20', amount_cents: -832424, kind: 'card_payment' },
@@ -64,18 +63,18 @@ describe('Documentos — selo de quitação', () => {
   })
 
   it('a fatura sem pagamento aparece em aberto', async () => {
-    render(<Documentos {...props} pagamentos={[]} />)
+    render(<ConteudoDocumentos {...props} pagamentos={[]} />)
     expect(await screen.findAllByText('em aberto')).toHaveLength(2)
   })
 
   it('sem pagamento nenhum, nenhuma fatura é quitada', async () => {
-    render(<Documentos {...props} pagamentos={[]} />)
+    render(<ConteudoDocumentos {...props} pagamentos={[]} />)
     await screen.findAllByText('em aberto')
     expect(screen.queryByText('quitada')).not.toBeInTheDocument()
   })
 
   it('extrato não recebe selo (não se quita um extrato)', async () => {
-    render(<Documentos {...props} pagamentos={[]} />)
+    render(<ConteudoDocumentos {...props} pagamentos={[]} />)
     // 3 documentos, mas só as 2 faturas têm selo.
     await screen.findAllByText('em aberto')
     expect(screen.getAllByText(/quitada|em aberto/)).toHaveLength(2)

@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Documentos } from './Documentos'
+import { ConteudoDocumentos } from './Documentos'
 import type { DocumentoSalvo } from '../persist/documentos'
 
 // A ação destrutiva não pode acontecer sem passar pelo diálogo. Os testes
@@ -34,8 +34,7 @@ vi.mock('../persist/documentos', () => ({
 
 function montar() {
   return render(
-    <Documentos
-      onFechar={vi.fn()}
+    <ConteudoDocumentos
       onMudou={vi.fn()}
       contagem={new Map([['doc-1', { qtd: 12, totalCents: 34500 }]])}
       pagamentos={[]}

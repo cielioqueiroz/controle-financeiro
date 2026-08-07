@@ -4,8 +4,6 @@ import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
   onImportar: () => void
-  onDocumentos: () => void
-  onCategorias: () => void
   onBaixarPDF?: () => void
   /** Só chega quando o aparelho compartilha arquivos (Web Share nível 2). */
   onCompartilharPDF?: () => void
@@ -15,8 +13,6 @@ type Props = {
  *  ações aparecem inline). */
 export function MenuAcoes({
   onImportar,
-  onDocumentos,
-  onCategorias,
   onBaixarPDF,
   onCompartilharPDF,
 }: Props) {
@@ -62,12 +58,10 @@ export function MenuAcoes({
             <button onClick={() => { setAberto(false); onImportar() }} className={item}>
               <span aria-hidden>＋</span> {t('dash.importar').replace('+ ', '')}
             </button>
-            <button onClick={() => { setAberto(false); onDocumentos() }} className={item}>
-              <span aria-hidden>🗂️</span> {t('dash.documentos')}
-            </button>
-            <button onClick={() => { setAberto(false); onCategorias() }} className={item}>
-              <span aria-hidden>🏷️</span> {t('dash.categorias')}
-            </button>
+            {/* Documentos e Categorias sairam daqui: viraram Faturas e
+                Categorias na barra de navegacao, alcancaveis de qualquer
+                pagina. Duplica-las no menu daria dois caminhos para o
+                mesmo lugar. */}
             {onBaixarPDF && (
               <button onClick={() => { setAberto(false); onBaixarPDF() }} className={item}>
                 <span aria-hidden>⬇️</span> {t('dash.baixarPdf')}

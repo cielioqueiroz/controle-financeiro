@@ -5,6 +5,8 @@ import { toast } from 'sonner'
 import { NavPrincipal } from './navegacao/NavPrincipal'
 import { ROTAS } from './navegacao/rotas'
 import { DadosProvider } from './dados/DadosProvider'
+import { Faturas } from './paginas/Faturas'
+import { Categorias } from './paginas/Categorias'
 import { FundoAnimado } from './ui/FundoAnimado'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
@@ -303,18 +305,24 @@ export default function App() {
           // quebrou o quê.
           <DadosProvider>
             <Routes>
-              {ROTAS.map((r) => (
-                <Route
-                  key={r.caminho}
-                  path={r.caminho}
-                  element={
-                    <Dashboard
-                      onImportar={() => setImportando(true)}
-                      onAprendeu={recarregarRegras}
-                    />
-                  }
-                />
-              ))}
+              <Route path="/faturas" element={<Faturas />} />
+              <Route path="/categorias" element={<Categorias onAprendeu={recarregarRegras} />} />
+              {/* As rotas ainda sem página própria caem no Painel. Cada task
+                  seguinte tira uma daqui e lhe dá conteúdo próprio. */}
+              {ROTAS.filter((r) => r.caminho !== '/faturas' && r.caminho !== '/categorias').map(
+                (r) => (
+                  <Route
+                    key={r.caminho}
+                    path={r.caminho}
+                    element={
+                      <Dashboard
+                        onImportar={() => setImportando(true)}
+                        onAprendeu={recarregarRegras}
+                      />
+                    }
+                  />
+                ),
+              )}
             </Routes>
           </DadosProvider>
         ) : (

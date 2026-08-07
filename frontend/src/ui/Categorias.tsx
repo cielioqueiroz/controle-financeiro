@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import {
   puxarCategoriasUsuario,
@@ -12,13 +11,11 @@ import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import type { Regra } from '../domain/categorize/regras'
 import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './Confirmacao'
-import { Portal, useTravarRolagem } from './Portal'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 
 type Props = {
-  onFechar: () => void
-  /** Chamado quando algo muda, para o dashboard recarregar categorias/regras. */
+  /** Chamado quando algo muda, para o histórico recarregar categorias/regras. */
   onMudou: () => void
   /** Quantas transações usam cada slug, vindo do dashboard (já em memória).
    *  Serve para a confirmação dizer o tamanho do estrago antes de apagar. */
@@ -31,9 +28,8 @@ type Props = {
  *  ensina o app (grava em `merchant_rules`), mas até agora não havia como ver
  *  nem desfazer o que ele aprendeu — uma correção errada era permanente e
  *  invisível. Aqui ela é visível e reversível. */
-export function Categorias({ onFechar, onMudou, usoPorSlug }: Props) {
+export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
   const { t } = useT()
-  useTravarRolagem(true)
   const [cats, setCats] = useState<CategoriaUsuario[] | null>(null)
   const [regras, setRegras] = useState<Regra[] | null>(null)
   const [editando, setEditando] = useState<CategoriaUsuario | null>(null)
@@ -42,11 +38,6 @@ export function Categorias({ onFechar, onMudou, usoPorSlug }: Props) {
   const [cor, setCor] = useState(CORES[0])
   const [confirmando, setConfirmando] = useState<CategoriaUsuario | null>(null)
   const [ocupado, setOcupado] = useState(false)
-  // O handler de Esc é registrado uma vez; com a confirmação por cima, o Esc
-  // é dela — não pode fechar o painel por baixo. Mesmo padrão de Documentos.
-  const temConfirmacao = useRef(false)
-  temConfirmacao.current = confirmando !== null
-
   async function carregar() {
     try {
       const [c, r] = await Promise.all([puxarCategoriasUsuario(), puxarRegras()])
@@ -59,11 +50,6 @@ export function Categorias({ onFechar, onMudou, usoPorSlug }: Props) {
 
   useEffect(() => {
     carregar()
-    function esc(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !temConfirmacao.current) onFechar()
-    }
-    document.addEventListener('keydown', esc)
-    return () => document.removeEventListener('keydown', esc)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -129,37 +115,13 @@ export function Categorias({ onFechar, onMudou, usoPorSlug }: Props) {
     : undefined
 
   return (
-    <Portal>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-veu/60 p-4 backdrop-blur-md sm:p-8"
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget) onFechar()
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 12, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-          className="sombra-flutuante w-full max-w-xl rounded-2xl border border-carvao-700 bg-carvao-900"
-        >
-          <header className="flex items-center justify-between border-b border-carvao-800 px-6 py-4">
-            <div>
-              <h2 className="font-display text-xl text-tinta">{t('cats.titulo')}</h2>
-              <p className="text-xs text-tinta-fraca">{t('cats.subtitulo')}</p>
-            </div>
-            <button
-              onClick={onFechar}
-              aria-label={t('geral.fechar')}
-              className="grid h-8 w-8 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:text-tinta"
-            >
-              ✕
-            </button>
-          </header>
+    <section className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900">
+      <header className="border-b border-carvao-800 px-6 py-4">
+        <h2 className="font-display text-xl text-tinta">{t('cats.titulo')}</h2>
+        <p className="text-xs text-tinta-fraca">{t('cats.subtitulo')}</p>
+      </header>
 
-          <div className="max-h-[60vh] overflow-y-auto px-3 py-2">
+      <div className="px-3 py-2">
             {/* Categorias do usuário */}
             <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-widest text-tinta-tenue">
               {t('cats.suas')}
@@ -295,19 +257,16 @@ export function Categorias({ onFechar, onMudou, usoPorSlug }: Props) {
               </ul>
             )}
           </div>
-        </motion.div>
-
-        <Confirmacao
-          aberto={confirmando !== null}
-          titulo={t('cats.confApagarTitulo')}
-          descricao={descricaoApagar}
-          rotuloConfirmar={t('cats.apagar')}
-          severidade="perigo"
-          ocupado={ocupado}
-          onConfirmar={() => confirmando && apagar(confirmando)}
-          onCancelar={() => setConfirmando(null)}
-        />
-      </motion.div>
-    </Portal>
+      <Confirmacao
+        aberto={confirmando !== null}
+        titulo={t('cats.confApagarTitulo')}
+        descricao={descricaoApagar}
+        rotuloConfirmar={t('cats.apagar')}
+        severidade="perigo"
+        ocupado={ocupado}
+        onConfirmar={() => confirmando && apagar(confirmando)}
+        onCancelar={() => setConfirmando(null)}
+      />
+    </section>
   )
 }

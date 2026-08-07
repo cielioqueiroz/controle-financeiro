@@ -34,8 +34,6 @@ import { MenuAcoes } from './MenuAcoes'
 import { podeCompartilharArquivo } from '../lib/compartilhar'
 import { ehFalhaDeChunk } from '../lib/chunk'
 import { ValorAnimado } from './ValorAnimado'
-import { Documentos } from './Documentos'
-import { Categorias } from './Categorias'
 import { EditarCompra } from './EditarCompra'
 import { SaldoConta } from './SaldoConta'
 import { SaldoAberto } from './SaldoAberto'
@@ -134,8 +132,6 @@ function rotulo(periodo: Periodo, ref: Date): string {
 export function Dashboard({ onImportar, onAprendeu }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [ref, setRef] = useState<Date>(new Date())
-  const [mostrarDocs, setMostrarDocs] = useState(false)
-  const [mostrarCats, setMostrarCats] = useState(false)
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const [banco, setBanco] = useState<string>('geral')
   const [gerandoPdf, setGerandoPdf] = useState(false)
@@ -186,31 +182,10 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
     [visiveis, periodo, ref],
   )
   const resumo = useMemo(() => agregar(txs), [txs])
-  const contagemPorDoc = useMemo(() => {
-    const m = new Map<string, { qtd: number; totalCents: number }>()
-    for (const t of todas ?? []) {
-      const cur = m.get(t.document_id) ?? { qtd: 0, totalCents: 0 }
-      cur.qtd += 1
-      if (t.kind === 'expense') cur.totalCents += t.amount_cents
-      m.set(t.document_id, cur)
-    }
-    return m
-  }, [todas])
-  // Pagamentos de fatura de todo o histórico. O painel de Documentos deriva
-  // deles quais faturas estão quitadas — cruzamento que a importação sozinha
-  // não faz quando fatura e extrato entram em dias diferentes.
-  const pagamentos = useMemo(
-    () =>
-      (todas ?? [])
-        .filter((t) => t.kind === 'card_payment')
-        .map((t) => ({
-          id: t.id,
-          date: t.date,
-          amount_cents: t.amount_cents,
-          kind: t.kind,
-        })),
-    [todas],
-  )
+  // `contagemPorDoc`, `pagamentos` e `usoPorSlug` moraram daqui para as
+  // páginas Faturas e Categorias, que são as únicas que os usam. Aqui eles
+  // eram recalculados a cada troca de período sem ninguém olhar.
+  //
   // Recorrências olham TODO o histórico do banco selecionado, não só o
   // período visível: detectar "se repete todo mês" exige mais de um mês.
   const recorrencias = useMemo(
@@ -221,16 +196,6 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
     () => alertasDe(recorrencias, competenciaMaisRecente(visiveis ?? [])),
     [recorrencias, visiveis],
   )
-  // Quantas transações usam cada categoria — o painel de Categorias usa isso
-  // para dizer o tamanho do estrago antes de apagar uma.
-  const usoPorSlug = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const t of todas ?? []) {
-      const s = t.category_slug ?? 'outros'
-      m.set(s, (m.get(s) ?? 0) + 1)
-    }
-    return m
-  }, [todas])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
   const futuros = useMemo(() => (visiveis ? projecaoFutura(visiveis) : []), [visiveis])
   const compAtiva = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`
@@ -336,20 +301,6 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
         <div className="flex items-center gap-2">
           {/* Desktop: ações inline */}
           <div className="hidden items-center gap-2 sm:flex">
-            <button
-              onClick={() => setMostrarDocs(true)}
-              className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
-              title={t('dash.docTooltip')}
-            >
-              {t('dash.documentos')}
-            </button>
-            <button
-              onClick={() => setMostrarCats(true)}
-              className="rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
-              title={t('dash.catTooltip')}
-            >
-              {t('dash.categorias')}
-            </button>
             {txs && txs.length > 0 && (
               <>
                 <button
@@ -385,8 +336,6 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
           <div className="sm:hidden">
             <MenuAcoes
               onImportar={onImportar}
-              onDocumentos={() => setMostrarDocs(true)}
-              onCategorias={() => setMostrarCats(true)}
               onBaixarPDF={txs && txs.length > 0 ? baixarPdf : undefined}
               onCompartilharPDF={
                 txs && txs.length > 0 && podeCompartilhar ? compartilharPdf : undefined
@@ -528,24 +477,6 @@ export function Dashboard({ onImportar, onAprendeu }: Props) {
       </div>
 
       <AnimatePresence>
-        {mostrarDocs && (
-          <Documentos
-            contagem={contagemPorDoc}
-            pagamentos={pagamentos}
-            onFechar={() => setMostrarDocs(false)}
-            onMudou={carregar}
-          />
-        )}
-        {mostrarCats && (
-          <Categorias
-            usoPorSlug={usoPorSlug}
-            onFechar={() => setMostrarCats(false)}
-            onMudou={() => {
-              carregar()
-              onAprendeu?.()
-            }}
-          />
-        )}
         {editando && (
           <EditarCompra
             tx={editando}

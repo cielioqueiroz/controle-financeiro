@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
-import { Categorias } from './Categorias'
+import { ConteudoCategorias } from './Categorias'
 import { editarCategoria, apagarCategoria } from '../persist/categoriasUsuario'
 import { apagarRegra } from '../persist/regras'
 
@@ -24,7 +24,6 @@ vi.mock('../persist/regras', () => ({
 }))
 
 const props = {
-  onFechar: vi.fn(),
   onMudou: vi.fn(),
   usoPorSlug: new Map([['u-pedreiro-ab12', 7]]),
 }
@@ -33,19 +32,19 @@ describe('Categorias', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('lista as categorias do usuário com quantos lançamentos usam', async () => {
-    render(<Categorias {...props} />)
+    render(<ConteudoCategorias {...props} />)
     expect(await screen.findByText('Pedreiro')).toBeInTheDocument()
     expect(screen.getByText('7 lançamentos')).toBeInTheDocument()
   })
 
   it('lista as regras aprendidas com a categoria de destino', async () => {
-    render(<Categorias {...props} />)
+    render(<ConteudoCategorias {...props} />)
     expect(await screen.findByText('MERCADO BOM PRECO')).toBeInTheDocument()
     expect(screen.getByText(/Supermercado/)).toBeInTheDocument()
   })
 
   it('esquecer uma regra chama apagarRegra com padrão e tipo', async () => {
-    render(<Categorias {...props} />)
+    render(<ConteudoCategorias {...props} />)
     await userEvent.click(
       await screen.findByRole('button', { name: 'Esquecer a regra de MERCADO BOM PRECO' }),
     )
@@ -55,7 +54,7 @@ describe('Categorias', () => {
   })
 
   it('editar e salvar chama editarCategoria com os campos novos', async () => {
-    render(<Categorias {...props} />)
+    render(<ConteudoCategorias {...props} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Editar a categoria Pedreiro' }))
     const campo = screen.getByLabelText('Nome da categoria')
     await userEvent.clear(campo)
@@ -68,7 +67,7 @@ describe('Categorias', () => {
   })
 
   it('apagar pede confirmação e diz quantos lançamentos serão afetados', async () => {
-    render(<Categorias {...props} />)
+    render(<ConteudoCategorias {...props} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Apagar a categoria Pedreiro' }))
     expect(
       screen.getByText(/está em 7 lançamentos.*passam a aparecer como Outros/s),
@@ -77,7 +76,7 @@ describe('Categorias', () => {
   })
 
   it('confirmar é o que de fato apaga', async () => {
-    render(<Categorias {...props} />)
+    render(<ConteudoCategorias {...props} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Apagar a categoria Pedreiro' }))
     // O botão da confirmação é o único chamado exatamente "Apagar" — os da
     // lista têm aria-label com o nome da categoria. Sem isso o teste teria de
