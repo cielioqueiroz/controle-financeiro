@@ -108,6 +108,11 @@ diretiva atrapalharia a medição local em `http://127.0.0.1`.
 errado → a violação do script de tema aparece e reprova; `connect-src` sem as
 origens do Neon → o login morre com `"Failed to fetch"` e duas violações.
 
+✅ **Conferida no ar** (`--url https://capital-financeiro.vercel.app`): o header
+chega da Vercel idêntico ao do repositório, o script de tema roda, as 5 fontes
+carregam, o login real responde, as 16 sondas se comportam como declarado e
+`/.env`, `/.env.local`, `/.git/config` e `/scripts/*` não respondem 200.
+
 **Também nesta rodada:** o `rewrite` de SPA passou a excluir `/.git`, `/.env*`,
 `/backend/`, `/scripts/` e `/node_modules/`. A Vercel não serve nada disso de
 qualquer forma — o que se corrige é o catch-all responder **200 com o HTML do
@@ -551,6 +556,16 @@ npm run build && python scripts/medir-csp.py             # tela de acesso + logi
 # e a de importação, que precisa de um build SEM Neon (modo "importa e vê"):
 cd frontend && VITE_NEON_DATA_API_URL= VITE_NEON_AUTH_URL= npx vite build --outDir /tmp/dist-anon
 python scripts/medir-csp.py --dist /tmp/dist-anon --pdf .amostras-bancos/bb-cmbf.pdf
+```
+
+**Depois do deploy, uma terceira medição**, que é a única que prova que a
+Vercel entrega os headers — até a borda dela aplicar, o `vercel.json` é uma
+intenção. Nesse modo o script lê a CSP **da resposta do servidor**, não do
+repositório (divergência entre as duas é justamente o que se quer descobrir),
+e confere que `/.env`, `/.git/config` e `/scripts/*` não respondem 200:
+
+```bash
+python scripts/medir-csp.py --url https://capital-financeiro.vercel.app
 ```
 
 **Números de referência** (se algum mudar sem motivo, algo regrediu):

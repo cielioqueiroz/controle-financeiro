@@ -127,6 +127,39 @@ def headers_do_vercel() -> list[tuple[str, str]]:
     return saida
 
 
+def headers_publicados(base: str) -> str:
+    """A CSP que o site no ar realmente manda."""
+    from urllib.request import urlopen
+
+    with urlopen(base + '/', timeout=30) as r:
+        csp = r.headers.get('Content-Security-Policy')
+    if not csp:
+        sys.exit(f'{base} nao manda Content-Security-Policy — a Vercel nao aplicou o header.')
+    return csp
+
+
+def caminhos_de_infra(base: str) -> list[str]:
+    """Os caminhos que o rewrite de SPA nao pode transformar em 200.
+
+    Devolve a lista dos que responderam 200: um `/.env` que devolve o HTML do
+    app faz um scanner registrar o caminho como existente.
+    """
+    from urllib.error import HTTPError
+    from urllib.request import urlopen
+
+    ruins = []
+    for caminho in ['/.env', '/.env.local', '/.git/config', '/scripts/diagnostico.ts']:
+        try:
+            with urlopen(base + caminho, timeout=30) as r:
+                if r.status == 200:
+                    ruins.append(caminho)
+        except HTTPError:
+            pass
+        except OSError:
+            pass
+    return ruins
+
+
 def servidor(dist: Path, extras: list[tuple[str, str]]) -> tuple[http.server.ThreadingHTTPServer, int]:
     # O .mjs do worker do pdf.js sai como application/octet-stream no mapa
     # padrao do Python em Windows, e ai o navegador recusa o modulo por tipo
@@ -397,20 +430,34 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--dist', default=str(RAIZ / 'frontend' / 'dist'))
     ap.add_argument('--pdf', help='PDF real para exercitar o worker do pdf.js')
+    ap.add_argument(
+        '--url',
+        help='mede um site JA PUBLICADO em vez do dist local. E a unica forma '
+        'de provar que a Vercel entrega os headers — o vercel.json e uma '
+        'intencao ate a borda dela aplicar.',
+    )
     args = ap.parse_args()
 
     dist = Path(args.dist)
-    if not (dist / 'index.html').exists():
-        sys.exit(f'{dist} nao tem index.html — rode `npm run build` antes.')
+    srv = None
 
-    extras = headers_do_vercel()
-    csp = next((v for k, v in extras if k.lower() == 'content-security-policy'), None)
-    if not csp:
-        sys.exit('vercel.json nao declara Content-Security-Policy.')
+    if args.url:
+        base = args.url.rstrip('/')
+        # A CSP medida aqui e a que o servidor manda, nao a que o repositorio
+        # pede. Se as duas divergirem, e exatamente isso que se quer descobrir.
+        csp = headers_publicados(base)
+        print(f'Medindo o site publicado em {base}\n')
+    else:
+        if not (dist / 'index.html').exists():
+            sys.exit(f'{dist} nao tem index.html — rode `npm run build` antes.')
+        extras = headers_do_vercel()
+        csp = next((v for k, v in extras if k.lower() == 'content-security-policy'), None)
+        if not csp:
+            sys.exit('vercel.json nao declara Content-Security-Policy.')
+        srv, porta = servidor(dist, extras)
+        base = f'http://127.0.0.1:{porta}'
+        print(f'Servindo {dist} em {base} com os headers do vercel.json\n')
 
-    srv, porta = servidor(dist, extras)
-    base = f'http://127.0.0.1:{porta}'
-    print(f'Servindo {dist} em {base} com os headers do vercel.json\n')
     print('CSP medida:')
     for parte in csp.split(';'):
         if parte.strip():
@@ -465,12 +512,20 @@ def main() -> int:
             falhas.append('nenhuma fonte carregou — font-src esta barrando o proprio dominio')
         print()
 
+        # Os nomes dos chunks levam hash do conteudo, entao os do dist local
+        # so valem contra o site publicado se for o MESMO build. Conferir a
+        # existencia evita transformar "chunk de outro deploy" em falha de CSP.
+        def existe(caminho: str | None) -> str | None:
+            if not caminho or not args.url:
+                return caminho
+            return caminho if page.request.head(base + caminho).ok else None
+
         resultados = page.evaluate(
             SONDAS_JS,
             {
                 'estranha': ESTRANHA,
-                'worker': caminho_worker(dist),
-                'relatorio': caminho_relatorio(dist),
+                'worker': existe(caminho_worker(dist)),
+                'relatorio': existe(caminho_relatorio(dist)),
                 'dataApi': data_api,
                 'auth': auth_url,
             },
@@ -509,7 +564,20 @@ def main() -> int:
 
         navegador.close()
 
-    srv.shutdown()
+    # So faz sentido contra o site publicado: o servidor local imita o rewrite
+    # da Vercel, e imitacao nao prova nada sobre a borda dela.
+    if args.url:
+        ruins = caminhos_de_infra(base)
+        print('\nCAMINHOS DE INFRAESTRUTURA')
+        if ruins:
+            for c in ruins:
+                print(f'  [FALHA] {c} respondeu 200')
+            falhas.append('o rewrite de SPA esta servindo caminho de infraestrutura')
+        else:
+            print('  [ok  ] /.env, /.env.local, /.git/config e /scripts/* nao respondem 200')
+
+    if srv:
+        srv.shutdown()
 
     if console:
         print('\nCONSOLE (mensagens de CSP, inclui contexto de worker)')
