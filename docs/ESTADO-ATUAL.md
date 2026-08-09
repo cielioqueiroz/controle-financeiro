@@ -1,10 +1,10 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-07**.
+> Documento de continuidade. Última atualização: **2026-08-09**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
-## ⚠️ Rodada 2026-08-07 — REFORMA EM ANDAMENTO (leia antes de tudo)
+## ⚠️ A REFORMA (leia antes de tudo)
 
 **A estrutura de pastas mudou.** O que era `src/` agora é `frontend/src/`.
 Monorepo com npm workspaces: `frontend/` (app React) e `backend/`
@@ -29,24 +29,154 @@ Plano da fatia 1a: `docs/superpowers/plans/2026-08-07-reforma-fatia-1a-arquitetu
 
 | Fatia | O que é | Estado |
 |---|---|---|
-| 1a | `frontend/` + `backend/` com workspaces | ✅ **no ar** |
-| 4a | seletor de idioma fora da UI (código i18n intacto) | ✅ **no ar** |
-| 2 | router + 7 páginas de navegação | 🚧 a fazer |
-| 3 | design system novo + gráficos interativos | 🚧 a fazer |
+| 1a | `frontend/` + `backend/` com workspaces | ✅ **no ar** (07/08) |
+| 4a | seletor de idioma fora da UI (código i18n intacto) | ✅ **no ar** (07/08) |
+| 2 | router + 7 páginas de navegação | ✅ **no ar** (07/08) |
+| 3 | design "livro-razão" + gráficos interativos | ✅ **no ar** (07/08) |
+| 4b | CSP completa, medida contra o build | ✅ **no ar** (09/08) |
 | 1b | backend real (Vercel Functions) | ⛔ **bloqueada**: falta `DATABASE_URL` no `.env.local` |
-| 4b | CSP completa medida em preview deploy | 🚧 a fazer |
 
-**Decisões desta rodada:** nginx/apache foi **descartado** (o app está na
+**A fatia 1b é o único item aberto da reforma**, e o que falta para destravá-la
+não é código: é a connection string do Neon (role `authenticated`, sem
+BYPASSRLS) no `.env.local` da raiz. Enquanto ela não vier, o cliente segue
+falando direto com a Data API — que funciona, com RLS, como sempre funcionou.
+
+**Decisões da reforma:** nginx/apache foi **descartado** (o app está na
 Vercel, não há servidor próprio nem painel de banco exposto); o backend será
 **real**, em Vercel Functions, com o RLS preservado via
 `set_config('request.jwt.claims')` numa role sem BYPASSRLS.
 
-**A barra de rolagem do `Dashboard.tsx` (o `xl:max-h`+`overflow-y-auto` da
-coluna sticky) NÃO foi removida ainda** — sai na Fatia 2, quando as páginas
-tornarem a coluna desnecessária. Tirá-la antes reintroduz o bug que ela
-conserta (conteúdo inalcançável embaixo do sticky).
+**545 testes (72 arquivos)**, build e lint limpos, medidor de overflow OK,
+contraste OK nos dois temas, CSP aprovada nas duas jornadas.
 
-**505 testes (66 arquivos)**, build e lint limpos, medidor de overflow OK.
+## Rodada 2026-08-09 — CSP completa (fatia 4b, a última que não dependia do usuário)
+
+A política que ficou de fora em 2026-07-29 está no ar. O que a destravou foi a
+fatia 3 ter trazido as fontes para o próprio domínio (`font-src 'self'`) — a
+quebra do Google Fonts era metade do motivo original.
+
+**A outra metade do motivo continuava de pé, e virou ferramenta.** O
+`vercel.json` **não vale no `npm run dev` nem no `vite preview`**: só a Vercel
+aplica aqueles headers. Publicar para descobrir se a política quebra o app é
+descobrir com o app quebrado no ar. `scripts/medir-csp.py` fecha esse buraco —
+sobe um servidor estático que devolve os headers **lidos do próprio
+`vercel.json`** (copiar a política para dentro do script seria medir uma
+política que não vai ao ar) e dirige o Chromium contra o build de produção.
+
+O script tem duas metades, e **a segunda é a que dá valor à primeira**:
+
+1. **Jornada** — usa o app e coleta `securitypolicyviolation`.
+2. **Sondas** — 16 tentativas com o resultado *declarado*. Metade espera
+   **bloqueio**: script inline injetado, `eval`, origem estranha, `<base>`
+   externa, imagem para fora, `form-action` para fora. Sem esses controles
+   negativos, um header que nem chegou ao navegador daria zero violações e
+   nota máxima — sonda que passa dos dois jeitos é pior que nenhuma.
+
+**As jornadas assevera resultado, não silêncio.** A da tela de acesso exige o
+toast de volta (`"E-mail ou senha incorretos."` — resposta real do servidor); a
+de importação exige o toast de leitura (`"94 lançamentos — bate com o banco ao
+centavo."`, de um extrato BB real). Sem isso, worker barrado e importação
+morta passariam como "nenhuma violação".
+
+**O achado da rodada: o app chama `eval` no uso normal.** É o `allowsEval` do
+**zod** (`node_modules/zod/v4/core/util.js:142`), que chega via
+`@neondatabase/neon-js` → better-auth: uma **sonda de capacidade** memoizada,
+`try { new Function('') } catch { return false }`. Sob CSP ela responde "não
+posso" e o zod passa a validar pelo caminho interpretado — o mesmo que ele já
+usa em Cloudflare Workers, ambiente que o próprio zod testa na linha de cima.
+**Não virou `'unsafe-eval'`**: seria devolver ao atacante a primitiva mais
+valiosa da lista para comprar de volta uma otimização que ninguém mede. Está
+registrada como violação esperada em `ESPERADAS`, e a trava que impede esse
+perdão de virar cheque em branco é a jornada exigir que o login **responda**
+depois do bloqueio.
+
+**A política, e o porquê de cada exceção:**
+
+| Diretiva | Valor | Por quê |
+|---|---|---|
+| `script-src` | `'self'` + hash sha256 | o `<script>` do tema, inline no `<head>`, precisa rodar antes da primeira pintura |
+| `style-src` | `'self' 'unsafe-inline'` | React/motion escrevem `style=""` em **atributo**, e o sonner injeta a folha dele; hash não cobre atributo (só `'unsafe-hashes'`, que é pior). Estilo não executa código |
+| `connect-src` | `'self'` + as **duas origens exatas** do Neon | `https://*.neon.tech` seria canal de exfiltração pronto: qualquer pessoa cria um projeto Neon e ganha um endpoint sob o curinga |
+| `worker-src` | `'self' blob:` | o parsing do pdf.js roda em worker |
+| `img-src` | `'self' data: blob:` | o jsPDF desenha em canvas |
+| `base-uri`, `object-src`, `frame-src`, `media-src` | `'none'` | nada disso existe no app; `<base>` externa sequestraria todo caminho relativo |
+
+Sem `upgrade-insecure-requests` de propósito: o HSTS já força o esquema, e a
+diretiva atrapalharia a medição local em `http://127.0.0.1`.
+
+**Verificado por mutação** (o script precisa reprovar, não só aprovar): hash
+errado → a violação do script de tema aparece e reprova; `connect-src` sem as
+origens do Neon → o login morre com `"Failed to fetch"` e duas violações.
+
+**Também nesta rodada:** o `rewrite` de SPA passou a excluir `/.git`, `/.env*`,
+`/backend/`, `/scripts/` e `/node_modules/`. A Vercel não serve nada disso de
+qualquer forma — o que se corrige é o catch-all responder **200 com o HTML do
+app** para `/.env`, que faz um scanner registrar o caminho como existente.
+
+**Três testes novos em `frontend/index.test.ts`** (13 no arquivo), porque o
+acoplamento entre `index.html` e `vercel.json` é invisível para o compilador:
+o hash de **cada** script inline tem que estar na `script-src`; `script-src`
+não pode ganhar `'unsafe-inline'`/`'unsafe-eval'` (sem isso o teste do hash
+passaria à toa); toda origem `VITE_*` do `.env.local` tem que estar na
+`connect-src` (pula se o arquivo não existir — ele é gitignored). Os dois
+primeiros foram verificados por mutação.
+
+## Rodada 2026-08-07 — fatias 2 e 3 (páginas e design)
+
+### Fatia 2 — sete páginas, e o fim da barra de rolagem do painel
+
+`Dashboard.tsx`, de 846 linhas, **deixou de existir**: virou Painel,
+Lançamentos, Faturas, Importação, Categorias, Recorrências e Datas, cada uma
+com endereço próprio.
+
+A queixa da barra de rolagem foi resolvida **pela raiz**. O
+`xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto` da coluna lateral não foi
+apagado: ele existia porque a coluna passava da altura da janela, e `sticky`
+mais alto que a viewport gruda deixando o resto **inalcançável**. Com o
+conteúdo distribuído em sete páginas a coluna não alcança mais esse tamanho,
+então a regra saiu **sem trazer o bug de volta**. Outras três barras internas
+do mesmo tipo caíram junto (Documentos `55vh`, Categorias `60vh`, prévia da
+importação `46vh`): existiam para caber num card de modal e, como página,
+viravam barra dupla.
+
+Peças novas: `dados/filtros.ts` + `useFiltros` (o recorte da tela vive **na
+URL**, com `replace: true` para a busca não encher o histórico),
+`dados/useRecorte` (filtrar+agregar num lugar só), `dados/periodo.ts`,
+`dados/calendario.ts` (a página Datas deriva do `diaTipico` das recorrências —
+nada digitado, o sistema segue 100% retrospectivo) e `ui/BarraFiltros`.
+Os dois modais de Faturas e Categorias tiveram o **miolo extraído e o
+invólucro descartado** (Portal, trava de rolagem, Esc, véu): numa página, cada
+um deles seria defeito.
+
+### Fatia 3 — a direção "livro-razão"
+
+O visual anterior (creme, display serifada de alto contraste, âmbar/terracota,
+cantos de 16px, brilho, grão) **era o cluster #1 do que hoje se reconhece como
+página gerada por IA** — o usuário identificou isso de olho. A direção nova sai
+do que o app **faz**: ele confere, ao centavo, contra o gabarito do banco. Isso
+é conciliação contábil, e o desenho vem desse mundo — papel frio de formulário
+fiscal (`#f6f7f9`), tinta azul-ferro, marca azul de carimbo (`#1b5e8f`),
+semântica **crédito/débito** (nunca cor sozinha: sempre com sinal ou rótulo),
+cantos de 2–3px, réguas de 1px, zero gradiente.
+
+Tipografia: **uma família (IBM Plex), três vozes** — Mono nos números (que são
+o herói da tela), Condensed nos rótulos de coluna, Sans no corpo. Servida do
+**próprio domínio** (16 woff2, 412 kB, só latin/latin-ext) — o Google Fonts saiu
+justamente para destravar a CSP desta semana.
+
+`scripts/medir-contraste.py` **novo**: reprova o build do olho humano. Achou um
+par abaixo de AA (borda de campo clara, 2,62:1) e a correção veio por **busca**
+preservando matiz e saturação (`#8b97a6` → `#7f8c9d`, 3,19:1).
+
+Gráficos **interativos em SVG próprio** (gráfico com cara de biblioteca é a cara
+que se pediu para evitar): o donut destaca a fatia no hover/foco e abre os
+lançamentos no clique — a cor segue a **categoria, não o ranking**, então
+trocar de mês não repinta o que sobrou, e o preço disso é o rótulo ao lado ser
+obrigatório. A evolução virou **entradas × saídas** de 12 meses (`entradasCents`
+já existia na série e nunca era desenhado), numa escala só para as duas séries.
+
+**three.js removido** (−515 kB de chunk): era decoração de fundo, e decoração
+não paga meio megabyte.
 
 ## Rodada 2026-08-05 — funcionalidades derivadas (3 fatias)
 
@@ -260,7 +390,8 @@ o cliente **nunca** manda `user_id`, e um usuário não consegue criar categoria
    `Referrer-Policy` e `Permissions-Policy`. **CSP completo ficou de fora de
    propósito**: quebraria Google Fonts, o worker do pdf.js e a API do Neon, e
    `vercel.json` não vale no preview local — não daria para testar antes de
-   publicar. Fazer com calma, medindo em preview deploy.
+   publicar. ✅ **Feito em 2026-08-09** (fatia 4b): as fontes vieram para o
+   próprio domínio e `scripts/medir-csp.py` resolveu o "não daria para testar".
 3. **Acessibilidade da tela de acesso**: os campos tinham só `placeholder`
    (não é nome acessível — some ao digitar). Agora têm `aria-label` + o
    `autoComplete` certo (`name`/`nickname`/`email`/`current-password` vs
@@ -396,15 +527,30 @@ Iniciada a rodada de **novos parsers de banco** — spec em
   (o repositório mantém o nome antigo de propósito: renomear quebraria caminhos).
 - **No ar:** **https://capital-financeiro.vercel.app** — projeto `capital-financeiro`
   na Vercel, conectado ao GitHub. **Todo push na `main` publica sozinho** em ~1 min.
-- `npm test` = **294 testes verdes** (31 arquivos), `npm run build` e `npm run lint` OK.
-  As duas rodadas de 2026-07-23 foram verificadas no navegador antes do push.
+- **Pastas:** monorepo npm — `frontend/` (o app React, onde vivem os testes e o
+  `index.html`), `backend/` (por ora só `db/migrations/`), `scripts/` na raiz.
+- `npm test` = **545 testes verdes** (72 arquivos), `npm run build` e `npm run lint` OK.
 
 ## Como validar rapidamente que nada quebrou
 
 ```bash
+npm test && npm run build && npm run lint      # os três, sempre: test NÃO checa tipos
 npx tsx scripts/diagnostico.ts "D:/extratos/junho2026"   # PDFs reais, fora do repo
 python scripts/medir-overflow.py                          # com npm run dev rodando
-npm test && npm run build && npm run lint
+python scripts/medir-contraste.py                         # WCAG dos pares em uso
+python scripts/medir-csp.py                               # DEPOIS de npm run build
+```
+
+**O `medir-csp.py` mede o `dist/`, não o código.** Rodar sem `npm run build`
+antes aprova o build anterior — e ele nem reclama, porque um `dist` velho é um
+`dist` válido. Duas jornadas cobrem o app inteiro, porque a tela depende de o
+build ter ou não as `VITE_*`:
+
+```bash
+npm run build && python scripts/medir-csp.py             # tela de acesso + login real
+# e a de importação, que precisa de um build SEM Neon (modo "importa e vê"):
+cd frontend && VITE_NEON_DATA_API_URL= VITE_NEON_AUTH_URL= npx vite build --outDir /tmp/dist-anon
+python scripts/medir-csp.py --dist /tmp/dist-anon --pdf .amostras-bancos/bb-cmbf.pdf
 ```
 
 **Números de referência** (se algum mudar sem motivo, algo regrediu):
@@ -416,8 +562,9 @@ npm test && npm run build && npm run lint
 | Fatura Nubank — total declarado | R$ 8.324,24 |
 | Fatura Bradesco — total declarado | R$ 5.529,44 |
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 |
-| Entradas (junho) | R$ 41.853,57 |
-| Testes | **395** (55 arquivos) |
+| Entradas (junho) | R$ 41.853,57 (⚠️ ver ressalva de 2026-08-05) |
+| Extrato BB de amostra (`bb-cmbf.pdf`) | **94 lançamentos**, bate ao centavo |
+| Testes | **545** (72 arquivos) |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
@@ -474,6 +621,22 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 ---
 
 ## 🚧 Fila do que falta — em ordem
+
+> **Estado em 2026-08-09 — a fila abaixo está toda ✅.** O que resta no projeto
+> inteiro são três coisas, e **nenhuma delas é código que dê para escrever hoje**:
+>
+> 1. **Fatia 1b (backend real)** — precisa da `DATABASE_URL` do Neon (role
+>    `authenticated`, sem BYPASSRLS) no `.env.local` da raiz. Sem ela não há o
+>    que testar contra o banco.
+> 2. **Mais bancos** — parada desde 2026-07-23 por falta de amostra: a Caixa só
+>    veio como imagem (o app lê texto), e o layout A do BB (2020) espera um PDF
+>    nesse formato aparecer.
+> 3. **Conferir logado, no navegador** — as telas das rodadas de agosto (as sete
+>    páginas, os gráficos novos) foram exercidas por teste de componente e pelo
+>    Chromium sem sessão. A senha da conta de teste não é versionada, então
+>    quem valida contra dado real é o usuário.
+>
+> A fila histórica abaixo fica como registro do que foi decidido em cada item.
 
 > **Atualização 2026-07-24 (fim da sessão):** o usuário concluiu e **testou** os itens
 > **0** (recuperação de senha ponta a ponta), **1** (nome no e-mail — trocou o
@@ -644,6 +807,23 @@ resolver em 2026-07-18.
   sessão concluiu "erro pré-existente" porque o arquivo recém-criado continuou no disco
   durante a comparação com o commit antigo. Para bissecar de verdade: `git stash -u`, e
   `tsc -b --force` (o `tsc -b` é incremental e mente com cache quente).
+
+**Segurança e cabeçalhos** (2026-08-09)
+- **Nada do `vercel.json` vale localmente.** Nem no `npm run dev`, nem no `vite preview`:
+  headers e rewrites são da Vercel. Foi por isso que a CSP ficou dois meses de fora. O
+  jeito de exercitá-la sem publicar é `scripts/medir-csp.py`, que serve o `dist` com os
+  headers **lidos do próprio `vercel.json`**.
+- **O hash de script inline é sobre o texto com quebras em LF.** No Windows o git entrega
+  o `index.html` em CRLF; o parser de HTML normaliza para LF **antes** de o navegador
+  somar o hash. Quem calcular o sha256 sobre os bytes do disco acha um hash que navegador
+  nenhum produz — e "corrige" a política que estava certa. `frontend/index.test.ts`
+  normaliza antes de comparar, e o comentário lá explica por quê.
+- **Violação de CSP nem sempre é defeito.** O `eval` que aparece na carga é o `allowsEval`
+  do zod (via neon-js): sonda de capacidade em `try/catch` que, negada, só faz o zod
+  validar pelo caminho interpretado. Antes de afrouxar diretiva por causa de uma violação,
+  procure o `catch` — e nunca ache o culpado por `grep eval` no bundle, porque o
+  minificador não deixa a palavra lá (é `Function('')`). O caminho é o
+  `SecurityPolicyViolationEvent`: `sourceFile` + `lineNumber` + `columnNumber`.
 
 **Ferramentas e ambiente**
 - **Vite não recarrega bem quando arquivos nascem ou mudam de lugar.** Depois de criar
