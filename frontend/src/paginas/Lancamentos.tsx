@@ -23,9 +23,15 @@ type Props = {
  *  lançamentos precisa e o que a coluna estreita do painel não dava. */
 export function Lancamentos({ onAprendeu }: Props) {
   const { t } = useT()
-  const [vista, setVista] = useState<Vista>('categoria')
+  const { txs, resumo, carregando, erro, vazio, filtros, setFiltros } = useRecorte()
+  // Chegar com `cat` ou `q` na URL é chegar procurando: veio do clique numa
+  // fatia do donut, ou de um link salvo. A vista "por categoria" ignoraria os
+  // dois e mostraria o agrupamento inteiro, como se o clique não tivesse
+  // acontecido — então quem chega assim abre direto na vista que filtra.
+  const [vista, setVista] = useState<Vista>(
+    filtros.categoria || filtros.busca ? 'todos' : 'categoria',
+  )
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
-  const { txs, resumo, carregando, erro, vazio } = useRecorte()
   const { recarregar, aplicarEdicao } = useDados()
 
   const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
@@ -72,7 +78,14 @@ export function Lancamentos({ onAprendeu }: Props) {
             ) : vista === 'dia' ? (
               <ListaPorDia grupos={dias} onEditar={setEditando} />
             ) : (
-              <ListaTodos txs={txs} onEditar={setEditando} />
+              <ListaTodos
+                txs={txs}
+                onEditar={setEditando}
+                termo={filtros.busca}
+                cat={filtros.categoria}
+                onTermo={(busca) => setFiltros({ busca })}
+                onCat={(categoria) => setFiltros({ categoria })}
+              />
             )}
           </>
         )}

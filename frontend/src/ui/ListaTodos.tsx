@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
 import { buscar } from '../domain/busca'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'
@@ -9,6 +9,16 @@ import type { TransacaoSalva } from '../persist/puxar'
 type Props = {
   txs: TransacaoSalva[]
   onEditar: (t: TransacaoSalva) => void
+  /** Busca e categoria vêm de fora — na tela, da URL.
+   *
+   *  Eram `useState` daqui de dentro, e isso deixava duas promessas do
+   *  projeto por cumprir: o recorte não sobrevivia ao F5, e o clique numa
+   *  fatia do donut (que navega para `/lancamentos?cat=…`) chegava aqui sem
+   *  efeito nenhum — a pessoa via a lista inteira, sem saber por quê. */
+  termo: string
+  cat: string | null
+  onTermo: (v: string) => void
+  onCat: (v: string | null) => void
 }
 
 /** Lista plana do período com busca por texto e filtro por categoria.
@@ -17,9 +27,7 @@ type Props = {
  *  dinheiro". Esta responde "onde está aquela compra" — a pergunta que não
  *  tinha resposta antes: só dava para navegar por agrupamento, nunca
  *  procurar. Ordena por data desc, a ordem que a memória usa. */
-export function ListaTodos({ txs, onEditar }: Props) {
-  const [termo, setTermo] = useState('')
-  const [cat, setCat] = useState<string | null>(null)
+export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props) {
   const { t, idioma } = useT()
 
   // Categorias presentes nestas transações, para o filtro só oferecer o que
@@ -61,14 +69,14 @@ export function ListaTodos({ txs, onEditar }: Props) {
         <input
           type="search"
           value={termo}
-          onChange={(e) => setTermo(e.target.value)}
+          onChange={(e) => onTermo(e.target.value)}
           placeholder={t('busca.placeholder')}
           aria-label={t('busca.rotulo')}
           className="min-w-0 flex-1 rounded-lg border border-campo-borda bg-carvao-950/40 px-3 py-1.5 text-sm text-tinta placeholder:text-tinta-tenue"
         />
         <select
           value={catEfetiva ?? ''}
-          onChange={(e) => setCat(e.target.value || null)}
+          onChange={(e) => onCat(e.target.value || null)}
           aria-label={t('busca.categoria')}
           className="rounded-lg border border-campo-borda bg-carvao-950/40 px-2 py-1.5 text-sm text-tinta"
         >

@@ -9,6 +9,7 @@ import { nomeCategoria } from '../domain/categorize/categorias'
 import type { TransacaoSalva } from '../persist/puxar'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
+import { escreverFiltros } from '../dados/filtros'
 import { BarraFiltros } from '../ui/BarraFiltros'
 import { rotuloPeriodo } from '../dados/periodo'
 import { GraficoCategorias } from '../ui/GraficoCategorias'
@@ -294,8 +295,11 @@ export function Painel({ onAprendeu }: Props) {
 
             <motion.div {...entra(0.34)} className="border-t border-carvao-800 p-5">
               <MaioresSaidas itens={maiores} onEditar={setEditando} />
+              {/* Leva o recorte junto, como a barra de navegação: sem a
+                  query, "Lançamentos →" saltaria para outro mês e para todos
+                  os bancos, logo abaixo de uma lista que fala do mês atual. */}
               <Link
-                to="/lancamentos"
+                to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
                 className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
               >
                 {t('dash.lancamentos')} →

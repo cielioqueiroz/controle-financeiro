@@ -47,4 +47,24 @@ describe('NavPrincipal', () => {
     montar()
     expect(screen.getByRole('navigation', { name: /seções/i })).toBeInTheDocument()
   })
+
+  // As sete páginas são vistas DIFERENTES DO MESMO recorte — é o motivo de
+  // `useRecorte` existir. Navegar para o caminho pelado jogava o recorte
+  // fora: quem estava em maio filtrando o Nubank clicava em "Lançamentos" e
+  // caía na competência mais recente, com todos os bancos, sem nada na tela
+  // explicando a troca.
+  it('leva o recorte da URL junto ao trocar de página', () => {
+    montar('/?p=dia&ref=2026-05-17&banco=nubank')
+    for (const r of ROTAS) {
+      expect(screen.getByRole('link', { name: r.rotulo })).toHaveAttribute(
+        'href',
+        `${r.caminho}?p=dia&ref=2026-05-17&banco=nubank`,
+      )
+    }
+  })
+
+  it('sem recorte na URL, o link continua limpo', () => {
+    montar('/')
+    expect(screen.getByRole('link', { name: 'Faturas' })).toHaveAttribute('href', '/faturas')
+  })
 })

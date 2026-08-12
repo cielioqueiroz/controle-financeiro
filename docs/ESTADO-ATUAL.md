@@ -46,8 +46,84 @@ Vercel, não há servidor próprio nem painel de banco exposto); o backend será
 **real**, em Vercel Functions, com o RLS preservado via
 `set_config('request.jwt.claims')` numa role sem BYPASSRLS.
 
-**545 testes (72 arquivos)**, build e lint limpos, medidor de overflow OK,
-contraste OK nos dois temas, CSP aprovada nas duas jornadas.
+**564 testes (75 arquivos)**, build e lint limpos, medidor de overflow OK,
+contraste OK nos dois temas, CSP aprovada nas duas jornadas e contra o site no ar.
+
+## Rodada 2026-08-09 (parte 2) — code review das fatias 2 e 3
+
+As duas maiores fatias da reforma foram para a `main` **sem review de fim de
+ramo**, e a lição registrada neste projeto é que é justamente ele que pega o
+defeito *emergente* — o que nenhuma tarefa isolada podia ver. Achou **quatro**,
+todos da mesma família: **peças certas, ligação faltando**.
+
+### 1. Dia e Semana não navegavam (o mais grave)
+
+`escreverFiltros` gravava a referência como `AAAA-MM`, mas `pertence()` compara
+o **dia exato** (`tx.date === isoLocal(ref)`). Clicar em "próximo dia" gravava
+`2026-06` e a leitura devolvia **1º de junho** — a seta não saía do lugar, e
+"dia anterior" a partir do dia 1 pulava para o 1º do mês anterior. Semana,
+idêntico. E o teste de ida-e-volta convivia com o bug porque conferia **só ano
+e mês**: o caso clássico já anotado aqui de *teste que passa dos dois jeitos*.
+
+Correção: a URL passa a gravar `AAAA-MM-DD` **quando o dia significa alguma
+coisa** (Dia e Semana), e continua curta em Mês e Ano. `lerRef` aceita as duas
+formas — todo link antigo continua de pé — e **valida a data pelo resultado**,
+não pelo formato: `2026-02-31` casa o regex e o `Date` rolaria para março
+calado. Junto, `mover` passou a ancorar Mês/Ano no dia 1, senão **31 de janeiro
++ 1 mês daria 3 de março** e fevereiro sumiria da navegação.
+
+Seis testes novos em `dados/filtros.test.ts` descrevem o clique como o usuário
+o dá (`mover` → URL → ler), e cinco deles falhavam antes da correção.
+
+### 2. `cat` e `q` da URL eram letra morta
+
+`lerFiltros`/`escreverFiltros` liam, escreviam e **testavam** os dois — e
+**nenhuma tela os consumia**: `ListaTodos` guardava busca e categoria em
+`useState` próprio. Consequências: o recorte não sobrevivia ao F5, o link não
+carregava a busca, e o **clique numa fatia do donut** (que navega para
+`/lancamentos?cat=…`, a funcionalidade que a fatia 3 anunciou) chegava sem
+efeito nenhum — a pessoa via a lista inteira, sem entender por quê.
+
+Correção: `ListaTodos` virou **controlada** (busca e categoria vêm de fora) e a
+página as liga à URL; quem chega com `cat` ou `q` abre direto na vista que
+filtra, em vez da vista por categoria, que os ignoraria.
+
+### 3. O clique no donut jogava fora o resto do recorte
+
+Montava `?cat=…` na mão. Quem clicava numa fatia **de maio, filtrando o
+Nubank**, caía em lançamentos de **outro mês** (a página sem `ref` se ancora na
+competência mais recente) e com **todos os bancos**. Agora a navegação leva o
+recorte inteiro.
+
+### 4. A barra de navegação perdia o recorte a cada troca de página
+
+Mesma família, porta mais larga: `NavLink` ia para o caminho pelado. As sete
+páginas são **vistas diferentes do mesmo recorte** — é o motivo de `useRecorte`
+existir —, e trocar de página zerava período, mês, banco e busca em silêncio.
+Agora a query viaja junto (e o "Lançamentos →" do Painel também).
+
+**Isso criou uma exposição nova, corrigida na mesma rodada:** `Recorrências`
+**obedece** ao filtro de banco (usa `visiveis`) e não o mostrava. Com a
+navegação preservando o recorte, chegar lá filtrado virou rotina — e filtro que
+age sem aparecer é exatamente o defeito do seletor de categoria de 2026-08-05.
+A página passou a exibir `<BarraFiltros mostrarPeriodo={false} />`: mostra o
+filtro que ela obedece e **não** mostra o de período, que ela ignora. As duas
+metades da mesma regra — o que se vê e o que filtra não podem divergir.
+
+**564 testes (75 arquivos)**, build e lint limpos, CSP reaprovada.
+
+### Dívida anotada, não corrigida (decisão de escopo)
+
+- **`Datas.tsx` e `Recorrencias.tsx` não usam `t()` em lugar nenhum**, e os dois
+  gráficos novos têm rótulo e `aria-label` fixos em português
+  (`GraficoEvolucao`: "Entradas × saídas · 12 meses", "Escolha um mês…";
+  `GraficoCategorias`: "Gasto por categoria…", "Ver lançamentos"). Como o
+  seletor de idioma saiu da UI na fatia 4a, **não quebra nada hoje** — mas o
+  documento afirmava i18n 100%, e não está mais. Quando o seletor voltar, são
+  ~25 chaves em três dicionários.
+- **`Datas` com período Dia/Semana**: a grade é sempre do mês da referência,
+  então as setas andam um dia por clique e o calendário só muda de mês quando
+  cruza a virada. Pré-existente à correção nº 1, e sem defeito de dado.
 
 ## Rodada 2026-08-09 — CSP completa (fatia 4b, a última que não dependia do usuário)
 
@@ -330,23 +406,42 @@ mudança de largura de fonte.
 as telas novas foram exercidas por teste de componente, não contra dados reais
 no navegador. É o que falta o usuário conferir.
 
-⚠️ **Referência de "Entradas" do diagnóstico está defasada.** O gasto real de
-junho continua **R$ 41.012,25** (bate ao centavo), mas entradas deu
-**R$ 50.281,18** contra os R$ 41.853,57 da tabela abaixo. **Não é regressão**:
-`scripts/diagnostico.ts` importa só `domain/pdf`, `domain/parsers`,
-`domain/link/vinculos`, `domain/categorize` e `normalize/merchant` — nenhum
-arquivo tocado nesta rodada — e `git log` não mostra commit nessa cadeia desde
-29/07. A causa é o conjunto de PDFs da pasta (há um
-`BradescoCartoes14-07-2026`). **Confirmar e recalibrar a tabela.**
+✅ **A dúvida das "Entradas" foi resolvida em 2026-08-09 — e a resposta é que a
+pergunta estava mal posta.** A suspeita registrada aqui (o
+`BradescoCartoes14-07-2026` na pasta de junho) estava certa, e agora está
+medida: rodar o diagnóstico com os **3 PDFs de junho** e com os **4 da pasta**
+dá números diferentes em *todas* as linhas, porque o script **soma o que você
+entrega a ele** — ele não filtra por competência, e a fatura de julho traz
+compras de meados de junho a meados de julho.
 
-### Novos números de referência (2026-08-05)
+| Medida | Só os 3 de junho | A pasta inteira (4, com a fatura de 14/07) |
+|---|---|---|
+| Gasto real | R$ 40.955,46 | **R$ 41.012,25** |
+| Entradas | R$ 45.441,75 | **R$ 50.281,18** |
+| Vinculado (fora da conta) | R$ 17.824,24 | **R$ 23.353,68** |
 
-| Medida | Valor |
-|---|---|
-| Gasto real total (junho, competência) | **R$ 41.012,25** (inalterado) |
-| Entradas (junho, medido) | **R$ 50.281,18** (a confirmar) |
-| Vinculado (fora da conta) | R$ 23.353,68 |
-| Testes | **502** (66 arquivos) |
+A coluna da direita é a que sempre esteve na tabela de referência — os números
+históricos foram calibrados **com** a fatura de julho. O `+R$ 5.529,44` do
+vinculado é exatamente o total declarado dela: com a fatura presente, o
+pagamento que aparece no extrato Bradesco encontra o documento e sai da conta,
+que é o mecanismo funcionando. Os R$ 41.853,57 de entradas da tabela antiga não
+batem com nenhum dos dois conjuntos: são de um estado de pasta anterior.
+
+**A lição: número de referência sem o conjunto de arquivos ao lado não é
+reproduzível.** Por isso `scripts/diagnostico.ts` deixou de ter a lista fixa de
+quatro nomes (que dava `ENOENT` em qualquer outra pasta) e passa a **ler os
+PDFs da pasta**, imprimindo quantos achou. A pasta virou a fonte da verdade.
+
+### Números de referência do diagnóstico (recalibrados em 2026-08-09)
+
+| Medida | Valor | Conjunto |
+|---|---|---|
+| Gasto real total | **R$ 41.012,25** | os 4 PDFs de `D:/extratos/junho2026` |
+| Entradas | **R$ 50.281,18** | idem |
+| Vinculado (fora da conta) | **R$ 23.353,68** | idem |
+| Supermercado | **R$ 918,46** (27 lançamentos) | idem |
+| Fatura Nubank — declarado | R$ 8.324,24 | idem |
+| Fatura Bradesco — declarado | R$ 5.529,44 | idem |
 
 ## Rodada 2026-07-29 — i18n fechado de verdade + performance + confete
 
@@ -534,7 +629,7 @@ Iniciada a rodada de **novos parsers de banco** — spec em
   na Vercel, conectado ao GitHub. **Todo push na `main` publica sozinho** em ~1 min.
 - **Pastas:** monorepo npm — `frontend/` (o app React, onde vivem os testes e o
   `index.html`), `backend/` (por ora só `db/migrations/`), `scripts/` na raiz.
-- `npm test` = **545 testes verdes** (72 arquivos), `npm run build` e `npm run lint` OK.
+- `npm test` = **564 testes verdes** (75 arquivos), `npm run build` e `npm run lint` OK.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -568,18 +663,23 @@ e confere que `/.env`, `/.git/config` e `/scripts/*` não respondem 200:
 python scripts/medir-csp.py --url https://capital-financeiro.vercel.app
 ```
 
-**Números de referência** (se algum mudar sem motivo, algo regrediu):
+**Números de referência** (se algum mudar sem motivo, algo regrediu). O
+diagnóstico **soma o que a pasta tem**, sem filtrar competência — número de
+referência sem o conjunto de arquivos ao lado não é reproduzível, e foi o que
+gerou a dúvida das "Entradas" que durou de 05 a 09/08:
 
-| Medida | Valor esperado |
-|---|---|
-| Gasto real total (junho, competência) | **R$ 41.012,25** |
-| Supermercado (junho) | **R$ 918,46** (27 lançamentos) |
-| Fatura Nubank — total declarado | R$ 8.324,24 |
-| Fatura Bradesco — total declarado | R$ 5.529,44 |
-| Compromissos futuros | 34 parcelas · R$ 5.265,30 |
-| Entradas (junho) | R$ 41.853,57 (⚠️ ver ressalva de 2026-08-05) |
-| Extrato BB de amostra (`bb-cmbf.pdf`) | **94 lançamentos**, bate ao centavo |
-| Testes | **545** (72 arquivos) |
+| Medida | Valor esperado | Conjunto |
+|---|---|---|
+| Gasto real total | **R$ 41.012,25** | os 4 PDFs de `D:/extratos/junho2026` |
+| Entradas | **R$ 50.281,18** | idem |
+| Vinculado (fora da conta) | **R$ 23.353,68** | idem |
+| Supermercado | **R$ 918,46** (27 lançamentos) | idem |
+| Fatura Nubank — total declarado | R$ 8.324,24 | idem |
+| Fatura Bradesco — total declarado | R$ 5.529,44 | idem |
+| Compromissos futuros | 34 parcelas · R$ 5.265,30 | idem |
+| Gasto real / Entradas | R$ 40.955,46 / R$ 45.441,75 | **só os 3 PDFs de junho** |
+| Extrato BB de amostra (`bb-cmbf.pdf`) | **94 lançamentos**, bate ao centavo | — |
+| Testes | **564** (75 arquivos) | — |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve

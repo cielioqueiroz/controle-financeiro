@@ -25,9 +25,20 @@ function bancoInfo(b: string): { nome: string; cor?: string } {
   return tema ? { nome: tema.nome, cor: tema.accent } : { nome: b }
 }
 
+type Props = {
+  /** Esconde o seletor e a navegação de período.
+   *
+   *  Existe para Recorrências, que olha o histórico INTEIRO (reconhecer "se
+   *  repete todo mês" exige mais de um mês) e portanto ignora o período —
+   *  mas obedece ao filtro de banco. Mostrar um controle que a página não
+   *  usa é a mesma mentira, de sinal trocado, do filtro invisível: em ambos
+   *  os casos o que se vê e o que filtra divergem. */
+  mostrarPeriodo?: boolean
+}
+
 /** Filtros compartilhados pelas páginas que mostram um recorte do
  *  histórico. Escreve tudo na URL — ver `useFiltros`. */
-export function BarraFiltros() {
+export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
   const { t } = useT()
   const { filtros, setFiltros } = useFiltros()
   const { todas } = useDados()
@@ -39,6 +50,7 @@ export function BarraFiltros() {
     <div className="screen-only mb-6 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Período */}
+        {mostrarPeriodo && (
         <div className="flex gap-1 rounded-full border border-carvao-700 bg-carvao-900/60 p-1">
           {PERIODOS.map((p) => (
             <button
@@ -59,6 +71,7 @@ export function BarraFiltros() {
             </button>
           ))}
         </div>
+        )}
 
         {/* Banco — só aparece com mais de um, senão é um filtro que não filtra */}
         {bancos.length >= 2 && (
@@ -85,6 +98,7 @@ export function BarraFiltros() {
       </div>
 
       {/* Navegação de período */}
+      {mostrarPeriodo && (
       <div className="flex items-center justify-center gap-6">
         <button
           onClick={() => setFiltros({ ref: mover(filtros.periodo, filtros.ref, -1) })}
@@ -118,6 +132,7 @@ export function BarraFiltros() {
           ›
         </button>
       </div>
+      )}
     </div>
   )
 }

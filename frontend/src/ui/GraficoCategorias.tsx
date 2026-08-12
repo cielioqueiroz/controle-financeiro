@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import type { CategoriaResumo } from '../domain/insights'
 import { formatBRL } from '../domain/normalize/money'
 import { nomeCategoria } from '../domain/categorize/categorias'
+import { useFiltros } from '../dados/useFiltros'
+import { escreverFiltros } from '../dados/filtros'
 import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {
@@ -34,6 +36,7 @@ const VAO = 2
 export function GraficoCategorias({ categorias, totalCents }: Props) {
   const semMovimento = useReducedMotion()
   const navigate = useNavigate()
+  const { filtros } = useFiltros()
   const { t } = useT()
   const [ativa, setAtiva] = useState<number | null>(null)
 
@@ -46,8 +49,15 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
   const rotuloCentro = emFoco ? nomeCategoria(emFoco.cat) : t('dash.gastoReal')
   const valorCentro = emFoco ? emFoco.totalCents : totalCents
 
+  /** Abre os lançamentos da categoria SEM perder o recorte atual.
+   *
+   *  A versão anterior montava `?cat=…` na mão e ia embora com o resto: quem
+   *  clicava numa fatia de maio, filtrando por um banco, caía em lançamentos
+   *  de outro mês (a página, sem `ref` na URL, se ancora na competência mais
+   *  recente) e com todos os bancos. O gráfico mostrava uma coisa e o clique
+   *  levava a outra. */
   function abrir(slug: string) {
-    navigate(`/lancamentos?cat=${encodeURIComponent(slug)}`)
+    navigate(`/lancamentos${escreverFiltros({ ...filtros, categoria: slug })}`)
   }
 
   let acumulado = 0

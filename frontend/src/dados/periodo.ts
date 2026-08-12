@@ -1,7 +1,13 @@
 import { mesAbrev } from '../domain/normalize/data'
 import type { Periodo } from '../persist/agrupar'
 
-/** Move a data de referência um período para trás/frente. */
+/** Move a data de referência um período para trás/frente.
+ *
+ *  Mês e Ano ancoram no dia 1 em vez de somar no dia atual, porque
+ *  `setMonth`/`setFullYear` rolam para frente calados quando o dia não existe
+ *  no destino: 31 de janeiro + 1 mês dá **3 de março**, e fevereiro sumiria da
+ *  navegação. Como só ano e mês são lidos nesses dois períodos (`pertence()`
+ *  compara a competência), ancorar não perde informação nenhuma. */
 export function mover(periodo: Periodo, ref: Date, dir: -1 | 1): Date {
   const d = new Date(ref)
   switch (periodo) {
@@ -12,11 +18,9 @@ export function mover(periodo: Periodo, ref: Date, dir: -1 | 1): Date {
       d.setDate(d.getDate() + dir * 7)
       break
     case 'mes':
-      d.setMonth(d.getMonth() + dir)
-      break
+      return new Date(d.getFullYear(), d.getMonth() + dir, 1)
     case 'ano':
-      d.setFullYear(d.getFullYear() + dir)
-      break
+      return new Date(d.getFullYear() + dir, d.getMonth(), 1)
   }
   return d
 }

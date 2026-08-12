@@ -32,15 +32,26 @@ export function lerFiltros(search: string): Filtros {
   }
 }
 
-/** A competência como AAAA-MM. O mês é validado, não só o formato: '2026-13'
- *  casa o regex e `new Date(2026, 12, 1)` rola para JANEIRO DE 2027 sem
- *  reclamar — a tela mostraria outro ano e ninguém saberia por quê. */
+/** A referência, em `AAAA-MM` (dia 1) ou `AAAA-MM-DD`.
+ *
+ *  As duas formas existem porque as duas fazem sentido: Mês e Ano só olham
+ *  ano/mês, e um link curto é melhor; Dia e Semana comparam o **dia exato**
+ *  (`pertence()` faz `tx.date === ref`), então sem o dia a navegação não sai
+ *  do lugar. Ler as duas mantém de pé todo link antigo, que só tem AAAA-MM.
+ *
+ *  Nada é aceito só pelo formato. '2026-13' casa o regex e
+ *  `new Date(2026, 12, 1)` rola para JANEIRO DE 2027 sem reclamar; '2026-02-31'
+ *  rola para março. Em ambos a tela mostraria outra data e ninguém saberia
+ *  por quê — por isso o resultado é conferido contra o que foi pedido. */
 function lerRef(valor: string | null): Date {
-  const m = valor?.match(/^(\d{4})-(\d{2})$/)
+  const m = valor?.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/)
   if (!m) return new Date()
-  const mes = Number(m[2])
-  if (mes < 1 || mes > 12) return new Date()
-  return new Date(Number(m[1]), mes - 1, 1)
+  const [ano, mes, dia] = [Number(m[1]), Number(m[2]), m[3] ? Number(m[3]) : 1]
+  const d = new Date(ano, mes - 1, dia)
+  // A prova de que a data existe: se o Date tivesse rolado, algum campo teria
+  // mudado. Cobre mês fora de 1–12 e dia fora do mês de uma vez só.
+  const existe = d.getFullYear() === ano && d.getMonth() === mes - 1 && d.getDate() === dia
+  return existe ? d : new Date()
 }
 
 /** Monta a query string com **só o que difere do padrão**, para o link ficar
@@ -52,9 +63,23 @@ function lerRef(valor: string | null): Date {
 export function escreverFiltros(f: Filtros): string {
   const p = new URLSearchParams()
   if (f.periodo !== 'mes') p.set('p', f.periodo)
-  p.set('ref', `${f.ref.getFullYear()}-${String(f.ref.getMonth() + 1).padStart(2, '0')}`)
+  p.set('ref', refParaTexto(f.periodo, f.ref))
   if (f.banco !== 'geral') p.set('banco', f.banco)
   if (f.categoria) p.set('cat', f.categoria)
   if (f.busca) p.set('q', f.busca)
   return `?${p.toString()}`
+}
+
+/** Grava o dia só quando ele significa alguma coisa.
+ *
+ *  Em Dia e Semana o dia É o recorte. Em Mês e Ano ele não seria só ruído no
+ *  link: um dia 31 guardado atravessaria a troca de período e faria a seta de
+ *  mês pular fevereiro (`setMonth` rola para março quando o dia não existe no
+ *  destino). Escrever ancorado no dia 1 mantém essa classe de erro inalcançável
+ *  pela URL — e `mover` fecha a mesma porta pelo lado do estado em memória. */
+function refParaTexto(periodo: Periodo, ref: Date): string {
+  const ano = ref.getFullYear()
+  const mes = String(ref.getMonth() + 1).padStart(2, '0')
+  if (periodo === 'mes' || periodo === 'ano') return `${ano}-${mes}`
+  return `${ano}-${mes}-${String(ref.getDate()).padStart(2, '0')}`
 }
