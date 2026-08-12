@@ -53,3 +53,7 @@ extratos/
 # Ferramenta de diagnóstico local (usa caminhos de PDFs reais)
 scripts/diagnostico.ts
 scripts/_*.ts
+
+# Config local de ferramenta (o .claude/ ja fica de fora pelo ignore global).
+# Nao e do projeto: cada maquina tem a sua.
+.codex/
