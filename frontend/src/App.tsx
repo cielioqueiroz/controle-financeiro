@@ -288,9 +288,23 @@ export default function App() {
             aviso é melhor que um alarme falso pedindo para confirmar algo
             que já está confirmado. */}
         {logado && usuario?.email && usuario.emailVerificado === false && (
-          // Confirmou: rechecar a sessão traz `emailVerified: true` e o aviso
-          // some sozinho, sem F5.
-          <AvisoConfirmarEmail email={usuario.email} onConfirmado={checarSessao} />
+          // Confirmou: o aviso some AQUI, na hora, sem rechecar a sessão.
+          //
+          // Rechecar era o que estava escrito até 13/08 — e não funcionava: o
+          // `@neondatabase/auth` guarda a sessão em memória e o `beforeFetch`
+          // do `getSession` responde do cache sem tocar na rede, com TTL igual
+          // à validade do JWT. A recheca devolvia o mesmo `emailVerified:
+          // false` de antes, e a faixa continuava na tela até o F5 (que zera a
+          // memória do processo). Hoje seria pior: sobrescreveria este `true`
+          // de volta para `false`.
+          //
+          // O 200 do `/email-otp/verify-email` é a confirmação: o servidor já
+          // gravou. A próxima leitura real da sessão concorda — é por isso que
+          // recarregar a página fazia o aviso sumir.
+          <AvisoConfirmarEmail
+            email={usuario.email}
+            onConfirmado={() => setUsuario((u) => (u ? { ...u, emailVerificado: true } : u))}
+          />
         )}
 
         {logado && <NavPrincipal />}

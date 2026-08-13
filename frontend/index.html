@@ -32,7 +32,12 @@
       content="Importe faturas e extratos em PDF e enxergue seus gastos por categoria, dia, mês e ano."
     />
     <meta name="twitter:image" content="https://capital-financeiro.vercel.app/og.png" />
-    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+    <!-- O `?v=` é o que faz o ícone novo aparecer. Favicon é dos recursos mais
+         agressivamente cacheados que existe: o navegador continua servindo o
+         desenho antigo por dias mesmo com deploy novo, e trocar o conteúdo do
+         arquivo não adianta porque a URL é a mesma. Mudou o desenho, muda o
+         token aqui e em demo.html. -->
+    <link rel="icon" href="/img/favicon.svg?v=moeda" type="image/svg+xml" />
     <!-- As fontes agora vêm do próprio domínio (src/fontes.css +
          public/fonts). O Google Fonts saiu daqui para que a CSP possa ser
          `font-src 'self'`: foi a quebra das fontes que fez a política

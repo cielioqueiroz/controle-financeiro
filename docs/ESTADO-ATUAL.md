@@ -107,6 +107,7 @@ Chromium contra ela e gera os prints do README, sem expor extrato de ninguém.
   durou um dia). Conferido a 16/24/32/48/64/128px nos dois fundos, com o mesmo cuidado
   de antes: só silhueta, nada abaixo de 3px em 64, e os recortes (olho, fenda) na cor
   do fundo em vez de linhas — recorte sobrevive ao downscale, linha não.
+  **⚠️ Substituído no mesmo dia** pela moeda R$ — ver o item 6.
 
 ### 5. README refeito
 
@@ -128,10 +129,59 @@ arquivo versionado.
 **606 testes (78 arquivos)**, build e lint limpos (4 avisos pré-existentes), CSP,
 contraste e overflow reaprovados.
 
+### 6. (mesmo dia, com a conta real) O aviso não sumia depois de confirmar
+
+**O relato:** *"recebi o código, usei, confirmei — e a mensagem continua visível"*. E,
+logo depois, o dado que fechou o diagnóstico: **"saiu depois que atualizei a página"**.
+
+Esse "só depois do F5" é a assinatura de **estado velho no cliente**, não de gravação que
+falhou — o servidor já tinha registrado a confirmação; quem repetia a resposta antiga era
+o SDK. E repetia por desenho: `@neondatabase/auth` guarda a sessão **em memória** e o hook
+`beforeFetch` do `getSession` responde do cache **sem tocar na rede**
+(`node_modules/@neondatabase/auth/dist/adapter-core-*.mjs`), com TTL igual à validade do
+JWT — cerca de uma hora. O `onConfirmado` chamava `checarSessao()` justamente esperando o
+contrário; ele relia o mesmo `emailVerified: false` e a faixa ficava.
+
+O conserto é o aviso sumir **na hora**, sem reler sessão: o `200` do
+`/email-otp/verify-email` já é a confirmação. Rechecar hoje seria pior que inútil —
+sobrescreveria o `true` de volta para `false`.
+
+⚠️ **O teste que provaria nada.** Um teste em que a sessão simulada "passa a devolver
+`true`" depois de confirmar **passa com o bug em pé** — ele testa um servidor que o SDK
+não deixa o app enxergar. Por isso o mock de `App.test.tsx` mantém `emailVerified: false`
+fixo: é o que o SDK real faz. Com o mock certo, o teste falhou antes do conserto.
+
+**Só este caminho tinha o defeito.** Editar o perfil passa por `updateUser`, e o adapter
+atualiza o cache no sucesso dele. O `fetch` cru do OTP é o único que muda o usuário no
+servidor **por fora do SDK** — e por isso era o único que o cache não acompanhava.
+
+**Favicon, de novo: a moeda R$** (`frontend/public/img/favicon.svg`), a mesma do
+cabeçalho, a pedido. ⚠️ **Uma moeda R$ já esteve aqui e foi retirada em 19/07 por ser
+ilegível a 16px** ("três círculos concêntricos e um texto — detalhe demais"). Esta lê
+porque muda as três causas: a face é **sangrada** (r=31 em vez de r=23 no quadro de 64,
+então o `R$` cresce junto), sobrou **um** anel discreto no lugar de três, e o contraste
+**inverteu** — face clara (`#6bb3e8`) com o glifo quase preto, onde antes era traço
+escuro sobre face escura. Conferido a 16/24/32/64px nos dois fundos, com o SVG
+rasterizado no tamanho real (`device_scale_factor`), não ampliado.
+
+⚠️ **Duas armadilhas confirmadas na prática nesta hora:**
+
+1. **O comentário do próprio arquivo estava certo e eu caí nele assim mesmo:** escrever
+   um token CSS (com os dois traços da frente) dentro de comentário XML **quebra o SVG
+   inteiro** — `--` é proibido ali. O ícone some sem erro de build e sem erro de teste;
+   quem denunciou foi a prova renderizada, com a imagem quebrada.
+2. **Favicon é dos recursos mais cacheados que existe.** Trocar o conteúdo do arquivo não
+   basta: a URL é a mesma e o navegador serve o desenho velho por dias. Por isso o
+   `<link>` agora leva `?v=moeda`, em `index.html` e em `demo.html`. **Mudou o desenho,
+   muda o token.**
+
+**608 testes (78 arquivos)**, build e lint limpos (os mesmos 4 avisos), CSP reaprovada
+contra o build.
+
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**567 testes (75 arquivos)**, build e lint limpos, CSP completa medida contra o
+**608 testes (78 arquivos)**, build e lint limpos, CSP completa medida contra o
 build **e** contra o site publicado. Trabalha-se direto na `main`; todo push
 publica sozinho em ~1 min.
 
@@ -158,10 +208,11 @@ rapidamente* tem os detalhes): `npm test && npm run build && npm run lint`,
 `medir-contraste.py` e `medir-overflow.py`. **`npm test` NÃO checa tipos** —
 essa armadilha já mordeu três vezes, inclusive nesta rodada.
 
-**Dívida conhecida, decidida de propósito:** `GraficoEvolucao` e
-`GraficoCategorias` têm rótulos e `aria-label` fixos em português. Como o
-seletor de idioma saiu da UI na fatia 4a, não quebra nada hoje — mas o
-documento já afirmou "i18n 100%" e não afirma mais.
+**Dívida conhecida, decidida de propósito:** `GraficoCategorias` tem **dois**
+`aria-label` fixos em português (linhas 72 e 129 — o do donut e o de cada
+fatia). `GraficoEvolucao`, que já constou aqui, **foi traduzido** e saiu da
+dívida (conferido em 13/08). Como o seletor de idioma saiu da UI na fatia 4a,
+não quebra nada hoje — mas o documento já afirmou "i18n 100%" e não afirma mais.
 
 ## ⚠️ A REFORMA (leia antes de tudo)
 
@@ -1326,9 +1377,8 @@ E duas lições sobre testes:
 
 **Adiados de propósito no review final da recuperação de senha (2026-07-19).**
 Todos avaliados, nenhum bloqueia:
-- `limparTokenDaUrl` não tem teste direto — roda de verdade só dentro do
-  `App.test.tsx`, sem ninguém asseverar a URL depois. É a função cujo defeito
-  reenviaria um token gasto, e é trivial de testar em jsdom.
+- ~~`limparTokenDaUrl` não tem teste direto~~ ✅ **resolvido**: `lib/url-token.test.ts`
+  tem o `describe` próprio dele (conferido em 13/08).
 - ~~**`CampoSenha` ficou duplicado**~~ ✅ **resolvido (2026-07-24)**: extraído para
   `src/ui/CampoSenha.tsx` e usado em `Auth.tsx` e `RecuperarSenha.tsx`.
 - **Mesma frase, severidade diferente**: senha curta é `toast.warning` no login e

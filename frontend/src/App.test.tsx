@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { guardarEmailReset, marcarTutorialVisto } from './lib/perfil'
@@ -18,14 +18,31 @@ import { guardarEmailReset, marcarTutorialVisto } from './lib/perfil'
 // getSession) enxergam o mesmo estado, sem depender de contar chamadas.
 const authMocks = vi.hoisted(() => {
   let sessaoAtiva = false
+  let emailVerificado: boolean | undefined = undefined
   return {
     setSessaoAtiva: (v: boolean) => {
       sessaoAtiva = v
     },
+    /** O `emailVerified` que o getSession devolve. Fixo de propósito: o SDK da
+     *  Neon guarda a sessão em memória e responde do cache até o JWT vencer,
+     *  então confirmar o e-mail NÃO muda o que este mock (nem o SDK real)
+     *  devolve na mesma aba. Ver o teste do aviso, lá embaixo. */
+    setEmailVerificado: (v: boolean | undefined) => {
+      emailVerificado = v
+    },
     getSession: vi.fn(() =>
       Promise.resolve(
         sessaoAtiva
-          ? { data: { session: {}, user: { name: null, email: 'alguem@exemplo.com' } } }
+          ? {
+              data: {
+                session: {},
+                user: {
+                  name: null,
+                  email: 'alguem@exemplo.com',
+                  emailVerified: emailVerificado,
+                },
+              },
+            }
           : { data: null },
       ),
     ),
@@ -80,6 +97,7 @@ function comTokenNaUrl() {
 beforeEach(() => {
   vi.clearAllMocks()
   authMocks.setSessaoAtiva(false)
+  authMocks.setEmailVerificado(undefined)
   localStorage.clear()
   marcarTutorialVisto()
   window.history.replaceState({}, '', '/')
@@ -200,6 +218,60 @@ describe('App — saída do fluxo de recuperação de senha (C1)', () => {
     // mostrar o dashboard de A por cima.
     expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
+  })
+})
+
+// Bug relatado em 2026-08-13, com o app na tela: a pessoa digitou o código,
+// recebeu "E-mail confirmado" — e a faixa continuou lá. Só sumiu depois do F5.
+//
+// Causa: `@neondatabase/auth` guarda a sessão EM MEMÓRIA e o hook `beforeFetch`
+// do `getSession` responde do cache sem tocar na rede (TTL = validade do JWT,
+// ~1h). Rechecar a sessão logo após confirmar relia, portanto, exatamente o
+// mesmo `emailVerified: false` de antes. O F5 zerava a memória do processo e
+// só por isso a verdade do servidor aparecia.
+//
+// Por isso o mock de sessão aqui NÃO muda depois de confirmar: é o que o SDK
+// real faz. Um teste que "atualizasse a sessão" passaria com o bug em pé.
+describe('App — aviso de confirmação de e-mail', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('some assim que a pessoa confirma, mesmo com a sessão em cache dizendo o contrário', async () => {
+    const usuario = userEvent.setup()
+    authMocks.setSessaoAtiva(true)
+    authMocks.setEmailVerificado(false)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ status: true }) })),
+    )
+
+    render(<App />)
+
+    await usuario.click(await screen.findByRole('button', { name: 'Confirmar agora' }))
+    await usuario.type(screen.getByLabelText(/código/i), '008432')
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar' }))
+
+    await waitFor(() =>
+      expect(screen.queryByText(/Confirme seu e-mail/)).not.toBeInTheDocument(),
+    )
+  })
+
+  it('continua avisando quando o código é recusado', async () => {
+    const usuario = userEvent.setup()
+    authMocks.setSessaoAtiva(true)
+    authMocks.setEmailVerificado(false)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 400, json: async () => ({ code: 'INVALID_OTP' }) })),
+    )
+
+    render(<App />)
+
+    await usuario.click(await screen.findByRole('button', { name: 'Confirmar agora' }))
+    await usuario.type(screen.getByLabelText(/código/i), '000000')
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar' }))
+
+    await waitFor(() => expect(vi.mocked(globalThis.fetch)).toHaveBeenCalled())
+    expect(screen.getByText(/Confirme seu e-mail/)).toBeInTheDocument()
   })
 })
 

@@ -1,38 +1,47 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <!-- Cofrinho com a moeda entrando, na cor da marca (#1b5e8f). Substitui o
-       carimbo de "conferido" que estava aqui desde 2026-08-12, a pedido.
+  <!-- A moeda R$ da marca — a mesma do cabecalho (ui/MoedaLogo.tsx), a pedido
+       em 2026-08-13. Substitui o cofrinho de 12/08.
 
-       Ele vive a 16px na aba, entao vale so a SILHUETA: corpo, orelha,
-       focinho, duas perninhas, a fenda e a moeda por cima. Nenhum traco
-       abaixo de 3px em 64 (o que da 0,75px em 16) e nenhum contorno vazado,
-       que a 16px vira borrao cinza. O olho e a fenda sao recortes na cor do
-       fundo, nao linhas: recorte sobrevive ao downscale, linha nao.
+       ATENCAO A QUEM FOR MEXER: uma moeda R$ ja esteve aqui e foi RETIRADA em
+       2026-07-19 por ser ilegivel a 16px (o spec daquela rodada:
+       "tres circulos concentricos e um texto - detalhe demais"). Voltar ao
+       desenho antigo repete o defeito. O que muda nesta versao, e por que ela
+       le onde a outra nao lia:
+
+       1. A moeda e SANGRADA (r=31 num quadro de 64). A anterior desenhava a
+          face em r=23, usando so metade da area disponivel - o R$ nascia
+          pequeno por construcao. Aqui a face ocupa o quadro inteiro e o texto
+          cresce junto.
+       2. UM anel, nao tres. Os circulos concentricos eram o "detalhe demais":
+          a 16px cada anel vira uma linha cinza de meio pixel e o conjunto
+          empasta. O que sobrou e discreto de proposito - vira textura a 16px
+          e so aparece como detalhe a 32px+ (que e o tamanho real na aba de
+          tela HiDPI).
+       3. CONTRASTE INVERTIDO: face clara (#6bb3e8) com o R$ em azul quase
+          preto. A versao antiga punha traco escuro sobre face escura
+          (#1b5e8f), e era ai que o texto sumia. Estes sao os literais do TEMA
+          ESCURO do app (os tokens `color-marca` e `color-moeda-traco` de
+          index.css, com os dois tracos na frente): escolhidos por contraste,
+          nao por tema - a face clara segura o glifo escuro tanto na aba clara
+          quanto na escura.
 
        CUIDADO: comentario de XML nao aceita dois hifens seguidos. Escrever o
        nome de um token CSS aqui (com os dois tracos da frente) quebra o
        arquivo INTEIRO, e o navegador simplesmente nao mostra icone nenhum,
        sem erro de build e sem erro de teste. Ja aconteceu neste arquivo.
 
-       Estatico, fora do React: usa os literais do tema, como o resto da
-       marca impressa (og.png). -->
-  <rect width="64" height="64" rx="12" fill="#1b5e8f"/>
+       Estatico, fora do React: usa literais, como o resto da marca impressa
+       (og.png). Trocar o desenho pede trocar tambem o `?v=` do <link> em
+       index.html e demo.html - sem isso o navegador serve o icone velho do
+       cache por dias. -->
+  <circle cx="32" cy="32" r="31" fill="#6bb3e8"/>
+  <circle cx="32" cy="32" r="25.5" fill="none" stroke="#06202f" stroke-width="1.8" opacity="0.35"/>
 
-  <!-- Moeda entrando pela fenda. Ambar para nao sumir dentro do branco do
-       corpo, e e o unico ponto de cor do icone. -->
-  <circle cx="32" cy="13" r="6.5" fill="#f0b429"/>
-  <rect x="30.6" y="9.4" width="2.8" height="7.2" rx="1.4" fill="#1b5e8f"/>
-
-  <!-- Corpo, orelha e focinho num bloco so, para o icone ser uma mancha
-       continua a 16px. -->
-  <path d="M18 25.5 L27.5 22 L25.5 31 Z" fill="#ffffff"/>
-  <ellipse cx="31" cy="38" rx="21" ry="14.5" fill="#ffffff"/>
-  <ellipse cx="50.5" cy="39" rx="6.5" ry="5.5" fill="#ffffff"/>
-  <rect x="17" y="48" width="8" height="7" rx="2.5" fill="#ffffff"/>
-  <rect x="37" y="48" width="8" height="7" rx="2.5" fill="#ffffff"/>
-
-  <!-- Recortes na cor do fundo: fenda, olho e as narinas. -->
-  <rect x="24" y="26" width="16" height="3.6" rx="1.8" fill="#1b5e8f"/>
-  <circle cx="40" cy="34" r="2.6" fill="#1b5e8f"/>
-  <rect x="48" y="37" width="2.2" height="4" rx="1.1" fill="#1b5e8f"/>
-  <rect x="52" y="37" width="2.2" height="4" rx="1.1" fill="#1b5e8f"/>
+  <!-- `textLength` trava a largura em 34 unidades. Favicon roda em modo
+       estatico seguro: fonte de arquivo NAO carrega, entao quem desenha o R$
+       e a monoespacada do sistema - Consolas, Menlo, DejaVu, cada uma com sua
+       largura. Sem o travamento, a mais larga delas encostaria no anel. -->
+  <text x="32" y="42.5" text-anchor="middle" textLength="34" lengthAdjust="spacingAndGlyphs"
+        font-family="ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace"
+        font-weight="700" font-size="29" fill="#06202f">R$</text>
 </svg>
