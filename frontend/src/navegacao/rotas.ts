@@ -15,7 +15,13 @@ export const ROTAS = [
   { caminho: '/importar', rotulo: 'Importação' },
   { caminho: '/categorias', rotulo: 'Categorias' },
   { caminho: '/recorrencias', rotulo: 'Recorrências' },
-  { caminho: '/datas', rotulo: 'Datas' },
 ] as const
+
+/* "Datas" (calendário do mês, derivado do `diaTipico` das recorrências) saiu
+ * em 2026-08-09: com dois meses de histórico importado nada é reconhecido
+ * como recorrente, então a página vivia vazia. A rota e o componente saíram
+ * juntos — rota sem link é código que só o autor alcança —, e a informação
+ * não se perdeu: quem detecta a repetição é a página Recorrências, que
+ * continua mostrando o dia típico de cada série. Está no histórico do git. */
 
 export type Rota = (typeof ROTAS)[number]

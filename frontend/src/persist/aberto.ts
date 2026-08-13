@@ -22,24 +22,37 @@ export type DocParaAberto = {
 export type FaturaAberta = {
   accountId: string | null
   bank: string
-  /** Saldo em aberto total declarado pela fatura, em centavos. */
-  abertoCents: number
+  /** Saldo em aberto total declarado pela fatura, em centavos, ou `null`
+   *  quando o banco não declara esse número (é o caso do Bradesco). */
+  abertoCents: number | null
   /** Saldo em aberto da próxima fatura, quando o banco declara. */
   proximaCents: number | null
+  /** Total já comprometido em parcelas que cairão nas próximas faturas,
+   *  quando o banco declara. É o número que o Bradesco dá no lugar do saldo
+   *  em aberto — e são coisas DIFERENTES, por isso campos diferentes:
+   *  "em aberto" é o que já foi gasto no ciclo que ainda não fechou;
+   *  "próximas faturas" é o que já está comprado e ainda vai ser cobrado. */
+  futurasCents: number | null
   /** Data do próximo fechamento (YYYY-MM-DD), quando o banco declara. */
   proximoFechamento: string | null
   /** `period_end` da fatura de onde os números vieram. */
   date: string
 }
 
-/** Para cada conta com ao menos uma fatura que declare saldo em aberto,
- *  vence a fatura de maior `period_end`. Extrato e fatura sem saldo (ou sem
- *  data) são ignorados — sem data não há como saber qual é a mais nova. */
+/** Para cada conta com ao menos uma fatura que declare algum número olhando
+ *  para a frente, vence a fatura de maior `period_end`.
+ *
+ *  A régua de entrada é "declara em aberto **ou** próximas faturas", e não só
+ *  a primeira: exigir `total_open_balance` deixava o Bradesco de fora da
+ *  fileira inteira — a fatura dele não traz esse campo — e a tela ficava com
+ *  um card de "em aberto" só do Nubank, sem nada explicando a ausência do
+ *  outro. Cada banco aparece com o número que ele de fato declara. */
 export function faturasAbertas(docs: DocParaAberto[]): FaturaAberta[] {
   const porConta = new Map<string, FaturaAberta & { _pe: string }>()
   for (const d of docs) {
     if (d.doc_type !== 'fatura') continue
-    if (d.total_open_balance == null || d.period_end == null) continue
+    if (d.period_end == null) continue
+    if (d.total_open_balance == null && d.future_installments_total == null) continue
     // Sem account_id (documento antigo), agrupa por banco para não colidir.
     const chave = d.account_id ?? `${d.bank}:sem-conta`
     const atual = porConta.get(chave)
@@ -49,6 +62,7 @@ export function faturasAbertas(docs: DocParaAberto[]): FaturaAberta[] {
         bank: d.bank,
         abertoCents: d.total_open_balance,
         proximaCents: d.next_invoice_balance,
+        futurasCents: d.future_installments_total,
         proximoFechamento: d.next_close_date,
         date: d.period_end,
         _pe: d.period_end,

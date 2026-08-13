@@ -31,7 +31,7 @@ Plano da fatia 1a: `docs/superpowers/plans/2026-08-07-reforma-fatia-1a-arquitetu
 |---|---|---|
 | 1a | `frontend/` + `backend/` com workspaces | ✅ **no ar** (07/08) |
 | 4a | seletor de idioma fora da UI (código i18n intacto) | ✅ **no ar** (07/08) |
-| 2 | router + 7 páginas de navegação | ✅ **no ar** (07/08) |
+| 2 | router + páginas de navegação (a 7ª, "Datas", saiu em 09/08) | ✅ **no ar** (07/08) |
 | 3 | design "livro-razão" + gráficos interativos | ✅ **no ar** (07/08) |
 | 4b | CSP completa, medida contra o build | ✅ **no ar** (09/08) |
 | 1b | backend real (Vercel Functions) | ⛔ **bloqueada**: falta `DATABASE_URL` no `.env.local` |
@@ -46,8 +46,123 @@ Vercel, não há servidor próprio nem painel de banco exposto); o backend será
 **real**, em Vercel Functions, com o RLS preservado via
 `set_config('request.jwt.claims')` numa role sem BYPASSRLS.
 
-**564 testes (75 arquivos)**, build e lint limpos, medidor de overflow OK,
+**567 testes (75 arquivos)**, build e lint limpos, medidor de overflow OK,
 contraste OK nos dois temas, CSP aprovada nas duas jornadas e contra o site no ar.
+
+## Rodada 2026-08-09 (parte 3) — ajustes pedidos com o app na tela
+
+O usuário abriu o sistema logado, com dados reais de julho, e apontou seis
+coisas. Todas resolvidas; duas viraram achado de verdade.
+
+### O card "em aberto" do Bradesco não existia — e o motivo importa
+
+**A pergunta era "por que só o Nubank tem?".** A resposta: `faturasAbertas`
+exigia `total_open_balance`, e a fatura do Bradesco **não declara esse
+número** — ela não diz quanto já foi gasto no ciclo que ainda vai fechar. O
+Nubank diz ("Saldo em aberto total"). Derivar seria **inventar**: essas compras
+estão na próxima fatura, que ninguém importou.
+
+O que a fatura do Bradesco declara, e o app gravava sem nunca ler:
+`Previsão de fechamento da próxima fatura: 16/07/2026` (agora lida pelo parser,
+formato dd/mm/aaaa — o do Nubank é "16 JUL 2026", por isso cada parser tem o
+seu leitor) e `Total para as próximas faturas R$ 5.578,34`.
+
+Então o card aparece com o **rótulo certo**: "Em aberto" (Nubank) ou "Próximas
+faturas" (Bradesco). São perguntas diferentes — *o que já devo agora* e *o que
+já está comprado e ainda vem* — e pôr as duas sob o mesmo rótulo, lado a lado,
+seria pior que não mostrar.
+
+### O vazio à direita do donut era o gráfico se apagando
+
+Com **uma só competência importada**, `serie.length < 2` e o gráfico de
+evolução (12 meses) retorna `null` — metade do painel ficava literalmente
+branca, que é o estado normal de quem acabou de importar as primeiras faturas.
+
+Entrou `GraficoDiario` (`ui/GraficoDiario.tsx`): **saídas por dia do período**,
+que responde com um mês só. O donut diz *em que* o dinheiro foi, a evolução diz
+*como o mês se compara*, e este diz **quando** — onde estão os picos. Clicar
+numa barra leva a tela para aquele dia, o mesmo gesto de clicar num mês na
+evolução. Só saídas: uma entrada de salário na mesma escala esmagaria todas as
+barras e o gráfico deixaria de responder a única pergunta que ele existe para
+responder. Com histórico, os dois gráficos se empilham na coluna.
+
+### Os outros quatro
+
+- **Selo "quitada/em aberto" fora**, a pedido. Com ele saíram
+  `domain/quitacao.ts`, seus testes e o cálculo de pagamentos da página —
+  código que ninguém mais alcançava. Está no histórico do git.
+- **"Datas" fora da navegação**: com dois meses de dados nada é reconhecido
+  como recorrente e a página vivia vazia. Rota e componente saíram juntos
+  (rota sem link é código que só o autor alcança). O `diaTipico` de cada série
+  continua visível em Recorrências.
+- **Favicon novo** — carimbo azul da marca (`#1b5e8f`) com "R$" e a régua de
+  livro-razão. ⚠️ **A primeira versão nasceu quebrada**: escrever o nome de um
+  token CSS num comentário de SVG (com os dois traços da frente) é ilegal em
+  XML e derruba o arquivo INTEIRO — sem erro de build, sem erro de teste, o
+  navegador só não mostra ícone nenhum. Conferido a 16/24/32/64px, nos dois
+  fundos.
+- **Card de compartilhamento refeito** no visual "livro-razão": papel frio,
+  filete azul, e um documento com débito/crédito e o selo "confere ao centavo"
+  — o que o app faz, no formato em que ele faz. `scripts/gerar-og.py` **estava
+  escrevendo na pasta errada** desde a reforma de 07/08 (`public/` em vez de
+  `frontend/public/`): gerava um arquivo que ninguém servia, e o og.png
+  publicado continuava sendo o antigo.
+- **Tutorial reescrito**: descrevia um app que não existe mais — mandava clicar
+  num botão "Documentos" (virou a página Faturas em 07/08) e dizia que o
+  relatório "abre o diálogo de impressão" (o `window.print()` saiu em 24/07).
+  Os seis passos agora cobrem importação com conferência, os dois gráficos
+  clicáveis, competência, busca/aprendizado, Faturas/Categorias e recorrências.
+
+### Confirmação de e-mail no cadastro (novo)
+
+Pedido: quem cria conta deve **receber um e-mail com link de confirmação**.
+
+O contrato foi **sondado contra o servidor real** antes de qualquer linha, como
+em 2026-07-18 (é assim que se descobre a API do Better Auth aqui):
+
+| Chamada | Resposta |
+|---|---|
+| `POST /send-verification-email {email, callbackURL}` | `200 {"status":true}` **sempre**, inclusive para e-mail sem conta |
+| `GET /verify-email?token=…&callbackURL=…` | `302` para o callbackURL; token ruim volta com `error=INVALID_TOKEN` **anexado** (com `&` se já houver query) |
+| `GET /verify-email?token=…` (sem callbackURL) | `401` com JSON — por isso o callbackURL não é opcional |
+
+`lib/confirmar-email.ts` (8 testes) faz o envio e lê o retorno. O `callbackURL`
+é `<origem>/?confirmado=1`: **a marca própria é o que distingue** "acabou de
+confirmar" de "abriu o site", já que o sucesso volta sem parâmetro nenhum — e
+um `?error=` de outra origem (um login social cancelado) **não** é lido como
+link expirado.
+
+- **O envio é pedido pelo cliente**, no cadastro, porque o envio automático é
+  uma chave do servidor da Neon que este app não controla. Assim o link chega
+  seja qual for o estado dela.
+- **Falhar ao enviar não desfaz o cadastro nem barra a entrada** (a conta já
+  existe) — o toast conta o que de fato aconteceu, em vez de prometer um
+  e-mail que pode não ter saído.
+- **`ui/AvisoConfirmarEmail.tsx`**: faixa com "reenviar link" para quem tem
+  `emailVerified === false`. Só com o `false` explícito: campo ausente não
+  vira alarme falso. **Não bloqueia nada** — é aviso, não portão. Existe porque
+  a recuperação de senha manda o link para esse endereço, e um e-mail digitado
+  errado só apareceria no dia em que a pessoa esquecesse a senha, quando já não
+  há conserto de dentro do app.
+
+**A recuperação de senha foi reconferida contra o servidor** nesta rodada e
+segue igual ao documentado: `request-password-reset` responde 200 mesmo para
+e-mail inexistente (não revela cadastro) e `reset-password` com token gasto dá
+400. Nada a mudar.
+
+⚠️ **O que falta o usuário fazer**: criar uma conta de verdade e confirmar que
+o e-mail chega. Aqui o fluxo está pinado por teste e o endpoint sondado, mas
+**a entrega do e-mail depende do remetente da Neon** e não dá para verificar
+sem uma caixa real.
+
+**567 testes (75 arquivos)**, build e lint limpos, CSP reaprovada.
+
+### Dívida anotada, não corrigida
+
+- Os dois gráficos novos e as páginas Datas/Recorrências não usavam `t()`.
+  Datas saiu; `GraficoDiario` **nasceu traduzido** (5 chaves nos três
+  dicionários), mas `GraficoEvolucao` e `GraficoCategorias` seguem com rótulo
+  e `aria-label` fixos em português.
 
 ## Rodada 2026-08-09 (parte 2) — code review das fatias 2 e 3
 
@@ -629,7 +744,7 @@ Iniciada a rodada de **novos parsers de banco** — spec em
   na Vercel, conectado ao GitHub. **Todo push na `main` publica sozinho** em ~1 min.
 - **Pastas:** monorepo npm — `frontend/` (o app React, onde vivem os testes e o
   `index.html`), `backend/` (por ora só `db/migrations/`), `scripts/` na raiz.
-- `npm test` = **564 testes verdes** (75 arquivos), `npm run build` e `npm run lint` OK.
+- `npm test` = **567 testes verdes** (75 arquivos), `npm run build` e `npm run lint` OK.
 
 ## Como validar rapidamente que nada quebrou
 
@@ -679,7 +794,7 @@ gerou a dúvida das "Entradas" que durou de 05 a 09/08:
 | Compromissos futuros | 34 parcelas · R$ 5.265,30 | idem |
 | Gasto real / Entradas | R$ 40.955,46 / R$ 45.441,75 | **só os 3 PDFs de junho** |
 | Extrato BB de amostra (`bb-cmbf.pdf`) | **94 lançamentos**, bate ao centavo | — |
-| Testes | **564** (75 arquivos) | — |
+| Testes | **567** (75 arquivos) | — |
 
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve

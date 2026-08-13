@@ -1,11 +1,23 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="15" fill="#131211"/>
-  <!-- Favicon aparece a 16px na aba: sem o anel interno e sem o texto fino
-       do MoedaLogo, que viravam borrao nesse tamanho. So a moeda cheia e um
-       R$ grande e grosso. Estatico (fora do React), entao usa o literal do
-       tema escuro (--color-moeda-traco: #4a3208), como o resto da marca. -->
-  <circle cx="32" cy="32" r="24" fill="#d9a441"/>
-  <circle cx="32" cy="32" r="24" fill="none" stroke="#4a3208" stroke-width="3" opacity="0.55"/>
-  <text x="32" y="43" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif"
-        font-weight="900" font-size="30" fill="#4a3208" letter-spacing="-1.5">R$</text>
+  <!-- Carimbo de conferido, na marca nova (a cor da marca, #1b5e8f). O
+       favicon anterior era a moeda ambar do visual que saiu em 2026-08-07.
+
+       Ele aparece a 16px na aba, entao aqui nao cabe nada fino: canto de 3px
+       (o raio do sistema, 12/64 = 3/16), R$ pesado e UMA regua de livro-razao
+       embaixo. A regua e o detalhe que o distingue de qualquer outro quadrado
+       azul com uma letra, e sobrevive ao tamanho porque tem 3px de altura.
+
+       CUIDADO: comentario de XML nao aceita dois hifens seguidos. Escrever o
+       nome de um token CSS aqui (com os dois tracos da frente) quebra o
+       arquivo INTEIRO, e o navegador simplesmente nao mostra icone nenhum —
+       sem erro de build, sem erro de teste. Foi o que aconteceu na primeira
+       versao deste arquivo.
+
+       Estatico, fora do React: usa o literal do tema claro, como o resto da
+       marca impressa (og.png). -->
+  <rect width="64" height="64" rx="12" fill="#1b5e8f"/>
+  <text x="32" y="40" text-anchor="middle"
+        font-family="'IBM Plex Mono', 'Segoe UI', Arial, sans-serif"
+        font-weight="700" font-size="30" fill="#ffffff" letter-spacing="-1">R$</text>
+  <rect x="16" y="47" width="32" height="3" rx="1.5" fill="#ffffff" opacity="0.85"/>
 </svg>

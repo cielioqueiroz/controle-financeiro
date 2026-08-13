@@ -24,7 +24,18 @@ export const pt = {
   'auth.google': 'Continuar com o Google',
   'auth.trocarParaCriar': 'Não tem conta? Criar uma',
   'auth.trocarParaEntrar': 'Já tem conta? Entrar',
-  'auth.toast.criada': 'Conta criada. Se pedirmos confirmação, confira seu e-mail.',
+  'auth.toast.criada': 'Conta criada.',
+  'auth.toast.criadaConfirme': 'Enviamos um link de confirmação para {email}. Confira também o spam.',
+  'auth.toast.criadaSemEmail': 'Não consegui enviar o e-mail de confirmação agora — dá para pedir de novo pelo aviso no topo.',
+  'app.emailConfirmado': 'E-mail confirmado.',
+  'app.emailConfirmadoDesc': 'Sua conta está verificada.',
+  'app.linkConfirmacaoInvalido': 'Este link de confirmação expirou ou já foi usado.',
+  'app.linkConfirmacaoInvalidoDesc': 'Peça um novo pelo aviso no topo da página.',
+  'aviso.confirmeEmail': 'Confirme seu e-mail ({email}) para garantir a recuperação de senha.',
+  'aviso.reenviar': 'Reenviar link',
+  'aviso.reenviando': 'Enviando…',
+  'aviso.reenviado': 'Link reenviado. Confira sua caixa de entrada e o spam.',
+  'aviso.reenvioFalhou': 'Não consegui enviar agora. Tente daqui a pouco.',
   'auth.toast.semBanco': 'O banco de dados não está configurado neste ambiente.',
   'auth.toast.googleFalha': 'Falha ao entrar com o Google.',
   'auth.toast.authFalha': 'Falha na autenticação.',
@@ -108,6 +119,12 @@ export const pt = {
   // Saldo em aberto do cartão (declarado pela fatura)
   'aberto.rotulo': 'Em aberto',
   'aberto.fecha': 'fecha em {data}',
+  'aberto.proximas': 'Próximas faturas',
+  'diario.titulo': 'Saídas por dia',
+  'diario.resumo': '{dias} dias com gasto · média {media}',
+  'diario.lancamento1': '{n} lançamento',
+  'diario.lancamentos': '{n} lançamentos',
+  'diario.rotuloBarra': '{dia}: {valor} em saídas. Ver este dia.',
 
   // Maiores saídas do período
   'maiores.titulo': 'Maiores saídas do período',
@@ -211,8 +228,6 @@ export const pt = {
   'geral.fechar': 'Fechar',
   'doc.fatura': 'Fatura',
   'doc.extrato': 'Extrato',
-  'doc.quitada': 'quitada',
-  'doc.emAberto': 'em aberto',
 
   // Editar perfil
   'perfil.subtitulo': 'Como você quer ser chamado por aqui.',
@@ -278,24 +293,30 @@ export const pt = {
   'tutorial.comecar': 'Começar!',
   'tutorial.boasVindas':
     'Bem-vindo(a) ao seu controle financeiro. Importe faturas e extratos em PDF e veja, com clareza, para onde o seu dinheiro foi — sem digitar nada. Em 30 segundos eu te mostro como.',
-  'tutorial.p1t': 'Importe um PDF',
+  'tutorial.p1t':
+    'Importe um PDF',
   'tutorial.p1c':
-    'Clique em "+ Importar PDF" e solte a fatura ou o extrato — leio Nubank, Bradesco, Banco do Brasil, Sicredi e Sicoob. Tudo é lido aqui no navegador; guardo só os lançamentos, o PDF nunca sai do seu computador.',
-  'tutorial.p2t': 'Veja por período',
+    'Na página Importação, solte a fatura ou o extrato — leio Nubank, Bradesco, Banco do Brasil, Sicredi e Sicoob. A leitura acontece no seu navegador (o PDF nunca sai do computador) e eu confiro a soma contra o total que o próprio banco declara, ao centavo.',
+  'tutorial.p2t':
+    'O painel responde três perguntas',
   'tutorial.p2c':
-    'Alterne entre Dia, Semana, Mês e Ano. O Mês agrupa pela fatura (competência), então bate com o valor que você realmente paga naquele mês.',
-  'tutorial.p3t': 'Ajuste as compras',
+    'Quanto saiu, quanto entrou e o que sobrou no período. Abaixo, o donut mostra EM QUE o dinheiro foi e o gráfico de dias mostra QUANDO. Os dois são clicáveis: a fatia abre os lançamentos daquela categoria, a barra leva ao dia.',
+  'tutorial.p3t':
+    'Escolha o período',
   'tutorial.p3c':
-    'Cada compra ganha uma categoria automática. Passe o mouse sobre a linha e clique no lápis para renomear o estabelecimento ou trocar a categoria do seu jeito.',
-  'tutorial.p4t': 'Seus documentos',
+    'Dia, Semana, Mês e Ano. Mês e Ano agrupam pela competência da fatura — batem com o que você paga naquele mês, não com a data da compra. O recorte fica no endereço: recarregar não perde nada, e o link leva outra pessoa à mesma tela.',
+  'tutorial.p4t':
+    'Ache e corrija',
   'tutorial.p4c':
-    'No botão "Documentos" você vê tudo que importou e pode apagar uma fatura específica — ou recomeçar do zero, se algo saiu errado.',
-  'tutorial.p5t': 'Leve o relatório',
+    'Em Lançamentos, a vista "Todos" tem busca por nome e filtro por categoria. Clique no lápis de uma linha para renomear o estabelecimento ou trocar a categoria — e eu aprendo: na próxima importação, aquela loja já vem certa.',
+  'tutorial.p5t':
+    'Faturas e Categorias',
   'tutorial.p5c':
-    'O botão "Baixar PDF" monta um relatório limpo do período e abre o diálogo de impressão — é só escolher "Salvar como PDF" para guardar ou imprimir no papel.',
-  'tutorial.p6t': 'Do seu jeito',
+    'Em Faturas está tudo que você importou, com a opção de apagar um documento ou recomeçar do zero. Em Categorias você renomeia as suas, escolhe cor e ícone, e vê (ou desfaz) cada regra que eu aprendi com as suas correções.',
+  'tutorial.p6t':
+    'Recorrências e relatório',
   'tutorial.p6c':
-    'No menu da conta (a bolinha com sua inicial, no topo) você abre "Editar perfil" para trocar o apelido da saudação e o nome completo quando quiser. É por lá também que você revê este tour.',
+    'Em Recorrências eu mostro o que se repete todo mês — assinaturas, contas — detectado sozinho, sem você cadastrar nada, e aviso quando um valor muda ou uma cobrança some. E o botão "Baixar PDF" do painel gera um relatório do período para guardar ou compartilhar.',
 
   // Importação — dropzone
   'drop.tituloLendo': 'Lendo o documento…',

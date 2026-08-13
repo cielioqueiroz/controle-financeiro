@@ -19,7 +19,18 @@ export const en: Dicionario = {
   'auth.google': 'Continue with Google',
   'auth.trocarParaCriar': 'No account? Create one',
   'auth.trocarParaEntrar': 'Already have an account? Sign in',
-  'auth.toast.criada': 'Account created. If we ask for confirmation, check your email.',
+  'auth.toast.criada': 'Account created.',
+  'auth.toast.criadaConfirme': 'We sent a confirmation link to {email}. Check your spam folder too.',
+  'auth.toast.criadaSemEmail': 'I could not send the confirmation e-mail right now — you can ask again from the notice at the top.',
+  'app.emailConfirmado': 'E-mail confirmed.',
+  'app.emailConfirmadoDesc': 'Your account is verified.',
+  'app.linkConfirmacaoInvalido': 'This confirmation link expired or was already used.',
+  'app.linkConfirmacaoInvalidoDesc': 'Ask for a new one from the notice at the top.',
+  'aviso.confirmeEmail': 'Confirm your e-mail ({email}) to keep password recovery working.',
+  'aviso.reenviar': 'Resend link',
+  'aviso.reenviando': 'Sending…',
+  'aviso.reenviado': 'Link sent again. Check your inbox and spam.',
+  'aviso.reenvioFalhou': 'Could not send right now. Try again shortly.',
   'auth.toast.semBanco': 'The database is not configured in this environment.',
   'auth.toast.googleFalha': 'Could not sign in with Google.',
   'auth.toast.authFalha': 'Authentication failed.',
@@ -95,6 +106,12 @@ export const en: Dicionario = {
 
   'aberto.rotulo': 'Outstanding',
   'aberto.fecha': 'closes {data}',
+  'aberto.proximas': 'Upcoming bills',
+  'diario.titulo': 'Spending by day',
+  'diario.resumo': '{dias} days with spending · avg {media}',
+  'diario.lancamento1': '{n} entry',
+  'diario.lancamentos': '{n} entries',
+  'diario.rotuloBarra': '{dia}: {valor} spent. View this day.',
 
   'maiores.titulo': 'Largest expenses in period',
 
@@ -189,8 +206,6 @@ export const en: Dicionario = {
   'geral.fechar': 'Close',
   'doc.fatura': 'Card bill',
   'doc.extrato': 'Bank statement',
-  'doc.quitada': 'paid',
-  'doc.emAberto': 'open',
 
   'perfil.subtitulo': 'How you want to be called here.',
   'perfil.apelidoLabel': 'Nickname — how the greeting shows',
@@ -252,24 +267,30 @@ export const en: Dicionario = {
   'tutorial.comecar': 'Start!',
   'tutorial.boasVindas':
     'Welcome to your finances. Import statements as PDFs and see, clearly, where your money went — without typing anything. In 30 seconds I\'ll show you how.',
-  'tutorial.p1t': 'Import a PDF',
+  'tutorial.p1t':
+    'Import a PDF',
   'tutorial.p1c':
-    'Click "+ Import PDF" and drop the statement — I read Nubank, Bradesco, Banco do Brasil, Sicredi and Sicoob. Everything is read in the browser; I keep only the entries, the PDF never leaves your computer.',
-  'tutorial.p2t': 'See by period',
+    'On the Import page, drop the statement or bill — I read Nubank, Bradesco, Banco do Brasil, Sicredi and Sicoob. Reading happens in your browser (the PDF never leaves your computer) and I check the sum against the total the bank itself declares, to the cent.',
+  'tutorial.p2t':
+    'The dashboard answers three questions',
   'tutorial.p2c':
-    'Switch between Day, Week, Month and Year. Month groups by the card statement, so it matches what you actually pay that month.',
-  'tutorial.p3t': 'Adjust purchases',
+    'How much went out, how much came in, and what was left. Below, the donut shows WHAT the money went to and the daily chart shows WHEN. Both are clickable: a slice opens that category, a bar takes you to that day.',
+  'tutorial.p3t':
+    'Pick the period',
   'tutorial.p3c':
-    'Each purchase gets an automatic category. Hover over the row and click the pencil to rename the merchant or change the category your way.',
-  'tutorial.p4t': 'Your documents',
+    'Day, Week, Month and Year. Month and Year group by the statement period — they match what you pay that month, not the purchase date. The current view lives in the address bar: reloading loses nothing, and the link takes someone else to the same screen.',
+  'tutorial.p4t':
+    'Find and fix',
   'tutorial.p4c':
-    'In the "Documents" button you see everything you imported and can delete a specific statement — or start over if something went wrong.',
-  'tutorial.p5t': 'Take the report',
+    'In Entries, the "All" view has search by name and a category filter. Click the pencil on a row to rename the merchant or change the category — and I learn: next import, that store comes in right.',
+  'tutorial.p5t':
+    'Bills and Categories',
   'tutorial.p5c':
-    'The "Download PDF" button builds a clean report of the period and opens the print dialog — just choose "Save as PDF" to keep it or print on paper.',
-  'tutorial.p6t': 'Your way',
+    'Bills holds everything you imported, with the option to delete one document or start over. In Categories you rename your own, pick colour and icon, and see (or undo) every rule I learned from your corrections.',
+  'tutorial.p6t':
+    'Recurring and report',
   'tutorial.p6c':
-    'In the account menu (the circle with your initial, at the top) you open "Edit profile" to change the greeting nickname and full name whenever you like. That\'s also where you replay this tour.',
+    'In Recurring I show what repeats every month — subscriptions, bills — detected on its own, with nothing to register, and I warn you when an amount changes or a charge disappears. And the "Download PDF" button on the dashboard builds a report of the period to keep or share.',
 
   'drop.tituloLendo': 'Reading the document…',
   'drop.titulo': 'Drop your statement here',

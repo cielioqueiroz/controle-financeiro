@@ -2,116 +2,150 @@
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=JetBrains+Mono:wght@600;700&display=swap"
-      rel="stylesheet"
-    />
     <style>
+      /* Fontes do PRÓPRIO repositório, não do Google: são as mesmas 16 woff2
+         que o app serve desde 2026-08-07, e buscá-las na rede aqui faria o
+         card depender de um host externo justamente na hora de gerar uma
+         imagem estática. Caminho relativo ao arquivo, aberto por file://. */
+      @font-face {
+        font-family: 'Plex Sans';
+        src: url('../frontend/public/fonts/ibm-plex-sans-400-latin.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Plex Sans';
+        src: url('../frontend/public/fonts/ibm-plex-sans-600-latin.woff2') format('woff2');
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: 'Plex Mono';
+        src: url('../frontend/public/fonts/ibm-plex-mono-400-latin.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Plex Mono';
+        src: url('../frontend/public/fonts/ibm-plex-mono-500-latin.woff2') format('woff2');
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: 'Plex Mono';
+        src: url('../frontend/public/fonts/ibm-plex-mono-600-latin.woff2') format('woff2');
+        font-weight: 600;
+      }
+
       * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      /* Papel frio de formulário fiscal e tinta azul-ferro: os mesmos tokens
+         do app (--color-papel #f6f7f9, --color-tinta #0f1a24,
+         --color-marca #1b5e8f). Zero gradiente, zero brilho, zero sombra
+         difusa — o card anterior era exatamente isso, e era a assinatura do
+         visual que este projeto deixou para trás. */
       body {
         width: 1200px; height: 630px;
-        background: #0d0c0b;
-        font-family: 'Archivo', sans-serif;
-        color: #f5f3ef;
+        background: #f6f7f9;
+        font-family: 'Plex Sans', sans-serif;
+        color: #0f1a24;
+        display: flex; align-items: center; gap: 64px;
+        padding: 0 80px;
         position: relative;
-        overflow: hidden;
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 56px;
-        padding: 0 88px;
       }
-      /* Eco do fundo de particulas, em versao estatica. */
-      .brilho {
-        position: absolute; inset: -20%;
-        background:
-          radial-gradient(38% 38% at 82% 30%, rgba(217, 164, 65, 0.30), transparent 70%),
-          radial-gradient(34% 34% at 90% 78%, rgba(217, 164, 65, 0.16), transparent 70%);
-        filter: blur(40px);
-      }
-      .conteudo { position: relative; z-index: 1; max-width: 620px; }
+
+      /* Régua superior: a única "decoração", e é estrutural — é o filete de
+         um formulário. */
+      .filete { position: absolute; top: 0; left: 0; right: 0; height: 10px; background: #1b5e8f; }
+
+      .conteudo { flex: 1; }
+
       .marca {
-        display: flex; align-items: center; gap: 18px;
-        margin-bottom: 34px;
+        font-family: 'Plex Mono', monospace;
+        font-size: 19px; font-weight: 600;
+        letter-spacing: 0.34em; text-transform: uppercase;
+        color: #1b5e8f;
+        margin-bottom: 30px;
       }
-      .marca span {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 20px; font-weight: 600;
-        letter-spacing: 0.35em; text-transform: uppercase;
-        color: #a8a29a;
-      }
-      /* 60px: com o donut ao lado a largura util encolheu, e a segunda linha
-         precisa caber sem quebrar em tres. */
+
+      /* 48px, e não 58: a segunda linha ("em menos de um minuto") quebrava
+         em duas com o corpo maior, e a manchete virava quatro linhas
+         desalinhadas ao lado de um documento de quatro linhas. */
       h1 {
-        font-size: 60px; font-weight: 800;
-        line-height: 1.08; letter-spacing: -0.02em;
+        font-size: 48px; font-weight: 600;
+        line-height: 1.1; letter-spacing: -0.02em;
+        white-space: nowrap;
       }
-      h1 .fraca { color: #a8a29a; }
-      p {
-        margin-top: 28px; font-size: 25px; color: #a8a29a; max-width: 560px;
-      }
+      h1 .fraca { color: #5b6b7c; }
+
+      p { margin-top: 26px; font-size: 24px; line-height: 1.35; color: #4a5967; max-width: 520px; }
+
       .rodape {
-        position: absolute; bottom: 54px; left: 88px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 17px; letter-spacing: 0.22em;
-        text-transform: uppercase; color: #6f6a62;
+        position: absolute; bottom: 46px; left: 80px;
+        font-family: 'Plex Mono', monospace;
+        font-size: 15px; letter-spacing: 0.2em;
+        text-transform: uppercase; color: #6f7d8c;
       }
-      /* Donut de categorias — o que o app entrega, em tons de ambar. As
-         fatias ecoam o anel do logo, que abre em pedacos. */
-      .donut {
-        position: relative; z-index: 1; flex-shrink: 0;
-        width: 340px; height: 340px; border-radius: 50%;
-        background: conic-gradient(
-          #eac878   0deg  70deg,
-          #d9a441  70deg 148deg,
-          #b8842f 148deg 210deg,
-          #c99a3a 210deg 270deg,
-          #9a6a15 270deg 318deg,
-          #e8b85c 318deg 360deg
-        );
-        box-shadow: 0 30px 90px -30px rgba(217, 164, 65, 0.5);
+
+      /* O "documento": o que o app faz, no formato em que ele faz. Não é um
+         gráfico bonito de enfeite — é a conferência ao centavo, que é a razão
+         de o sistema existir. */
+      .doc {
+        width: 420px; background: #ffffff;
+        border: 1px solid #c8d0d9; border-radius: 3px;
+        padding: 26px 28px 22px;
       }
-      /* Vao entre as fatias e o furo central. */
-      .donut::before {
-        content: ''; position: absolute; inset: 0; border-radius: 50%;
-        background: conic-gradient(
-          #0d0c0b 0deg 2.2deg, transparent 2.2deg 70deg,
-          #0d0c0b 70deg 72.2deg, transparent 72.2deg 148deg,
-          #0d0c0b 148deg 150.2deg, transparent 150.2deg 210deg,
-          #0d0c0b 210deg 212.2deg, transparent 212.2deg 270deg,
-          #0d0c0b 270deg 272.2deg, transparent 272.2deg 318deg,
-          #0d0c0b 318deg 320.2deg, transparent 320.2deg 360deg
-        );
+      .doc-titulo {
+        font-family: 'Plex Mono', monospace;
+        font-size: 12px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #6f7d8c;
+        padding-bottom: 14px; border-bottom: 1px solid #e2e7ec;
       }
-      .donut::after {
-        content: ''; position: absolute; inset: 92px;
-        border-radius: 50%; background: #0d0c0b;
+      .linha {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 16px; padding: 13px 0; border-bottom: 1px solid #eef1f4;
+      }
+      .linha span { font-size: 17px; color: #4a5967; }
+      .linha b {
+        font-family: 'Plex Mono', monospace;
+        font-size: 19px; font-weight: 500; letter-spacing: -0.015em; color: #0f1a24;
+        font-variant-numeric: tabular-nums;
+      }
+      /* Semântica contábil: crédito/débito com SINAL, nunca cor sozinha. */
+      .linha b.debito { color: #b3261e; }
+      .linha b.credito { color: #1c6b4a; }
+
+      .confere {
+        display: flex; align-items: center; gap: 10px;
+        margin-top: 18px;
+        font-family: 'Plex Mono', monospace;
+        font-size: 15px; font-weight: 600; letter-spacing: 0.06em;
+        color: #1c6b4a;
+      }
+      .confere .marca-check {
+        width: 22px; height: 22px; border-radius: 3px;
+        background: #1c6b4a; color: #ffffff;
         display: grid; place-items: center;
-      }
-      .furo {
-        position: absolute; inset: 92px; z-index: 2;
-        display: grid; place-items: center;
-        font-family: 'JetBrains Mono', monospace;
-        font-weight: 700; font-size: 52px; color: #d9a441;
+        font-size: 13px; font-weight: 700;
       }
     </style>
   </head>
   <body>
-    <div class="brilho"></div>
+    <div class="filete"></div>
+
     <div class="conteudo">
-      <div class="marca">
-        <svg width="62" height="62" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="24" fill="#d9a441" />
-          <circle cx="32" cy="32" r="24" fill="none" stroke="#4a3208" stroke-width="3" opacity="0.55" />
-          <text x="32" y="43" text-anchor="middle" font-family="'JetBrains Mono', monospace"
-                font-weight="900" font-size="30" fill="#4a3208">R$</text>
-        </svg>
-        <span>Capital Financeiro</span>
-      </div>
-      <h1>Seu extrato vira gráfico,<br /><span class="fraca">em menos de um minuto.</span></h1>
-      <p>Faturas e extratos viram gastos por categoria, dia, mês e ano.</p>
+      <div class="marca">Capital Financeiro</div>
+      <h1>
+        Seu extrato vira gráfico,<br />
+        <span class="fraca">em menos de um minuto.</span>
+      </h1>
+      <p>Importe faturas e extratos em PDF e veja para onde seu dinheiro foi — conferido contra o total do próprio banco.</p>
+      <div class="rodape">Do extrato ao gráfico · cada centavo no lugar certo</div>
     </div>
-    <div class="donut"><span class="furo">R$</span></div>
-    <div class="rodape">Lido no navegador · só a transação é salva, nunca o PDF</div>
+
+    <div class="doc">
+      <div class="doc-titulo">Fatura · junho</div>
+      <div class="linha"><span>Lançamentos lidos</span><b>94</b></div>
+      <div class="linha"><span>Débitos</span><b class="debito">−5.529,44</b></div>
+      <div class="linha"><span>Créditos</span><b class="credito">+4.839,43</b></div>
+      <div class="linha" style="border-bottom: none"><span>Total do banco</span><b>5.529,44</b></div>
+      <div class="confere"><span class="marca-check">✓</span> confere ao centavo</div>
+    </div>
   </body>
 </html>

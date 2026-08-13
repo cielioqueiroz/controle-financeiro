@@ -105,3 +105,24 @@ describe('parseBradescoFatura — datas e metadados', () => {
     expect(r.forward.futureInstallmentsTotal).toBe(557834) // R$ 5.578,34
   })
 })
+
+describe('parseBradescoFatura — o que a fatura declara para a frente', () => {
+  // A data estava impressa na fatura e o app gravava `null` desde sempre, o
+  // que deixava o Bradesco fora da fileira de saldos enquanto o Nubank
+  // aparecia. Formato dd/mm/aaaa, diferente do "16 JUL 2026" do Nubank.
+  it('lê a previsão de fechamento da próxima fatura', () => {
+    expect(r.forward.nextCloseDate?.toISOString().slice(0, 10)).toBe('2026-07-16')
+  })
+
+  it('lê o total comprometido nas próximas faturas', () => {
+    expect(r.forward.futureInstallmentsTotal).toBe(557834)
+  })
+
+  // Não é omissão: a fatura do Bradesco não traz o quanto já foi gasto no
+  // ciclo que ainda não fechou. Derivar seria inventar — essas compras estão
+  // na PRÓXIMA fatura, que ninguém importou. O card na tela diz "próximas
+  // faturas" justamente porque este campo é null.
+  it('NÃO inventa saldo em aberto, que o Bradesco não declara', () => {
+    expect(r.forward.totalOpenBalance).toBeNull()
+  })
+})

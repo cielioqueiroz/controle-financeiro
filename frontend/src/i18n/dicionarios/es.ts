@@ -19,7 +19,18 @@ export const es: Dicionario = {
   'auth.google': 'Continuar con Google',
   'auth.trocarParaCriar': '¿No tienes cuenta? Crea una',
   'auth.trocarParaEntrar': '¿Ya tienes cuenta? Entra',
-  'auth.toast.criada': 'Cuenta creada. Si pedimos confirmación, revisa tu correo.',
+  'auth.toast.criada': 'Cuenta creada.',
+  'auth.toast.criadaConfirme': 'Enviamos un enlace de confirmación a {email}. Revisa también el spam.',
+  'auth.toast.criadaSemEmail': 'No pude enviar el correo de confirmación ahora — puedes pedirlo de nuevo en el aviso de arriba.',
+  'app.emailConfirmado': 'Correo confirmado.',
+  'app.emailConfirmadoDesc': 'Tu cuenta está verificada.',
+  'app.linkConfirmacaoInvalido': 'Este enlace de confirmación expiró o ya se usó.',
+  'app.linkConfirmacaoInvalidoDesc': 'Pide uno nuevo en el aviso de arriba.',
+  'aviso.confirmeEmail': 'Confirma tu correo ({email}) para mantener la recuperación de contraseña.',
+  'aviso.reenviar': 'Reenviar enlace',
+  'aviso.reenviando': 'Enviando…',
+  'aviso.reenviado': 'Enlace reenviado. Revisa tu bandeja y el spam.',
+  'aviso.reenvioFalhou': 'No pude enviar ahora. Inténtalo en un momento.',
   'auth.toast.semBanco': 'La base de datos no está configurada en este entorno.',
   'auth.toast.googleFalha': 'No se pudo entrar con Google.',
   'auth.toast.authFalha': 'Error de autenticación.',
@@ -95,6 +106,12 @@ export const es: Dicionario = {
 
   'aberto.rotulo': 'Pendiente',
   'aberto.fecha': 'cierra el {data}',
+  'aberto.proximas': 'Próximas facturas',
+  'diario.titulo': 'Salidas por día',
+  'diario.resumo': '{dias} días con gasto · promedio {media}',
+  'diario.lancamento1': '{n} movimiento',
+  'diario.lancamentos': '{n} movimientos',
+  'diario.rotuloBarra': '{dia}: {valor} en salidas. Ver este día.',
 
   'maiores.titulo': 'Mayores gastos del período',
 
@@ -189,8 +206,6 @@ export const es: Dicionario = {
   'geral.fechar': 'Cerrar',
   'doc.fatura': 'Factura',
   'doc.extrato': 'Extracto',
-  'doc.quitada': 'pagada',
-  'doc.emAberto': 'pendiente',
 
   'perfil.subtitulo': 'Cómo quieres que te llamemos aquí.',
   'perfil.apelidoLabel': 'Apodo — cómo aparece en el saludo',
@@ -252,24 +267,30 @@ export const es: Dicionario = {
   'tutorial.comecar': '¡Empezar!',
   'tutorial.boasVindas':
     'Bienvenido(a) a tu control financiero. Importa facturas y extractos en PDF y ve, con claridad, adónde fue tu dinero — sin escribir nada. En 30 segundos te muestro cómo.',
-  'tutorial.p1t': 'Importa un PDF',
+  'tutorial.p1t':
+    'Importa un PDF',
   'tutorial.p1c':
-    'Haz clic en "+ Importar PDF" y suelta la factura o el extracto — leo Nubank, Bradesco, Banco do Brasil, Sicredi y Sicoob. Todo se lee en el navegador; guardo solo los movimientos, el PDF nunca sale de tu equipo.',
-  'tutorial.p2t': 'Ve por período',
+    'En la página Importación, suelta la factura o el extracto — leo Nubank, Bradesco, Banco do Brasil, Sicredi y Sicoob. La lectura ocurre en tu navegador (el PDF nunca sale de tu computadora) y compruebo la suma contra el total que el propio banco declara, al centavo.',
+  'tutorial.p2t':
+    'El panel responde tres preguntas',
   'tutorial.p2c':
-    'Alterna entre Día, Semana, Mes y Año. El Mes agrupa por la factura, así que coincide con lo que realmente pagas ese mes.',
-  'tutorial.p3t': 'Ajusta las compras',
+    'Cuánto salió, cuánto entró y qué sobró en el período. Abajo, el donut muestra EN QUÉ se fue el dinero y el gráfico de días muestra CUÁNDO. Los dos son clicables: la porción abre esa categoría, la barra lleva a ese día.',
+  'tutorial.p3t':
+    'Elige el período',
   'tutorial.p3c':
-    'Cada compra recibe una categoría automática. Pasa el ratón por la fila y haz clic en el lápiz para renombrar el comercio o cambiar la categoría a tu manera.',
-  'tutorial.p4t': 'Tus documentos',
+    'Día, Semana, Mes y Año. Mes y Año agrupan por el período de la factura — coinciden con lo que pagas ese mes, no con la fecha de la compra. El recorte vive en la barra de direcciones: recargar no pierde nada, y el enlace lleva a otra persona a la misma pantalla.',
+  'tutorial.p4t':
+    'Encuentra y corrige',
   'tutorial.p4c':
-    'En el botón "Documentos" ves todo lo que importaste y puedes eliminar una factura específica — o empezar de cero si algo salió mal.',
-  'tutorial.p5t': 'Llévate el informe',
+    'En Movimientos, la vista "Todos" tiene búsqueda por nombre y filtro por categoría. Haz clic en el lápiz de una fila para renombrar el comercio o cambiar la categoría — y aprendo: en la próxima importación esa tienda ya viene correcta.',
+  'tutorial.p5t':
+    'Facturas y Categorías',
   'tutorial.p5c':
-    'El botón "Descargar PDF" arma un informe limpio del período y abre el diálogo de impresión — solo elige "Guardar como PDF" para guardarlo o imprimirlo en papel.',
-  'tutorial.p6t': 'A tu manera',
+    'En Facturas está todo lo que importaste, con la opción de borrar un documento o empezar de cero. En Categorías renombras las tuyas, eliges color e icono, y ves (o deshaces) cada regla que aprendí de tus correcciones.',
+  'tutorial.p6t':
+    'Recurrentes e informe',
   'tutorial.p6c':
-    'En el menú de la cuenta (el círculo con tu inicial, arriba) abres "Editar perfil" para cambiar el apodo del saludo y el nombre completo cuando quieras. Ahí también repasas este tour.',
+    'En Recurrentes muestro lo que se repite cada mes — suscripciones, cuentas — detectado solo, sin registrar nada, y aviso cuando un valor cambia o un cobro desaparece. Y el botón "Descargar PDF" del panel genera un informe del período para guardar o compartir.',
 
   'drop.tituloLendo': 'Leyendo el documento…',
   'drop.titulo': 'Suelta aquí tu factura o extracto',

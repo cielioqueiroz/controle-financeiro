@@ -24,6 +24,7 @@ describe('faturasAbertas', () => {
         bank: 'nubank',
         abertoCents: 268823,
         proximaCents: 127016,
+        futurasCents: null,
         proximoFechamento: '2026-07-20',
         date: '2026-06-20',
       },
@@ -34,8 +35,41 @@ describe('faturasAbertas', () => {
     expect(faturasAbertas([{ ...base, doc_type: 'extrato' }])).toEqual([])
   })
 
-  it('ignora fatura que não declara saldo em aberto', () => {
-    expect(faturasAbertas([{ ...base, total_open_balance: null }])).toEqual([])
+  it('ignora fatura que não declara NADA olhando para a frente', () => {
+    expect(
+      faturasAbertas([
+        { ...base, total_open_balance: null, future_installments_total: null },
+      ]),
+    ).toEqual([])
+  })
+
+  // O Bradesco não declara saldo em aberto — a fatura dele não traz o quanto
+  // já foi gasto no ciclo que ainda vai fechar. Exigir esse campo o deixava
+  // fora da fileira INTEIRA, e a tela mostrava "em aberto" só do Nubank, sem
+  // nada explicando a ausência do outro. Ele declara o total das próximas
+  // faturas, que é outro número — e entra com o rótulo dele.
+  it('aceita fatura que declara só o total das próximas faturas (Bradesco)', () => {
+    const bradesco: DocParaAberto = {
+      bank: 'bradesco',
+      account_id: 'b1',
+      doc_type: 'fatura',
+      period_end: '2026-06-28',
+      total_open_balance: null,
+      next_invoice_balance: null,
+      next_close_date: '2026-07-16',
+      future_installments_total: 557834,
+    }
+    expect(faturasAbertas([bradesco])).toEqual([
+      {
+        accountId: 'b1',
+        bank: 'bradesco',
+        abertoCents: null,
+        proximaCents: null,
+        futurasCents: 557834,
+        proximoFechamento: '2026-07-16',
+        date: '2026-06-28',
+      },
+    ])
   })
 
   it('ignora fatura sem period_end (não há como saber qual é a mais nova)', () => {

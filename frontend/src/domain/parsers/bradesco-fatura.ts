@@ -179,10 +179,32 @@ export function parseBradescoFatura(lines: Line[]): ParseResult {
       holderName: null,
     },
     forward: {
-      nextCloseDate: null,
+      nextCloseDate: lerProximoFechamento(lines),
       nextInvoiceBalance: null,
+      // `totalOpenBalance` fica null porque o Bradesco NÃO declara saldo em
+      // aberto: a fatura dele não traz o quanto já foi gasto no ciclo que
+      // ainda vai fechar (o Nubank traz, em "Saldo em aberto total"). O que
+      // ele declara é o total já comprometido em parcelas — outro número,
+      // com outro nome na tela. Derivar um "em aberto" a partir do que temos
+      // seria inventar: as compras do ciclo aberto estão na PRÓXIMA fatura,
+      // que ninguém importou ainda.
       totalOpenBalance: null,
       futureInstallmentsTotal: resumo(lines, /Total para as pr[óo]ximas faturas/i),
     },
   }
+}
+
+/** "Previsão de fechamento da próxima fatura: 16/07/2026".
+ *
+ *  O Bradesco declara a data, e o app gravava `null` desde sempre — então a
+ *  fileira de saldos não tinha o que mostrar para este banco enquanto a do
+ *  Nubank mostrava. Formato dd/mm/aaaa, diferente do "16 JUL 2026" do Nubank:
+ *  é por isso que cada parser tem o seu leitor em vez de um compartilhado. */
+function lerProximoFechamento(lines: Line[]): Date | null {
+  for (const line of lines) {
+    if (!/fechamento da pr[óo]xima fatura/i.test(line.text)) continue
+    const m = line.text.match(/(\d{2})\/(\d{2})\/(\d{4})/)
+    if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]))
+  }
+  return null
 }

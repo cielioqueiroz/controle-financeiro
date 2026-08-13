@@ -9,11 +9,11 @@ import { Categorias } from './paginas/Categorias'
 import { Painel } from './paginas/Painel'
 import { Lancamentos } from './paginas/Lancamentos'
 import { Recorrencias } from './paginas/Recorrencias'
-import { Datas } from './paginas/Datas'
 import { Importacao } from './paginas/Importacao'
 import { Marca } from './ui/Marca'
 import { Notificacoes } from './ui/Notificacoes'
 import { TelaAcesso, FraseDeslogado } from './ui/TelaAcesso'
+import { AvisoConfirmarEmail } from './ui/AvisoConfirmarEmail'
 import { Rodape } from './ui/Rodape'
 import { Celebracao } from './ui/Celebracao'
 import { Auth } from './ui/Auth'
@@ -30,6 +30,7 @@ import { parse, ParserNaoImplementadoError } from './domain/parsers'
 import { validar } from './domain/validate/checksum'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
+import { lerConfirmacaoDaUrl, limparConfirmacaoDaUrl } from './lib/confirmar-email'
 import { dataLongaDe } from './domain/normalize/data'
 import { salvarDocumento } from './persist/salvar'
 import { puxarRegras } from './persist/regras'
@@ -45,7 +46,14 @@ type Estado =
 export default function App() {
   const [estado, setEstado] = useState<Estado>({ fase: 'vazio' })
   const [logado, setLogado] = useState(false)
-  const [usuario, setUsuario] = useState<{ nome: string | null; email: string | null } | null>(null)
+  const [usuario, setUsuario] = useState<{
+    nome: string | null
+    email: string | null
+    /** `undefined` quando o servidor não informa: nesse caso o aviso NÃO
+     *  aparece. Alarme falso sobre e-mail não confirmado custa mais caro
+     *  que a ausência do aviso. */
+    emailVerificado?: boolean
+  } | null>(null)
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [salvando, setSalvando] = useState(false)
@@ -71,8 +79,13 @@ export default function App() {
     const { data } = await neon.auth.getSession()
     const logou = Boolean(data?.session)
     setLogado(logou)
-    const u = (data as { user?: { name?: string; email?: string } } | null)?.user
-    setUsuario(logou ? { nome: u?.name ?? null, email: u?.email ?? null } : null)
+    const u = (data as { user?: { name?: string; email?: string; emailVerified?: boolean } } | null)
+      ?.user
+    setUsuario(
+      logou
+        ? { nome: u?.name ?? null, email: u?.email ?? null, emailVerificado: u?.emailVerified }
+        : null,
+    )
     if (logou && tutorialPendente()) setMostrarTutorial(true)
     if (logou) recarregarRegras()
   }
@@ -84,6 +97,32 @@ export default function App() {
   }
 
   useEffect(() => {
+    checarSessao()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Quem clica no link do e-mail volta para cá: o servidor de auth confirma a
+  // conta e redireciona para esta origem marcada com `?confirmado=1`, e anexa
+  // `error=INVALID_TOKEN` quando o link já foi usado ou expirou. Sem este
+  // efeito a pessoa cairia numa tela igual a qualquer outra e não saberia se
+  // a confirmação valeu.
+  //
+  // Limpa a marca da URL logo depois: senão um F5 repetiria o aviso para
+  // sempre — a mesma razão do `limparTokenDaUrl` na redefinição de senha.
+  useEffect(() => {
+    const resultado = lerConfirmacaoDaUrl(window.location.search)
+    if (!resultado) return
+    if (resultado === 'confirmado') {
+      toast.success(t('app.emailConfirmado'), { description: t('app.emailConfirmadoDesc') })
+    } else {
+      toast.error(t('app.linkConfirmacaoInvalido'), {
+        description: t('app.linkConfirmacaoInvalidoDesc'),
+        duration: 8000,
+      })
+    }
+    limparConfirmacaoDaUrl()
+    // A confirmação muda `emailVerified` no servidor; recheca para o aviso
+    // do topo sumir sem precisar de F5.
     checarSessao()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -271,6 +310,14 @@ export default function App() {
           </div>
         </header>
 
+        {/* Só com o servidor dizendo explicitamente `false`: quando o campo
+            não vem (SDK antigo, sessão de outro provedor), a ausência de
+            aviso é melhor que um alarme falso pedindo para confirmar algo
+            que já está confirmado. */}
+        {logado && usuario?.email && usuario.emailVerificado === false && (
+          <AvisoConfirmarEmail email={usuario.email} />
+        )}
+
         {logado && <NavPrincipal />}
 
         {logado ? (
@@ -287,7 +334,6 @@ export default function App() {
               <Route path="/faturas" element={<Faturas />} />
               <Route path="/categorias" element={<Categorias onAprendeu={recarregarRegras} />} />
               <Route path="/recorrencias" element={<Recorrencias />} />
-              <Route path="/datas" element={<Datas />} />
               <Route
                 path="/importar"
                 element={

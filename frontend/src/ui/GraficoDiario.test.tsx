@@ -1,0 +1,85 @@
+import '@testing-library/jest-dom/vitest'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { GraficoDiario } from './GraficoDiario'
+import { porDia } from '../persist/agrupar'
+import type { TransacaoSalva } from '../persist/puxar'
+
+function tx(over: Partial<TransacaoSalva>): TransacaoSalva {
+  return {
+    id: 'x',
+    date: '2026-07-10',
+    competencia: '2026-07',
+    description: 'COMPRA',
+    label: null,
+    amount_cents: 1000,
+    kind: 'expense',
+    category_slug: 'outros',
+    bank: 'nubank',
+    doc_type: 'fatura',
+    document_id: 'd1',
+    installment: null,
+    ...over,
+  }
+}
+
+const DIAS = porDia([
+  tx({ id: 'a', date: '2026-07-03', amount_cents: 5000 }),
+  tx({ id: 'b', date: '2026-07-14', amount_cents: 40000 }),
+  tx({ id: 'c', date: '2026-07-14', amount_cents: 2000 }),
+  tx({ id: 'd', date: '2026-07-21', amount_cents: 1000 }),
+])
+
+describe('GraficoDiario', () => {
+  it('desenha uma barra por dia com gasto, em ordem cronológica', () => {
+    render(<GraficoDiario dias={DIAS} onSelecionar={() => {}} />)
+    const barras = screen.getAllByRole('button')
+    expect(barras).toHaveLength(3)
+    expect(barras[0]).toHaveAccessibleName(/3\/jul/)
+    expect(barras[2]).toHaveAccessibleName(/21\/jul/)
+  })
+
+  // Sem foco, a faixa mostra o dia de maior saída: é o que alguém procura
+  // primeiro num gráfico de picos, e evita a faixa vazia ocupando altura.
+  it('destaca o dia de maior saída antes de qualquer interação', () => {
+    render(<GraficoDiario dias={DIAS} onSelecionar={() => {}} />)
+    expect(screen.getByText('14/jul')).toBeInTheDocument()
+    expect(screen.getByText(/420,00/)).toBeInTheDocument()
+    expect(screen.getByText('2 lançamentos')).toBeInTheDocument()
+  })
+
+  it('a média é sobre os dias COM gasto, não sobre o calendário', () => {
+    // (50,00 + 420,00 + 10,00) / 3 dias = 160,00 — não /31.
+    render(<GraficoDiario dias={DIAS} onSelecionar={() => {}} />)
+    expect(screen.getByText(/3 dias com gasto · média R\$\s*160,00/)).toBeInTheDocument()
+  })
+
+  it('clicar num dia leva a tela para aquele dia', async () => {
+    const onSelecionar = vi.fn()
+    render(<GraficoDiario dias={DIAS} onSelecionar={onSelecionar} />)
+    await userEvent.click(screen.getByRole('button', { name: /21\/jul/ }))
+    expect(onSelecionar).toHaveBeenCalledWith('2026-07-21')
+  })
+
+  // Entrada de salário numa escala compartilhada esmagaria todas as saídas, e
+  // o gráfico deixaria de responder "quando eu gastei".
+  it('ignora entradas — o gráfico é de saídas', () => {
+    const comSalario = porDia([
+      tx({ id: 'a', date: '2026-07-03', amount_cents: 5000 }),
+      tx({ id: 'b', date: '2026-07-05', amount_cents: -900000, kind: 'income' }),
+      tx({ id: 'c', date: '2026-07-21', amount_cents: 1000 }),
+    ])
+    render(<GraficoDiario dias={comSalario} onSelecionar={() => {}} />)
+    expect(screen.getAllByRole('button')).toHaveLength(2)
+    expect(screen.queryByText(/9\.000,00/)).not.toBeInTheDocument()
+  })
+
+  // Um dia só não é ritmo: é o número do tile de gasto, desenhado. Melhor
+  // não ocupar metade do painel com isso.
+  it('não desenha nada com menos de dois dias', () => {
+    const um = porDia([tx({ id: 'a', date: '2026-07-03', amount_cents: 5000 })])
+    const { container } = render(<GraficoDiario dias={um} onSelecionar={() => {}} />)
+    expect(container).toBeEmptyDOMElement()
+  })
+})

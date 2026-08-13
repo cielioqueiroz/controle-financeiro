@@ -37,7 +37,6 @@ function montar() {
     <ConteudoDocumentos
       onMudou={vi.fn()}
       contagem={new Map([['doc-1', { qtd: 12, totalCents: 34500 }]])}
-      pagamentos={[]}
     />,
   )
 }

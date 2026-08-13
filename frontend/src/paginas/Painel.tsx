@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
-import { maioresSaidas, evolucaoMensal } from '../persist/agrupar'
+import { maioresSaidas, evolucaoMensal, porDia } from '../persist/agrupar'
 import { saldosPorConta } from '../persist/saldos'
 import { faturasAbertas } from '../persist/aberto'
 import { nomeCategoria } from '../domain/categorize/categorias'
@@ -14,6 +14,7 @@ import { BarraFiltros } from '../ui/BarraFiltros'
 import { rotuloPeriodo } from '../dados/periodo'
 import { GraficoCategorias } from '../ui/GraficoCategorias'
 import { GraficoEvolucao } from '../ui/GraficoEvolucao'
+import { GraficoDiario } from '../ui/GraficoDiario'
 import { MaioresSaidas } from '../ui/MaioresSaidas'
 import { SaldoConta } from '../ui/SaldoConta'
 import { SaldoAberto } from '../ui/SaldoAberto'
@@ -60,6 +61,7 @@ export function Painel({ onAprendeu }: Props) {
   const abertos = useMemo(() => faturasAbertas(docsSaldo), [docsSaldo])
   const maiores = useMemo(() => maioresSaidas(txs, 5), [txs])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
+  const dias = useMemo(() => porDia(txs), [txs])
 
   // Entrada escalonada e discreta — o painel "se monta" de cima para baixo
   // em vez de piscar inteiro. Restrição de propósito: app de dinheiro pede
@@ -77,6 +79,14 @@ export function Painel({ onAprendeu }: Props) {
   function irParaMes(competencia: string) {
     const [y, m] = competencia.split('-').map(Number)
     setFiltros({ periodo: 'mes', ref: new Date(y, m - 1, 1) })
+  }
+
+  /** Clicar num dia do ritmo leva a tela para aquele dia — o mesmo gesto que
+   *  clicar num mês na evolução. Data local: `new Date('2026-07-14')` seria
+   *  UTC e, no Brasil, voltaria o dia 13. */
+  function irParaDia(dia: string) {
+    const [y, m, d] = dia.split('-').map(Number)
+    setFiltros({ periodo: 'dia', ref: new Date(y, m - 1, d) })
   }
 
   // Aba aberta antes de um deploy pede um chunk que não existe mais. Culpar
@@ -211,6 +221,7 @@ export function Painel({ onAprendeu }: Props) {
               key={`aberto-${a.bank}-${a.accountId ?? 'sem-conta'}`}
               bank={a.bank}
               abertoCents={a.abertoCents}
+              futurasCents={a.futurasCents}
               proximoFechamento={a.proximoFechamento}
             />
           ))}
@@ -284,11 +295,17 @@ export function Painel({ onAprendeu }: Props) {
                   />
                 )}
               </div>
-              <div className="bg-carvao-900 p-5">
+              {/* A metade direita ficava LITERALMENTE vazia com menos de dois
+                  meses de competência importados — o gráfico de evolução se
+                  apaga sozinho, e quem acabou de importar as primeiras
+                  faturas via um buraco branco ao lado do donut. O ritmo
+                  diário responde com um mês só, e as duas perguntas se
+                  empilham quando há histórico: "quando gastei" e "como este
+                  mês se compara". */}
+              <div className="screen-only space-y-6 bg-carvao-900 p-5">
+                <GraficoDiario dias={dias} onSelecionar={irParaDia} />
                 {serie.length >= 2 && (
-                  <div className="screen-only">
-                    <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
-                  </div>
+                  <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
                 )}
               </div>
             </motion.div>

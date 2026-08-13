@@ -10,7 +10,10 @@ from playwright.sync_api import sync_playwright
 
 RAIZ = Path(__file__).resolve().parent.parent
 ORIGEM = RAIZ / "scripts" / "og-card.html"
-DESTINO = RAIZ / "public" / "og.png"
+# `frontend/public/`, não `public/`: a pasta mudou de lugar na reforma de
+# 2026-08-07 e este caminho ficou para trás — o script criava um `public/` na
+# raiz que ninguém servia, e o og.png publicado continuava sendo o antigo.
+DESTINO = RAIZ / "frontend" / "public" / "og.png"
 
 with sync_playwright() as p:
     navegador = p.chromium.launch(headless=True)

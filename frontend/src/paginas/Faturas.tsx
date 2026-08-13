@@ -1,14 +1,17 @@
 import { useMemo } from 'react'
 import { ConteudoDocumentos } from '../ui/Documentos'
 import { useDados } from '../dados/DadosProvider'
-import type { PagamentoParaQuitacao } from '../domain/quitacao'
 
 /** Faturas e extratos importados. Era o modal "Documentos", aberto por um
  *  botão no topo do painel; virou seção própria em 2026-08-07.
  *
- *  Os dois agregados abaixo moravam no Dashboard, que os passava ao modal.
- *  Vieram para cá porque é esta a única tela que os usa — ficar no painel
- *  significava recalculá-los em toda troca de período sem ninguém olhar. */
+ *  A contagem por documento morava no Dashboard, que a passava ao modal.
+ *  Veio para cá porque é esta a única tela que a usa — ficar no painel
+ *  significava recalculá-la em toda troca de período sem ninguém olhar.
+ *
+ *  O selo de quitada/em aberto saiu em 2026-08-09, a pedido do usuário. Com
+ *  ele saíram o cálculo de pagamentos daqui e `domain/quitacao.ts` inteiro —
+ *  código que ninguém mais alcançava. Está no histórico do git se voltar. */
 export function Faturas() {
   const { todas, recarregar } = useDados()
 
@@ -23,21 +26,9 @@ export function Faturas() {
     return m
   }, [todas])
 
-  // Pagamentos de fatura de TODO o histórico, não só do período visível: a
-  // quitação cruza fatura e extrato que podem ter sido importados com meses
-  // de diferença — foi justamente esse o buraco que `vincular()` deixava,
-  // por só cruzar documentos do mesmo lote de importação.
-  const pagamentos: PagamentoParaQuitacao[] = useMemo(
-    () =>
-      (todas ?? [])
-        .filter((t) => t.kind === 'card_payment')
-        .map((t) => ({ id: t.id, date: t.date, amount_cents: t.amount_cents, kind: t.kind })),
-    [todas],
-  )
-
   return (
     <div className="mt-6 mx-auto max-w-3xl">
-      <ConteudoDocumentos contagem={contagem} pagamentos={pagamentos} onMudou={recarregar} />
+      <ConteudoDocumentos contagem={contagem} onMudou={recarregar} />
     </div>
   )
 }
