@@ -36,6 +36,9 @@ ALVOS = [
     ("print-graficos.png", "/demo.html", '[data-prova="graficos-painel"]', 1440, None),
     ("print-saldos.png", "/demo.html", '[data-prova="saldos"]', 1280, None),
     ("print-compromissos.png", "/demo.html", '[data-prova="compromissos"]', 1280, None),
+    # Os dois rankings lado a lado. A largura importa aqui: abaixo de 1024 o
+    # grid empilha, e o print perderia justamente a comparacao entre eles.
+    ("print-rankings.png", "/demo.html", '[data-prova="rankings"]', 1440, None),
     # Aberto: o print precisa mostrar o CAMPO do codigo, que e a razao de a
     # faixa existir. Fechada, ela nao conta a historia toda.
     ("print-aviso-email.png", "/demo.html", '[data-prova="aviso-email"]', 1100, "Confirmar agora"),

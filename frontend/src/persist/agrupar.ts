@@ -1,4 +1,5 @@
 import { categoria, type Categoria } from '../domain/categorize/categorias'
+import { normalizeMerchant } from '../domain/normalize/merchant'
 import type { CategoriaResumo } from '../domain/insights'
 
 export type Periodo = 'dia' | 'semana' | 'mes' | 'ano'
@@ -262,6 +263,88 @@ export function maioresSaidas<T extends TxAgrupavel>(txs: T[], n = 5): T[] {
     .slice()
     .sort((a, b) => b.amount_cents - a.amount_cents)
     .slice(0, n)
+}
+
+export type TxComEstabelecimento = TxAgrupavel & {
+  /** Descrição do banco. É ela que identifica o estabelecimento. */
+  description: string
+  /** Renome do usuário para AQUELA compra — não para o estabelecimento. */
+  label: string | null
+}
+
+export type GrupoEstabelecimento = {
+  /** Chave normalizada: é o que agrupa, e é o que a busca recebe no clique. */
+  merchant: string
+  /** Nome a exibir — o rótulo do usuário quando existe, senão a chave. */
+  rotulo: string
+  totalCents: number
+  contagem: number
+}
+
+/** Ranking de ONDE o dinheiro saiu, somando as compras repetidas.
+ *
+ *  Pergunta diferente da de `maioresSaidas`, e as duas convivem: aquela acha
+ *  a maior compra isolada (o empréstimo de R$ 41 mil), esta acha o ralo que
+ *  só existe somado — três pedidos de R$ 80 no mesmo lugar viram R$ 240 e
+ *  sobem no ranking, enquanto isoladamente nenhum apareceria.
+ *
+ *  **Agrupa pela descrição do banco, nunca pelo rótulo do usuário.** Renomear
+ *  UMA compra é uma nota sobre aquela linha; se o rótulo agrupasse, renomear
+ *  uma das três partiria o grupo em dois e o ranking mentiria. O rótulo entra
+ *  só na exibição — quem escreveu "iFood" no lugar de "PAG*IFOOD*RESTAURA"
+ *  já disse como quer ler aquele lugar. */
+export function porEstabelecimento<T extends TxComEstabelecimento>(
+  txs: T[],
+  n = 5,
+): GrupoEstabelecimento[] {
+  // Mesmo filtro de `agregar` e `maioresSaidas`: pagamento de fatura e
+  // transferência interna não são gasto. Sem isso "PAGAMENTO FATURA" lideraria
+  // o ranking com a soma de todas as compras que ele quita.
+  const mapa = new Map<string, GrupoEstabelecimento & { maiorRotulado: number }>()
+
+  for (const t of txs) {
+    if (t.kind !== 'expense') continue
+    const merchant = normalizeMerchant(t.description)
+    const atual = mapa.get(merchant) ?? {
+      merchant,
+      rotulo: merchant,
+      totalCents: 0,
+      contagem: 0,
+      maiorRotulado: -1,
+    }
+    atual.totalCents += t.amount_cents
+    atual.contagem += 1
+    // O rótulo da MAIOR compra rotulada vence: com duas notas diferentes no
+    // mesmo lugar, a da compra maior é a que descreve melhor o grupo.
+    if (t.label && t.amount_cents > atual.maiorRotulado) {
+      atual.rotulo = t.label
+      atual.maiorRotulado = t.amount_cents
+    }
+    mapa.set(merchant, atual)
+  }
+
+  return [...mapa.values()]
+    .sort((a, b) => b.totalCents - a.totalCents)
+    .slice(0, n)
+    .map(({ merchant, rotulo, totalCents, contagem }) => ({
+      merchant,
+      rotulo,
+      totalCents,
+      contagem,
+    }))
+}
+
+/** Variação do período contra o anterior, como fração com sinal
+ *  (`0.22` = +22%).
+ *
+ *  `null` quando não há período anterior com que comparar. Esse retorno é o
+ *  ponto do arquivo: sem base, qualquer gasto seria "+∞%", e um número
+ *  inventado num tile é pior que tile nenhum — a UI esconde em vez de
+ *  preencher. O contrário (atual zerado, anterior com dado) É comparável:
+ *  gastou antes e não gastou agora é -100%, e isso informa. */
+export function variacaoPct(atualCents: number, anteriorCents: number): number | null {
+  if (anteriorCents === 0) return null
+  return (atualCents - anteriorCents) / anteriorCents
 }
 
 export type GrupoDia<T> = {

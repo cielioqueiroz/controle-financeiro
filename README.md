@@ -51,9 +51,22 @@ Bradesco — as cores institucionais, as mesmas em toda a tela):
 
 ![Compromissos futuros](docs/img/print-compromissos.png)
 
-> As imagens saem de `frontend/demo.html`, uma folha de provas com dados
-> **fictícios** — nenhum extrato real aparece no repositório. Regere com
-> `python scripts/gerar-prints.py`.
+**Dois rankings que respondem perguntas diferentes** — e é a diferença que importa:
+
+![Maiores saídas e onde mais saiu dinheiro](docs/img/print-rankings.png)
+
+> Repare no **ATACADAO**: à esquerda ele aparece duas vezes, em 3º e 5º, como duas
+> compras de R$ 456 e R$ 321. À direita, somado, ele sobe para **2º com R$ 777**. A
+> lista da esquerda acha a compra única e grande; a da direita acha o ralo que só
+> existe somado — e é justamente esse que passa despercebido.
+
+> ### ⚠️ Nenhum número aqui é real
+>
+> Todas as imagens saem de `frontend/demo.html`, uma folha de provas com dados
+> **fictícios** — saldos, compras, estabelecimentos e e-mail, todos inventados.
+> **Nenhum extrato, valor ou dado pessoal real aparece neste repositório**, e é por
+> desenho: PDFs reais são ignorados pelo git e os prints nunca são tirados do app
+> com a conta de verdade. Regere com `python scripts/gerar-prints.py`.
 
 ---
 
@@ -68,6 +81,8 @@ Bradesco — as cores institucionais, as mesmas em toda a tela):
 | 🔗 **Não conta o mesmo dinheiro duas vezes** | cruza fatura × extrato e marca quitação e transferência entre contas próprias |
 | 📅 **Dia / Semana / Mês / Ano** | Mês e Ano agrupam por **competência da fatura**; Dia e Semana, pela data da compra |
 | 📊 **Gráficos próprios em SVG** | donut por categoria, saídas por dia, entradas × saídas, parcelas por mês |
+| 🏪 **Onde mais saiu dinheiro** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra |
+| 📈 **Compara com o período anterior** | "12% acima do mês passado" nos tiles; some quando não há base de comparação, em vez de inventar um "+100%" |
 | 🔮 **Compromissos futuros** | projeta as parcelas que ainda vão cair, sem duplicar quando a fatura chegar |
 | 🔁 **Recorrências e alertas** | detecta assinaturas pelo histórico e avisa quando o valor muda ou a cobrança some |
 | 💵 **Saldo por conta e próximas faturas** | lidos do documento mais recente de cada banco |
@@ -294,6 +309,19 @@ flowchart TB
   violações e nota máxima.
 - **As variáveis `VITE_*` são públicas por design** (vão para o bundle). A proteção real
   é o RLS + o JWT. **Nunca** ponha a string de conexão do Postgres num `VITE_`.
+- **`npm audit` faz parte da revisão.** Em 13/08/2026 ele apontou uma falha **alta** no
+  `pdfjs-dist` — *execução de JavaScript arbitrário ao abrir um PDF malicioso* —, que é
+  a superfície mais exposta do app inteiro: abrir PDF é o que ele faz. Corrigida
+  (5.7.284 → 6.2.108). O que **não** dá para corrigir daqui são as falhas da cadeia do
+  SDK do Neon (`@neondatabase/neon-js` → `better-auth`): dependem de a Neon publicar
+  versão nova, e os caminhos vulneráveis do `better-auth` são do **servidor de auth**
+  hospedado por eles, não do cliente que vai no bundle.
+
+> **Sobre o upgrade do pdf.js:** nenhum teste do projeto exercita o pdf.js de verdade
+> (os fixtures são JSON já extraído, e `domain/pdf/load.ts` é mockado em jsdom, que não
+> tem `DOMMatrix`). A suíte inteira passaria verde com o parser quebrado. Por isso o
+> salto de major foi verificado gerando um PDF com texto conhecido e extraindo de volta
+> pela mesma chamada que o app usa: texto e coordenadas idênticos nas duas versões.
 
 ---
 
@@ -398,6 +426,10 @@ Aberto hoje:
 
 - **Backend próprio** (Vercel Functions) — desenhado, esperando a `DATABASE_URL` de uma
   role sem `BYPASSRLS`. Enquanto isso o cliente fala direto com a Data API, com RLS.
+- **SDK do Neon em beta** (`@neondatabase/neon-js@0.6.2-beta`) — já existe a `0.7.0-beta`,
+  e o `npm audit` aponta a cadeia dele. O upgrade está **parado de propósito**: a suíte
+  mocka o SDK inteiro, então uma regressão de login não seria pega por teste nenhum —
+  validar exige entrar com uma conta real.
 - **Mais bancos** — Caixa parada por falta de amostra (o extrato veio como imagem e o
   app lê texto) e o layout A do BB (2020) espera um PDF nesse formato aparecer.
 - **Confirmação de e-mail por link** — o Neon Auth com remetente compartilhado só envia

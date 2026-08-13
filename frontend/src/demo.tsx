@@ -11,7 +11,16 @@ import { GraficoEvolucao } from './ui/GraficoEvolucao'
 import { GraficoCompromissos } from './ui/GraficoCompromissos'
 import { CompromissosFuturos } from './ui/CompromissosFuturos'
 import { AvisoConfirmarEmail } from './ui/AvisoConfirmarEmail'
-import { agregar, porDia, projecaoFutura, type PontoMes } from './persist/agrupar'
+import { MaioresSaidas } from './ui/MaioresSaidas'
+import { TopEstabelecimentos } from './ui/TopEstabelecimentos'
+import {
+  agregar,
+  porDia,
+  projecaoFutura,
+  maioresSaidas,
+  porEstabelecimento,
+  type PontoMes,
+} from './persist/agrupar'
 import type { TransacaoSalva } from './persist/puxar'
 
 /** Folha de provas: os componentes visuais com dados FICTÍCIOS.
@@ -188,6 +197,16 @@ export function Folha() {
             <GraficoDiario dias={dias} onSelecionar={() => {}} />
             <GraficoEvolucao serie={SERIE} ativo="2026-07" onSelecionar={() => {}} />
           </div>
+        </div>
+      </Secao>
+
+      {/* Os dois rankings juntos, que é como o painel os mostra. A amostra
+          tem ATACADAO, UBER TRIP e CAFETERIA GRAO repetidos de propósito: é
+          neles que a diferença entre as duas listas aparece. */}
+      <Secao titulo="rankings">
+        <div className="grid gap-6 rounded-2xl border border-carvao-700 bg-carvao-900 p-5 lg:grid-cols-2">
+          <MaioresSaidas itens={maioresSaidas(TUDO, 5)} onEditar={() => {}} />
+          <TopEstabelecimentos itens={porEstabelecimento(TUDO, 5)} onAbrir={() => {}} />
         </div>
       </Secao>
 

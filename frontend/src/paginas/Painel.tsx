@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
-import { maioresSaidas, evolucaoMensal, porDia } from '../persist/agrupar'
+import { maioresSaidas, porEstabelecimento, evolucaoMensal, porDia } from '../persist/agrupar'
 import { saldosPorConta } from '../persist/saldos'
 import { faturasAbertas } from '../persist/aberto'
 import { nomeCategoria } from '../domain/categorize/categorias'
@@ -16,6 +16,7 @@ import { GraficoCategorias } from '../ui/GraficoCategorias'
 import { GraficoEvolucao } from '../ui/GraficoEvolucao'
 import { GraficoDiario } from '../ui/GraficoDiario'
 import { MaioresSaidas } from '../ui/MaioresSaidas'
+import { TopEstabelecimentos } from '../ui/TopEstabelecimentos'
 import { SaldoConta } from '../ui/SaldoConta'
 import { SaldoAberto } from '../ui/SaldoAberto'
 import { ErroCarregar } from '../ui/ErroCarregar'
@@ -54,7 +55,7 @@ export function Painel({ onAprendeu }: Props) {
   const { t } = useT()
   const navigate = useNavigate()
   const { docsSaldo, recarregar, aplicarEdicao } = useDados()
-  const { txs, resumo, visiveis, filtros, setFiltros, compAtiva, carregando, erro, vazio } =
+  const { txs, resumo, variacao, visiveis, filtros, setFiltros, compAtiva, carregando, erro, vazio } =
     useRecorte()
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const [gerandoPdf, setGerandoPdf] = useState(false)
@@ -66,6 +67,7 @@ export function Painel({ onAprendeu }: Props) {
   const saldos = useMemo(() => saldosPorConta(docsSaldo), [docsSaldo])
   const abertos = useMemo(() => faturasAbertas(docsSaldo), [docsSaldo])
   const maiores = useMemo(() => maioresSaidas(txs, 5), [txs])
+  const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
   const dias = useMemo(() => porDia(txs), [txs])
 
@@ -85,6 +87,16 @@ export function Painel({ onAprendeu }: Props) {
   function irParaMes(competencia: string) {
     const [y, m] = competencia.split('-').map(Number)
     setFiltros({ periodo: 'mes', ref: new Date(y, m - 1, 1) })
+  }
+
+  /** Clicar num estabelecimento abre os lançamentos dele — como clicar numa
+   *  fatia do donut abre a categoria. Vai pela BUSCA (`q`), e não por um
+   *  filtro novo de estabelecimento: `casaTermo` já procura na descrição do
+   *  banco, e a chave normalizada é sempre um trecho dela (o normalizador só
+   *  remove — prefixo de adquirente, sufixo de parcela). Leva o recorte
+   *  junto para a lista abrir no mesmo período do painel. */
+  function irParaEstabelecimento(merchant: string) {
+    navigate(`/lancamentos${escreverFiltros({ ...filtros, busca: merchant })}`)
   }
 
   /** Clicar num dia do ritmo leva a tela para aquele dia — o mesmo gesto que
@@ -257,12 +269,16 @@ export function Painel({ onAprendeu }: Props) {
             {/* Tiles de resumo */}
             <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-2 lg:grid-cols-4">
               <motion.div {...entra(0.05)}>
-                <Tile rotulo={t('dash.gasto')} destaque>
+                <Tile rotulo={t('dash.gasto')} destaque variacao={variacao.gasto} subirEhRuim>
                   <ValorAnimado valor={resumo.gastoCents} />
                 </Tile>
               </motion.div>
               <motion.div {...entra(0.12)}>
-                <Tile rotulo={t('dash.entradas')} cor="var(--color-confere)">
+                <Tile
+                  rotulo={t('dash.entradas')}
+                  cor="var(--color-confere)"
+                  variacao={variacao.entradas}
+                >
                   <ValorAnimado valor={resumo.entradasCents} />
                 </Tile>
               </motion.div>
@@ -315,7 +331,16 @@ export function Painel({ onAprendeu }: Props) {
             </motion.div>
 
             <motion.div {...entra(0.34)} className="border-t border-carvao-800 p-5">
-              <MaioresSaidas itens={maiores} onEditar={setEditando} />
+              {/* Os dois lado a lado, e não um no lugar do outro: respondem
+                  perguntas diferentes sobre o mesmo período. "Maiores saídas"
+                  acha a compra única e grande (o empréstimo, a geladeira);
+                  "onde mais saiu" acha o ralo que só existe somado — três
+                  pedidos de R$ 80 que nenhum ranking de maior compra mostra.
+                  Empilham no celular. */}
+              <div className="grid gap-6 lg:grid-cols-2">
+                <MaioresSaidas itens={maiores} onEditar={setEditando} />
+                <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+              </div>
               {/* Leva o recorte junto, como a barra de navegação: sem a
                   query, "Lançamentos →" saltaria para outro mês e para todos
                   os bancos, logo abaixo de uma lista que fala do mês atual. */}
@@ -362,11 +387,16 @@ function Tile({
   rotulo,
   cor,
   destaque,
+  variacao,
+  /** `true` quando subir é RUIM (gasto). Entradas invertem: subir é bom. */
+  subirEhRuim,
   children,
 }: {
   rotulo: string
   cor?: string
   destaque?: boolean
+  variacao?: number | null
+  subirEhRuim?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -378,8 +408,43 @@ function Tile({
       >
         {children}
       </p>
+      {variacao !== undefined && variacao !== null && (
+        <ComparacaoPeriodo pct={variacao} subirEhRuim={subirEhRuim} />
+      )}
     </div>
   )
+}
+
+/** A linha "12% acima do período anterior" abaixo do número.
+ *
+ *  Só aparece quando HÁ período anterior com dado (`variacaoPct` devolve
+ *  `null` caso contrário, e o `Tile` não renderiza). Sem essa guarda, o
+ *  primeiro mês importado estamparia "+100%" em tudo — que não significa
+ *  "gastou o dobro", significa "não havia nada antes".
+ *
+ *  A cor depende do que o tile mede: gastar 12% a mais é vermelho, receber
+ *  12% a mais é verde. Um sinal único para "subiu" pintaria de vermelho um
+ *  aumento de salário. */
+function ComparacaoPeriodo({ pct, subirEhRuim }: { pct: number; subirEhRuim?: boolean }) {
+  const { t } = useT()
+  // Arredonda ANTES de decidir o texto: 0,4% viraria "0% acima", que soa a
+  // defeito. Abaixo de meio ponto o período empatou, e é isso que se diz.
+  const arredondado = Math.round(Math.abs(pct) * 100)
+  const subiu = pct > 0
+
+  const texto =
+    arredondado === 0
+      ? t('variacao.igual')
+      : t(subiu ? 'variacao.subiu' : 'variacao.caiu', { pct: arredondado })
+
+  const cor =
+    arredondado === 0
+      ? 'text-tinta-tenue'
+      : subiu === Boolean(subirEhRuim)
+        ? 'text-debito'
+        : 'text-credito'
+
+  return <p className={`mt-1 text-[11px] ${cor}`}>{texto}</p>
 }
 
 function Vazio() {

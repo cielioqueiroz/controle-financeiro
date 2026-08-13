@@ -273,12 +273,80 @@ Já estão fora da primeira pintura, conferido na lista de `modulepreload` do
 `DadosProvider`. Build e lint limpos (os mesmos 4 avisos pré-existentes), CSP reaprovada
 contra o build.
 
+### 8. O spec que já existia — e a falha alta que estava aberta no pdf.js
+
+`docs/prompt-dashboard-financeiro.md` é a especificação **deste mesmo produto**, escrita
+para outra stack (Next.js/Supabase/Recharts). Conferido item a item contra o código: o
+projeto já cumpre quase tudo, e em dois pontos ultrapassa o pedido (`fx jsonb` para
+compra em moeda estrangeira e `linked_transaction_id` materializando o vínculo
+fatura×extrato — nenhum dos dois está no spec).
+
+⚠️ **A armadilha 4 do spec quase virou falso achado.** Ela exige um discriminador para
+duas compras idênticas no mesmo dia e lugar, que são legítimas. `dedupe/hash.ts` não tem
+— mas `persist/salvar.ts:103` conta ocorrências e sufixa `#2`, `#3`. Estava resolvido,
+só não onde se procura primeiro. **Ler o arquivo que nomeia a função não basta; é
+preciso ler quem a chama.**
+
+#### Os dois blocos construídos
+
+- **Onde mais saiu dinheiro** (`porEstabelecimento` + `ui/TopEstabelecimentos.tsx`):
+  ranking por estabelecimento, ao lado de "maiores saídas" e **não no lugar dela** — são
+  perguntas distintas. A prova está no print: ATACADAO aparece em 3º e 5º na lista de
+  maiores compras (R$ 456 e R$ 321) e sobe para **2º com R$ 777** quando somado. Agrupa
+  pela descrição do banco, nunca pelo rótulo do usuário: renomear UMA compra partiria o
+  grupo em dois. O rótulo entra só na exibição.
+- **Variação contra o período anterior** nos tiles. O ponto do bloco é o `null`:
+  sem período anterior, qualquer gasto seria "+∞%", e "+100%" no primeiro mês importado
+  não significa "gastou o dobro" — significa "não havia nada antes". A UI esconde. A cor
+  também não segue só o sinal: gastar 10% a mais é vermelho, **receber** 10% a mais é
+  verde.
+
+#### 🔴 Falha ALTA no pdf.js — a que mais importava desta rodada
+
+Varredura de segurança pedida pelo usuário. O `npm audit` apontou `pdfjs-dist@5.7.284`
+dentro da faixa vulnerável de **GHSA-hq66-cqwq-w95j — "execução de JavaScript arbitrário
+ao abrir um PDF malicioso"**. É a superfície mais exposta do app: abrir PDF é o que ele
+faz. Corrigida: **5.7.284 → 6.2.108** (primeira versão fora da faixa).
+
+⚠️ **Nenhum teste do projeto exercitava o pdf.js.** Os fixtures são JSON já extraído e
+`domain/pdf/load.ts` é mockado em jsdom (que não tem `DOMMatrix`): a suíte inteira
+passaria verde com o parser quebrado — a mesma armadilha já registrada para gráficos.
+Por isso o salto de major foi provado à parte: PDF gerado com texto conhecido, extraído
+de volta pela mesma chamada do app (`getDocument` → `getTextContent` → `str` +
+`transform`). **Texto e coordenadas idênticos nas duas versões.**
+
+#### O resto da varredura, e o que ficou de fora
+
+| Frente | Resultado |
+|---|---|
+| Histórico do git (todos os commits) | **limpo** — nenhum `.env` ou PDF jamais versionado, nenhuma credencial |
+| Árvore versionada | **limpa** — sem chave, token, CPF, agência ou conta |
+| Prints do README | **fictícios**, e conferido: os valores batem com `demo.tsx:171-182` |
+| Fixtures | **anonimizados** (`MARIA APARECIDA SANTOSS`, agência `111`, conta `1234-5`) |
+| RLS | as **5** tabelas criadas são as 5 com RLS ligado |
+| Repositório | **privado** |
+
+**Upgrade do SDK do Neon: NÃO feito, de propósito.** As 6 falhas restantes do `npm
+audit` são todas da cadeia `@neondatabase/neon-js` → `better-auth`. Existe uma
+`0.7.0-beta`, mas **a suíte mocka o SDK inteiro** — uma regressão de login não seria
+pega por teste nenhum, e validar exige entrar com conta real. Trocar a biblioteca de
+autenticação de um app no ar sem poder verificar é pior que a falha que se conserta:
+os caminhos vulneráveis do `better-auth` (callback OAuth, sessão após exclusão) são do
+**servidor de auth hospedado pela Neon**, não do cliente que vai no bundle.
+
+**638 testes (81 arquivos)**, build e lint limpos, CSP, overflow e contraste reaprovados.
+
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**617 testes (79 arquivos)**, build e lint limpos, CSP completa medida contra o
+**638 testes (81 arquivos)**, build e lint limpos, CSP completa medida contra o
 build **e** contra o site publicado. Trabalha-se direto na `main`; todo push
 publica sozinho em ~1 min.
+
+⚠️ **Pendência de segurança viva:** `npm audit` acusa 6 falhas na cadeia do SDK do Neon
+(`@neondatabase/neon-js@0.6.2-beta` → `better-auth`). Existe uma `0.7.0-beta`. Não foi
+aplicada porque **a suíte mocka o SDK inteiro** — regressão de login não seria pega por
+teste. Exige entrar com conta real para validar. Ver a rodada de 13/08, item 8.
 
 **Três coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
 

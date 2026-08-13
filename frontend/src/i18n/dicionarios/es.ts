@@ -139,6 +139,15 @@ export const es: Dicionario = {
 
   'maiores.titulo': 'Mayores gastos del período',
 
+  'estab.titulo': 'Dónde se fue el dinero',
+  'estab.compra1': '1 compra',
+  'estab.compras': '{n} compras',
+  'estab.rotulo': '{nome}: {valor} en {n} compras. Ver movimientos.',
+
+  'variacao.subiu': '{pct}% por encima del período anterior',
+  'variacao.caiu': '{pct}% por debajo del período anterior',
+  'variacao.igual': 'igual que el período anterior',
+
   'rec.titulo': 'Recurrentes',
   'rec.contagem': '{n} detectadas en el historial',
   'rec.contagem1': '{n} detectada en el historial',

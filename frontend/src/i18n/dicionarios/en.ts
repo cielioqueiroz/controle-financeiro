@@ -139,6 +139,15 @@ export const en: Dicionario = {
 
   'maiores.titulo': 'Largest expenses in period',
 
+  'estab.titulo': 'Where the money went',
+  'estab.compra1': '1 purchase',
+  'estab.compras': '{n} purchases',
+  'estab.rotulo': '{nome}: {valor} across {n} purchases. View transactions.',
+
+  'variacao.subiu': '{pct}% above the previous period',
+  'variacao.caiu': '{pct}% below the previous period',
+  'variacao.igual': 'same as the previous period',
+
   'rec.titulo': 'Recurring',
   'rec.contagem': '{n} found in your history',
   'rec.contagem1': '{n} found in your history',

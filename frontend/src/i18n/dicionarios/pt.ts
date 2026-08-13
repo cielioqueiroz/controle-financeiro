@@ -155,6 +155,19 @@ export const pt = {
   // Maiores saídas do período
   'maiores.titulo': 'Maiores saídas do período',
 
+  // Ranking por estabelecimento. Título diferente de "maiores saídas" de
+  // propósito: os dois convivem lado a lado e respondem perguntas distintas
+  // ("qual foi a maior compra" × "que lugar mais consumiu").
+  'estab.titulo': 'Onde mais saiu dinheiro',
+  'estab.compra1': '1 compra',
+  'estab.compras': '{n} compras',
+  'estab.rotulo': '{nome}: {valor} em {n} compras. Ver lançamentos.',
+
+  // Variação contra o período anterior (tiles do resumo).
+  'variacao.subiu': '{pct}% acima do período anterior',
+  'variacao.caiu': '{pct}% abaixo do período anterior',
+  'variacao.igual': 'igual ao período anterior',
+
   // Recorrências detectadas
   'rec.titulo': 'Recorrências',
   'rec.contagem': '{n} detectadas no histórico',

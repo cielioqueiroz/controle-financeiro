@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { filtrar, agregar } from '../persist/agrupar'
+import { filtrar, agregar, variacaoPct } from '../persist/agrupar'
+import { mover } from './periodo'
 import { useDados } from './DadosProvider'
 import { useFiltros } from './useFiltros'
 
@@ -41,6 +42,21 @@ export function useRecorte() {
 
   const resumo = useMemo(() => agregar(txs), [txs])
 
+  /** O MESMO recorte, um período atrás — é o que dá sentido ao número do
+   *  tile: "R$ 918 em supermercado" só vira notícia comparado com o mês
+   *  passado. Calculado aqui, e não no Painel, porque o recorte anterior tem
+   *  que usar exatamente o mesmo `filtrar` (mesmo banco, mesma regra de
+   *  competência) — repetir essa lógica na página seria o caminho para as
+   *  duas divergirem na primeira mudança. */
+  const variacao = useMemo(() => {
+    if (!visiveis) return { gasto: null, entradas: null }
+    const anterior = agregar(filtrar(visiveis, filtros.periodo, mover(filtros.periodo, filtros.ref, -1)))
+    return {
+      gasto: variacaoPct(resumo.gastoCents, anterior.gastoCents),
+      entradas: variacaoPct(resumo.entradasCents, anterior.entradasCents),
+    }
+  }, [visiveis, filtros.periodo, filtros.ref, resumo.gastoCents, resumo.entradasCents])
+
   const compAtiva = `${filtros.ref.getFullYear()}-${String(filtros.ref.getMonth() + 1).padStart(2, '0')}`
 
   return {
@@ -48,6 +64,10 @@ export function useRecorte() {
     txs,
     /** Totais do recorte (gasto, entradas, saldo, contagem, por categoria). */
     resumo,
+    /** Variação de gasto e entradas contra o mesmo recorte um período atrás.
+     *  `null` em cada campo quando não há base de comparação — a UI esconde,
+     *  em vez de estampar um "+100%" que só significa "não havia nada antes". */
+    variacao,
     /** Todo o histórico do banco escolhido, sem recorte de período. Séries
      *  temporais e recorrências precisam disto: detectar "se repete todo
      *  mês" exige mais de um mês. */
