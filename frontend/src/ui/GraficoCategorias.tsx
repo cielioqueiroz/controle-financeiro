@@ -69,7 +69,7 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
           viewBox="0 0 130 130"
           className="h-40 w-40 -rotate-90"
           role="img"
-          aria-label={`Gasto por categoria, total ${formatBRL(totalCents)}`}
+          aria-label={t('donut.rotulo', { total: formatBRL(totalCents) })}
         >
           {topo.map((c, i) => {
             const fracao = c.totalCents / totalCents
@@ -126,7 +126,11 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
               onFocus={() => setAtiva(i)}
               onBlur={() => setAtiva(null)}
               className="flex w-full items-center gap-2.5 rounded-sm px-2 py-1 text-left text-sm transition-colors hover:bg-afundado"
-              aria-label={`${nomeCategoria(c.cat)}: ${formatBRL(c.totalCents)}, ${Math.round((c.totalCents / totalCents) * 100)}% do total. Ver lançamentos.`}
+              aria-label={t('donut.rotuloFatia', {
+                categoria: nomeCategoria(c.cat),
+                valor: formatBRL(c.totalCents),
+                pct: Math.round((c.totalCents / totalCents) * 100),
+              })}
             >
               <span
                 aria-hidden

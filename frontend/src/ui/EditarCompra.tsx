@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
+import { chaveDeErro } from '../lib/erro-usuario'
 import { editarTransacao } from '../persist/editar'
 import { criarCategoria } from '../persist/categoriasUsuario'
 import { salvarRegra } from '../persist/regras'
@@ -55,7 +56,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
       setNovoNome('')
       toast.success(t('editar.toastCatCriada', { nome: nova.nome }))
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('editar.toastCatFalha'))
+      toast.error(t(chaveDeErro(e, 'editar.toastCatFalha')))
     } finally {
       setSalvandoCat(false)
     }
@@ -85,7 +86,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
       }
       onFechar()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('editar.toastFalha'))
+      toast.error(t(chaveDeErro(e, 'editar.toastFalha')))
     } finally {
       setSalvando(false)
     }

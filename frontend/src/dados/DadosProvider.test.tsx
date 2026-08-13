@@ -64,14 +64,32 @@ describe('DadosProvider', () => {
     expect(puxarCategoriasUsuario).toHaveBeenCalledTimes(1)
   })
 
-  it('expõe o erro em vez de derrubar a árvore', async () => {
+  // O contrato mudou em 13/08. Antes o provider repassava `e.message` cru, e
+  // este teste afirmava isso (`/ERRO: rede caiu/`) — estava pinando o defeito:
+  // a mensagem vem da Data API em inglês técnico e ia inteira para a tela.
+  // Agora ele guarda a CHAVE do dicionário e quem renderiza chama `t()`.
+  it('expõe a chave do genérico quando não reconhece a causa', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.mocked(puxarTudo).mockRejectedValueOnce(new Error('rede caiu'))
     render(
       <DadosProvider>
         <Consumidor />
       </DadosProvider>,
     )
-    await screen.findByText(/ERRO: rede caiu/)
+    await screen.findByText(/ERRO: erro\.carregar/)
+  })
+
+  it('classifica a falha que tem conserto em vez de cair no genérico', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.mocked(puxarTudo).mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    render(
+      <DadosProvider>
+        <Consumidor />
+      </DadosProvider>,
+    )
+    // "Sem conexão, tente de novo" em vez de "falha ao carregar": diz o que
+    // fazer, que é a única diferença que justifica classificar.
+    await screen.findByText(/ERRO: erro\.semConexao/)
   })
 
   // Faturas trazem meses passados: abrir no mês corrente mostraria uma tela

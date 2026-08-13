@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { chaveDeErro } from '../lib/erro-usuario'
 import { puxarDocumentos, apagarDocumento, apagarTudo, type DocumentoSalvo } from '../persist/documentos'
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
@@ -59,7 +60,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
     try {
       setDocs(await puxarDocumentos())
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('docs.toastListaFalha'))
+      toast.error(t(chaveDeErro(e, 'docs.toastListaFalha')))
     }
   }
 
@@ -77,7 +78,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('docs.toastApagarFalha'))
+      toast.error(t(chaveDeErro(e, 'docs.toastApagarFalha')))
     } finally {
       setOcupado(false)
     }
@@ -95,7 +96,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('docs.toastApagarTudoFalha'))
+      toast.error(t(chaveDeErro(e, 'docs.toastApagarTudoFalha')))
     } finally {
       setOcupado(false)
     }

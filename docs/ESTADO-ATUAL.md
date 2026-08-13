@@ -178,10 +178,105 @@ rasterizado no tamanho real (`device_scale_factor`), não ampliado.
 **608 testes (78 arquivos)**, build e lint limpos (os mesmos 4 avisos), CSP reaprovada
 contra o build.
 
+### 7. A limpeza da lista de pendências — e o item que foi RECUSADO com número
+
+Levantamento item a item, e a primeira surpresa foi o próprio documento: **três
+pendências listadas aqui já estavam resolvidas** havia rodadas (`limparTokenDaUrl` tem
+`describe` próprio em `lib/url-token.test.ts`; `GraficoEvolucao` foi traduzido;
+`mensagemCamposFaltando` nem existe mais). Já corrigidas acima. **Lista de pendência não
+conferida vira ficção** — o hábito daqui passa a ser verificar cada item antes de
+repeti-lo.
+
+#### O erro do servidor ia cru para a tela, em inglês (o mais grave dos seis)
+
+Treze telas escreviam a mesma linha, e a tradução estava no lado ERRADO do ternário:
+
+```ts
+toast.error(e instanceof Error ? e.message : t('cats.toastFalha'))
+```
+
+`t()` só aparecia quando o erro **não** era um `Error` — o caso raro. No caminho normal a
+pessoa lia `e.message`, que vem da Data API do Neon em inglês e em vocabulário de banco
+(`new row violates row-level security policy for table "documents"`). Um app com i18n
+completo mostrando inglês técnico justamente na hora da falha.
+
+`lib/erro-usuario.ts` (`chaveDeErro`, 8 testes) decide a frase. **Não** é "traduzir tudo
+para um genérico": parte das falhas é acionável e o genérico esconde o que fazer — sessão
+vencida se resolve entrando de novo, rede fora se resolve esperando, e nenhuma das duas é
+"problema ao salvar a categoria". Então quatro casos ganham frase própria
+(`erro.semSessao`, `erro.semConexao`, `erro.semPermissao`, `erro.duplicado`) e o resto cai
+no genérico de cada tela, que já existia.
+
+⚠️ **Ordem dos padrões é semântica, não estética.** Sessão vem antes de permissão: token
+vencido chega do Postgres como negativa de permissão, e dizer "peça acesso" a quem só
+precisa entrar de novo manda a pessoa para o lugar errado. Idem em `Auth.tsx`, onde os
+três padrões de autenticação vêm antes do classificador geral — "invalid password"
+casaria com o padrão de sessão e viraria "sua sessão expirou".
+
+Casar por trecho de texto é frágil, e mesmo assim é o certo aqui: é a técnica que
+`lib/chunk.ts` e o `Auth.tsx` já usavam, porque a Data API não expõe código de erro
+estável para o cliente. **A fragilidade é contida por construção** — padrão que deixa de
+casar cai no genérico, que é o comportamento de antes. O erro cru continua indo para o
+`console.error`: sumiu da tela, não do navegador.
+
+Junto vieram as duas mensagens que estavam em **português fixo, fora do dicionário**
+(`'Não consegui encerrar a sessão.'` e `'Falha ao carregar'`) — em en/es apareciam em
+português. E o `DadosProvider` passou a guardar a **chave**, não a frase pronta: com o
+texto congelado lá dentro, trocar de idioma com a tela de erro aberta deixaria a mensagem
+para trás.
+
+⚠️ **Um teste estava pinando o defeito.** `DadosProvider.test.tsx` afirmava
+`/ERRO: rede caiu/` — ou seja, exigia que a mensagem crua chegasse à tela. Teste que
+descreve o comportamento errado não protege nada: atrasa o conserto.
+
+#### Os outros três pedidos pequenos
+
+- **Última dívida de i18n fechada**: os dois `aria-label` do donut
+  (`donut.rotulo`, `donut.rotuloFatia`, nos três dicionários). O projeto pode voltar a
+  dizer "i18n 100%".
+- **Senha curta era amarela no login e vermelha na recuperação** — mesma frase, mesma
+  validação (`validarNovaSenha`), duas cores. Vermelho nos dois: nos dois o envio foi
+  barrado.
+- **`INEFFECTIVE_DYNAMIC_IMPORT`**: `Painel.tsx` fazia `await import('../lib/compartilhar')`
+  enquanto a linha 24 importava o mesmo módulo de forma estática — o `await` não dividia
+  nada e o build reclamava. Import estático nos três. O arquivo tem 1,5 kB e nenhuma
+  dependência; o peso do PDF está em `jspdf`/`relatorio-pdf`, que **continuam** sob demanda.
+
+#### Code-splitting: MEDIDO E RECUSADO
+
+O aviso de "chunk > 500 kB" estava na fila como se fosse conserto pendente. Não é —
+e o número diz por quê. Fatiando as quatro rotas secundárias com `lazy()`:
+
+| | 1 chunk (antes) | 4 rotas fatiadas |
+|---|---|---|
+| Primeira pintura, cru | 948,3 kB | 920 kB (388 + 480 + 51 + 1) |
+| Primeira pintura, gzip | 271,6 kB | ~264,6 kB |
+
+**2,6% de ganho.** As quatro páginas somam 31 kB crus — ~3% do pacote. Em troca, cada
+navegação viraria um download que pode falhar: falha de chunk depois de deploy já é
+problema conhecido aqui (`lib/chunk.ts` existe por causa disso, no PDF), e ali ela custa
+um PDF, não a tela inteira. **Revertido**, com o comentário e o número no `App.tsx` para
+ninguém refazer o experimento às cegas.
+
+⚠️ **Onde o peso está de verdade** (build A/B, com e sem o cliente Neon): o SDK custa
+**366 kB crus / 93 kB gzip — 39% da primeira pintura**. Ele importa `zod` de forma
+estática e é necessário no boot (o app confere a sessão na montagem), então não há como
+adiá-lo do lado de cá. Sem ele o pacote ainda dá 582 kB — react-dom, router, motion e
+sonner. **Nada disso está ao alcance do nosso código**: só cairia trocando ou remendando
+dependência, o que não se justifica por 8% de gzip.
+
+Já estão fora da primeira pintura, conferido na lista de `modulepreload` do
+`index.html` gerado: `jspdf` (399 kB), `pdf.js` (410 kB), `html2canvas` (200 kB),
+`purify` (27 kB).
+
+**617 testes (79 arquivos)** — 9 novos: 8 do classificador de erro e 1 do
+`DadosProvider`. Build e lint limpos (os mesmos 4 avisos pré-existentes), CSP reaprovada
+contra o build.
+
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**608 testes (78 arquivos)**, build e lint limpos, CSP completa medida contra o
+**617 testes (79 arquivos)**, build e lint limpos, CSP completa medida contra o
 build **e** contra o site publicado. Trabalha-se direto na `main`; todo push
 publica sozinho em ~1 min.
 
@@ -192,6 +287,12 @@ publica sozinho em ~1 min.
 | **Fatia 1b** — backend real (Vercel Functions) | Falta a `DATABASE_URL` do Neon (role `authenticated`, sem BYPASSRLS) no `.env.local` da raiz |
 | **Mais bancos** (Caixa, layout A do BB) | Falta amostra: o extrato da Caixa veio como imagem, e o app lê texto |
 | **Conferir logado, no navegador** | A senha da conta de teste não é versionada — é o usuário quem valida contra dado real |
+
+**A fila de pendências que dava para escrever em código ACABOU em 13/08.** Os seis itens
+(erro cru em inglês, duas frases fora do dicionário, i18n do donut, severidade da senha,
+import inútil, code-splitting) foram fechados ou medidos e recusados com número — ver a
+rodada de 13/08, item 7. O que sobra são as três linhas da tabela acima, e nenhuma delas
+é código: são uma variável de ambiente, uma amostra de PDF e uma conferência no navegador.
 
 **O que o usuário precisa conferir na próxima vez que abrir** (nesta ordem):
 
@@ -208,11 +309,11 @@ rapidamente* tem os detalhes): `npm test && npm run build && npm run lint`,
 `medir-contraste.py` e `medir-overflow.py`. **`npm test` NÃO checa tipos** —
 essa armadilha já mordeu três vezes, inclusive nesta rodada.
 
-**Dívida conhecida, decidida de propósito:** `GraficoCategorias` tem **dois**
-`aria-label` fixos em português (linhas 72 e 129 — o do donut e o de cada
-fatia). `GraficoEvolucao`, que já constou aqui, **foi traduzido** e saiu da
-dívida (conferido em 13/08). Como o seletor de idioma saiu da UI na fatia 4a,
-não quebra nada hoje — mas o documento já afirmou "i18n 100%" e não afirma mais.
+**A dívida de i18n acabou** (13/08): os dois `aria-label` do donut em
+`GraficoCategorias` eram o último resto e viraram `donut.rotulo` /
+`donut.rotuloFatia`. `GraficoEvolucao` já havia sido traduzido antes. O
+documento pode voltar a dizer **i18n 100%** — e desta vez a afirmação foi
+conferida arquivo a arquivo, não presumida.
 
 ## ⚠️ A REFORMA (leia antes de tudo)
 
@@ -1381,8 +1482,8 @@ Todos avaliados, nenhum bloqueia:
   tem o `describe` próprio dele (conferido em 13/08).
 - ~~**`CampoSenha` ficou duplicado**~~ ✅ **resolvido (2026-07-24)**: extraído para
   `src/ui/CampoSenha.tsx` e usado em `Auth.tsx` e `RecuperarSenha.tsx`.
-- **Mesma frase, severidade diferente**: senha curta é `toast.warning` no login e
-  `toast.error` na recuperação — cor diferente para o mesmo texto no mesmo card.
+- ~~**Mesma frase, severidade diferente**: senha curta é `toast.warning` no login e
+  `toast.error` na recuperação~~ ✅ **resolvido (2026-08-13)**: `error` nos dois.
 - ~~**`tsconfig.app.json` e `tsconfig.test.json` são quase-duplicatas**~~ ✅
   **resolvido (2026-07-24)**: criado `tsconfig.base.json` com as 15 chaves comuns;
   os dois o estendem e só sobrescrevem `tsBuildInfoFile`, `types` e `include/exclude`.
@@ -1394,13 +1495,17 @@ Todos avaliados, nenhum bloqueia:
 - Refinar as policies de RLS para `auth.uid()`.
 - Chaves próprias do Google OAuth (hoje usa as compartilhadas do Neon; só então será
   necessário mexer nos redirect URIs do Google Cloud Console).
-- Code-splitting do bundle (o pdf.js deixa o chunk > 500 kB; o three.js já sai em chunk
-  próprio, 515 kB cru / 129 kB gzip, por import dinâmico).
+- ~~Code-splitting do bundle~~ ❌ **MEDIDO E RECUSADO (2026-08-13)**: fatiar as rotas
+  rende **2,6%** de gzip e cria uma falha de navegação depois de cada deploy. O peso é do
+  SDK do Neon (**39%** da primeira pintura, medido com build A/B), que precisa carregar no
+  boot e importa `zod` estaticamente. Detalhes e a tabela na rodada de 13/08, item 7.
+  **Não reabrir sem número novo.**
 - Proteger **só os deploys de preview** na Vercel, mantendo a produção aberta.
-- Promover `@testing-library/jest-dom/vitest` para `setupFiles` global quando houver um
-  segundo teste de componente (hoje o import é local em `Auth.test.tsx`).
-- `mensagemCamposFaltando([])` com lista vazia gera texto com espaço duplo. Inalcançável
-  hoje (todos os chamadores guardam com `length > 0`) e já coberto por teste.
+- Promover `@testing-library/jest-dom/vitest` para `setupFiles` global — a condição que o
+  item esperava ("quando houver um segundo teste de componente") aconteceu faz tempo:
+  são **35** arquivos repetindo o import (conferido em 13/08).
+- ~~`mensagemCamposFaltando([])` com lista vazia gera texto com espaço duplo~~ ✅ **sem
+  objeto**: a função não existe mais (conferido em 13/08).
 
 ---
 

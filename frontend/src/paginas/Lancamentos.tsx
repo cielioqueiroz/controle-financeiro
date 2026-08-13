@@ -45,7 +45,7 @@ export function Lancamentos({ onAprendeu }: Props) {
         {carregando ? (
           <p className="px-6 py-16 text-center text-sm text-tinta-fraca">{t('docs.carregando')}</p>
         ) : erro ? (
-          <ErroCarregar mensagem={erro} onTentar={recarregar} />
+          <ErroCarregar mensagem={t(erro)} onTentar={recarregar} />
         ) : vazio ? (
           <p className="px-6 py-16 text-center text-sm text-tinta-fraca">
             {t('estado.vazioCorpo')}

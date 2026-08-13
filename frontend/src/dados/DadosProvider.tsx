@@ -11,6 +11,8 @@ import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
 import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
 import { puxarSaldos, type DocDoPainel } from '../persist/documentos'
 import { registrarCategoriasUsuario } from '../domain/categorize/categorias'
+import { chaveDeErro } from '../lib/erro-usuario'
+import { type Dicionario } from '../i18n/dicionarios/pt'
 
 type Dados = {
   /** Todas as transações do usuário. `null` enquanto nunca carregou. */
@@ -19,7 +21,11 @@ type Dados = {
    *  saldo em aberto do cartão. */
   docsSaldo: DocDoPainel[]
   carregando: boolean
-  erro: string | null
+  /** CHAVE do dicionário, não a frase pronta: quem renderiza é que chama
+   *  `t()`. Guardar o texto aqui congelaria o idioma do momento da falha —
+   *  trocar de idioma com a tela de erro aberta deixaria a mensagem para
+   *  trás. */
+  erro: keyof Dicionario | null
   /** Recarrega do banco. Usado depois de apagar documento, editar
    *  categoria ou importar. */
   recarregar: () => Promise<void>
@@ -42,7 +48,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
   const [docsSaldo, setDocsSaldo] = useState<DocDoPainel[]>([])
   const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState<string | null>(null)
+  const [erro, setErro] = useState<keyof Dicionario | null>(null)
 
   const recarregar = useCallback(async () => {
     setCarregando(true)
@@ -64,7 +70,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       setTodas(dados)
       setDocsSaldo(saldoDocs)
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Falha ao carregar')
+      setErro(chaveDeErro(e, 'erro.carregar'))
     } finally {
       setCarregando(false)
     }

@@ -121,6 +121,8 @@ export const en: Dicionario = {
   'evolucao.saidas': 'Spending',
   'evolucao.escolha': 'Pick a month to see the values',
   'evolucao.rotuloBarra': '{mes}: income {entradas}, spending {saidas}. View this month.',
+  'donut.rotulo': 'Spending by category, {total} total',
+  'donut.rotuloFatia': '{categoria}: {valor}, {pct}% of the total. View transactions.',
   'evolucao.rotuloBarraCortada': '{mes}: income {entradas}, spending {saidas} — above the scale. View this month.',
   'evolucao.acima1': '{n} bar above',
   'evolucao.acima': '{n} bars above',
@@ -228,6 +230,13 @@ export const en: Dicionario = {
   'geral.fechar': 'Close',
   'doc.fatura': 'Card bill',
   'doc.extrato': 'Bank statement',
+
+  'erro.semSessao': 'Your session expired. Sign in again to continue.',
+  'erro.semConexao': 'No connection to the server. Try again in a moment.',
+  'erro.semPermissao': 'That data does not belong to this account.',
+  'erro.duplicado': 'That already exists here.',
+  'erro.sair': "I couldn't sign you out.",
+  'erro.carregar': 'Failed to load.',
 
   'perfil.subtitulo': 'How you want to be called here.',
   'perfil.apelidoLabel': 'Nickname — how the greeting shows',

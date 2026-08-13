@@ -2,8 +2,20 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { chaveDeErro } from './lib/erro-usuario'
 import { NavPrincipal } from './navegacao/NavPrincipal'
 import { DadosProvider } from './dados/DadosProvider'
+// As sete páginas entram ESTÁTICAS, e isso foi MEDIDO, não presumido
+// (13/08). Fatiar as quatro rotas secundárias com `lazy()` move 31 kB crus
+// (~10 kB gzip) para fora da primeira pintura: 271,6 → 264,6 kB gzip, 2,6%.
+// Em troca, cada navegação vira um download que pode falhar — e falha de
+// chunk depois de um deploy já é problema conhecido aqui (`lib/chunk.ts`
+// existe por causa disso, no PDF). Trocar 2,6% por uma tela que pode não
+// abrir não se paga.
+//
+// O aviso de "chunk > 500 kB" do build é sobre o VENDOR, não sobre estas
+// páginas: elas são ~3% do pacote. Ver o ESTADO-ATUAL para o que de fato
+// pesa e por que não está ao nosso alcance hoje.
 import { Faturas } from './paginas/Faturas'
 import { Categorias } from './paginas/Categorias'
 import { Painel } from './paginas/Painel'
@@ -154,7 +166,7 @@ export default function App() {
         toast.warning(t('salvar.duplicado', { data: dataLongaDe(new Date(r.importadoEm)) }))
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t('salvar.falha'))
+      toast.error(t(chaveDeErro(err, 'salvar.falha')))
     } finally {
       setSalvando(false)
     }
@@ -273,9 +285,7 @@ export default function App() {
                       description: t('header.sessaoEncerrada'),
                     })
                   } catch (err) {
-                    toast.error(
-                      err instanceof Error ? err.message : 'Não consegui encerrar a sessão.',
-                    )
+                    toast.error(t(chaveDeErro(err, 'erro.sair')))
                   }
                 }}
               />

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
 import { enviarCodigo } from '../lib/confirmar-email'
+import { chaveDeErro } from '../lib/erro-usuario'
 import { Marca } from './Marca'
 import { MoedaLogo } from './MoedaLogo'
 import { RecuperarSenha } from './RecuperarSenha'
@@ -80,7 +81,11 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
       return
     }
     if (senha.length < 8) {
-      toast.warning(t('validacao.senhaCurta'))
+      // `error`, não `warning`: a MESMA frase saía amarela aqui e vermelha na
+      // recuperação de senha (que valida pela mesma `validarNovaSenha`). Cor
+      // diferente para o mesmo texto no mesmo card sugere gravidade diferente
+      // onde não há. Vermelho nos dois, porque nos dois o envio foi barrado.
+      toast.error(t('validacao.senhaCurta'))
       refs.senha.current?.focus()
       return
     }
@@ -128,20 +133,24 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         onAutenticado()
       }
     } catch (err) {
-      if (err instanceof Error) {
-        const m = err.message
-        toast.error(
-          /invalid|credencial|password|senha/i.test(m)
-            ? t('auth.erro.credenciais')
-            : /exist|already|registered/i.test(m)
-              ? t('auth.erro.jaExiste')
-              : /verif|confirm/i.test(m)
-                ? t('auth.erro.confirme')
-                : m,
-        )
-      } else {
-        toast.error(t('auth.toast.authFalha'))
-      }
+      // Os três casos daqui são de AUTENTICAÇÃO e vêm antes do classificador
+      // geral de propósito: "invalid email or password" casaria com o padrão
+      // de sessão dele e viraria "sua sessão expirou" — conselho errado para
+      // quem só errou a senha.
+      //
+      // O que mudou em 13/08: o último ramo era `: m`, a mensagem crua do
+      // servidor, em inglês. Agora cai no `chaveDeErro`, que reconhece rede
+      // fora e afins e, sem reconhecer, usa o genérico traduzido.
+      const m = err instanceof Error ? err.message : ''
+      toast.error(
+        /invalid|credencial|password|senha/i.test(m)
+          ? t('auth.erro.credenciais')
+          : /exist|already|registered/i.test(m)
+            ? t('auth.erro.jaExiste')
+            : /verif|confirm/i.test(m)
+              ? t('auth.erro.confirme')
+              : t(chaveDeErro(err, 'auth.toast.authFalha')),
+      )
     } finally {
       setOcupado(false)
     }

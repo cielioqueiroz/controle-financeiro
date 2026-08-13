@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
+import { chaveDeErro } from '../lib/erro-usuario'
 import { neon } from '../lib/neon'
 import { salvarApelido, primeiroNome } from '../lib/perfil'
 import { useT } from '../i18n/IdiomaProvider'
@@ -57,7 +58,7 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
       onSalvo()
       onFechar()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('perfil.toastFalha'))
+      toast.error(t(chaveDeErro(e, 'perfil.toastFalha')))
     } finally {
       setSalvando(false)
     }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { chaveDeErro } from '../lib/erro-usuario'
 import {
   puxarCategoriasUsuario,
   editarCategoria,
@@ -44,7 +45,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       setCats(c)
       setRegras(r)
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('cats.toastFalha'))
+      toast.error(t(chaveDeErro(e, 'cats.toastFalha')))
     }
   }
 
@@ -70,7 +71,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('cats.toastSalvarFalha'))
+      toast.error(t(chaveDeErro(e, 'cats.toastSalvarFalha')))
     } finally {
       setOcupado(false)
     }
@@ -85,7 +86,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('cats.toastApagarFalha'))
+      toast.error(t(chaveDeErro(e, 'cats.toastApagarFalha')))
     } finally {
       setOcupado(false)
     }
@@ -99,7 +100,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('cats.toastRegraFalha'))
+      toast.error(t(chaveDeErro(e, 'cats.toastRegraFalha')))
     } finally {
       setOcupado(false)
     }

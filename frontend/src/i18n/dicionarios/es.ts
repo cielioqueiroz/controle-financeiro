@@ -121,6 +121,8 @@ export const es: Dicionario = {
   'evolucao.saidas': 'Salidas',
   'evolucao.escolha': 'Elige un mes para ver los valores',
   'evolucao.rotuloBarra': '{mes}: entradas {entradas}, salidas {saidas}. Ver este mes.',
+  'donut.rotulo': 'Gasto por categoría, total {total}',
+  'donut.rotuloFatia': '{categoria}: {valor}, {pct}% del total. Ver movimientos.',
   'evolucao.rotuloBarraCortada': '{mes}: entradas {entradas}, salidas {saidas} — por encima de la escala. Ver este mes.',
   'evolucao.acima1': '{n} barra por encima',
   'evolucao.acima': '{n} barras por encima',
@@ -228,6 +230,13 @@ export const es: Dicionario = {
   'geral.fechar': 'Cerrar',
   'doc.fatura': 'Factura',
   'doc.extrato': 'Extracto',
+
+  'erro.semSessao': 'Tu sesión expiró. Entra de nuevo para continuar.',
+  'erro.semConexao': 'Sin conexión con el servidor. Inténtalo en unos instantes.',
+  'erro.semPermissao': 'Esos datos no son de esta cuenta.',
+  'erro.duplicado': 'Eso ya existe aquí.',
+  'erro.sair': 'No pude cerrar la sesión.',
+  'erro.carregar': 'No se pudo cargar.',
 
   'perfil.subtitulo': 'Cómo quieres que te llamemos aquí.',
   'perfil.apelidoLabel': 'Apodo — cómo aparece en el saludo',

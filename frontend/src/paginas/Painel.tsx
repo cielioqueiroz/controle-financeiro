@@ -21,7 +21,13 @@ import { SaldoAberto } from '../ui/SaldoAberto'
 import { ErroCarregar } from '../ui/ErroCarregar'
 import { ValorAnimado } from '../ui/ValorAnimado'
 import { EditarCompra } from '../ui/EditarCompra'
-import { podeCompartilharArquivo } from '../lib/compartilhar'
+// Estático, e os três juntos. Havia `await import('../lib/compartilhar')`
+// dentro das funções, mas `podeCompartilharArquivo` já era importado aqui de
+// forma estática — o módulo entrava no chunk de qualquer jeito e o build
+// reclamava (INEFFECTIVE_DYNAMIC_IMPORT). Dividir também não valeria a pena:
+// o arquivo tem 1,5 kB e nenhuma dependência. O peso do PDF está em
+// `relatorio-pdf`/`jspdf`, que continuam carregando sob demanda.
+import { podeCompartilharArquivo, baixarArquivo, compartilharArquivo } from '../lib/compartilhar'
 import { ehFalhaDeChunk } from '../lib/chunk'
 import { useT } from '../i18n/IdiomaProvider'
 import type { Dicionario } from '../i18n/dicionarios/pt'
@@ -129,7 +135,6 @@ export function Painel({ onAprendeu }: Props) {
     setGerandoPdf(true)
     try {
       const { blob, nome } = await montarPdf()
-      const { baixarArquivo } = await import('../lib/compartilhar')
       baixarArquivo(blob, nome)
       toast.success(t('pdf.baixado'))
     } catch (e) {
@@ -147,7 +152,6 @@ export function Painel({ onAprendeu }: Props) {
     setGerandoPdf(true)
     try {
       const { blob, nome, label } = await montarPdf()
-      const { compartilharArquivo, baixarArquivo } = await import('../lib/compartilhar')
       try {
         await compartilharArquivo(blob, nome, {
           title: `${t('pdf.relatorio')} · ${label}`,
@@ -245,7 +249,7 @@ export function Painel({ onAprendeu }: Props) {
         {carregando ? (
           <Esqueleto />
         ) : erro ? (
-          <ErroCarregar mensagem={erro} onTentar={recarregar} />
+          <ErroCarregar mensagem={t(erro)} onTentar={recarregar} />
         ) : vazio ? (
           <Vazio />
         ) : (

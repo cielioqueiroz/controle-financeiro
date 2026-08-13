@@ -134,6 +134,10 @@ export const pt = {
   'evolucao.saidas': 'Saídas',
   'evolucao.escolha': 'Escolha um mês para ver os valores',
   'evolucao.rotuloBarra': '{mes}: entradas {entradas}, saídas {saidas}. Ver este mês.',
+  // Donut de categorias: os dois rótulos que só existem para leitor de tela —
+  // a última dívida de i18n do projeto, fechada em 13/08.
+  'donut.rotulo': 'Gasto por categoria, total {total}',
+  'donut.rotuloFatia': '{categoria}: {valor}, {pct}% do total. Ver lançamentos.',
   'evolucao.rotuloBarraCortada': '{mes}: entradas {entradas}, saídas {saidas} — acima da escala. Ver este mês.',
   'evolucao.acima1': '{n} barra acima',
   'evolucao.acima': '{n} barras acima',
@@ -250,6 +254,16 @@ export const pt = {
   'geral.fechar': 'Fechar',
   'doc.fatura': 'Fatura',
   'doc.extrato': 'Extrato',
+
+  // Falhas com conserto do lado de quem lê (lib/erro-usuario.ts). Cada uma
+  // diz O QUE FAZER: sem isso seriam sinônimos de "deu errado", e aí o
+  // genérico de cada tela já bastaria.
+  'erro.semSessao': 'Sua sessão expirou. Entre de novo para continuar.',
+  'erro.semConexao': 'Sem conexão com o servidor. Tente de novo em instantes.',
+  'erro.semPermissao': 'Esses dados não são desta conta.',
+  'erro.duplicado': 'Isso já existe por aqui.',
+  'erro.sair': 'Não consegui encerrar a sessão.',
+  'erro.carregar': 'Falha ao carregar.',
 
   // Editar perfil
   'perfil.subtitulo': 'Como você quer ser chamado por aqui.',
