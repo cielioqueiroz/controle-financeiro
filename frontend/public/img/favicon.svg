@@ -1,23 +1,38 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <!-- Carimbo de conferido, na marca nova (a cor da marca, #1b5e8f). O
-       favicon anterior era a moeda ambar do visual que saiu em 2026-08-07.
+  <!-- Cofrinho com a moeda entrando, na cor da marca (#1b5e8f). Substitui o
+       carimbo de "conferido" que estava aqui desde 2026-08-12, a pedido.
 
-       Ele aparece a 16px na aba, entao aqui nao cabe nada fino: canto de 3px
-       (o raio do sistema, 12/64 = 3/16), R$ pesado e UMA regua de livro-razao
-       embaixo. A regua e o detalhe que o distingue de qualquer outro quadrado
-       azul com uma letra, e sobrevive ao tamanho porque tem 3px de altura.
+       Ele vive a 16px na aba, entao vale so a SILHUETA: corpo, orelha,
+       focinho, duas perninhas, a fenda e a moeda por cima. Nenhum traco
+       abaixo de 3px em 64 (o que da 0,75px em 16) e nenhum contorno vazado,
+       que a 16px vira borrao cinza. O olho e a fenda sao recortes na cor do
+       fundo, nao linhas: recorte sobrevive ao downscale, linha nao.
 
        CUIDADO: comentario de XML nao aceita dois hifens seguidos. Escrever o
        nome de um token CSS aqui (com os dois tracos da frente) quebra o
-       arquivo INTEIRO, e o navegador simplesmente nao mostra icone nenhum —
-       sem erro de build, sem erro de teste. Foi o que aconteceu na primeira
-       versao deste arquivo.
+       arquivo INTEIRO, e o navegador simplesmente nao mostra icone nenhum,
+       sem erro de build e sem erro de teste. Ja aconteceu neste arquivo.
 
-       Estatico, fora do React: usa o literal do tema claro, como o resto da
+       Estatico, fora do React: usa os literais do tema, como o resto da
        marca impressa (og.png). -->
   <rect width="64" height="64" rx="12" fill="#1b5e8f"/>
-  <text x="32" y="40" text-anchor="middle"
-        font-family="'IBM Plex Mono', 'Segoe UI', Arial, sans-serif"
-        font-weight="700" font-size="30" fill="#ffffff" letter-spacing="-1">R$</text>
-  <rect x="16" y="47" width="32" height="3" rx="1.5" fill="#ffffff" opacity="0.85"/>
+
+  <!-- Moeda entrando pela fenda. Ambar para nao sumir dentro do branco do
+       corpo, e e o unico ponto de cor do icone. -->
+  <circle cx="32" cy="13" r="6.5" fill="#f0b429"/>
+  <rect x="30.6" y="9.4" width="2.8" height="7.2" rx="1.4" fill="#1b5e8f"/>
+
+  <!-- Corpo, orelha e focinho num bloco so, para o icone ser uma mancha
+       continua a 16px. -->
+  <path d="M18 25.5 L27.5 22 L25.5 31 Z" fill="#ffffff"/>
+  <ellipse cx="31" cy="38" rx="21" ry="14.5" fill="#ffffff"/>
+  <ellipse cx="50.5" cy="39" rx="6.5" ry="5.5" fill="#ffffff"/>
+  <rect x="17" y="48" width="8" height="7" rx="2.5" fill="#ffffff"/>
+  <rect x="37" y="48" width="8" height="7" rx="2.5" fill="#ffffff"/>
+
+  <!-- Recortes na cor do fundo: fenda, olho e as narinas. -->
+  <rect x="24" y="26" width="16" height="3.6" rx="1.8" fill="#1b5e8f"/>
+  <circle cx="40" cy="34" r="2.6" fill="#1b5e8f"/>
+  <rect x="48" y="37" width="2.2" height="4" rx="1.1" fill="#1b5e8f"/>
+  <rect x="52" y="37" width="2.2" height="4" rx="1.1" fill="#1b5e8f"/>
 </svg>

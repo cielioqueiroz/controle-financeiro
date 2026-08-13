@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { DadosProvider } from '../dados/DadosProvider'
 import { Recorrencias } from './Recorrencias'
@@ -71,6 +72,40 @@ describe('Recorrências', () => {
     // O controle está na tela, com o banco ativo — dá para ver e para desfazer.
     expect(screen.getByRole('button', { name: 'Nubank' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Total geral' })).toBeInTheDocument()
+  })
+
+  // A página tinha metade da largura vazia quando não há recorrências
+  // detectadas — o estado normal de quem tem dois meses de histórico. O
+  // gráfico ocupa esse espaço com a informação que a lista não dá de
+  // relance: a curva do que vem pela frente, e de qual cartão.
+  it('desenha os compromissos futuros por mês, e o clique abre o mês na lista', async () => {
+    const parcelado = [
+      {
+        ...serie('bradesco', 'GELADEIRA', 30000)[3],
+        id: 'p1',
+        installment: { current: 1, total: 3 },
+      },
+      {
+        ...serie('nubank', 'CELULAR', 10000)[3],
+        id: 'p2',
+        installment: { current: 1, total: 2 },
+      },
+    ]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(puxarTudo).mockResolvedValue([...LISTA, ...parcelado] as any)
+    const usuario = userEvent.setup()
+    abrir('/recorrencias?ref=2026-06')
+
+    // Jul e ago recebem parcelas; a barra de julho soma os dois cartões. O
+    // "a vencer" distingue a barra do gráfico da linha da lista, que fala do
+    // mesmo mês logo ao lado.
+    const julho = await screen.findByRole('button', { name: /jul.*400,00 a vencer/i })
+    expect(julho).toHaveAccessibleName(/Bradesco.*300,00/)
+    expect(julho).toHaveAccessibleName(/Nubank.*100,00/)
+
+    // A lista ao lado abre no mês clicado, sem que ninguém precise procurá-lo.
+    await usuario.click(julho)
+    expect(await screen.findByText(/GELADEIRA/i)).toBeInTheDocument()
   })
 
   // O contrário da mentira acima: mostrar um controle que a página ignora.

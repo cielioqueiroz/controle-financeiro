@@ -30,7 +30,6 @@ import { parse, ParserNaoImplementadoError } from './domain/parsers'
 import { validar } from './domain/validate/checksum'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
-import { lerConfirmacaoDaUrl, limparConfirmacaoDaUrl } from './lib/confirmar-email'
 import { dataLongaDe } from './domain/normalize/data'
 import { salvarDocumento } from './persist/salvar'
 import { puxarRegras } from './persist/regras'
@@ -97,32 +96,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    checarSessao()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Quem clica no link do e-mail volta para cá: o servidor de auth confirma a
-  // conta e redireciona para esta origem marcada com `?confirmado=1`, e anexa
-  // `error=INVALID_TOKEN` quando o link já foi usado ou expirou. Sem este
-  // efeito a pessoa cairia numa tela igual a qualquer outra e não saberia se
-  // a confirmação valeu.
-  //
-  // Limpa a marca da URL logo depois: senão um F5 repetiria o aviso para
-  // sempre — a mesma razão do `limparTokenDaUrl` na redefinição de senha.
-  useEffect(() => {
-    const resultado = lerConfirmacaoDaUrl(window.location.search)
-    if (!resultado) return
-    if (resultado === 'confirmado') {
-      toast.success(t('app.emailConfirmado'), { description: t('app.emailConfirmadoDesc') })
-    } else {
-      toast.error(t('app.linkConfirmacaoInvalido'), {
-        description: t('app.linkConfirmacaoInvalidoDesc'),
-        duration: 8000,
-      })
-    }
-    limparConfirmacaoDaUrl()
-    // A confirmação muda `emailVerified` no servidor; recheca para o aviso
-    // do topo sumir sem precisar de F5.
     checarSessao()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -315,7 +288,9 @@ export default function App() {
             aviso é melhor que um alarme falso pedindo para confirmar algo
             que já está confirmado. */}
         {logado && usuario?.email && usuario.emailVerificado === false && (
-          <AvisoConfirmarEmail email={usuario.email} />
+          // Confirmou: rechecar a sessão traz `emailVerified: true` e o aviso
+          // some sozinho, sem F5.
+          <AvisoConfirmarEmail email={usuario.email} onConfirmado={checarSessao} />
         )}
 
         {logado && <NavPrincipal />}

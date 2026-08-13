@@ -1,12 +1,18 @@
-import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
+import { BANCOS } from '../domain/banks'
+import type { Bank } from '../domain/pdf/detect'
 import type { MesFuturo } from '../persist/agrupar'
 
 type Props = {
   meses: MesFuturo[]
+  /** Mês expandido, ou `null`. Controlado de fora porque o gráfico ao lado
+   *  abre o mês clicado nesta lista: com o estado aqui dentro, as duas peças
+   *  discordariam sobre qual mês está aberto. */
+  aberto: string | null
+  onAlternar: (competencia: string | null) => void
 }
 
 function rotuloMes(comp: string): string {
@@ -17,8 +23,7 @@ function rotuloMes(comp: string): string {
 /** Compromissos futuros: as parcelas que ainda vão cair, mês a mês. É
  *  projeção (não está no banco), então não infla os totais atuais nem
  *  duplica quando a próxima fatura chegar. */
-export function CompromissosFuturos({ meses }: Props) {
-  const [aberto, setAberto] = useState<string | null>(null)
+export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
   const { t } = useT()
   if (meses.length === 0) return null
 
@@ -48,7 +53,7 @@ export function CompromissosFuturos({ meses }: Props) {
           return (
             <li key={m.competencia}>
               <button
-                onClick={() => setAberto(open ? null : m.competencia)}
+                onClick={() => onAlternar(open ? null : m.competencia)}
                 className="flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-carvao-850"
               >
                 <span className="min-w-0 flex-1 truncate text-sm capitalize text-tinta">
@@ -71,6 +76,13 @@ export function CompromissosFuturos({ meses }: Props) {
                   >
                     {m.itens.map((it, i) => (
                       <li key={i} className="flex items-center gap-3 py-1.5 text-sm">
+                        {/* Mesmo ponto colorido do filtro e do gráfico ao
+                            lado: de qual cartão é esta parcela. */}
+                        <span
+                          aria-hidden
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ background: (BANCOS[it.bank as Bank] ?? BANCOS.desconhecido).accent }}
+                        />
                         <span className="tabular shrink-0 rounded-sm bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">
                           {it.parcela}/{it.total}
                         </span>

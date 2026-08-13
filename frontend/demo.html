@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+    <title>Capital Financeiro — folha de provas</title>
+    <!--
+      Folha de provas dos componentes visuais, com dados FICTÍCIOS.
+
+      Existe por dois motivos, os dois práticos:
+
+      1. **Conferir com os olhos.** Os testes de componente rodam em jsdom,
+         que não tem layout: altura de barra aplicada pelo `motion` nem chega
+         ao DOM. Gráfico é justamente o tipo de peça que passa no teste e sai
+         errado na tela — o achatamento das barras por um valor discrepante
+         passou meses assim.
+      2. **Prints do README** (`scripts/gerar-prints.py`), que precisam ser
+         regeráveis sem expor extrato de ninguém.
+
+      NÃO vai para produção: o `vite build` só usa `index.html` como entrada,
+      então este arquivo existe apenas no `npm run dev`.
+    -->
+    <script>
+      document.documentElement.dataset.theme =
+        new URLSearchParams(location.search).get('tema') === 'claro' ? 'light' : 'dark'
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/demo.tsx"></script>
+  </body>
+</html>

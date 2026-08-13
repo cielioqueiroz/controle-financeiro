@@ -209,6 +209,7 @@ describe('projecaoFutura', () => {
     kind: 'expense',
     description: 'GELADEIRA LOJA X',
     label: null,
+    bank: 'nubank',
     installment: { current: 3, total: 6 },
     ...over,
   })
@@ -236,6 +237,34 @@ describe('projecaoFutura', () => {
   it('ignora compras à vista e parcelas já quitadas', () => {
     expect(projecaoFutura([parcela({ installment: null })])).toEqual([])
     expect(projecaoFutura([parcela({ installment: { current: 6, total: 6 } })])).toEqual([])
+  })
+
+  // O gráfico dos compromissos pinta cada mês pelas cores dos cartões que o
+  // compõem, então a divisão por banco precisa vir pronta do agrupamento —
+  // e ordenada, senão a pilha trocaria de ordem de mês para mês e a leitura
+  // "quanto é do Bradesco" exigiria caçar a faixa em cada coluna.
+  it('divide o total de cada mês por banco, do maior para o menor', () => {
+    const f = projecaoFutura([
+      parcela({ bank: 'nubank', description: 'A', amount_cents: 10000 }),
+      parcela({ bank: 'bradesco', description: 'B', amount_cents: 30000 }),
+    ])
+    expect(f[0].porBanco).toEqual([
+      { bank: 'bradesco', totalCents: 30000 },
+      { bank: 'nubank', totalCents: 10000 },
+    ])
+  })
+
+  it('soma as parcelas do mesmo banco numa faixa só', () => {
+    const f = projecaoFutura([
+      parcela({ bank: 'nubank', description: 'A', amount_cents: 10000 }),
+      parcela({ bank: 'nubank', description: 'B', amount_cents: 2500 }),
+    ])
+    expect(f[0].porBanco).toEqual([{ bank: 'nubank', totalCents: 12500 }])
+  })
+
+  it('cada item projetado carrega o banco de origem', () => {
+    const f = projecaoFutura([parcela({ bank: 'bradesco' })])
+    expect(f[0].itens[0].bank).toBe('bradesco')
   })
 })
 

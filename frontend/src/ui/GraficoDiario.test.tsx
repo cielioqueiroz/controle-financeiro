@@ -83,3 +83,43 @@ describe('GraficoDiario', () => {
     expect(container).toBeEmptyDOMElement()
   })
 })
+
+// O defeito relatado com o app na tela: um pagamento de empréstimo de
+// R$ 41.653 num mês de compras de dezenas a poucos milhares. A escala pelo
+// máximo deixava as outras 38 barras rentes ao chão — o gráfico virava uma
+// régua com um espeto no meio.
+describe('GraficoDiario — quando um dia é muito maior que os outros', () => {
+  const COM_DISCREPANTE = porDia([
+    tx({ id: 'a', date: '2026-07-02', amount_cents: 3000 }),
+    tx({ id: 'b', date: '2026-07-04', amount_cents: 4500 }),
+    tx({ id: 'c', date: '2026-07-06', amount_cents: 12000 }),
+    tx({ id: 'd', date: '2026-07-08', amount_cents: 8000 }),
+    tx({ id: 'e', date: '2026-07-10', amount_cents: 5500 }),
+    tx({ id: 'f', date: '2026-07-12', amount_cents: 9000 }),
+    tx({ id: 'g', date: '2026-07-14', amount_cents: 7000 }),
+    tx({ id: 'h', date: '2026-07-16', amount_cents: 4165385 }),
+  ])
+
+  it('avisa até onde a escala vai e quantos dias passam dela', () => {
+    render(<GraficoDiario dias={COM_DISCREPANTE} onSelecionar={() => {}} />)
+    // O teto é a maior barra que não é discrepante (R$ 120,00), e o aviso
+    // existe porque uma escala cortada sem declaração é um gráfico que mente.
+    expect(screen.getByText(/escala até R\$\s*120,00/i)).toBeInTheDocument()
+    expect(screen.getByText(/1 dia acima/i)).toBeInTheDocument()
+  })
+
+  // Quem lê por leitor de tela não vê a marca do corte: o nome acessível da
+  // barra precisa dizer o mesmo que o desenho.
+  it('a barra cortada se declara cortada, com o valor cheio', () => {
+    render(<GraficoDiario dias={COM_DISCREPANTE} onSelecionar={() => {}} />)
+    const pico = screen.getByRole('button', { name: /16\/jul/ })
+    expect(pico).toHaveAccessibleName(/41\.653,85/)
+    expect(pico).toHaveAccessibleName(/acima da escala/i)
+  })
+
+  it('série sem discrepante não anuncia corte nenhum', () => {
+    render(<GraficoDiario dias={DIAS} onSelecionar={() => {}} />)
+    expect(screen.queryByText(/escala até/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/acima da escala/i)).not.toBeInTheDocument()
+  })
+})

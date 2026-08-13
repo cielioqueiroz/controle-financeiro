@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   detectarRecorrencias,
   alertasDe,
@@ -8,6 +8,7 @@ import { useRecorte } from '../dados/useRecorte'
 import { BarraFiltros } from '../ui/BarraFiltros'
 import { Recorrencias as ListaRecorrencias } from '../ui/Recorrencias'
 import { CompromissosFuturos } from '../ui/CompromissosFuturos'
+import { GraficoCompromissos } from '../ui/GraficoCompromissos'
 import { projecaoFutura } from '../persist/agrupar'
 
 /** Séries que se repetem e os alertas sobre elas.
@@ -29,6 +30,10 @@ export function Recorrencias() {
     [recorrencias, visiveis],
   )
   const futuros = useMemo(() => (visiveis ? projecaoFutura(visiveis) : []), [visiveis])
+  // Um estado só para as duas peças: clicar numa barra do gráfico abre
+  // aquele mês na lista ao lado. Com o estado dentro da lista, as duas
+  // discordariam sobre qual mês está aberto.
+  const [mesAberto, setMesAberto] = useState<string | null>(null)
 
   return (
     <div className="mt-6">
@@ -41,9 +46,22 @@ export function Recorrencias() {
           nem oferecer como desfazer. */}
       <BarraFiltros mostrarPeriodo={false} />
 
-      <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-2">
+      {/* Largura maior que a de antes (max-w-4xl): com o gráfico ao lado da
+          lista, o que sobrava à direita virou informação. As recorrências
+          ficam por cima, em linha cheia — são uma tabela, e tabela estreita
+          trunca nome de estabelecimento. */}
+      <div className="mx-auto max-w-6xl space-y-6">
         <ListaRecorrencias recorrencias={recorrencias} alertas={alertas} />
-        {futuros.length > 0 && <CompromissosFuturos meses={futuros} />}
+        {futuros.length > 0 && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <CompromissosFuturos
+              meses={futuros}
+              aberto={mesAberto}
+              onAlternar={setMesAberto}
+            />
+            <GraficoCompromissos meses={futuros} onSelecionar={setMesAberto} />
+          </div>
+        )}
       </div>
     </div>
   )

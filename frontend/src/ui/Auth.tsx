@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { neon } from '../lib/neon'
 import { salvarApelido } from '../lib/perfil'
-import { enviarConfirmacao, urlDeRetorno } from '../lib/confirmar-email'
+import { enviarCodigo } from '../lib/confirmar-email'
 import { Marca } from './Marca'
 import { MoedaLogo } from './MoedaLogo'
 import { RecuperarSenha } from './RecuperarSenha'
@@ -105,16 +105,16 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         // Apelido é preferência local (como quer ser chamado na saudação).
         salvarApelido(apelido || nome.trim().split(/\s+/)[0])
 
-        // O e-mail de confirmação é pedido AQUI, pelo cliente, porque o envio
+        // O código de confirmação é pedido AQUI, pelo cliente, porque o envio
         // automático no cadastro é uma chave do servidor de auth (do lado da
-        // Neon) que este app não controla. Pedindo explicitamente, o link
+        // Neon) que este app não controla. Pedindo explicitamente, o código
         // chega independentemente de como aquela chave estiver.
         //
         // Falha aqui NÃO desfaz o cadastro nem interrompe a entrada: a conta
-        // existe, e o link pode ser reenviado depois pelo aviso no topo. Por
-        // isso o toast conta o que de fato aconteceu em cada caso, em vez de
-        // prometer um e-mail que pode não ter saído.
-        const envio = await enviarConfirmacao(email, urlDeRetorno(window.location.origin))
+        // existe, e outro código pode ser pedido depois pelo aviso no topo.
+        // Por isso o toast conta o que de fato aconteceu em cada caso, em vez
+        // de prometer um e-mail que pode não ter saído.
+        const envio = await enviarCodigo(email)
         toast.success(t('auth.toast.criada'), {
           description: envio.ok
             ? t('auth.toast.criadaConfirme', { email })

@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import {
-  enviarConfirmacao,
-  lerConfirmacaoDaUrl,
-  urlDeRetorno,
-  PARAM_CONFIRMADO,
-} from './confirmar-email'
+import { enviarCodigo, confirmarComCodigo, normalizarCodigo, TAMANHO_CODIGO } from './confirmar-email'
 
 // A URL base vem de import.meta.env, que o vi.stubEnv não alcança neste setup
 // (armadilha registrada no ESTADO-ATUAL) — então, como no teste do
@@ -22,58 +17,100 @@ function respostaFake(status: number, corpo: unknown = {}) {
 beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
 afterEach(() => vi.unstubAllGlobals())
 
-describe('enviarConfirmacao', () => {
-  it('faz POST em /send-verification-email com email e callbackURL', async () => {
-    vi.mocked(fetch).mockResolvedValue(respostaFake(200, { status: true }))
+describe('enviarCodigo', () => {
+  it('faz POST em /email-otp/send-verification-otp com o tipo de verificação', async () => {
+    vi.mocked(fetch).mockResolvedValue(respostaFake(200, { success: true }))
 
-    const r = await enviarConfirmacao('alguem@exemplo.com', 'https://app.test/?confirmado=1')
+    const r = await enviarCodigo('alguem@exemplo.com')
 
-    expect(r.ok).toBe(true)
+    expect(r).toEqual({ ok: true })
     const [url, init] = vi.mocked(fetch).mock.calls[0]
-    expect(String(url)).toMatch(/^https?:\/\/.+\/send-verification-email$/)
+    expect(String(url)).toMatch(/^https?:\/\/.+\/email-otp\/send-verification-otp$/)
     expect(JSON.parse(String(init?.body))).toEqual({
       email: 'alguem@exemplo.com',
-      callbackURL: 'https://app.test/?confirmado=1',
+      type: 'email-verification',
     })
   })
 
   it('não lança quando a rede cai', async () => {
     vi.mocked(fetch).mockRejectedValue(new TypeError('Failed to fetch'))
-    await expect(enviarConfirmacao('a@b.com', 'https://app.test/')).resolves.toEqual({ ok: false })
+    await expect(enviarCodigo('a@b.com')).resolves.toEqual({ ok: false, motivo: 'falha' })
   })
 
-  it('resposta não-2xx vira ok:false, sem exceção', async () => {
+  // O servidor limita este endpoint a 3 envios por minuto. Sem separar o 429
+  // dos demais, quem clicasse "reenviar" três vezes veria "não consegui
+  // enviar" e concluiria que o app está quebrado, quando o conserto é esperar.
+  it('429 vira motivo próprio: é espera, não falha', async () => {
+    vi.mocked(fetch).mockResolvedValue(respostaFake(429, { message: 'Too many requests' }))
+    await expect(enviarCodigo('a@b.com')).resolves.toEqual({
+      ok: false,
+      motivo: 'muitas-tentativas',
+    })
+  })
+
+  it('outro erro do servidor vira falha genérica, sem exceção', async () => {
     vi.mocked(fetch).mockResolvedValue(respostaFake(500))
-    await expect(enviarConfirmacao('a@b.com', 'https://app.test/')).resolves.toEqual({ ok: false })
+    await expect(enviarCodigo('a@b.com')).resolves.toEqual({ ok: false, motivo: 'falha' })
   })
 })
 
-describe('urlDeRetorno', () => {
-  it('marca a origem, sem duplicar a barra', () => {
-    expect(urlDeRetorno('https://app.test')).toBe(`https://app.test/?${PARAM_CONFIRMADO}=1`)
-    expect(urlDeRetorno('https://app.test/')).toBe(`https://app.test/?${PARAM_CONFIRMADO}=1`)
+describe('confirmarComCodigo', () => {
+  it('faz POST em /email-otp/verify-email com email e otp', async () => {
+    vi.mocked(fetch).mockResolvedValue(respostaFake(200, { status: true, token: null, user: {} }))
+
+    const r = await confirmarComCodigo('alguem@exemplo.com', '008432')
+
+    expect(r).toEqual({ ok: true })
+    const [url, init] = vi.mocked(fetch).mock.calls[0]
+    expect(String(url)).toMatch(/^https?:\/\/.+\/email-otp\/verify-email$/)
+    expect(JSON.parse(String(init?.body))).toEqual({
+      email: 'alguem@exemplo.com',
+      otp: '008432',
+    })
+  })
+
+  // Sondado contra o servidor real em 2026-08-13: código errado responde
+  // 400 {"message":"Invalid OTP","code":"INVALID_OTP"}. É o caso mais comum
+  // do fluxo (digitou errado, ou o código expirou) e merece mensagem própria.
+  it('400 é código errado ou expirado', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      respostaFake(400, { message: 'Invalid OTP', code: 'INVALID_OTP' }),
+    )
+    await expect(confirmarComCodigo('a@b.com', '000000')).resolves.toEqual({
+      ok: false,
+      motivo: 'codigo-invalido',
+    })
+  })
+
+  it('429 é espera, não código errado', async () => {
+    vi.mocked(fetch).mockResolvedValue(respostaFake(429))
+    await expect(confirmarComCodigo('a@b.com', '000000')).resolves.toEqual({
+      ok: false,
+      motivo: 'muitas-tentativas',
+    })
+  })
+
+  it('não lança quando a rede cai', async () => {
+    vi.mocked(fetch).mockRejectedValue(new TypeError('Failed to fetch'))
+    await expect(confirmarComCodigo('a@b.com', '008432')).resolves.toEqual({
+      ok: false,
+      motivo: 'falha',
+    })
   })
 })
 
-describe('lerConfirmacaoDaUrl', () => {
-  it('sem marca nenhuma, não diz nada', () => {
-    expect(lerConfirmacaoDaUrl('')).toBeNull()
-    expect(lerConfirmacaoDaUrl('?p=mes&ref=2026-07')).toBeNull()
+describe('normalizarCodigo', () => {
+  // Quem recebe o código copia do e-mail, e o que vem junto varia: espaço,
+  // quebra de linha, o texto ao redor. Recusar "008 432" seria culpar a
+  // pessoa por um detalhe do cliente de e-mail dela.
+  it('fica só com os dígitos', () => {
+    expect(normalizarCodigo(' 008 432 ')).toBe('008432')
+    expect(normalizarCodigo('008-432')).toBe('008432')
+    expect(normalizarCodigo('abc')).toBe('')
   })
 
-  it('a marca sozinha significa confirmado — o sucesso volta sem parâmetro próprio', () => {
-    expect(lerConfirmacaoDaUrl('?confirmado=1')).toBe('confirmado')
-  })
-
-  it('a marca com error é o link gasto (o servidor anexa error=INVALID_TOKEN)', () => {
-    expect(lerConfirmacaoDaUrl('?confirmado=1&error=INVALID_TOKEN')).toBe('link-invalido')
-  })
-
-  // Um ?error= de OUTRA origem (um login social cancelado, por exemplo) não
-  // pode virar "seu link de confirmação expirou": mandaria a pessoa procurar
-  // problema onde não há. Só a marca própria autoriza a leitura.
-  it('error sem a marca não é assunto desta função', () => {
-    expect(lerConfirmacaoDaUrl('?error=INVALID_TOKEN')).toBeNull()
-    expect(lerConfirmacaoDaUrl('?error=ACCESS_DENIED&state=xyz')).toBeNull()
+  it('não passa do tamanho do código', () => {
+    expect(normalizarCodigo('00843212345')).toBe('008432')
+    expect(normalizarCodigo('008432').length).toBe(TAMANHO_CODIGO)
   })
 })

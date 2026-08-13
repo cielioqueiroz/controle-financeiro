@@ -156,6 +156,7 @@ export type TxParcela = {
   kind: string
   description: string
   label: string | null
+  bank: string
   installment: { current: number; total: number } | null
 }
 
@@ -164,12 +165,21 @@ export type ItemFuturo = {
   parcela: number
   total: number
   amountCents: number
+  bank: string
 }
+
+/** Quanto de um mês futuro vem de cada cartão. É o que o gráfico dos
+ *  compromissos pinta: a cor do banco responde "de quem é essa parcela" sem
+ *  precisar abrir o mês. */
+export type FaixaBanco = { bank: string; totalCents: number }
 
 export type MesFuturo = {
   competencia: string // YYYY-MM
   totalCents: number
   itens: ItemFuturo[]
+  /** Do maior para o menor — a ordem estável que impede a pilha de trocar
+   *  de arranjo entre um mês e outro. */
+  porBanco: FaixaBanco[]
 }
 
 function somarMeses(comp: string, k: number): string {
@@ -187,7 +197,10 @@ function somarMeses(comp: string, k: number): string {
  *  nunca colide com um lançamento real que chegar. */
 export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
   // Uma entrada por série, mantendo a parcela de maior número (mais nova).
-  const series = new Map<string, { comp: string; current: number; total: number; cents: number; desc: string }>()
+  const series = new Map<
+    string,
+    { comp: string; current: number; total: number; cents: number; desc: string; bank: string }
+  >()
   for (const t of txs) {
     if (t.kind !== 'expense' || !t.installment) continue
     const { current, total } = t.installment
@@ -196,7 +209,14 @@ export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
     const chave = `${desc}|${total}`
     const atual = series.get(chave)
     if (!atual || current > atual.current) {
-      series.set(chave, { comp: t.competencia, current, total, cents: t.amount_cents, desc })
+      series.set(chave, {
+        comp: t.competencia,
+        current,
+        total,
+        cents: t.amount_cents,
+        desc,
+        bank: t.bank,
+      })
     }
   }
 
@@ -204,13 +224,26 @@ export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
   for (const s of series.values()) {
     for (let k = 1; k <= s.total - s.current; k++) {
       const comp = somarMeses(s.comp, k)
-      const mes = meses.get(comp) ?? { competencia: comp, totalCents: 0, itens: [] }
+      const mes = meses.get(comp) ?? { competencia: comp, totalCents: 0, itens: [], porBanco: [] }
       mes.totalCents += s.cents
-      mes.itens.push({ descricao: s.desc, parcela: s.current + k, total: s.total, amountCents: s.cents })
+      mes.itens.push({
+        descricao: s.desc,
+        parcela: s.current + k,
+        total: s.total,
+        amountCents: s.cents,
+        bank: s.bank,
+      })
       meses.set(comp, mes)
     }
   }
-  for (const m of meses.values()) m.itens.sort((a, b) => b.amountCents - a.amountCents)
+  for (const m of meses.values()) {
+    m.itens.sort((a, b) => b.amountCents - a.amountCents)
+    const soma = new Map<string, number>()
+    for (const it of m.itens) soma.set(it.bank, (soma.get(it.bank) ?? 0) + it.amountCents)
+    m.porBanco = [...soma.entries()]
+      .map(([bank, totalCents]) => ({ bank, totalCents }))
+      .sort((a, b) => b.totalCents - a.totalCents)
+  }
   return [...meses.values()].sort((a, b) => (a.competencia < b.competencia ? -1 : 1))
 }
 

@@ -14,9 +14,9 @@ describe('SaldoAberto', () => {
     expect(screen.getByText('Nubank')).toBeInTheDocument()
   })
 
-  it('omite a linha de fechamento quando o banco não declara', () => {
+  it('omite a data de fechamento quando o banco não declara', () => {
     render(<SaldoAberto bank="bradesco" futurasCents={null} abertoCents={552944} proximoFechamento={null} />)
-    expect(screen.queryByText(/fecha/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/fecha em/i)).not.toBeInTheDocument()
   })
 
   it('banco fora do catálogo não quebra', () => {
@@ -25,27 +25,52 @@ describe('SaldoAberto', () => {
   })
 })
 
-// O Bradesco não declara saldo em aberto — a fatura dele não traz o quanto já
-// foi gasto no ciclo que ainda vai fechar. Declara o total já comprometido em
-// parcelas, que é outro número: chamar os dois de "em aberto" poria lado a
-// lado, com o mesmo rótulo, respostas para perguntas diferentes.
-describe('SaldoAberto — quando o banco declara só as próximas faturas', () => {
-  it('mostra o valor sob o rótulo "Próximas faturas", não "Em aberto"', () => {
+// Os dois bancos declaram números diferentes — o Nubank, o gasto do ciclo que
+// ainda não fechou; o Bradesco, o total já parcelado que ainda vai ser
+// cobrado. A rodada de 12/08 deu a cada um um RÓTULO diferente, e a fileira
+// ficou com "Em aberto Nubank" ao lado de "Próximas faturas Bradesco": dois
+// cards irmãos, com cara de coisas diferentes, foi o que o usuário apontou.
+//
+// Agora o rótulo é um só — verdadeiro para ambos, porque os dois números
+// respondem "o que ainda vem" — e a diferença vive na linha de detalhe, que é
+// onde ela cabe sem quebrar a leitura da fileira.
+describe('SaldoAberto — rótulo padrão na fileira inteira', () => {
+  it('o ciclo em aberto entra sob "Próximas faturas", com o detalhe do ciclo', () => {
+    render(
+      <SaldoAberto
+        bank="nubank"
+        abertoCents={271775}
+        futurasCents={null}
+        proximoFechamento="2026-08-20"
+      />,
+    )
+    expect(screen.getByText(/Próximas faturas/i)).toBeInTheDocument()
+    // O rótulo do topo, e só ele: "em aberto" continua dito na linha de
+    // detalhe logo abaixo, que é onde a distinção passou a morar.
+    expect(screen.queryByText(/^Em aberto$/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/ciclo em aberto/i)).toBeInTheDocument()
+    expect(screen.getByText(/fecha em 20\/ago/i)).toBeInTheDocument()
+  })
+
+  it('as parcelas futuras entram sob o mesmo rótulo, com o detalhe delas', () => {
     render(
       <SaldoAberto
         bank="bradesco"
         abertoCents={null}
-        futurasCents={557834}
+        futurasCents={328813}
         proximoFechamento="2026-07-16"
       />,
     )
-    expect(screen.getByText(/5\.578,34/)).toBeInTheDocument()
+    expect(screen.getByText(/3\.288,13/)).toBeInTheDocument()
     expect(screen.getByText(/Próximas faturas/i)).toBeInTheDocument()
-    expect(screen.queryByText(/Em aberto/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/fecha em 16\/jul/i)).toBeInTheDocument()
+    // Parcelas a vencer não são "o que fecha na próxima": elas se espalham
+    // por vários meses, e carimbar uma data de fechamento nesse número diria
+    // que tudo cai de uma vez.
+    expect(screen.getByText(/parcelas a vencer/i)).toBeInTheDocument()
+    expect(screen.queryByText(/fecha em/i)).not.toBeInTheDocument()
   })
 
-  it('em aberto vence quando os dois existem: é o "quanto já devo agora"', () => {
+  it('o ciclo em aberto vence quando os dois existem: é o "quanto já devo agora"', () => {
     render(
       <SaldoAberto
         bank="nubank"
@@ -55,7 +80,7 @@ describe('SaldoAberto — quando o banco declara só as próximas faturas', () =
       />,
     )
     expect(screen.getByText(/2\.688,23/)).toBeInTheDocument()
-    expect(screen.getByText(/Em aberto/i)).toBeInTheDocument()
+    expect(screen.getByText(/ciclo em aberto/i)).toBeInTheDocument()
   })
 
   it('sem nenhum dos dois, o card não aparece — não há o que dizer', () => {

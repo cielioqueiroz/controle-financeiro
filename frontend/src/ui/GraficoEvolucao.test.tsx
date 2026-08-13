@@ -63,6 +63,35 @@ describe('GraficoEvolucao', () => {
   })
 })
 
+// O mesmo defeito do gráfico diário, na outra escala de tempo: um mês com um
+// empréstimo de R$ 41 mil deixa os outros onze rentes ao chão.
+describe('GraficoEvolucao — quando um mês é muito maior que os outros', () => {
+  const COM_DISCREPANTE: PontoMes[] = [
+    { competencia: '2026-01', gastoCents: 300000, entradasCents: 320000 },
+    { competencia: '2026-02', gastoCents: 280000, entradasCents: 310000 },
+    { competencia: '2026-03', gastoCents: 350000, entradasCents: 300000 },
+    { competencia: '2026-04', gastoCents: 310000, entradasCents: 330000 },
+    { competencia: '2026-05', gastoCents: 290000, entradasCents: 305000 },
+    { competencia: '2026-06', gastoCents: 4165385, entradasCents: 315000 },
+  ]
+
+  it('declara até onde a escala vai e quantas barras passam dela', () => {
+    render(<GraficoEvolucao serie={COM_DISCREPANTE} ativo="2026-06" onSelecionar={vi.fn()} />)
+    expect(screen.getByText(/escala até/i)).toBeInTheDocument()
+    expect(screen.getByText(/1 barra acima/i)).toBeInTheDocument()
+  })
+
+  it('o mês cortado se declara cortado no nome acessível', () => {
+    render(<GraficoEvolucao serie={COM_DISCREPANTE} ativo="2026-06" onSelecionar={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /jun/i })).toHaveAccessibleName(/acima da escala/i)
+  })
+
+  it('série sem discrepante não anuncia corte nenhum', () => {
+    render(<GraficoEvolucao serie={SERIE} ativo="2026-06" onSelecionar={vi.fn()} />)
+    expect(screen.queryByText(/escala até/i)).not.toBeInTheDocument()
+  })
+})
+
 // NOTA sobre o que NÃO está testado aqui: a invariante de "uma escala só
 // para as duas séries" (o `max` compartilhado). Ela é o que impede a barra
 // de entrada de junho, de R$ 2.000, de parecer MAIOR que a de saída, de

@@ -1,8 +1,132 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-12**.
+> Documento de continuidade. Última atualização: **2026-08-13**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+## Rodada 2026-08-13 — o e-mail manda código, e os gráficos mentiam de tão achatados
+
+Seis pedidos do usuário com o app na tela. Dois viraram achado de verdade: o fluxo de
+confirmação de e-mail estava **inalcançável** e a escala dos gráficos **inutilizava** o
+desenho num mês com um valor discrepante.
+
+### 1. A confirmação de e-mail nunca teve onde ser digitada
+
+**O relato:** *"o e-mail me manda um código, mas onde eu digito esse código?"*
+
+E não havia lugar nenhum. O fluxo montado em 12/08 era o de **link**
+(`/send-verification-email` + `callbackURL` + `/verify-email?token=`), com 8 testes
+verdes — e o e-mail que chega traz **6 dígitos**. Sondagem contra o servidor real
+explicou por quê:
+
+| Sonda (2026-08-13) | Resposta |
+|---|---|
+| `GET /open-api/generate-schema` | o plugin **`email-otp` está ligado** no servidor da Neon |
+| `POST /email-otp/verify-email {email, otp}` | `400 {"message":"Invalid OTP","code":"INVALID_OTP"}` |
+| `POST /email-otp/send-verification-otp {email, type}` | `200 {"success":true}` |
+
+O código do plugin (`node_modules/better-auth/dist/plugins/email-otp/index.mjs:22`) é
+explícito: com `overrideDefaultEmailVerification`, o `init()` **reescreve**
+`sendVerificationEmail` para mandar OTP. Ou seja, o `callbackURL` que o app passava era
+ignorado e o `/verify-email?token=` nunca receberia link nenhum — **código testado que
+não podia rodar**.
+
+A documentação da Neon fecha a questão: *"Verification links require a custom email
+provider"*. Com o remetente compartilhado (`auth@mail.myneon.app`, o que está no ar) só
+existe código. O app passou a se ajustar ao que **de fato chega na caixa de entrada**:
+`AvisoConfirmarEmail` abre um campo de 6 dígitos, com "enviar outro código".
+
+⚠️ **Limite do servidor: 3 chamadas por minuto** em `send-verification-otp` e em
+`verify-email` (`rateLimit` do plugin). O `429` tem mensagem própria — dizer "não
+consegui" ali mandaria a pessoa procurar defeito onde o conserto é **esperar**.
+
+**Sobre o "Hello cielioqueiroz@hotmail.com" em vez do nome:** não é um descuido do
+template, é a **assinatura do callback**. O `sendVerificationOTP` recebe
+`{ email, otp, type }` — o objeto `user` não está lá, então o remetente da Neon não tem
+o nome para escrever. Só sai do lugar com **provedor de e-mail próprio + webhook**
+(o payload do webhook tem `user.name`). Nada disso é alcançável do cliente.
+
+**Código removido junto:** `urlDeRetorno`, `lerConfirmacaoDaUrl`,
+`limparConfirmacaoDaUrl`, o efeito de `?confirmado=1` no `App.tsx` e 4 chaves de i18n.
+Era o fluxo de link inteiro — inalcançável, e manter código que não pode rodar é
+manter uma mentira compilável.
+
+### 2. Os gráficos de barra: um empréstimo de R$ 41.653 achatava o mês inteiro
+
+**O relato:** *"os gráficos de barra estão desproporcional"*. Estavam. Com a escala no
+máximo — o jeito óbvio — os outros 25 dias do mês viravam traços de 2px rente ao chão.
+O gráfico continuava **correto** e tinha parado de responder à única pergunta que
+justifica sua existência: *quando* o dinheiro saiu.
+
+`ui/escala-barras.ts` (12 testes) resolve sem mentir na altura: escala linear até um
+**teto robusto** (cerca de Tukey, `q3 + 1,5·IQR`), com quem passa desenhado **cortado**
+— serrilha no topo, valor cheio no `aria-label` e "escala até R$ 816 · 1 dia acima" no
+rodapé. Log ou raiz resolveriam o aperto e cobrariam caro: as alturas deixariam de ser
+comparáveis **em silêncio**, e ninguém desconfia de um gráfico bonito.
+
+⚠️ **O ajuste fino não veio de teste nenhum — veio de olhar a tela.** A primeira versão
+cortava 2 dias: com um espeto muito grande, a cerca desce tanto que o segundo maior dia
+(R$ 816, nada de extraordinário) também caía fora. Serrilha numa barra que caberia
+inteira ensina a ignorar a marca. Daí a regra de **absorção** (o teto sobe para abraçar
+quem passou da cerca sem ser espeto, e para no primeiro que não couber).
+
+Aplicado em `GraficoDiario` e `GraficoEvolucao`, que também subiram de `h-32` para
+`h-40` e ganharam linha de base. `GraficoEvolucao` **passou a usar `t()`** — quita
+metade da dívida de i18n anotada em 12/08 (falta `GraficoCategorias`).
+
+### 3. `frontend/demo.html` — a folha de provas, e por que ela existe
+
+O achado acima **não era detectável em jsdom**: altura aplicada pelo `motion` não chega
+ao DOM, e o próprio teste de `GraficoEvolucao` já registrava isso ("qualquer asserção
+aqui passaria com a escala certa E com a errada"). Gráfico é a peça que passa no teste e
+sai torta na tela.
+
+`frontend/demo.html` + `src/demo.tsx` montam os componentes com dados **fictícios**
+(incluindo o mês com o empréstimo). Fora do build de produção — o `vite build` só usa
+`index.html` como entrada, conferido no `dist/`. `scripts/gerar-prints.py` dirige o
+Chromium contra ela e gera os prints do README, sem expor extrato de ninguém.
+
+### 4. Os outros três pedidos
+
+- **Rótulo único na fileira de saldos.** "Em aberto Nubank" ao lado de "Próximas
+  faturas Bradesco" eram dois cards irmãos com cara de coisas diferentes. Agora o
+  rótulo é **"Próximas faturas"** nos dois — verdadeiro para ambos, porque os dois
+  números respondem *o que ainda vem* — e a distinção desceu para a linha de detalhe:
+  `ciclo em aberto · fecha em 20/ago` (Nubank) e `parcelas a vencer` (Bradesco). A data
+  de fechamento **não** acompanha as parcelas futuras: elas se espalham por vários
+  meses, e carimbar uma data ali diria que tudo cai de uma vez.
+- **Gráfico nas Recorrências** (`ui/GraficoCompromissos.tsx`): a metade direita da
+  página vivia vazia (sem recorrências detectadas, `ListaRecorrencias` devolve `null`).
+  Agora há barras por mês futuro, **empilhadas pelas cores institucionais** dos bancos
+  (roxo Nubank, vermelho Bradesco, do catálogo `BANCOS` — as mesmas do filtro e dos
+  cards). `MesFuturo` ganhou `porBanco` e `ItemFuturo` ganhou `bank`, ambos testados no
+  `agrupar`. Clicar numa barra **abre aquele mês na lista ao lado**: por isso
+  `CompromissosFuturos` virou controlado — com o estado dentro dele, as duas peças
+  discordariam sobre qual mês está aberto.
+- **Favicon novo**: cofrinho com a moeda entrando, a pedido (o carimbo de "conferido"
+  durou um dia). Conferido a 16/24/32/48/64/128px nos dois fundos, com o mesmo cuidado
+  de antes: só silhueta, nada abaixo de 3px em 64, e os recortes (olho, fenda) na cor
+  do fundo em vez de linhas — recorte sobrevive ao downscale, linha não.
+
+### 5. README refeito
+
+Prints reais, quatro diagramas Mermaid (pipeline de importação, arquitetura em camadas,
+ER das 5 tabelas com RLS, e o modelo de isolamento), a seção de qualidade com o que cada
+medidor reprova, e a decisão da escala dos gráficos contada por extenso.
+
+⚠️ **Diagrama Mermaid com erro de sintaxe não quebra nada — só vira um bloco de código
+cru no meio da página.** Por isso os quatro foram **parseados** (`mermaid.parse`) e
+**renderizados em PNG** antes de publicar; os dois primeiros nasceram altos e ilegíveis
+e foram refeitos com menos nós.
+
+⚠️ **Armadilha de plataforma:** editar arquivo com `io.open(..., 'w')` no Python, no
+Windows, converte todo `\n` em `\r\n` em silêncio. O README inteiro virou CRLF numa
+edição e o validador passou a achar **zero** blocos mermaid (o regex `\`\`\`mermaid\n`
+não casa com `\r\n`). Normalizado de volta para LF. Use `newline=''` ao reescrever
+arquivo versionado.
+
+**606 testes (78 arquivos)**, build e lint limpos (4 avisos pré-existentes), CSP,
+contraste e overflow reaprovados.
 
 ## 🚀 Retomada em 30 segundos
 
