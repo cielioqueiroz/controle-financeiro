@@ -1,7 +1,7 @@
 /** Confirmação de e-mail do Neon Auth (Better Auth).
  *
  *  Como na recuperação de senha, o cliente `neon-js` NÃO expõe estes
- *  métodos — são chamadas HTTP diretas. Sondagem de 2026-08-09 contra o
+ *  métodos — são chamadas HTTP diretas. Sondagem de 2026-08-12 contra o
  *  servidor real (é assim que se descobre o contrato aqui: sondando, não
  *  supondo):
  *

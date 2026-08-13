@@ -12,7 +12,7 @@ type Props = {
 type Passo = { icone: string; titulo: keyof Dicionario; corpo: keyof Dicionario }
 
 /** Os seis passos seguem a ordem em que a pessoa realmente usa o app, e a
- *  copy foi reescrita em 2026-08-09 porque descrevia um app que não existe
+ *  copy foi reescrita em 2026-08-12 porque descrevia um app que não existe
  *  mais: mandava clicar num botão "Documentos" (virou a página Faturas na
  *  reforma de 07/08) e dizia que o relatório "abre o diálogo de impressão"
  *  (o `window.print()` saiu em 24/07, quando o PDF passou a ser um arquivo

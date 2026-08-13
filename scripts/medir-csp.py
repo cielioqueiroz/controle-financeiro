@@ -387,7 +387,7 @@ def jornada(page, base: str, pdf: Path | None) -> str:
     # campo diz "nada pendente AGORA", o que tambem e verdade ANTES de a
     # primeira fonte ser pedida. Contra o site publicado, numa borda fria, a
     # medicao passava por ali cedo demais e reprovava um build correto —
-    # aconteceu em 2026-08-09. Assim, so o esgotamento do tempo reprova, e ai
+    # aconteceu em 2026-08-12. Assim, so o esgotamento do tempo reprova, e ai
     # a fonte foi barrada de verdade.
     page.wait_for_function(
         "Array.from(document.fonts).some((f) => f.status === 'loaded')",

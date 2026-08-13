@@ -1,8 +1,43 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-09**.
+> Documento de continuidade. Última atualização: **2026-08-12**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+## 🚀 Retomada em 30 segundos
+
+**O app está no ar e saudável** em https://capital-financeiro.vercel.app —
+**567 testes (75 arquivos)**, build e lint limpos, CSP completa medida contra o
+build **e** contra o site publicado. Trabalha-se direto na `main`; todo push
+publica sozinho em ~1 min.
+
+**Três coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
+
+| O que | Por que está parado |
+|---|---|
+| **Fatia 1b** — backend real (Vercel Functions) | Falta a `DATABASE_URL` do Neon (role `authenticated`, sem BYPASSRLS) no `.env.local` da raiz |
+| **Mais bancos** (Caixa, layout A do BB) | Falta amostra: o extrato da Caixa veio como imagem, e o app lê texto |
+| **Conferir logado, no navegador** | A senha da conta de teste não é versionada — é o usuário quem valida contra dado real |
+
+**O que o usuário precisa conferir na próxima vez que abrir** (nesta ordem):
+
+1. **Criar uma conta de verdade e ver o e-mail de confirmação chegar.** O fluxo
+   está pinado por teste e os endpoints foram sondados, mas a **entrega**
+   depende do remetente da Neon e não dá para verificar sem uma caixa real.
+2. **O card "Próximas faturas" do Bradesco** — a fileira de saldos agora mostra
+   um card por banco com o número que cada um declara (ver a rodada de 12/08).
+3. **O gráfico de saídas por dia**, que ocupou a metade vazia do painel.
+
+**Antes de dizer que algo está pronto**, rode os cinco (a seção *Como validar
+rapidamente* tem os detalhes): `npm test && npm run build && npm run lint`,
+`python scripts/medir-csp.py` (depois do build) e, se mexer em cor ou layout,
+`medir-contraste.py` e `medir-overflow.py`. **`npm test` NÃO checa tipos** —
+essa armadilha já mordeu três vezes, inclusive nesta rodada.
+
+**Dívida conhecida, decidida de propósito:** `GraficoEvolucao` e
+`GraficoCategorias` têm rótulos e `aria-label` fixos em português. Como o
+seletor de idioma saiu da UI na fatia 4a, não quebra nada hoje — mas o
+documento já afirmou "i18n 100%" e não afirma mais.
 
 ## ⚠️ A REFORMA (leia antes de tudo)
 
@@ -31,7 +66,7 @@ Plano da fatia 1a: `docs/superpowers/plans/2026-08-07-reforma-fatia-1a-arquitetu
 |---|---|---|
 | 1a | `frontend/` + `backend/` com workspaces | ✅ **no ar** (07/08) |
 | 4a | seletor de idioma fora da UI (código i18n intacto) | ✅ **no ar** (07/08) |
-| 2 | router + páginas de navegação (a 7ª, "Datas", saiu em 09/08) | ✅ **no ar** (07/08) |
+| 2 | router + páginas de navegação (a 7ª, "Datas", saiu em 12/08) | ✅ **no ar** (07/08) |
 | 3 | design "livro-razão" + gráficos interativos | ✅ **no ar** (07/08) |
 | 4b | CSP completa, medida contra o build | ✅ **no ar** (09/08) |
 | 1b | backend real (Vercel Functions) | ⛔ **bloqueada**: falta `DATABASE_URL` no `.env.local` |
@@ -49,7 +84,7 @@ Vercel, não há servidor próprio nem painel de banco exposto); o backend será
 **567 testes (75 arquivos)**, build e lint limpos, medidor de overflow OK,
 contraste OK nos dois temas, CSP aprovada nas duas jornadas e contra o site no ar.
 
-## Rodada 2026-08-09 (parte 3) — ajustes pedidos com o app na tela
+## Rodada 2026-08-12 (parte 2) — ajustes pedidos com o app na tela
 
 O usuário abriu o sistema logado, com dados reais de julho, e apontou seis
 coisas. Todas resolvidas; duas viraram achado de verdade.
@@ -172,7 +207,7 @@ de verdade. Três rodadas seguidas contra a produção, verdes.
   dicionários), mas `GraficoEvolucao` e `GraficoCategorias` seguem com rótulo
   e `aria-label` fixos em português.
 
-## Rodada 2026-08-09 (parte 2) — code review das fatias 2 e 3
+## Rodada 2026-08-12 (parte 1) — code review das fatias 2 e 3
 
 As duas maiores fatias da reforma foram para a `main` **sem review de fim de
 ramo**, e a lição registrada neste projeto é que é justamente ele que pega o
@@ -860,7 +895,7 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 ## 🚧 Fila do que falta — em ordem
 
-> **Estado em 2026-08-09 — a fila abaixo está toda ✅.** O que resta no projeto
+> **Estado em 2026-08-12 — a fila abaixo está toda ✅.** O que resta no projeto
 > inteiro são três coisas, e **nenhuma delas é código que dê para escrever hoje**:
 >
 > 1. **Fatia 1b (backend real)** — precisa da `DATABASE_URL` do Neon (role

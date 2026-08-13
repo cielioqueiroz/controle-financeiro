@@ -9,7 +9,7 @@ import { useDados } from '../dados/DadosProvider'
  *  Veio para cá porque é esta a única tela que a usa — ficar no painel
  *  significava recalculá-la em toda troca de período sem ninguém olhar.
  *
- *  O selo de quitada/em aberto saiu em 2026-08-09, a pedido do usuário. Com
+ *  O selo de quitada/em aberto saiu em 2026-08-12, a pedido do usuário. Com
  *  ele saíram o cálculo de pagamentos daqui e `domain/quitacao.ts` inteiro —
  *  código que ninguém mais alcançava. Está no histórico do git se voltar. */
 export function Faturas() {
