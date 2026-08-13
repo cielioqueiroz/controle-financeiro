@@ -157,6 +157,14 @@ sem uma caixa real.
 
 **567 testes (75 arquivos)**, build e lint limpos, CSP reaprovada.
 
+⚠️ **Armadilha nova, do próprio medidor:** `document.fonts.status === 'loaded'`
+significa *"nada pendente agora"* — e isso também é verdade **antes** de a
+primeira fonte ser pedida. Contra o site publicado, numa borda fria, o
+`medir-csp.py` passava por ali cedo demais e **reprovava um build correto**
+("nenhuma fonte carregou"). Agora ele espera por *uma fonte com status
+`loaded`*, então só o esgotamento do tempo reprova — e aí a fonte foi barrada
+de verdade. Três rodadas seguidas contra a produção, verdes.
+
 ### Dívida anotada, não corrigida
 
 - Os dois gráficos novos e as páginas Datas/Recorrências não usavam `t()`.

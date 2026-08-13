@@ -382,7 +382,17 @@ def jornada(page, base: str, pdf: Path | None) -> str:
     # para caberem em `font-src 'self'`. Se a diretiva estiver errada elas nao
     # carregam e a pagina cai na fonte do sistema — degradacao silenciosa, que
     # nenhuma contagem de violacao denunciaria sozinha.
-    page.wait_for_function('document.fonts.status === "loaded"', timeout=15000)
+    #
+    # Espera por UMA FONTE CARREGADA, e nao por `document.fonts.status`: aquele
+    # campo diz "nada pendente AGORA", o que tambem e verdade ANTES de a
+    # primeira fonte ser pedida. Contra o site publicado, numa borda fria, a
+    # medicao passava por ali cedo demais e reprovava um build correto —
+    # aconteceu em 2026-08-09. Assim, so o esgotamento do tempo reprova, e ai
+    # a fonte foi barrada de verdade.
+    page.wait_for_function(
+        "Array.from(document.fonts).some((f) => f.status === 'loaded')",
+        timeout=20000,
+    )
 
     tema = page.locator('button[aria-label^="Mudar para tema"]')
     if tema.count():
