@@ -204,9 +204,17 @@ export function Folha() {
           tem ATACADAO, UBER TRIP e CAFETERIA GRAO repetidos de propósito: é
           neles que a diferença entre as duas listas aparece. */}
       <Secao titulo="rankings">
-        <div className="grid gap-6 rounded-2xl border border-carvao-700 bg-carvao-900 p-5 lg:grid-cols-2">
-          <MaioresSaidas itens={maioresSaidas(TUDO, 5)} onEditar={() => {}} />
-          <TopEstabelecimentos itens={porEstabelecimento(TUDO, 5)} onAbrir={() => {}} />
+        {/* A MESMA caixa do painel, régua do meio inclusive. A folha de
+            provas existe para provar o que vai ao ar: quando ela desenha os
+            dois rankings soltos num `gap-6` e o painel os desenha com uma
+            borda entre as colunas, o print deixa de ser prova de nada. */}
+        <div className="grid gap-8 rounded-2xl border border-carvao-700 bg-carvao-900 p-5 lg:grid-cols-2 lg:gap-0">
+          <div className="lg:pr-8">
+            <MaioresSaidas itens={maioresSaidas(TUDO, 5)} onEditar={() => {}} />
+          </div>
+          <div className="lg:border-l lg:border-carvao-800 lg:pl-8">
+            <TopEstabelecimentos itens={porEstabelecimento(TUDO, 5)} onAbrir={() => {}} />
+          </div>
         </div>
       </Secao>
 

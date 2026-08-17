@@ -7,6 +7,7 @@ import { nomeCategoria } from '../domain/categorize/categorias'
 import { useFiltros } from '../dados/useFiltros'
 import { escreverFiltros } from '../dados/filtros'
 import { useT } from '../i18n/IdiomaProvider'
+import { MarcaCategoria } from './MarcaCategoria'
 
 type Props = {
   categorias: CategoriaResumo[]
@@ -132,11 +133,7 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
                 pct: Math.round((c.totalCents / totalCents) * 100),
               })}
             >
-              <span
-                aria-hidden
-                className="h-2.5 w-2.5 shrink-0 rounded-[1px]"
-                style={{ background: c.cat.cor }}
-              />
+              <MarcaCategoria cor={c.cat.cor} />
               <span aria-hidden className="text-sm">
                 {c.cat.icone}
               </span>

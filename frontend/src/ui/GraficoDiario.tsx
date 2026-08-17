@@ -12,6 +12,16 @@ type Props = {
   dias: GrupoDia<TransacaoSalva>[]
   /** Leva a tela para aquele dia. */
   onSelecionar: (dia: string) => void
+  /** O dia que o recorte está mostrando (YYYY-MM-DD), quando o gráfico
+   *  desenha um pano de fundo maior que o recorte — o caso de Dia e Semana.
+   *  Pinta a barra de `--color-marca`: sem isso, quem abre o dia 10 vê o mês
+   *  inteiro e perde de vista onde está. */
+  destaque?: string | null
+  /** O que o desenho cobre, quando é MAIS que o recorte da tela. Sem isto o
+   *  "média R$ 120" do cabeçalho seria lido como média do dia aberto, que é
+   *  outro número — o gráfico estaria respondendo uma pergunta e parecendo
+   *  responder outra. */
+  contexto?: string | null
 }
 
 /** "2026-07-14" → "14/jul" (mês na locale ativa). Data local, sem fuso. */
@@ -38,8 +48,14 @@ function rotuloDia(iso: string): string {
  *  no cabeçalho — a distorção é local e declarada, em vez de global e muda,
  *  que é o que uma escala logarítmica faria.
  *
+ *  **As cores dizem três coisas, e só três.** O campo em repouso é
+ *  `--color-barra`, neutro; o pico é `--color-debito`; o dia aberto é
+ *  `--color-marca`. Antes, TODAS as barras eram débito e o pico era tinta —
+ *  um muro vermelho no qual o vermelho não distinguia nada, e o destaque
+ *  gastava a cor mais forte da interface no lugar mais repetido dela.
+ *
  *  Clicar num dia leva a tela para ele, como clicar num mês na evolução. */
-export function GraficoDiario({ dias, onSelecionar }: Props) {
+export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props) {
   const semMovimento = useReducedMotion()
   const { t } = useT()
   const [emFoco, setEmFoco] = useState<string | null>(null)
@@ -48,14 +64,22 @@ export function GraficoDiario({ dias, onSelecionar }: Props) {
   // contrário da lista, que quer o mais recente no topo.
   const comGasto = [...dias].filter((d) => d.gastoCents > 0).sort((a, b) => (a.dia < b.dia ? -1 : 1))
 
-  // Um dia só não é um ritmo — é o mesmo número do tile de gasto, desenhado.
-  if (comGasto.length < 2) return null
+  // Nada gasto no período: não há ritmo, e quem decide o que pôr no lugar é
+  // a página. O limite era `< 2` e derrubava o gráfico inteiro sempre que o
+  // recorte era um Dia — que é justamente quando ele tem MAIS a dizer, desde
+  // que o desenho seja o mês em volta. Ver `doMesCalendario`.
+  if (comGasto.length === 0) return null
 
   const escala = escalaRobusta(comGasto.map((d) => d.gastoCents))
   const total = comGasto.reduce((s, d) => s + d.gastoCents, 0)
   const media = Math.round(total / comGasto.length)
   const foco = comGasto.find((d) => d.dia === emFoco)
+  const ativo = comGasto.find((d) => d.dia === destaque)
   const maior = comGasto.reduce((a, b) => (b.gastoCents > a.gastoCents ? b : a))
+  // A faixa de leitura, em ordem de urgência: o que o mouse aponta, senão o
+  // dia que a tela está mostrando, senão o pico. Nessa ordem porque cada uma
+  // responde a uma pergunta mais imediata que a seguinte.
+  const emLeitura = foco ?? ativo ?? maior
   // A régua da média só entra se couber no desenho: com escala cortada ela
   // pode cair acima do teto, e uma linha grudada no topo não informa nada.
   const mediaPct = media > 0 && media < escala.teto ? alturaPct(media, escala) : null
@@ -63,7 +87,10 @@ export function GraficoDiario({ dias, onSelecionar }: Props) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="rotulo">{t('diario.titulo')}</p>
+        <p className="rotulo">
+          {t('diario.titulo')}
+          {contexto && <span className="ml-1.5 normal-case text-tinta-fraca">· {contexto}</span>}
+        </p>
         <p className="text-[11px] text-tinta-tenue">
           {t('diario.resumo', { dias: String(comGasto.length), media: formatBRL(media) })}
         </p>
@@ -73,15 +100,14 @@ export function GraficoDiario({ dias, onSelecionar }: Props) {
           mouse entra. Fora do foco, mostra o dia de maior saída — o que
           alguém procuraria primeiro num gráfico de picos. */}
       <div className="mb-2 flex h-9 items-center gap-4 rounded-sm bg-afundado px-3">
-        <span className="rotulo !text-[10px]">{rotuloDia((foco ?? maior).dia)}</span>
+        <span className="rotulo !text-[10px]">{rotuloDia(emLeitura.dia)}</span>
         <span className="tabular text-xs text-debito">
-          −{formatBRL((foco ?? maior).gastoCents).replace('R$', '').trim()}
+          −{formatBRL(emLeitura.gastoCents).replace('R$', '').trim()}
         </span>
         <span className="tabular ml-auto text-[10px] text-tinta-tenue">
-          {t(
-            (foco ?? maior).itens.length === 1 ? 'diario.lancamento1' : 'diario.lancamentos',
-            { n: String((foco ?? maior).itens.length) },
-          )}
+          {t(emLeitura.itens.length === 1 ? 'diario.lancamento1' : 'diario.lancamentos', {
+            n: String(emLeitura.itens.length),
+          })}
         </span>
       </div>
 
@@ -90,6 +116,10 @@ export function GraficoDiario({ dias, onSelecionar }: Props) {
           {comGasto.map((d) => {
             const cortada = d.gastoCents > escala.teto
             const ehPico = d.dia === maior.dia
+            const ehAtivo = d.dia === destaque
+            // Ativo vence pico: "onde eu estou" é mais urgente que "onde foi
+            // o maior", e a faixa de leitura acima já nomeia os dois.
+            const tomDaBarra = ehAtivo ? 'bg-marca' : ehPico ? 'bg-debito' : 'bg-barra'
             return (
               <button
                 key={d.dia}
@@ -105,10 +135,10 @@ export function GraficoDiario({ dias, onSelecionar }: Props) {
                 })}
               >
                 <motion.span
-                  // O pico fica em tinta cheia e os demais em débito: a régua
-                  // de "onde foi o maior dia" não depende de comparar alturas
-                  // parecidas nem de ler o eixo.
-                  className={`relative w-full rounded-t-[2px] ${ehPico ? 'bg-tinta' : 'bg-debito'}`}
+                  // A régua de "onde foi o maior dia" não depende de comparar
+                  // alturas parecidas nem de ler o eixo: ela é a única barra
+                  // vermelha do desenho.
+                  className={`relative w-full rounded-t-[2px] ${tomDaBarra}`}
                   initial={semMovimento ? false : { height: 0 }}
                   animate={{ height: `${alturaPct(d.gastoCents, escala)}%` }}
                   transition={{ type: 'spring', stiffness: 140, damping: 22 }}

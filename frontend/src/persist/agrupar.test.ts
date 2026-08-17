@@ -11,6 +11,8 @@ import {
   maioresSaidas,
   porEstabelecimento,
   variacaoPct,
+  doMesCalendario,
+  isoLocal,
   type TxAgrupavel,
   type TxComEstabelecimento,
   type TxParcela,
@@ -406,5 +408,49 @@ describe('variacaoPct', () => {
   // tudo antes e nada agora, ou seja -100%.
   it('trata o período atual zerado como queda de 100%', () => {
     expect(variacaoPct(0, 5000)).toBe(-1)
+  })
+})
+
+describe('doMesCalendario', () => {
+  it('recorta pela DATA REAL, não pela competência', () => {
+    // A armadilha inteira num caso: compra de 20/mai que veio na fatura de
+    // junho. `filtrar(...,'mes',...)` a põe em junho (competência); aqui ela
+    // é de maio, porque o eixo do gráfico que consome isto é a data.
+    const atravessa = tx({ date: '2026-05-20', competencia: '2026-06' })
+    const junho = tx({ date: '2026-06-02', competencia: '2026-06' })
+
+    const maio = doMesCalendario([atravessa, junho], new Date(2026, 4, 1))
+    expect(maio).toEqual([atravessa])
+
+    const jun = doMesCalendario([atravessa, junho], new Date(2026, 5, 1))
+    expect(jun).toEqual([junho])
+  })
+
+  it('a régua é o mês inteiro, não o dia da referência', () => {
+    const dia1 = tx({ date: '2026-06-01' })
+    const dia30 = tx({ date: '2026-06-30' })
+    // Referência no meio do mês pega as duas pontas.
+    expect(doMesCalendario([dia1, dia30], new Date(2026, 5, 15))).toHaveLength(2)
+  })
+
+  it('não vaza para o mês vizinho na virada do ano', () => {
+    const dez = tx({ date: '2026-12-31' })
+    const jan = tx({ date: '2027-01-01' })
+    expect(doMesCalendario([dez, jan], new Date(2026, 11, 15))).toEqual([dez])
+  })
+})
+
+describe('isoLocal', () => {
+  // Exportado para o destaque do ritmo diário casar com a MESMA data que
+  // `pertence()` compara no período Dia. Se as duas divergirem, a barra
+  // destacada é a do dia anterior e nada denuncia.
+  it('formata no fuso local, sem passar por UTC', () => {
+    expect(isoLocal(new Date(2026, 6, 14))).toBe('2026-07-14')
+  })
+
+  it('concorda com o que `pertence` usa no período Dia', () => {
+    const ref = new Date(2026, 6, 14)
+    const t = tx({ date: isoLocal(ref) })
+    expect(pertence(t, 'dia', ref)).toBe(true)
   })
 })

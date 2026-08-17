@@ -110,6 +110,20 @@
   --color-serie-7: #4a3aa7;
   --color-serie-8: #e34948;
 
+  /* Barra de gráfico EM REPOUSO — o pano de fundo contra o qual a exceção
+     aparece. Fica deliberadamente fora da paleta de séries: a série colore
+     categorias diferentes, esta colore a MESMA grandeza repetida no tempo, e
+     usar uma cor de série aqui prometeria uma distinção que não existe.
+     Antes, todas as barras eram `--color-debito` e só o pico era tinta: um
+     muro vermelho onde o vermelho não significava nada. Agora o campo é
+     neutro, o pico é `--color-debito` (o dia que custou mais) e o dia aberto
+     é `--color-marca`. Cada cor volta a carregar uma informação.
+     Entrou no `scripts/medir-contraste.py` como forma cheia (piso 3:1, não
+     4.5 — não carrega texto dentro): 3.02:1 no claro e 3.44:1 no escuro,
+     contra a PIOR superfície. Sobre o painel, onde as barras de fato ficam,
+     folga mais. */
+  --color-barra: #7f8c9d;
+
   /* Compatibilidade: nomes antigos usados por componentes ainda não
      migrados. Apontam para os tokens novos para nada nascer sem cor
      durante a transição. */
@@ -159,6 +173,10 @@
   --color-serie-6: #008300;
   --color-serie-7: #9085e9;
   --color-serie-8: #e66767;
+
+  /* Reescalonada para a superfície escura, como as séries: #6b7887 sobre
+     #161d25 dá 3.8:1. O tom claro (#7f8c9d) daria 2.6:1 aqui. */
+  --color-barra: #6b7887;
 
   --color-carvao-950: #0d1319;
   --color-carvao-900: #161d25;

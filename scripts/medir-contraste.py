@@ -25,6 +25,7 @@ CLARO = {
     "credito": "#1c6b4a",
     "debito": "#b3261e",
     "ressalva": "#8a5a00",
+    "barra": "#7f8c9d",
 }
 
 ESCURO = {
@@ -40,13 +41,15 @@ ESCURO = {
     "credito": "#5fbf8f",
     "debito": "#f0817a",
     "ressalva": "#d9a441",
+    "barra": "#6b7887",
 }
 
 SUPERFICIES = ["pagina", "cartao", "afundado"]
 # Cores que carregam TEXTO — precisam de 4.5:1 (AA para texto normal).
 TEXTO = ["tinta", "tinta-fraca", "tinta-tenue", "marca", "credito", "debito", "ressalva"]
-# Cores que só desenham CONTORNO de controle — a WCAG pede 3:1.
-CONTORNO = ["borda-campo"]
+# Cores que só desenham CONTORNO de controle, ou uma FORMA cheia que carrega
+# informação sem texto dentro (a barra do gráfico) — a WCAG pede 3:1.
+CONTORNO = ["borda-campo", "barra"]
 
 
 def _lin(c: float) -> float:

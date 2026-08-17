@@ -75,12 +75,56 @@ describe('GraficoDiario', () => {
     expect(screen.queryByText(/9\.000,00/)).not.toBeInTheDocument()
   })
 
-  // Um dia só não é ritmo: é o número do tile de gasto, desenhado. Melhor
-  // não ocupar metade do painel com isso.
-  it('não desenha nada com menos de dois dias', () => {
+  // O limite era "menos de dois dias não desenha", e derrubava o gráfico
+  // sempre que o recorte era um Dia — justamente quando ele tem mais a
+  // dizer, desde que o desenho seja o mês em volta (ver `doMesCalendario`).
+  // Hoje quem decide a janela é a página; o gráfico desenha o que recebe.
+  it('desenha com um dia só — a janela é escolha de quem chama', () => {
     const um = porDia([tx({ id: 'a', date: '2026-07-03', amount_cents: 5000 })])
-    const { container } = render(<GraficoDiario dias={um} onSelecionar={() => {}} />)
+    render(<GraficoDiario dias={um} onSelecionar={() => {}} />)
+    expect(screen.getByRole('button', { name: /3\/jul/ })).toBeInTheDocument()
+  })
+
+  it('sem nenhum dia com gasto, não desenha nada', () => {
+    const soEntradas = porDia([
+      tx({ id: 'a', date: '2026-07-03', amount_cents: -5000, kind: 'income' }),
+    ])
+    const { container } = render(<GraficoDiario dias={soEntradas} onSelecionar={() => {}} />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+// Quando a página amplia a janela para o mês, o gráfico passa a mostrar mais
+// do que o recorte da tela — e as duas coisas precisam ficar visíveis: onde
+// o usuário está, e que os números do cabeçalho são do mês, não do dia.
+describe('GraficoDiario — quando a janela é maior que o recorte', () => {
+  it('o dia aberto ganha a cor da marca; o pico continua sendo o débito', () => {
+    const { container } = render(
+      <GraficoDiario dias={DIAS} onSelecionar={() => {}} destaque="2026-07-03" />,
+    )
+    const barras = [...container.querySelectorAll('button > span')]
+    expect(barras[0]).toHaveClass('bg-marca') // 3/jul, o dia aberto
+    expect(barras[1]).toHaveClass('bg-debito') // 14/jul, o pico
+    expect(barras[2]).toHaveClass('bg-barra') // 21/jul, campo em repouso
+  })
+
+  // Sem o destaque, a faixa de leitura mostraria o pico e quem abriu o dia 3
+  // leria o número do dia 14 achando que era o seu.
+  it('a faixa de leitura mostra o dia aberto, não o pico', () => {
+    // Consulta na FAIXA, e não na tela: "3/jul" também é a ponta esquerda da
+    // régua do eixo, e um getByText solto casaria com as duas.
+    const { container } = render(
+      <GraficoDiario dias={DIAS} onSelecionar={() => {}} destaque="2026-07-03" />,
+    )
+    const faixa = container.querySelector('.bg-afundado')
+    expect(faixa).toHaveTextContent('3/jul')
+    expect(faixa).toHaveTextContent(/50,00/)
+    expect(faixa).not.toHaveTextContent(/420,00/) // o pico, que ficou de fora
+  })
+
+  it('anuncia o que o desenho cobre, para a média não ser lida como a do dia', () => {
+    render(<GraficoDiario dias={DIAS} onSelecionar={() => {}} contexto="jul 2026" />)
+    expect(screen.getByText(/jul 2026/)).toBeInTheDocument()
   })
 })
 

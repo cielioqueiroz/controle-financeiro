@@ -13,6 +13,78 @@
 > | [`docs/adr/`](./adr/) | **As nove decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
 
+## Rodada 2026-08-17 (parte 2) — a barra escura do painel era o grid vazando
+
+O usuário mandou três prints e cinco pedidos. Quatro eram acabamento; um era
+defeito estrutural, e é o que explica a "barra escura atravessando o painel".
+
+### 1. O bloco escuro sob os tiles — o grid aparecendo por baixo
+
+**A régua entre os tiles é o fundo do grid visto por um `gap-px`.** O
+`bg-carvao-900` estava no `Tile`, não no item do grid. Os dois primeiros tiles
+ganham a linha de variação ("122% acima do período anterior") e ficam mais altos;
+"Saldo do período" e "Lançamentos" não têm essa linha. Sobrava espaço dentro das
+células 3 e 4 — e a sobra mostrava `carvao-800`. Era literalmente o gap vazando
+onde devia haver painel, o que explica por que parecia um bloco quebrado.
+
+⚠️ **A regra que isso deixa:** num grid que desenha as réguas por `gap-px` +
+`bg`, o fundo vai no **item do grid**. Pôr no filho funciona enquanto todos os
+filhos tiverem a mesma altura, e quebra no dia em que um deles ganhar uma linha
+a mais — que foi exatamente o que aconteceu quando a variação percentual entrou,
+em 13/08. O teste novo `Painel.ritmo.test.tsx` fixa isso.
+
+### 2. "Quando passa a ser dias, o gráfico some"
+
+`GraficoDiario` recebia só o recorte e desistia com menos de dois dias. No
+período **Dia** o recorte é um dia: ele se apagava sempre, e a metade direita do
+painel voltava a ser o buraco que ele foi criado para tapar em 12/08.
+
+O conserto não foi baixar o limite — uma barra sozinha é o número do tile,
+redesenhado. **A janela passou a ser o mês em volta**, com o dia aberto pintado
+de `--color-marca`. "Onde estão os picos" é pergunta que só existe contra um pano
+de fundo.
+
+⚠️ **Pelo mês de CALENDÁRIO (`doMesCalendario`), não por competência.** O eixo x
+desse gráfico é a data real; recortar por competência poria uma barra de 20/mai
+dentro do desenho de junho (ver ADR-0001). E o cabeçalho passou a declarar o que
+o desenho cobre — sem isso, "média R$ 1.764" seria lido como média do dia aberto.
+
+### 3. As duas listas falavam línguas diferentes
+
+"Maiores saídas" desenhava a linha de baixo como **pílula de fundo tingido**;
+"Onde mais saiu dinheiro", como **texto solto**. Alturas diferentes, linha 2 de
+uma coluna desencontrada da linha 2 da outra, e a dupla lendo como dois
+componentes sem parentesco — em vez de duas leituras do mesmo recorte.
+
+Agora as duas passam por `ui/LinhaRanking.tsx`: **estrutura idêntica, conteúdo
+livre.** A cor da categoria não sumiu, virou o mesmo quadradinho da legenda do
+donut (`ui/MarcaCategoria.tsx`, usado nos dois lugares — eram dois desenhos para
+a mesma ideia). E entrou a régua vertical entre as colunas, que nunca existiu.
+
+### 4. As cores do gráfico de colunas
+
+Eram **todas** `--color-debito` com o pico em tinta: um muro vermelho no qual o
+vermelho não distinguia nada, e o destaque gastando a cor mais forte da interface
+no lugar mais repetido dela. Agora o campo em repouso é `--color-barra` (token
+novo, neutro), o pico é `--color-debito` — a única barra vermelha do desenho — e
+o dia aberto é `--color-marca`. Cada cor voltou a carregar uma informação.
+
+⚠️ **`scripts/medir-contraste.py` tem lista fixa de tokens e não media o novo.**
+Ele passava sem olhar para a cor que eu tinha acabado de criar. `barra` entrou na
+lista como forma cheia (piso 3:1, não 4.5 — não carrega texto dentro): **3.02:1
+no claro, 3.44:1 no escuro**, contra a pior superfície.
+
+### 5. A folha de provas estava provando outra coisa
+
+`demo.tsx` desenhava os dois rankings soltos num `gap-6` enquanto o painel os
+desenhava com borda entre as colunas. Print que não mostra o que vai ao ar não é
+prova. Alinhados.
+
+**652 testes (82 arquivos)**, build limpo, lint com os 4 avisos pré-existentes,
+CSP aprovada, overflow e contraste OK, prints regerados.
+
+---
+
 ## Rodada 2026-08-17 — o vocabulário virou arquivo, e três palavras estavam mentindo
 
 Sessão de modelagem de domínio: entrevista, sem código novo de comportamento. O

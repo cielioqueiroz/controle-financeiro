@@ -2,7 +2,14 @@ import { useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 import { Link, useNavigate } from 'react-router-dom'
-import { maioresSaidas, porEstabelecimento, evolucaoMensal, porDia } from '../persist/agrupar'
+import {
+  maioresSaidas,
+  porEstabelecimento,
+  evolucaoMensal,
+  porDia,
+  doMesCalendario,
+  isoLocal,
+} from '../persist/agrupar'
 import { saldosPorConta } from '../persist/saldos'
 import { faturasAbertas } from '../persist/aberto'
 import { nomeCategoria } from '../domain/categorize/categorias'
@@ -69,7 +76,25 @@ export function Painel({ onAprendeu }: Props) {
   const maiores = useMemo(() => maioresSaidas(txs, 5), [txs])
   const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
-  const dias = useMemo(() => porDia(txs), [txs])
+
+  /** O ritmo diário desenha o MÊS quando o recorte é Dia ou Semana.
+   *
+   *  Antes recebia só o recorte, e num Dia isso é um dia: `GraficoDiario` se
+   *  apagava e a metade direita do painel voltava a ser o buraco branco que
+   *  ele foi criado para tapar. E o conserto não é baixar o limite e desenhar
+   *  uma barra sozinha — uma barra é o mesmo número do tile, redesenhado.
+   *  "Onde estão os picos" é pergunta que só existe contra um pano de fundo,
+   *  então o pano de fundo passa a ser o mês, com o dia aberto em destaque.
+   *
+   *  Pelo mês de CALENDÁRIO (`doMesCalendario`), não por competência: o eixo
+   *  x deste gráfico é a data real, e recortar por competência poria uma
+   *  barra de 20/mai dentro do desenho de junho. Ver ADR-0001. */
+  const ampliado = filtros.periodo === 'dia' || filtros.periodo === 'semana'
+  const dias = useMemo(
+    () => porDia(ampliado && visiveis ? doMesCalendario(visiveis, filtros.ref) : txs),
+    [ampliado, visiveis, filtros.ref, txs],
+  )
+  const temRitmo = dias.some((d) => d.gastoCents > 0)
 
   // Entrada escalonada e discreta — o painel "se monta" de cima para baixo
   // em vez de piscar inteiro. Restrição de propósito: app de dinheiro pede
@@ -267,13 +292,21 @@ export function Painel({ onAprendeu }: Props) {
         ) : (
           <>
             {/* Tiles de resumo */}
+            {/* ⚠️ O `bg-carvao-900` vai no ITEM DO GRID, não só no `Tile`.
+                A régua entre os tiles é o fundo do grid aparecendo por um
+                `gap-px` — e o `Tile` tem altura natural. Os dois primeiros
+                ganham a linha de variação ("122% acima"), os outros dois não:
+                sobrava espaço dentro das células 3 e 4, e a sobra mostrava o
+                fundo do grid. Era uma barra escura atravessando metade do
+                painel, que parecia um bloco quebrado porque era exatamente
+                isso — o gap vazando onde devia haver painel. */}
             <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-2 lg:grid-cols-4">
-              <motion.div {...entra(0.05)}>
+              <motion.div {...entra(0.05)} className="bg-carvao-900">
                 <Tile rotulo={t('dash.gasto')} destaque variacao={variacao.gasto} subirEhRuim>
                   <ValorAnimado valor={resumo.gastoCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.12)}>
+              <motion.div {...entra(0.12)} className="bg-carvao-900">
                 <Tile
                   rotulo={t('dash.entradas')}
                   cor="var(--color-confere)"
@@ -282,7 +315,7 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.entradasCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.19)}>
+              <motion.div {...entra(0.19)} className="bg-carvao-900">
                 {/* Saldo negativo em --color-falha; positivo fica na tinta
                     normal. Verde é de --color-confere ("o total bate") e
                     usar aqui diluiria essa semântica. */}
@@ -293,7 +326,7 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.saldoCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.26)}>
+              <motion.div {...entra(0.26)} className="bg-carvao-900">
                 <Tile rotulo={t('dash.lancamentos')}>
                   <ValorAnimado valor={resumo.contagem} moeda={false} />
                 </Tile>
@@ -323,10 +356,20 @@ export function Painel({ onAprendeu }: Props) {
                   empilham quando há histórico: "quando gastei" e "como este
                   mês se compara". */}
               <div className="screen-only space-y-6 bg-carvao-900 p-5">
-                <GraficoDiario dias={dias} onSelecionar={irParaDia} />
+                <GraficoDiario
+                  dias={dias}
+                  onSelecionar={irParaDia}
+                  destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
+                  contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
+                />
                 {serie.length >= 2 && (
                   <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
                 )}
+                {/* Os dois gráficos podem faltar ao mesmo tempo (nada gasto
+                    no mês e uma competência só importada). Sem isto a coluna
+                    fica um retângulo vazio — o defeito que o ritmo diário
+                    veio consertar, reaparecendo por outro caminho. */}
+                {!temRitmo && serie.length < 2 && <SemGrafico />}
               </div>
             </motion.div>
 
@@ -337,9 +380,18 @@ export function Painel({ onAprendeu }: Props) {
                   "onde mais saiu" acha o ralo que só existe somado — três
                   pedidos de R$ 80 que nenhum ranking de maior compra mostra.
                   Empilham no celular. */}
-              <div className="grid gap-6 lg:grid-cols-2">
-                <MaioresSaidas itens={maiores} onEditar={setEditando} />
-                <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+              <div className="grid gap-8 lg:grid-cols-2 lg:gap-0">
+                <div className="lg:pr-8">
+                  <MaioresSaidas itens={maiores} onEditar={setEditando} />
+                </div>
+                {/* A régua que faltava. As duas listas dividiam um `gap-6` e
+                    nada mais: no desktop liam como um texto só, em duas
+                    colunas, e a segunda parecia continuação da primeira. A
+                    linha é a mesma do resto do painel — o gap dos tiles e a
+                    borda dos gráficos são todos `carvao-800`. */}
+                <div className="lg:border-l lg:border-carvao-800 lg:pl-8">
+                  <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+                </div>
               </div>
               {/* Leva o recorte junto, como a barra de navegação: sem a
                   query, "Lançamentos →" saltaria para outro mês e para todos
@@ -445,6 +497,27 @@ function ComparacaoPeriodo({ pct, subirEhRuim }: { pct: number; subirEhRuim?: bo
         : 'text-credito'
 
   return <p className={`mt-1 text-[11px] ${cor}`}>{texto}</p>
+}
+
+/** A metade direita do painel quando não há ritmo nem histórico para desenhar.
+ *
+ *  Não é "sem dados": diz o que falta e como sair dali, porque o motivo é
+ *  sempre o mesmo — importar mais um documento. Discreto de propósito: a
+ *  coluna da esquerda tem o donut com o dado que existe, e um vazio gritando
+ *  ao lado dele daria a impressão de que a tela quebrou. */
+function SemGrafico() {
+  const { t } = useT()
+  return (
+    <div className="flex h-full min-h-40 flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-carvao-700 px-6 py-10 text-center">
+      <p className="text-sm text-tinta-fraca">{t('diario.semRitmo')}</p>
+      <Link
+        to="/importar"
+        className="text-sm text-marca underline-offset-4 transition-colors hover:underline"
+      >
+        {t('dash.importar')}
+      </Link>
+    </div>
+  )
 }
 
 function Vazio() {

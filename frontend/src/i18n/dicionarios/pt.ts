@@ -151,6 +151,7 @@ export const pt = {
   'diario.escala': 'escala até {teto}',
   'diario.acima1': '{n} dia acima',
   'diario.acima': '{n} dias acima',
+  'diario.semRitmo': 'Ainda não há saídas suficientes para desenhar um ritmo.',
 
   // Maiores saídas do período
   'maiores.titulo': 'Maiores saídas do período',

@@ -22,8 +22,13 @@ export function competenciaDe(periodEnd: string | null | undefined, date: string
   return (periodEnd ?? date).slice(0, 7)
 }
 
-/** YYYY-MM-DD no fuso local (a `ref` do dashboard é uma Date local). */
-function isoLocal(d: Date): string {
+/** YYYY-MM-DD no fuso local (a `ref` do dashboard é uma Date local).
+ *
+ *  Exportado porque o destaque do ritmo diário precisa casar com a MESMA
+ *  data que `pertence()` compara no período Dia. Duas conversões separadas
+ *  divergiriam na primeira mudança de fuso, e a barra destacada seria a do
+ *  dia anterior sem nada denunciar. */
+export function isoLocal(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const dia = String(d.getDate()).padStart(2, '0')
@@ -366,4 +371,20 @@ export function porDia<T extends TxAgrupavel>(txs: T[]): GrupoDia<T>[] {
     mapa.set(t.date, g)
   }
   return [...mapa.values()].sort((a, b) => (a.dia < b.dia ? 1 : -1))
+}
+
+/** Os lançamentos do MÊS DE CALENDÁRIO de `ref`, pela DATA REAL.
+ *
+ *  Existe separado de `filtrar(txs, 'mes', ref)` porque aquele recorta por
+ *  COMPETÊNCIA (ver ADR-0001) e este alimenta um gráfico cujo eixo x é a data
+ *  do lançamento. Misturar as duas réguas poria, no desenho de junho, uma
+ *  barra em 20/mai — a compra que caiu na fatura de junho mas aconteceu em
+ *  maio. O eixo mentiria sobre a própria posição.
+ *
+ *  Serve ao ritmo diário quando o recorte é Dia ou Semana: ali o recorte tem
+ *  um punhado de dias, e "onde estão os picos" é pergunta que só existe
+ *  contra um pano de fundo maior. */
+export function doMesCalendario<T extends TxAgrupavel>(txs: T[], ref: Date): T[] {
+  const alvo = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`
+  return txs.filter((t) => t.date.slice(0, 7) === alvo)
 }

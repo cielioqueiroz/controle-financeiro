@@ -1,6 +1,6 @@
-import { motion } from 'motion/react'
 import { formatBRL } from '../domain/normalize/money'
 import { useT } from '../i18n/IdiomaProvider'
+import { LinhaRanking } from './LinhaRanking'
 import type { GrupoEstabelecimento } from '../persist/agrupar'
 
 type Props = {
@@ -18,52 +18,44 @@ type Props = {
  *  lugar mais consumiu dinheiro". Um gasto de R$ 80 três vezes no mês não
  *  aparece em nenhum ranking de maior compra e pode ser maior que a compra
  *  única do topo — é justamente o gasto que passa despercebido, e o único
- *  jeito de vê-lo é somando. */
+ *  jeito de vê-lo é somando.
+ *
+ *  Desenha pela mesma `LinhaRanking` da irmã: perguntas diferentes, caixa
+ *  igual. Sem isso as duas colunas do painel não alinham. */
 export function TopEstabelecimentos({ itens, onAbrir }: Props) {
   const { t } = useT()
   if (itens.length === 0) return null
 
   return (
     <div>
-      <p className="tabular mb-2 text-[10px] uppercase tracking-widest text-tinta-tenue">
-        {t('estab.titulo')}
-      </p>
-      <ul className="space-y-0.5">
+      <p className="rotulo mb-3">{t('estab.titulo')}</p>
+      <ul>
         {itens.map((item, i) => (
-          <motion.li
+          <LinhaRanking
             key={item.merchant}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: Math.min(i * 0.05, 0.3), duration: 0.3 }}
-          >
-            <button
-              // A busca recebe `merchant` (a chave), nunca `rotulo`: com o
-              // rótulo, clicar num grupo renomeado acharia só as compras que
-              // receberam aquele nome, e não o estabelecimento inteiro.
-              onClick={() => onAbrir(item.merchant)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-carvao-850"
-              aria-label={t('estab.rotulo', {
-                nome: item.rotulo,
-                valor: formatBRL(item.totalCents),
-                n: item.contagem,
-              })}
-            >
-              <span className="tabular w-3 shrink-0 text-[11px] text-tinta-tenue">{i + 1}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm text-tinta">{item.rotulo}</span>
-                {/* A contagem é o que distingue este ranking do outro: sem
-                    ela, "R$ 240" não deixa ver que foram três compras. */}
-                <span className="mt-0.5 block text-[10px] text-tinta-tenue">
-                  {item.contagem === 1
-                    ? t('estab.compra1')
-                    : t('estab.compras', { n: item.contagem })}
-                </span>
+            ordem={i}
+            posicao={i + 1}
+            titulo={item.rotulo}
+            // A contagem é o que distingue este ranking do outro: sem ela,
+            // "R$ 240" não deixa ver que foram três compras.
+            meta={
+              <span className="truncate">
+                {item.contagem === 1
+                  ? t('estab.compra1')
+                  : t('estab.compras', { n: item.contagem })}
               </span>
-              <span className="tabular shrink-0 text-sm text-tinta">
-                {formatBRL(item.totalCents)}
-              </span>
-            </button>
-          </motion.li>
+            }
+            valor={formatBRL(item.totalCents)}
+            // A busca recebe `merchant` (a chave), nunca `rotulo`: com o
+            // rótulo, clicar num grupo renomeado acharia só as compras que
+            // receberam aquele nome, e não o estabelecimento inteiro.
+            onClick={() => onAbrir(item.merchant)}
+            rotuloAcessivel={t('estab.rotulo', {
+              nome: item.rotulo,
+              valor: formatBRL(item.totalCents),
+              n: item.contagem,
+            })}
+          />
         ))}
       </ul>
     </div>

@@ -136,6 +136,7 @@ export const en: Dicionario = {
   'diario.escala': 'scale up to {teto}',
   'diario.acima1': '{n} day above',
   'diario.acima': '{n} days above',
+  'diario.semRitmo': 'Not enough spending yet to chart a rhythm.',
 
   'maiores.titulo': 'Largest expenses in period',
 
