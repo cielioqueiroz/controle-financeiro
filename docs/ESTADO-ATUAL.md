@@ -13,6 +13,61 @@
 > | [`docs/adr/`](./adr/) | **As nove decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
 
+## Rodada 2026-08-17 (parte 3) — `ui/` tinha 40% do código numa pasta plana
+
+Auditoria de arquitetura de pastas, em 4 lotes. **O diagnóstico foi que a
+estrutura não estava quebrada** — 0 imports circulares, 0 caminhos quebrados,
+0 divergência de caixa, 0 imports com 3+ níveis de `../`. Havia **um** problema
+real: `ui/` com 48 dos 119 arquivos de código, misturando telas inteiras,
+gráficos, listas, primitivos e 4 arquivos `.ts` que não são componente nenhum.
+
+`ui/` foi de **48 para 25** arquivos na raiz: saíram `acesso/` (10), `graficos/`
+(5) e `listas/` (7).
+
+⚠️ **A armadilha desta rodada, e ela é grande: `vi.mock('../x')` recebe STRING,
+não import.** Nem o `tsc` nem o build reclamam quando o caminho deixa de
+resolver — o módulo **real** entra no lugar do dublê. Mover os testes para
+`ui/acesso/` matou 7 caminhos de mock com **typecheck 0 e build verde**, e 18
+testes caíram.
+
+**E dois deles continuaram VERDES com o mock morto.** `Auth.test` e
+`Auth.i18n.test` mockavam `lib/neon` para `neonConfigurado: false`, e sem as
+`VITE_*` o módulo real se comporta igual — então passaram testando outra coisa.
+Teste verde com mock que não casa não está testando o que diz testar.
+
+Disso nasceu **`scripts/checar-caminhos.py`**: resolve todo caminho relativo que
+vive em string (`vi.mock`, `importActual`, `readFileSync` relativo ao CWD) e sai
+com código 1 se algum não existir. **Provado contra o defeito real** — quebrei um
+caminho de volta e ele acusou. Entrou no `CLAUDE.md`.
+
+### As decisões de agrupamento, e por que não são gosto
+
+- **A regra que decide um caso novo:** peça usada por **um** grupo mora nele;
+  usada por **dois**, sobe para `ui/`. Foi ela que manteve `MarcaCategoria` na
+  raiz (gráfico + lista).
+- **`escala-barras`, `auth-validacao` e `mensagem-campos` NÃO foram para
+  `domain/`**, embora sejam puras e testadas. `domain/` é o vocabulário do
+  dinheiro; validação de formulário e escala de gráfico são apresentação, e
+  diluir a pasta tira o sentido de ela existir.
+- **`MoedaLogo` ficou na raiz** mesmo sendo usado só pelo `Auth`: é marca, irmã
+  de `Marca.tsx`, e separar as duas por uso circunstancial de hoje seria pior.
+
+### O que foi recusado do prompt da auditoria
+
+O `docs/prompt-arquitetura-de-pastas.md` pressupõe Next.js e Supabase (é Vite +
+React Router + Neon), manda criar branch (este projeto trabalha direto na `main`
+desde 18/07) e cita duas skills que não existem no ambiente. E mandava trocar
+`../../` por alias `@/` — **não há um único import com 3+ níveis** neste projeto,
+então seria churn sem alvo.
+
+**Órfãos removidos:** `ui/MenuAcoes.tsx` e `public/img/icons8-financial-96.png`
+(cuja única menção no repositório é um spec de 02/06 dizendo que ele *foi
+substituído* pelo favicon SVG).
+
+**Varredura final:** tsc 0, build ok, lint 4 avisos pré-existentes, **652/652
+testes**, 0 circulares, 0 órfãos, 0 caixa divergente, **6 rotas idênticas antes ×
+depois**, CSP aprovada, overflow e contraste OK.
+
 ## Rodada 2026-08-17 (parte 2) — a barra escura do painel era o grid vazando
 
 O usuário mandou três prints e cinco pedidos. Quatro eram acabamento; um era
