@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Auth } from './Auth'
-import { IdiomaProvider } from '../i18n/IdiomaProvider'
+import { IdiomaProvider } from '../../i18n/IdiomaProvider'
 
 vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
 

@@ -6,8 +6,8 @@ import {
   normalizarCodigo,
   TAMANHO_CODIGO,
   type MotivoFalha,
-} from '../lib/confirmar-email'
-import { useT } from '../i18n/IdiomaProvider'
+} from '../../lib/confirmar-email'
+import { useT } from '../../i18n/IdiomaProvider'
 
 type Props = {
   email: string

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { Marca } from './Marca'
-import { ThemeToggle } from './ThemeToggle'
-import { Rodape } from './Rodape'
-import { CarrosselBancos } from './CarrosselBancos'
-import { useT } from '../i18n/IdiomaProvider'
+import { Marca } from '../Marca'
+import { ThemeToggle } from '../ThemeToggle'
+import { Rodape } from '../Rodape'
+import { CarrosselBancos } from '../CarrosselBancos'
+import { useT } from '../../i18n/IdiomaProvider'
 
 /** Frase de quem ainda não entrou — usada aqui embaixo e também no header
  *  do App quando não há Neon configurado (o modo "importa e vê" também é

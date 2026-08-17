@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { BOTAO_PRIMARIO } from './estilos-campo'
-import { useT } from '../i18n/IdiomaProvider'
-import { Portal, useTravarRolagem } from './Portal'
+import { useT } from '../../i18n/IdiomaProvider'
+import { Portal, useTravarRolagem } from '../Portal'
 
 // BOTAO_PRIMARIO nasceu para o botão de largura cheia do card de acesso
 // (w-full, py-3). Aqui ele divide a linha com o Cancelar, num

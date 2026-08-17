@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { pedirLink, redefinirSenha } from '../lib/recuperar-senha'
-import { guardarEmailReset, lerEmailReset, esquecerEmailReset } from '../lib/perfil'
-import { limparTokenDaUrl } from '../lib/url-token'
+import { pedirLink, redefinirSenha } from '../../lib/recuperar-senha'
+import { guardarEmailReset, lerEmailReset, esquecerEmailReset } from '../../lib/perfil'
+import { limparTokenDaUrl } from '../../lib/url-token'
 import { validarNovaSenha, emailValido } from './auth-validacao'
 import { CampoSenha } from './CampoSenha'
 import { CAMPO, BOTAO_PRIMARIO } from './estilos-campo'
-import { useT } from '../i18n/IdiomaProvider'
+import { useT } from '../../i18n/IdiomaProvider'
 
 type Props = {
   /** Com token, mostra o passo de nova senha. Sem, o de pedir o link. */

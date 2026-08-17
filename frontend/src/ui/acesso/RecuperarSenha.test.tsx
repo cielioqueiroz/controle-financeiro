@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecuperarSenha } from './RecuperarSenha'
-import { Notificacoes } from './Notificacoes'
-import { guardarEmailReset, lerEmailReset } from '../lib/perfil'
+import { Notificacoes } from '../Notificacoes'
+import { guardarEmailReset, lerEmailReset } from '../../lib/perfil'
 
 vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
 vi.mock('../lib/recuperar-senha', () => ({
@@ -12,12 +12,12 @@ vi.mock('../lib/recuperar-senha', () => ({
   redefinirSenha: vi.fn(),
 }))
 vi.mock('../lib/url-token', async (importOriginal) => {
-  const real = await importOriginal<typeof import('../lib/url-token')>()
+  const real = await importOriginal<typeof import('../../lib/url-token')>()
   return { ...real, limparTokenDaUrl: vi.fn() }
 })
 
-const { pedirLink, redefinirSenha } = await import('../lib/recuperar-senha')
-const { limparTokenDaUrl } = await import('../lib/url-token')
+const { pedirLink, redefinirSenha } = await import('../../lib/recuperar-senha')
+const { limparTokenDaUrl } = await import('../../lib/url-token')
 
 function montar(token: string | null = null) {
   return render(

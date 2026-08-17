@@ -5,7 +5,7 @@ import { puxarDocumentos, apagarDocumento, apagarTudo, type DocumentoSalvo } fro
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
-import { Confirmacao } from './Confirmacao'
+import { Confirmacao } from './acesso/Confirmacao'
 
 type Props = {
   /** Chamado quando algo é apagado, para o histórico recarregar. */

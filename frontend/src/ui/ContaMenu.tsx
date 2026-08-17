@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { neon } from '../lib/neon'
-import { Confirmacao } from './Confirmacao'
+import { Confirmacao } from './acesso/Confirmacao'
 import { useT } from '../i18n/IdiomaProvider'
 
 type Props = {

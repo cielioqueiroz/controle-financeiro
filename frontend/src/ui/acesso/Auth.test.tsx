@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Auth } from './Auth'
-import { Notificacoes } from './Notificacoes'
+import { Notificacoes } from '../Notificacoes'
 
 // O componente importa o cliente do Neon no topo; no teste ele não existe.
 vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))

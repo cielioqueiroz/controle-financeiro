@@ -10,7 +10,7 @@ import { todasCategorias, adicionarCategoriaExtra, nomeCategoria } from '../doma
 import { formatBRL } from '../domain/normalize/money'
 import { useT } from '../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../persist/puxar'
-import { Confirmacao } from './Confirmacao'
+import { Confirmacao } from './acesso/Confirmacao'
 import { Portal, useTravarRolagem } from './Portal'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']

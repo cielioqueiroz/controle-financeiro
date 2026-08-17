@@ -11,7 +11,7 @@ import { puxarRegras, apagarRegra } from '../persist/regras'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import type { Regra } from '../domain/categorize/regras'
 import { useT } from '../i18n/IdiomaProvider'
-import { Confirmacao } from './Confirmacao'
+import { Confirmacao } from './acesso/Confirmacao'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 

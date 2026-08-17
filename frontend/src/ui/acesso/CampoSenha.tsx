@@ -1,6 +1,6 @@
 import { IconeOlho } from './IconeOlho'
 import { CAMPO } from './estilos-campo'
-import { useT } from '../i18n/IdiomaProvider'
+import { useT } from '../../i18n/IdiomaProvider'
 
 type Props = {
   refCampo?: React.RefObject<HTMLInputElement | null>

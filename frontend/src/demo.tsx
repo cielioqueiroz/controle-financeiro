@@ -10,7 +10,7 @@ import { GraficoDiario } from './ui/graficos/GraficoDiario'
 import { GraficoEvolucao } from './ui/graficos/GraficoEvolucao'
 import { GraficoCompromissos } from './ui/graficos/GraficoCompromissos'
 import { CompromissosFuturos } from './ui/CompromissosFuturos'
-import { AvisoConfirmarEmail } from './ui/AvisoConfirmarEmail'
+import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
 import { MaioresSaidas } from './ui/MaioresSaidas'
 import { TopEstabelecimentos } from './ui/TopEstabelecimentos'
 import {
