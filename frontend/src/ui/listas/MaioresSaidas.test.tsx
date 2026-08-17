@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import { MaioresSaidas } from './MaioresSaidas'
-import type { TransacaoSalva } from '../persist/puxar'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 const tx = (over: Partial<TransacaoSalva>): TransacaoSalva => ({
   id: 'x',

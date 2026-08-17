@@ -1,7 +1,7 @@
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
-import { formatBRL } from '../domain/normalize/money'
-import type { GrupoDia } from '../persist/agrupar'
-import type { TransacaoSalva } from '../persist/puxar'
+import { formatBRL } from '../../domain/normalize/money'
+import type { GrupoDia } from '../../persist/agrupar'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 type Props = {
   grupos: GrupoDia<TransacaoSalva>[]

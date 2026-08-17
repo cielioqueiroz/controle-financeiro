@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { LinhaTransacao } from './LinhaTransacao'
-import { formatBRL } from '../domain/normalize/money'
-import { nomeCategoria } from '../domain/categorize/categorias'
-import type { GrupoCategoria } from '../persist/agrupar'
-import type { TransacaoSalva } from '../persist/puxar'
+import { formatBRL } from '../../domain/normalize/money'
+import { nomeCategoria } from '../../domain/categorize/categorias'
+import type { GrupoCategoria } from '../../persist/agrupar'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 type Props = {
   grupos: GrupoCategoria<TransacaoSalva>[]

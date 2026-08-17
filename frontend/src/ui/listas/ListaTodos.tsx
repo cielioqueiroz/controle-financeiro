@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
-import { buscar } from '../domain/busca'
-import { categoria, nomeCategoria } from '../domain/categorize/categorias'
-import { formatBRL } from '../domain/normalize/money'
-import { useT } from '../i18n/IdiomaProvider'
-import type { TransacaoSalva } from '../persist/puxar'
+import { buscar } from '../../domain/busca'
+import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
+import { formatBRL } from '../../domain/normalize/money'
+import { useT } from '../../i18n/IdiomaProvider'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 type Props = {
   txs: TransacaoSalva[]

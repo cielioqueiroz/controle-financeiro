@@ -1,7 +1,7 @@
-import { categoria, nomeCategoria } from '../domain/categorize/categorias'
-import { formatBRL } from '../domain/normalize/money'
-import { useT } from '../i18n/IdiomaProvider'
-import type { TransacaoSalva } from '../persist/puxar'
+import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
+import { formatBRL } from '../../domain/normalize/money'
+import { useT } from '../../i18n/IdiomaProvider'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 type Props = {
   t: TransacaoSalva

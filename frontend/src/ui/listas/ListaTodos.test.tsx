@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import { ListaTodos } from './ListaTodos'
-import type { TransacaoSalva } from '../persist/puxar'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 /** A `ListaTodos` é controlada: busca e categoria vêm de fora, porque na tela
  *  elas moram na URL (é o que faz o F5 e o clique no donut funcionarem). Este

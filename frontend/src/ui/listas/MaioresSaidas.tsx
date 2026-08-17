@@ -1,9 +1,9 @@
-import { formatBRL } from '../domain/normalize/money'
-import { categoria, nomeCategoria } from '../domain/categorize/categorias'
-import { useT } from '../i18n/IdiomaProvider'
+import { formatBRL } from '../../domain/normalize/money'
+import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
+import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
-import { MarcaCategoria } from './MarcaCategoria'
-import type { TransacaoSalva } from '../persist/puxar'
+import { MarcaCategoria } from '../MarcaCategoria'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 type Props = {
   /** Já vem cortado e ordenado por `maioresSaidas`. */

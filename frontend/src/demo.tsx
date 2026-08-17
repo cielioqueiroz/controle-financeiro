@@ -11,8 +11,8 @@ import { GraficoEvolucao } from './ui/graficos/GraficoEvolucao'
 import { GraficoCompromissos } from './ui/graficos/GraficoCompromissos'
 import { CompromissosFuturos } from './ui/CompromissosFuturos'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
-import { MaioresSaidas } from './ui/MaioresSaidas'
-import { TopEstabelecimentos } from './ui/TopEstabelecimentos'
+import { MaioresSaidas } from './ui/listas/MaioresSaidas'
+import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
   porDia,

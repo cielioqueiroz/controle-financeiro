@@ -1,7 +1,7 @@
-import { formatBRL } from '../domain/normalize/money'
-import { useT } from '../i18n/IdiomaProvider'
+import { formatBRL } from '../../domain/normalize/money'
+import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
-import type { GrupoEstabelecimento } from '../persist/agrupar'
+import type { GrupoEstabelecimento } from '../../persist/agrupar'
 
 type Props = {
   /** Já vem somado, ordenado e cortado por `porEstabelecimento`. */
