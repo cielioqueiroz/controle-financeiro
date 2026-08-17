@@ -14,8 +14,10 @@ vi.mock('../persist/documentos', () => ({ puxarSaldos: vi.fn(() => Promise.resol
 
 import { puxarTudo } from '../persist/puxar'
 
-/** Uma assinatura: mesmo valor, todo mês, no mesmo dia — o que
- *  `detectarRecorrencias` reconhece. */
+/** Uma recorrência: mesmo valor, todo mês, no mesmo dia — o que
+ *  `detectarRecorrencias` reconhece. (Esta é também da categoria
+ *  `assinaturas`, mas as duas coisas são independentes: aluguel é
+ *  recorrência e não é assinatura. Ver CONTEXT.md.) */
 function serie(banco: string, desc: string, cents: number) {
   return ['2026-03', '2026-04', '2026-05', '2026-06'].map((comp, i) => ({
     id: `${banco}-${desc}-${i}`,

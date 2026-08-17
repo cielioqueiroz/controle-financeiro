@@ -6,7 +6,9 @@ import type { Bank } from '../pdf/detect'
 export type RawKind =
   /** Compra no cartão ou débito em conta. */
   | 'compra'
-  /** IOF, anuidade, juros — encargo do banco, não gasto seu. */
+  /** IOF, anuidade, juros: gasto cuja contraparte é o próprio banco. É gasto
+   *  seu — compõe o "Total a pagar" e cai na categoria `taxas`. Separado de
+   *  'compra' porque não é consumo, não porque não conte. */
   | 'encargo'
   /** Pagamento de fatura, quitação. Não é despesa nova. */
   | 'pagamento'

@@ -1,8 +1,79 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-13**.
+> Documento de continuidade. Última atualização: **2026-08-17**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+> **Três coisas saíram deste arquivo em 2026-08-17** e agora moram em lugar próprio.
+> Este documento continua sendo a porta de entrada, mas não é mais dono delas:
+>
+> | Onde | O quê |
+> |---|---|
+> | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
+> | [`docs/adr/`](./adr/) | **As nove decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
+> | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-17 — o vocabulário virou arquivo, e três palavras estavam mentindo
+
+Sessão de modelagem de domínio: entrevista, sem código novo de comportamento. O
+projeto não tinha `CONTEXT.md` nem `docs/adr/` — todo o vocabulário e todas as
+decisões viviam neste diário, em ordem cronológica. Saíram daqui **32 verbetes**,
+**9 ADRs** e um `CLAUDE.md`.
+
+### Os três conflitos que a leitura do domínio achou
+
+1. **`encargo` dizia ser uma coisa e era outra.** `parsers/types.ts` afirmava
+   *"IOF, anuidade, juros — encargo do banco, **não gasto seu**"*. Mas
+   `kindParaBanco` manda encargo para `expense`, `agregar` soma em `gastoCents`,
+   `regras.ts` categoriza IOF/ANUIDADE/TARIFA/JUROS em `taxas` e `checksum.ts`
+   exige `compra + encargo = total declarado` para a fatura fechar. O comentário
+   estava errado, não o código: o dinheiro saiu do bolso. Ele queria dizer "não é
+   **consumo** seu", que é outra afirmação. Corrigido.
+2. **`internal_transfer` cobre duas coisas que não são a mesma** — transferência
+   entre contas do próprio titular e a varredura automática do BB (conta ↔
+   aplicação). Quem separa as duas na tela é o `linkNote`, não o `kind`. **Não foi
+   mexido**: separar exigiria `ALTER TABLE` num CHECK em produção. Ficou
+   registrado que o nome é mais estreito que o valor.
+3. **"Recorte" era usado com dois sentidos opostos.** `useRecorte.ts` diz que
+   recorte é o *resultado* e `Filtros` é a descrição dele; este diário, na linha
+   sobre a barra de navegação, usa "recorte" querendo dizer os filtros da URL.
+   Valeu o código.
+
+⚠️ **`direction` (`in`/`out`) é gravado em toda transação e nunca lido por nada.**
+Redundante com o sinal de `amount_cents`. Achado da varredura, não corrigido —
+mexer numa coluna `not null` em produção não é trabalho de sessão de documentação.
+
+### O que "assinatura" significava neste repositório
+
+**Quatro coisas.** A categoria de mensalidades (Netflix, Spotify); os marcadores
+textuais de `pdf/detect` que identificam o banco de um PDF; a prosa de um teste que
+definia "assinatura" pelos critérios de **recorrência**; e o crédito no rodapé da
+tela de acesso. O canônico é a **categoria** — é o que o usuário vê. O terceiro uso
+foi corrigido, porque aluguel é recorrência e não é assinatura.
+
+### O que mudou de lugar
+
+- **`CONTEXT.md`** (raiz) — 32 verbetes, com `_Evitar_` em cada um. Termo canônico é
+  o que o código usa, mesmo em inglês (`installment`, `RawKind`).
+- **`docs/adr/0001` a `0009`** — competência, vínculo, PDF no cliente, Neon,
+  escopo retrospectivo, parser por banco, code-splitting recusado, SDK do Neon,
+  shadcn. O 0002 carrega a tabela de conversão `RawKind → transactions.kind`, que é
+  onde a informação se perde.
+- **`CLAUDE.md`** (raiz) — as ~35 armadilhas que viviam na seção "Notas de
+  armadilha" deste arquivo. O motivo da mudança: elas mordem toda sessão de
+  trabalho, e num arquivo que o agente carrega sozinho elas chegam **antes** do
+  erro em vez de depois.
+- `docs/SETUP-NEON.md` tinha **dois links quebrados** desde a reforma (`neon/migrations/`
+  e a pasta `supabase/`, apagada em `ea34040`, 2026-07-18 — no mesmo dia em que o
+  documento dizia que ela ficaria como histórico). Corrigidos.
+
+⚠️ **O motivo de ter saído do Supabase não está registrado em lugar nenhum do
+repositório.** Procurei no diário, no README, no SETUP-NEON e no memory: há o quê,
+o quando e o como, nunca o porquê. Ficou escrito como lacuna no ADR-0004, para que
+quem reavaliar a escolha saiba que começa sem o argumento original.
+
+**638 testes (81 arquivos)**, build limpo, lint com os 4 avisos pré-existentes. As
+duas únicas edições de código foram comentários; nenhuma linha de comportamento.
 
 ## Rodada 2026-08-13 — o e-mail manda código, e os gráficos mentiam de tão achatados
 
@@ -1399,93 +1470,17 @@ resolver em 2026-07-18.
 
 ---
 
-## ⚠️ Notas de armadilha
+## ⚠️ Notas de armadilha — mudaram para o `CLAUDE.md`
 
-**Testes e tipos** (todas de 2026-07-19)
-- **`vi.stubEnv` NÃO alcança `import.meta.env`** neste setup — só `process.env`. Um teste
-  que tente fixar `VITE_*` falha em silêncio, lendo o valor real do `.env.local`. Por isso
-  `recuperar-senha.test.ts` assevera a **forma** da URL (absoluta + caminho), não o valor
-  da base. **O `neon.ts` tem o mesmo padrão** e baterá na mesma parede se um dia for testado.
-- **`tsconfig.test.json` precisou de `vite/client`.** O primeiro teste que renderiza o
-  `App` puxa a cadeia até `domain/pdf/load.ts`, que importa o worker do pdf.js com sufixo
-  `?url`. Quem declara esse formato é o `vite/client`, que só o `tsconfig.app.json` tinha.
-  Os dois arquivos são quase-duplicatas mantidas à mão (17 chaves iguais) — extrair um
-  `tsconfig.base.json` evitaria a próxima divergência.
-- **Suíte verde não é suíte determinística** (2026-07-19). Três execuções seguidas do
-  mesmo commit deram 4 falhas → 1 falha → 0 falhas. Não era regressão: os 4 testes que
-  sobem o `<App/>` e dirigem a tela com `userEvent` levam ~2s isolados e passavam dos
-  **5s do `testTimeout` padrão** quando os 27 arquivos disputavam CPU. Corrigido com
-  `testTimeout: 15000` no `vite.config.ts` (35b4f84). O jeito de reproduzir esse tipo de
-  falha é `--testTimeout` baixo: com 1200ms caem exatamente os mesmos 4 e sobra o único
-  sem `userEvent`. **Se um teste falhar sem você ter mudado nada, rode de novo antes de
-  investigar o código** — e verifique sob carga (`npm test` duplicado em paralelo), porque
-  passar numa máquina ociosa não prova nada.
-- **`git stash` sem `-u` não guarda arquivo novo não rastreado.** Um diagnóstico desta
-  sessão concluiu "erro pré-existente" porque o arquivo recém-criado continuou no disco
-  durante a comparação com o commit antigo. Para bissecar de verdade: `git stash -u`, e
-  `tsc -b --force` (o `tsc -b` é incremental e mente com cache quente).
+As ~35 armadilhas de ferramenta e ambiente que viviam aqui (o `vi.stubEnv` que não
+alcança `import.meta.env`, o hash de CSP em CRLF, o canvas em HiDPI, a Deployment
+Protection da Vercel) foram para [`CLAUDE.md`](../CLAUDE.md) em 2026-08-17, **sem
+perda de conteúdo**.
 
-**Segurança e cabeçalhos** (2026-08-09)
-- **Nada do `vercel.json` vale localmente.** Nem no `npm run dev`, nem no `vite preview`:
-  headers e rewrites são da Vercel. Foi por isso que a CSP ficou dois meses de fora. O
-  jeito de exercitá-la sem publicar é `scripts/medir-csp.py`, que serve o `dist` com os
-  headers **lidos do próprio `vercel.json`**.
-- **O hash de script inline é sobre o texto com quebras em LF.** No Windows o git entrega
-  o `index.html` em CRLF; o parser de HTML normaliza para LF **antes** de o navegador
-  somar o hash. Quem calcular o sha256 sobre os bytes do disco acha um hash que navegador
-  nenhum produz — e "corrige" a política que estava certa. `frontend/index.test.ts`
-  normaliza antes de comparar, e o comentário lá explica por quê.
-- **Violação de CSP nem sempre é defeito.** O `eval` que aparece na carga é o `allowsEval`
-  do zod (via neon-js): sonda de capacidade em `try/catch` que, negada, só faz o zod
-  validar pelo caminho interpretado. Antes de afrouxar diretiva por causa de uma violação,
-  procure o `catch` — e nunca ache o culpado por `grep eval` no bundle, porque o
-  minificador não deixa a palavra lá (é `Function('')`). O caminho é o
-  `SecurityPolicyViolationEvent`: `sourceFile` + `lineNumber` + `columnNumber`.
-
-**Ferramentas e ambiente**
-- **Vite não recarrega bem quando arquivos nascem ou mudam de lugar.** Depois de criar
-  arquivo ou refatorar pastas, **reinicie o `npm run dev`** e dê `Ctrl+Shift+R`.
-- **Build verde ≠ runtime verde.** Já aconteceu de o build passar e o app quebrar
-  (duplicação de React com o sonner, resolvida com `resolve.dedupe` no `vite.config.ts`).
-- **Nunca commitar PDFs reais** (`*.pdf` no `.gitignore`) — contêm CPF, conta e nomes de terceiros.
-- `scripts/diagnostico.ts` é ferramenta local e está no `.gitignore`.
-
-**Layout e efeitos**
-- **Decoração nunca pode entrar no layout de rolagem.** O brilho da tela de login
-  escalava até 1,25 sem ser recortado e entrava no `scrollWidth`, criando barra lateral
-  que pulsava com a animação. Todo efeito de fundo vai na camada `#bg-animation`
-  (`position: fixed`). Depois de mexer em decoração, rode `python scripts/medir-overflow.py`.
-- **O medidor só reprova rolagem LATERAL.** Rolagem vertical é normal em página com
-  conteúdo maior que a janela (o rodapé fica abaixo da dobra em telas de 800px).
-- **Canvas precisa de `width/height` no CSS.** `renderer.setSize(w, h, false)` não escreve
-  o style, e canvas sem dimensão CSS cai no tamanho intrínseco: em tela HiDPI fica com o
-  dobro do viewport, mostrando só o quadrante superior esquerdo, borrado. **Isso é
-  invisível em navegador headless, que roda em DPR 1.**
-- **Utilitário do Tailwind vence regra do `@layer base`.** `focus:shadow-*` e `focus:ring-*`
-  sobrescrevem o anel de foco definido em `index.css` e o apagam. Se for estilizar foco,
-  faça tudo por utilitário **ou** tudo pela regra base, não misture.
-- **`prefers-reduced-motion` desliga o loop**, então quem redimensiona a janela ou troca o
-  tema precisa de repintura manual — senão o canvas fica em branco.
-
-**Nomes e deploy**
-- **Confira se o subdomínio `.vercel.app` está livre ANTES de adotar um nome.**
-  `paypulse.vercel.app` pertencia a outro produto homônimo, e as meta tags OG apontaram
-  para o site alheio até isso ser percebido. Checagem:
-  `curl -s -o /dev/null -w "%{http_code}" https://NOME.vercel.app/` — **404 é livre**.
-- **Renomear o projeto na Vercel NÃO renomeia os domínios.** Os antigos permanecem e o
-  novo não é criado: é preciso *Settings → Domains → Edit*.
-- **Deployment Protection deixa o site só para quem está logado na Vercel**, e o toggle
-  **só vale depois de clicar em `Save`**. O sintoma engana: o dono, já logado, vê tudo
-  normal enquanto ninguém mais entra — e o WhatsApp não busca a `og:image`.
-- **GitHub Pages não serve para este app.** Ele publicava a raiz do repositório, cujo
-  `index.html` é o arquivo-fonte do Vite apontando para `/src/main.tsx` → 404 e página em
-  branco. Foi desativado; a hospedagem é a Vercel.
-- **Variáveis `VITE_*` são assadas no build.** Mudar o valor no painel da Vercel **não**
-  altera o site no ar até o próximo build — dispare um *Redeploy*.
-- **Login rejeitado por origem** dá `403 {"code":"INVALID_CALLBACKURL"}` no
-  `sign-in/social`. A lista fica em *Neon → Auth → Configuration → Domains*.
-- **Não religue a Vercel Authentication.** Ela não protege dados — quem protege é o login
-  do app + RLS + JWT. Ligada, as ~6 pessoas não entram.
+O motivo: elas mordem *toda* sessão de trabalho neste repositório, e num arquivo que
+o agente carrega sozinho elas chegam **antes** do erro. Aqui dependiam de alguém
+rolar 1.500 linhas de diário até encontrá-las — que é exatamente como elas foram
+redescobertas na marra, mais de uma vez.
 
 ---
 
@@ -1526,6 +1521,11 @@ E duas lições sobre testes:
 
 ## Decisões de design já tomadas (não reabrir sem motivo)
 
+> Só decisões **visuais** ficam aqui: são baratas de reverter e não valem um ADR.
+> As nove decisões duras — competência, vínculo, PDF no cliente, Neon, escopo
+> retrospectivo, parser por banco, code-splitting, SDK do Neon e o descarte do
+> shadcn/ui — foram para [`docs/adr/`](./adr/) em 2026-08-17.
+
 - **`--color-marca` (âmbar) é separada de `--color-confere`.** A marca é identidade
   (logotipo, favicon, moeda, foco); o "confere" carrega **semântica** de "o total bate".
   Âmbar já era a cor de `--color-ressalva`: unificar faria o toast de sucesso parecer aviso.
@@ -1535,8 +1535,6 @@ E duas lições sobre testes:
   tema claro usa versões escurecidas de marca, confere, ressalva e falha.
 - **Partículas leem `--color-particula` e `--particula-alfa`**, variáveis próprias por tema,
   com **blending normal** nos dois — aditivo só clareia e apagaria cor escura.
-- **`shadcn/ui` foi descartado** para este projeto: é Tailwind v4 puro, e adotar shadcn
-  traria Radix + CVA + estrutura `components/ui`, uma troca de arquitetura não pedida.
 - **O tutorial diz "Bem-vindo(a) ao seu controle financeiro"** — frase comum, não marca.
   Fica em português mesmo depois do rename.
 

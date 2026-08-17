@@ -14,8 +14,8 @@ no banco** é a fronteira de segurança (cada usuário só vê o que é dele).
 
 - Projeto Neon `controle-financeiro` (região São Paulo), Data API e Neon
   Auth ativos.
-- Schema em [`neon/migrations/0001_schema_inicial.sql`](../neon/migrations/0001_schema_inicial.sql)
-  aplicado na produção, com RLS + 2 policies por tabela.
+- Schema em [`backend/db/migrations/`](../backend/db/migrations/) aplicado na
+  produção, com RLS + 2 policies por tabela.
 - Código usando `@neondatabase/neon-js` (cliente único: auth + queries).
 
 ## Configurar o app (uma vez)
@@ -49,6 +49,9 @@ no plano grátis; as seguintes são rápidas.
 
 ## O Supabase
 
-A migração não apagou nada do Supabase. A pasta
-[`supabase/`](../supabase/) permanece como histórico. Quando quiser, pode
-remover o projeto Supabase e a dependência — o app não usa mais.
+A pasta `supabase/` e a dependência **já não existem** no repositório: a pasta
+saiu em `ea34040` (2026-07-18), no mesmo dia em que este documento dizia que ela
+ficaria como histórico. O que resta é o projeto Supabase na conta, se ainda
+estiver de pé — pode ser removido, o app não usa mais. O porquê da troca está (ou
+deveria estar) em
+[`docs/adr/0004-neon-no-lugar-de-supabase.md`](./adr/0004-neon-no-lugar-de-supabase.md).
