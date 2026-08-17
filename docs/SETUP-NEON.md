@@ -52,6 +52,7 @@ no plano grátis; as seguintes são rápidas.
 A pasta `supabase/` e a dependência **já não existem** no repositório: a pasta
 saiu em `ea34040` (2026-07-18), no mesmo dia em que este documento dizia que ela
 ficaria como histórico. O que resta é o projeto Supabase na conta, se ainda
-estiver de pé — pode ser removido, o app não usa mais. O porquê da troca está (ou
-deveria estar) em
+estiver de pé — pode ser removido, o app não usa mais. **A troca foi por cota**: o
+plano grátis do Supabase dá dois projetos ativos, e a conta já tinha mais de cinco.
+O registro completo está em
 [`docs/adr/0004-neon-no-lugar-de-supabase.md`](./adr/0004-neon-no-lugar-de-supabase.md).

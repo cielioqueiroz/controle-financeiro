@@ -67,10 +67,15 @@ foi corrigido, porque aluguel é recorrência e não é assinatura.
   e a pasta `supabase/`, apagada em `ea34040`, 2026-07-18 — no mesmo dia em que o
   documento dizia que ela ficaria como histórico). Corrigidos.
 
-⚠️ **O motivo de ter saído do Supabase não está registrado em lugar nenhum do
-repositório.** Procurei no diário, no README, no SETUP-NEON e no memory: há o quê,
-o quando e o como, nunca o porquê. Ficou escrito como lacuna no ADR-0004, para que
-quem reavaliar a escolha saiba que começa sem o argumento original.
+**A lacuna do Supabase fechou no mesmo dia.** A varredura não achou o motivo da
+troca em lugar nenhum do repositório — nem no diário, nem no README, nem no
+SETUP-NEON, nem no memory: havia o quê, o quando e o como, nunca o porquê. O
+usuário respondeu, e a resposta é a parte que importa: **foi cota, não mérito
+técnico.** O plano grátis do Supabase dá dois projetos ativos e a conta já tinha
+mais de cinco (dois de pé, o resto pausado); criar o banco deste app exigiria
+derrubar um dos que funcionavam. O Neon entrou porque tinha vaga. Está no ADR-0004,
+com a consequência explícita: se um dia a cota deixar de importar, a comparação
+técnica entre os dois **ainda está por fazer**.
 
 **638 testes (81 arquivos)**, build limpo, lint com os 4 avisos pré-existentes. As
 duas únicas edições de código foram comentários; nenhuma linha de comportamento.
