@@ -40,6 +40,29 @@ vive em string (`vi.mock`, `importActual`, `readFileSync` relativo ao CWD) e sai
 com código 1 se algum não existir. **Provado contra o defeito real** — quebrei um
 caminho de volta e ele acusou. Entrou no `CLAUDE.md`.
 
+### O lint foi a ZERO, e aviso virou erro
+
+O projeto convivia com **4 avisos "pré-existentes"** havia meses — e quatro
+avisos fixos treinam qualquer um a não ler a saída do lint. O quinto entraria
+sem ninguém notar. Agora são **zero**, e o script roda `oxlint --deny-warnings`:
+aviso novo derruba a verificação inteira.
+
+- **O do `vite.config.ts` era redundante de verdade.** `/// <reference
+  types="vitest/config" />` na linha 1, com `import … from 'vitest/config'` na
+  linha 2 — o import já traz os tipos. Apagado.
+- **Os outros três não foram "consertados", foram autorizados com nome.**
+  `useT`, `useDados` e `useTravarRolagem` moram no mesmo arquivo dos seus
+  providers, que é o padrão idiomático do React. Separá-los custaria **40
+  arquivos reescritos** (só `useT` é importado por 40) para ganhar Fast Refresh
+  em três arquivos que ninguém edita. Entraram em `allowExportNames` no
+  `.oxlintrc.json` — a supressão carrega o *porquê* no lugar de o aviso carregar
+  o ruído.
+
+⚠️ **Provado, não presumido:** com o lint limpo `exit=0`; criando um arquivo que
+exporta um hook fora da lista ao lado de um componente, `exit=1`. A primeira
+tentativa de prova **falhou em silêncio** — usei `export const`, que
+`allowConstantExport` permite, e o teste passou sem nunca ter gerado aviso.
+
 ### A verificação virou um comando: `npm run verificar`
 
 A rotina eram **cinco comandos soltos numa tabela de documento**, com uma ordem

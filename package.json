@@ -13,7 +13,7 @@
     "preview": "npm run preview --workspace frontend",
     "test": "npm run test --workspace frontend",
     "test:watch": "npm run test:watch --workspace frontend",
-    "lint": "oxlint",
+    "lint": "oxlint --deny-warnings",
     "verificar": "python scripts/verificar.py",
     "verificar:rapido": "python scripts/verificar.py --rapido",
     "caminhos": "python scripts/checar-caminhos.py",

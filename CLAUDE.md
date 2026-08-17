@@ -52,6 +52,14 @@ Roda os seis na **ordem certa**, imprime o tempo de cada um e sai com código 1 
 primeira falha, com as últimas 25 linhas do erro. A ordem não é opcional, e é por
 isso que ela virou script em vez de continuar sendo uma tabela num documento:
 
+- **O lint é `--deny-warnings`: aviso é erro.** O projeto conviveu meses com 4
+  avisos "pré-existentes", e 4 avisos fixos treinam qualquer um a não ler a saída
+  do lint — o quinto entraria sem ninguém notar. Hoje são **zero**, e qualquer
+  aviso novo derruba a verificação. Os três `provider + hook no mesmo arquivo`
+  (`useT`, `useDados`, `useTravarRolagem`) estão em `allowExportNames` no
+  `.oxlintrc.json`: é o padrão idiomático do React, e separá-los custaria 40
+  arquivos reescritos para ganhar hot-reload em arquivos que ninguém edita.
+
 - **`npm test` NÃO checa tipos.** Essa armadilha já mordeu quatro vezes. Quem roda
   só ele acha que está verde.
 - **`medir-csp.py` mede o `dist/`, não o código.** Rodar sem `npm run build` antes
