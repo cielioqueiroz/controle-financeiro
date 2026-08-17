@@ -6,7 +6,7 @@ import { Auth } from './Auth'
 import { Notificacoes } from '../Notificacoes'
 
 // O componente importa o cliente do Neon no topo; no teste ele não existe.
-vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
+vi.mock('../../lib/neon', () => ({ neon: null, neonConfigurado: false }))
 
 // O <Toaster /> normalmente é montado em App.tsx, fora do Auth. Para os
 // toasts do sonner aparecerem no DOM do teste, montamos os dois juntos.

@@ -177,8 +177,11 @@ capital-financeiro/
 │       │   └── recorrencias.ts  # séries que se repetem + alertas
 │       ├── persist/             # Data API + agregação de leitura
 │       ├── dados/               # filtros na URL, recorte, provider do histórico
-│       ├── ui/                  # componentes (gráficos em SVG próprio)
-│       ├── paginas/             # as 7 telas
+│       ├── ui/                  # primitivos, marca e o que é usado por 2+ grupos
+│       │   ├── acesso/          # as telas de anônimo (entrar, criar, recuperar)
+│       │   ├── graficos/        # os 4 gráficos em SVG próprio + escala robusta
+│       │   └── listas/          # rankings e listas de lançamentos
+│       ├── paginas/             # as 6 telas roteadas e autenticadas
 │       ├── i18n/                # pt / en / es
 │       └── lib/                 # cliente Neon, auth por HTTP, perfil local
 ├── backend/

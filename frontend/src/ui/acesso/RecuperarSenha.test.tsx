@@ -6,12 +6,12 @@ import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from '../Notificacoes'
 import { guardarEmailReset, lerEmailReset } from '../../lib/perfil'
 
-vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
-vi.mock('../lib/recuperar-senha', () => ({
+vi.mock('../../lib/neon', () => ({ neon: null, neonConfigurado: false }))
+vi.mock('../../lib/recuperar-senha', () => ({
   pedirLink: vi.fn(),
   redefinirSenha: vi.fn(),
 }))
-vi.mock('../lib/url-token', async (importOriginal) => {
+vi.mock('../../lib/url-token', async (importOriginal) => {
   const real = await importOriginal<typeof import('../../lib/url-token')>()
   return { ...real, limparTokenDaUrl: vi.fn() }
 })

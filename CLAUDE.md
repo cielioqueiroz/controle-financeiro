@@ -14,6 +14,33 @@ publica sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature
 **Monorepo npm:** `frontend/` (o app, os testes e o `index.html`), `backend/` (hoje
 só `db/migrations/`), `scripts/` na raiz.
 
+## Onde cada coisa mora
+
+Dentro de `frontend/src/`:
+
+| Pasta | O que entra |
+|---|---|
+| `domain/` | **Regras de dinheiro, puras.** Sem React, sem rede. Parser, normalização, categorização, vínculo, recorrência, validação de gabarito. |
+| `persist/` | Conversa com o Neon + a agregação de leitura (`agrupar.ts`). |
+| `dados/` | Estado de tela compartilhado: provider, filtros da URL, recorte. |
+| `paginas/` | As seis telas **roteadas e autenticadas**. |
+| `ui/acesso/` | As telas de **anônimo** (entrar, criar conta, recuperar, confirmar) e o que só elas usam. |
+| `ui/graficos/` | Os quatro gráficos e a escala robusta de barras. |
+| `ui/listas/` | Quem desenha linhas sobre transações: os dois rankings e as três listas. |
+| `ui/` (raiz) | O que não pertence a um grupo só — primitivos (`Portal`, `ValorAnimado`), marca (`Marca`, `MoedaLogo`) e peças usadas por mais de um grupo (`MarcaCategoria`). |
+| `lib/` | Cliente do Neon, perfil e utilidades de plataforma. |
+| `i18n/`, `navegacao/` | Dicionários e rotas. |
+
+**A regra que decide um caso novo:** uma peça usada por **um** grupo mora nele;
+usada por **dois**, sobe para `ui/`. Foi o que manteve `MarcaCategoria` na raiz
+(gráfico + lista) e `MoedaLogo` também (é marca, irmã de `Marca.tsx`, mesmo sendo
+usada hoje só pelo `Auth`).
+
+**Lógica pura de apresentação não vai para `domain/`.** `escala-barras`,
+`auth-validacao` e `mensagem-campos` são puras e testadas, e mesmo assim moram na
+UI: `domain/` é o vocabulário do dinheiro, e diluí-lo com validação de formulário
+tira o sentido de ter a pasta.
+
 ## Antes de dizer que algo está pronto
 
 ```bash
@@ -52,6 +79,13 @@ python scripts/medir-contraste.py              # se mexeu em cor
   suíte passa verde com o parser quebrado. Upgrade de pdf.js exige prova à parte.
 - **A suíte mocka o SDK do Neon inteiro.** Regressão de login não é pega por teste
   nenhum — ver [ADR-0008](./docs/adr/0008-sdk-do-neon-nao-atualizado.md).
+- **`vi.mock('../x')` recebe STRING, não import.** Nem o `tsc` nem o build reclamam
+  quando o caminho deixa de resolver: o módulo **real** entra no lugar do dublê e o
+  teste passa a exercitar outra coisa. Mover um arquivo de teste de pasta quebra
+  todos os `vi.mock` relativos dele **em silêncio** — e nem sempre com teste
+  vermelho: dois `Auth.test` continuaram verdes com o mock morto, porque o módulo
+  real por acaso se comportava igual. Depois de mover teste, rode
+  `python scripts/checar-caminhos.py`.
 
 ### Estrutura e ambiente
 

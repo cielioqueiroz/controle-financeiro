@@ -8,7 +8,7 @@ import { Notificacoes } from '../Notificacoes'
 
 // O cadastro precisa de um Neon de mentira: o de verdade criaria conta.
 const signUp = vi.fn(async () => ({ error: null }))
-vi.mock('../lib/neon', () => ({
+vi.mock('../../lib/neon', () => ({
   neonConfigurado: true,
   neon: { auth: { signUp: { email: (...a: unknown[]) => signUp(...(a as [])) } } },
 }))
@@ -17,7 +17,7 @@ vi.mock('../lib/neon', () => ({
 // literal, `mockResolvedValue({ ok: false, motivo: 'falha' })` não compila — e
 // o erro só apareceria no `tsc` do build, porque o Vitest não checa tipos.
 const enviarCodigo = vi.fn<(email: string) => Promise<Resultado>>(async () => ({ ok: true }))
-vi.mock('../lib/confirmar-email', async (original) => {
+vi.mock('../../lib/confirmar-email', async (original) => {
   const real = await original<typeof import('../../lib/confirmar-email')>()
   // Só o envio é dublado; o resto do módulo continua o de verdade.
   return { ...real, enviarCodigo: (email: string) => enviarCodigo(email) }

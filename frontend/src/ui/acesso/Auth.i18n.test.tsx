@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { Auth } from './Auth'
 import { IdiomaProvider } from '../../i18n/IdiomaProvider'
 
-vi.mock('../lib/neon', () => ({ neon: null, neonConfigurado: false }))
+vi.mock('../../lib/neon', () => ({ neon: null, neonConfigurado: false }))
 
 beforeEach(() => localStorage.setItem('cf:idioma', 'en'))
 
