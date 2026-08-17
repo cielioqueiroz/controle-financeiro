@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GraficoEvolucao } from './GraficoEvolucao'
-import type { PontoMes } from '../persist/agrupar'
+import type { PontoMes } from '../../persist/agrupar'
 
 const SERIE: PontoMes[] = [
   { competencia: '2026-05', gastoCents: 120000, entradasCents: 300000 },

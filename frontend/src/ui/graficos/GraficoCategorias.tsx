@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import type { CategoriaResumo } from '../domain/insights'
-import { formatBRL } from '../domain/normalize/money'
-import { nomeCategoria } from '../domain/categorize/categorias'
-import { useFiltros } from '../dados/useFiltros'
-import { escreverFiltros } from '../dados/filtros'
-import { useT } from '../i18n/IdiomaProvider'
-import { MarcaCategoria } from './MarcaCategoria'
+import type { CategoriaResumo } from '../../domain/insights'
+import { formatBRL } from '../../domain/normalize/money'
+import { nomeCategoria } from '../../domain/categorize/categorias'
+import { useFiltros } from '../../dados/useFiltros'
+import { escreverFiltros } from '../../dados/filtros'
+import { useT } from '../../i18n/IdiomaProvider'
+import { MarcaCategoria } from '../MarcaCategoria'
 
 type Props = {
   categorias: CategoriaResumo[]

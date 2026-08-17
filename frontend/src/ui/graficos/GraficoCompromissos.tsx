@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { formatBRL } from '../domain/normalize/money'
-import { mesAbrev } from '../domain/normalize/data'
-import { BANCOS } from '../domain/banks'
-import type { Bank } from '../domain/pdf/detect'
-import { useT } from '../i18n/IdiomaProvider'
+import { formatBRL } from '../../domain/normalize/money'
+import { mesAbrev } from '../../domain/normalize/data'
+import { BANCOS } from '../../domain/banks'
+import type { Bank } from '../../domain/pdf/detect'
+import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
-import type { MesFuturo } from '../persist/agrupar'
+import type { MesFuturo } from '../../persist/agrupar'
 
 type Props = {
   meses: MesFuturo[]

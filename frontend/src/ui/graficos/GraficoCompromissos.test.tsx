@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GraficoCompromissos } from './GraficoCompromissos'
-import type { MesFuturo } from '../persist/agrupar'
+import type { MesFuturo } from '../../persist/agrupar'
 
 const mes = (competencia: string, faixas: [string, number][]): MesFuturo => ({
   competencia,

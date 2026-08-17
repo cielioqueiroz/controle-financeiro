@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { formatBRL } from '../domain/normalize/money'
-import { mesAbrev } from '../domain/normalize/data'
-import { useT } from '../i18n/IdiomaProvider'
+import { formatBRL } from '../../domain/normalize/money'
+import { mesAbrev } from '../../domain/normalize/data'
+import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
-import type { GrupoDia } from '../persist/agrupar'
-import type { TransacaoSalva } from '../persist/puxar'
+import type { GrupoDia } from '../../persist/agrupar'
+import type { TransacaoSalva } from '../../persist/puxar'
 
 type Props = {
   /** Dias do período, como `porDia` devolve (mais recente primeiro). */

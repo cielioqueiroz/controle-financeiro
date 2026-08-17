@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { GraficoCategorias } from './GraficoCategorias'
-import { categoria } from '../domain/categorize/categorias'
+import { categoria } from '../../domain/categorize/categorias'
 
 const CATEGORIAS = [
   { cat: categoria('supermercado'), totalCents: 60000, contagem: 8 },

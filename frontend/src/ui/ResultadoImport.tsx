@@ -11,7 +11,7 @@ import type { Regra } from '../domain/categorize/regras'
 import { CATEGORIAS, nomeCategoria } from '../domain/categorize/categorias'
 import { useT } from '../i18n/IdiomaProvider'
 import { interpolarNos } from '../i18n/interpolarNos'
-import { GraficoCategorias } from './GraficoCategorias'
+import { GraficoCategorias } from './graficos/GraficoCategorias'
 
 type Props = {
   kind: DocKind
