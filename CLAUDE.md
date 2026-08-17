@@ -44,16 +44,27 @@ tira o sentido de ter a pasta.
 ## Antes de dizer que algo está pronto
 
 ```bash
-npm test && npm run build && npm run lint      # os três, SEMPRE
-python scripts/medir-csp.py                    # DEPOIS de npm run build
-python scripts/medir-overflow.py               # se mexeu em layout (com npm run dev de pé)
-python scripts/medir-contraste.py              # se mexeu em cor
+npm run verificar          # typecheck · testes · lint · caminhos · build · CSP
+npm run verificar:rapido   # o mesmo sem build e sem CSP, para o meio do trabalho
 ```
 
-- **`npm test` NÃO checa tipos.** Essa armadilha já mordeu quatro vezes. Só
-  `npm run build` reprova erro de tipo.
+Roda os seis na **ordem certa**, imprime o tempo de cada um e sai com código 1 na
+primeira falha, com as últimas 25 linhas do erro. A ordem não é opcional, e é por
+isso que ela virou script em vez de continuar sendo uma tabela num documento:
+
+- **`npm test` NÃO checa tipos.** Essa armadilha já mordeu quatro vezes. Quem roda
+  só ele acha que está verde.
 - **`medir-csp.py` mede o `dist/`, não o código.** Rodar sem `npm run build` antes
   aprova o build anterior, e não reclama — um `dist` velho é um `dist` válido.
+
+**Ficam de fora, de propósito** (o script diz isso no fim):
+
+```bash
+python scripts/medir-contraste.py   # se mexeu em COR
+npm run dev                         # e então, noutro terminal:
+python scripts/medir-overflow.py    # se mexeu em LAYOUT
+python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de provas
+```
 - Números de referência do diagnóstico (gasto real de junho = R$ 41.012,25 sobre os
   4 PDFs de `D:/extratos/junho2026`) estão em `docs/ESTADO-ATUAL.md`. Mudou sem
   motivo? Regrediu.
@@ -85,7 +96,7 @@ python scripts/medir-contraste.py              # se mexeu em cor
   todos os `vi.mock` relativos dele **em silêncio** — e nem sempre com teste
   vermelho: dois `Auth.test` continuaram verdes com o mock morto, porque o módulo
   real por acaso se comportava igual. Depois de mover teste, rode
-  `python scripts/checar-caminhos.py`.
+  `npm run caminhos` (já incluso no `npm run verificar`).
 
 ### Estrutura e ambiente
 

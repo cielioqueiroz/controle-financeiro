@@ -34,11 +34,16 @@ function tx(over: Partial<Record<string, unknown>> = {}) {
 }
 
 /** Abre o painel em JUNHO/2026 — `ref` na URL evita depender da competência
- *  mais recente com dado, que muda conforme a amostra de cada teste. */
+ *  mais recente com dado, que muda conforme a amostra de cada teste.
+ *
+ *  ⚠️ A chave do período é **`p`**, não `periodo` (ver `lerFiltros`). Estava
+ *  `periodo=mes`, que a URL ignorava em silêncio: o teste passava porque o
+ *  PADRÃO já é mês, não porque tivesse pedido mês. Mudar o padrão trocaria o
+ *  significado deste teste sem produzir uma linha vermelha. */
 function abrirEmJunho(lista: ReturnType<typeof tx>[]) {
   vi.mocked(puxarTudo).mockResolvedValue(lista as never)
   render(
-    <MemoryRouter initialEntries={['/?ref=2026-06-15&periodo=mes']}>
+    <MemoryRouter initialEntries={['/?ref=2026-06-15&p=mes']}>
       <DadosProvider>
         <Painel />
       </DadosProvider>

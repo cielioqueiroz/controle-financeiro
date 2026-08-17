@@ -40,6 +40,31 @@ vive em string (`vi.mock`, `importActual`, `readFileSync` relativo ao CWD) e sai
 com código 1 se algum não existir. **Provado contra o defeito real** — quebrei um
 caminho de volta e ele acusou. Entrou no `CLAUDE.md`.
 
+### A verificação virou um comando: `npm run verificar`
+
+A rotina eram **cinco comandos soltos numa tabela de documento**, com uma ordem
+que não é opcional e que já mordeu — e o medidor novo (`checar-caminhos.py`) nem
+tinha entrado na lista. Virou `scripts/verificar.py`: typecheck, testes, lint,
+caminhos, build e CSP, em ordem, com tempo de cada passo e as últimas 25 linhas
+do erro quando algo cai.
+
+Ficaram **de fora de propósito**: `medir-contraste.py` (só importa se mexeu em
+cor) e `medir-overflow.py` / `gerar-prints.py` (precisam do `npm run dev` de pé).
+O script imprime esse lembrete no fim.
+
+⚠️ **Ele achou dois defeitos na primeira execução — um deles dele mesmo.** O meu
+comentário JSX quebrou o `Painel.variacao.test.tsx`, e o próprio `verificar.py`
+**morria ao imprimir a falha**: a saída do vitest tem caixa de desenho (U+2502) e
+o console do Windows é cp1252, então o script sumia com exatamente a informação
+que se foi buscar. Corrigido com `reconfigure(encoding='utf-8')`.
+
+⚠️ **`Painel.variacao.test.tsx` abria a URL com `periodo=mes`, e `lerFiltros` lê
+`p`.** A chave era ignorada em silêncio; o teste passava porque o **padrão** já é
+mês, não porque tivesse pedido mês. Mudar o padrão trocaria o significado do
+teste sem nenhuma linha vermelha. Conferido que o **app não tem esse defeito**:
+ele nunca monta querystring à mão, e as cinco chaves lidas (`p`, `ref`, `banco`,
+`cat`, `q`) batem exatamente com as escritas por `escreverFiltros`.
+
 ### As decisões de agrupamento, e por que não são gosto
 
 - **A regra que decide um caso novo:** peça usada por **um** grupo mora nele;
@@ -574,11 +599,11 @@ rodada de 13/08, item 7. O que sobra são as três linhas da tabela acima, e nen
    um card por banco com o número que cada um declara (ver a rodada de 12/08).
 3. **O gráfico de saídas por dia**, que ocupou a metade vazia do painel.
 
-**Antes de dizer que algo está pronto**, rode os cinco (a seção *Como validar
-rapidamente* tem os detalhes): `npm test && npm run build && npm run lint`,
-`python scripts/medir-csp.py` (depois do build) e, se mexer em cor ou layout,
-`medir-contraste.py` e `medir-overflow.py`. **`npm test` NÃO checa tipos** —
-essa armadilha já mordeu três vezes, inclusive nesta rodada.
+**Antes de dizer que algo está pronto**, rode **`npm run verificar`** (17/08).
+Um comando só: typecheck, testes, lint, caminhos em string, build e CSP, na
+ordem certa e falhando alto. Cor e layout continuam à mão (`medir-contraste.py`,
+`medir-overflow.py`) porque um precisa de escolha e o outro do `dev` de pé.
+**`npm test` NÃO checa tipos** — essa armadilha já mordeu quatro vezes.
 
 **A dívida de i18n acabou** (13/08): os dois `aria-label` do donut em
 `GraficoCategorias` eram o último resto e viraram `donut.rotulo` /
