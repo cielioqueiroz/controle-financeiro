@@ -162,6 +162,7 @@ export const en: Dicionario = {
   'dash.todos': 'All',
   'busca.placeholder': 'Search by merchant…',
   'busca.rotulo': 'Search entries',
+  'busca.dicas': 'Also accepts: >100 · <50 · bank:nubank · category:farmacia · no:category',
   'busca.categoria': 'Filter by category',
   'busca.todasCategorias': 'All categories',
   'busca.resultados': '{n} entries',

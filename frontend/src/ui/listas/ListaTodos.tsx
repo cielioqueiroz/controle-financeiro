@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
 import { buscar } from '../../domain/busca'
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
@@ -29,6 +29,8 @@ type Props = {
  *  procurar. Ordena por data desc, a ordem que a memória usa. */
 export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props) {
   const { t, idioma } = useT()
+  const [focado, setFocado] = useState(false)
+  const dicaId = useId()
 
   // Categorias presentes nestas transações, para o filtro só oferecer o que
   // de fato existe no período. `idioma` entra nas dependências porque a
@@ -70,8 +72,11 @@ export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props)
           type="search"
           value={termo}
           onChange={(e) => onTermo(e.target.value)}
+          onFocus={() => setFocado(true)}
+          onBlur={() => setFocado(false)}
           placeholder={t('busca.placeholder')}
           aria-label={t('busca.rotulo')}
+          aria-describedby={dicaId}
           className="min-w-0 flex-1 rounded-lg border border-campo-borda bg-carvao-950/40 px-3 py-1.5 text-sm text-tinta placeholder:text-tinta-tenue"
         />
         <select
@@ -88,6 +93,19 @@ export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props)
           ))}
         </select>
       </div>
+
+      {/* Operador que ninguém descobre não existe. Aparece ao focar e enquanto
+          houver texto — some depois, porque é ajuda, não rótulo permanente.
+          Fica no DOM sempre, ligado por aria-describedby: um leitor de tela
+          precisa ouvir a sintaxe ANTES de digitar, não quando o visual muda. */}
+      <p
+        id={dicaId}
+        className={`px-3 pb-2 text-[11px] text-tinta-tenue transition-opacity ${
+          focado || termo ? 'opacity-100' : 'sr-only'
+        }`}
+      >
+        {t('busca.dicas')}
+      </p>
 
       {/* Uma string só, não pedaços concatenados em JSX: assim o leitor de
           tela lê uma frase e o texto fica localizável como um nó único. */}

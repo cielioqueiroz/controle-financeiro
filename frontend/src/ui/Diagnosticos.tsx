@@ -9,7 +9,15 @@ import { useT } from '../i18n/IdiomaProvider'
  *  deixe o texto para trás. Some inteira quando não há nada a dizer: uma
  *  faixa permanente escrevendo "está tudo bem" vira ruído que se aprende a
  *  pular, e aí o dia em que ela tem conteúdo passa junto. */
-export function Diagnosticos({ itens }: { itens: Diagnostico[] }) {
+type Props = {
+  itens: Diagnostico[]
+  /** Abre os lançamentos sem categoria na lista. Só o diagnóstico de
+   *  "Outros" é acionável: os outros dois descrevem um fato do mês, e um
+   *  botão que não leva a lugar nenhum ensina a não clicar. */
+  onVerSemCategoria?: () => void
+}
+
+export function Diagnosticos({ itens, onVerSemCategoria }: Props) {
   const { t } = useT()
   if (itens.length === 0) return null
 
@@ -27,7 +35,16 @@ export function Diagnosticos({ itens }: { itens: Diagnostico[] }) {
             }}
             aria-hidden
           />
-          <p className="min-w-0 flex-1 text-xs text-tinta-fraca">{frase(d, t)}</p>
+          {d.tipo === 'muito-em-outros' && onVerSemCategoria ? (
+            <button
+              onClick={onVerSemCategoria}
+              className="min-w-0 flex-1 text-left text-xs text-tinta-fraca underline decoration-dotted underline-offset-4 transition-colors hover:text-tinta"
+            >
+              {frase(d, t)}
+            </button>
+          ) : (
+            <p className="min-w-0 flex-1 text-xs text-tinta-fraca">{frase(d, t)}</p>
+          )}
         </li>
       ))}
     </ul>

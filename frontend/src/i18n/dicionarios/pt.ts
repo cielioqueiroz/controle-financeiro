@@ -184,6 +184,7 @@ export const pt = {
   'dash.todos': 'Todos',
   'busca.placeholder': 'Procurar por estabelecimento…',
   'busca.rotulo': 'Procurar lançamento',
+  'busca.dicas': 'Também aceita: >100 · <50 · banco:nubank · cat:farmacia · sem:categoria',
   'busca.categoria': 'Filtrar por categoria',
   'busca.todasCategorias': 'Todas as categorias',
   'busca.resultados': '{n} lançamentos',

@@ -1,47 +1,25 @@
-/** Busca textual sobre lançamentos.
+import { analisarConsulta, casaConsulta, type TxConsultavel } from './consulta'
+
+/** Busca sobre lançamentos: o texto (com operadores) mais o seletor de
+ *  categoria da barra, que é um controle à parte e não se digita.
  *
- *  Puro e separado da UI para poder ser testado sem renderizar nada — e
- *  porque a regra de "o que casa" tem sutileza: acento e caixa não podem
- *  atrapalhar (ninguém digita "FARMÁCIA" com acento e maiúscula na pressa),
- *  e a busca tem que enxergar o rótulo que o usuário deu à compra, não só a
- *  descrição crua do banco. */
+ *  Quem decide o que casa é `consulta.ts` — este arquivo só compõe. Antes
+ *  havia aqui um normalizador e um casador próprios; virariam a segunda
+ *  opinião sobre "o que casa" no dia em que a busca ganhasse operadores,
+ *  que é exatamente o que aconteceu. */
 
-export type TxBuscavel = {
-  description: string
-  label: string | null
-  category_slug: string | null
-}
+export type TxBuscavel = TxConsultavel
 
-/** Caixa baixa, sem acento, sem espaço sobrando. Aplicado dos dois lados
- *  da comparação. */
-export function normalizarBusca(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-/** O lançamento casa com o termo? Procura no rótulo do usuário E na
- *  descrição original: quem renomeou "PAG*JOAO" para "Pedreiro" pode
- *  procurar por qualquer um dos dois. */
-export function casaTermo(tx: TxBuscavel, termoNormalizado: string): boolean {
-  if (!termoNormalizado) return true
-  const alvo = normalizarBusca(`${tx.label ?? ''} ${tx.description}`)
-  return alvo.includes(termoNormalizado)
-}
-
-/** Filtra por texto livre e/ou categoria. `categoria` nulo = todas.
+/** Filtra por consulta e/ou categoria. `categoriaSlug` nulo = todas.
  *  Preserva a ordem recebida — quem ordena é quem chama. */
 export function buscar<T extends TxBuscavel>(
   txs: T[],
   termo: string,
   categoriaSlug: string | null,
 ): T[] {
-  const termoNorm = normalizarBusca(termo)
+  const consulta = analisarConsulta(termo)
   return txs.filter((t) => {
     if (categoriaSlug && (t.category_slug ?? 'outros') !== categoriaSlug) return false
-    return casaTermo(t, termoNorm)
+    return casaConsulta(t, consulta)
   })
 }

@@ -119,12 +119,19 @@ export function Painel({ onAprendeu }: Props) {
 
   /** Clicar num estabelecimento abre os lançamentos dele — como clicar numa
    *  fatia do donut abre a categoria. Vai pela BUSCA (`q`), e não por um
-   *  filtro novo de estabelecimento: `casaTermo` já procura na descrição do
+   *  filtro novo de estabelecimento: a consulta já procura na descrição do
    *  banco, e a chave normalizada é sempre um trecho dela (o normalizador só
    *  remove — prefixo de adquirente, sufixo de parcela). Leva o recorte
    *  junto para a lista abrir no mesmo período do painel. */
   function irParaEstabelecimento(merchant: string) {
     navigate(`/lancamentos${escreverFiltros({ ...filtros, busca: merchant })}`)
+  }
+
+  /** O diagnóstico "X% está sem categoria" vira o gesto de resolvê-lo: abre
+   *  a lista já filtrada, no mesmo recorte, com o operador que o próprio
+   *  campo de busca aceita. Observação que não vira ação é só reclamação. */
+  function irParaSemCategoria() {
+    navigate(`/lancamentos${escreverFiltros({ ...filtros, busca: 'sem:categoria' })}`)
   }
 
   /** Clicar num dia do ritmo leva a tela para aquele dia — o mesmo gesto que
@@ -336,7 +343,7 @@ export function Painel({ onAprendeu }: Props) {
               </motion.div>
             </div>
 
-            <Diagnosticos itens={diagnosticos} />
+            <Diagnosticos itens={diagnosticos} onVerSemCategoria={irParaSemCategoria} />
 
             {/* Gráficos lado a lado. Sem sticky e sem rolagem interna: o que
                 exigia aquilo (a pilha de cinco cards) foi para outras

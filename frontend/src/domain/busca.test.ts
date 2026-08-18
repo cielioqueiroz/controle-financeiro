@@ -1,50 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { normalizarBusca, casaTermo, buscar, type TxBuscavel } from './busca'
+import { buscar, type TxBuscavel } from './busca'
 
 const tx = (over: Partial<TxBuscavel>): TxBuscavel => ({
   description: 'DROGARIA SAO PAULO',
   label: null,
   category_slug: 'farmacia',
+  amount_cents: 5000,
+  bank: 'nubank',
+  kind: 'expense',
   ...over,
-})
-
-describe('normalizarBusca', () => {
-  it('tira acento e caixa', () => {
-    expect(normalizarBusca('FARMÁCIA')).toBe('farmacia')
-  })
-
-  it('colapsa espaços e apara as pontas', () => {
-    expect(normalizarBusca('  posto   ipiranga ')).toBe('posto ipiranga')
-  })
-})
-
-describe('casaTermo', () => {
-  it('casa ignorando acento e caixa nos dois lados', () => {
-    expect(casaTermo(tx({ description: 'FARMÁCIA PAGUE MENOS' }), 'farmacia')).toBe(true)
-    expect(casaTermo(tx({ description: 'FARMACIA PAGUE MENOS' }), normalizarBusca('Farmácia'))).toBe(
-      true,
-    )
-  })
-
-  it('casa por pedaço no meio da descrição', () => {
-    expect(casaTermo(tx({}), 'sao paulo')).toBe(true)
-  })
-
-  it('enxerga o rótulo do usuário, não só a descrição do banco', () => {
-    expect(casaTermo(tx({ description: 'PAG*JOAO', label: 'Pedreiro' }), 'pedreiro')).toBe(true)
-  })
-
-  it('continua achando pela descrição original depois de renomeada', () => {
-    expect(casaTermo(tx({ description: 'PAG*JOAO', label: 'Pedreiro' }), 'pag*joao')).toBe(true)
-  })
-
-  it('termo vazio casa com tudo', () => {
-    expect(casaTermo(tx({}), '')).toBe(true)
-  })
-
-  it('não casa o que não está lá', () => {
-    expect(casaTermo(tx({}), 'uber')).toBe(false)
-  })
 })
 
 describe('buscar', () => {
@@ -75,6 +39,29 @@ describe('buscar', () => {
     const semCat = [tx({ description: 'X', category_slug: null })]
     expect(buscar(semCat, '', 'outros')).toHaveLength(1)
     expect(buscar(semCat, '', 'farmacia')).toHaveLength(0)
+  })
+
+  it('os operadores chegam pela mesma porta que o texto', () => {
+    // O ponto de integração: é `buscar` que a barra de filtros chama, e é
+    // aqui que a consulta com operador tem que valer tanto quanto a antiga.
+    const comValores = [
+      tx({ description: 'ATACADAO', amount_cents: 15000, bank: 'nubank' }),
+      tx({ description: 'ATACADAO', amount_cents: 2000, bank: 'nubank' }),
+      tx({ description: 'ATACADAO', amount_cents: 15000, bank: 'bradesco' }),
+    ]
+    expect(buscar(comValores, 'atacadao >100', null)).toHaveLength(2)
+    expect(buscar(comValores, 'atacadao >100 banco:bradesco', null)).toHaveLength(1)
+  })
+
+  it('sem:categoria convive com o seletor de categoria', () => {
+    const mistas = [
+      tx({ description: 'A', category_slug: null }),
+      tx({ description: 'B', category_slug: 'farmacia' }),
+    ]
+    expect(buscar(mistas, 'sem:categoria', null)).toHaveLength(1)
+    // O seletor manda junto: pedir farmácia E sem categoria não devolve nada,
+    // e é o resultado correto — não um bug de filtro invisível.
+    expect(buscar(mistas, 'sem:categoria', 'farmacia')).toHaveLength(0)
   })
 
   it('não muta a lista recebida', () => {

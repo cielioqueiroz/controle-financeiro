@@ -162,6 +162,7 @@ export const es: Dicionario = {
   'dash.todos': 'Todos',
   'busca.placeholder': 'Buscar por comercio…',
   'busca.rotulo': 'Buscar movimiento',
+  'busca.dicas': 'También acepta: >100 · <50 · banco:nubank · categoria:farmacia · sin:categoria',
   'busca.categoria': 'Filtrar por categoría',
   'busca.todasCategorias': 'Todas las categorías',
   'busca.resultados': '{n} movimientos',
