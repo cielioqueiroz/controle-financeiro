@@ -31,6 +31,11 @@ type Dados = {
   recarregar: () => Promise<void>
   /** Aplica uma edição em memória, sem reidratar tudo do banco. */
   aplicarEdicao: (id: string, campos: { label: string | null; category_slug: string }) => void
+  /** Aplica em memória a correção em bloco do histórico. Irmã de
+   *  `aplicarEdicao`, e separada por um motivo: aqui só a categoria muda, e
+   *  reaproveitar a outra obrigaria quem chama a repetir o `label` de cada
+   *  transação só para não apagá-lo sem querer. */
+  aplicarRecategorizacao: (ids: string[], categoria: string) => void
   /** Competência (AAAA-MM) mais recente com dado, ou null se não há dado.
    *  Faturas trazem meses passados: abrir no mês corrente mostraria tela
    *  vazia para quem acabou de importar a fatura de junho em agosto. */
@@ -87,6 +92,13 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const aplicarRecategorizacao = useCallback((ids: string[], categoria: string) => {
+    const alvo = new Set(ids)
+    setTodas((atual) =>
+      atual ? atual.map((t) => (alvo.has(t.id) ? { ...t, category_slug: categoria } : t)) : atual,
+    )
+  }, [])
+
   const competenciaInicial = useMemo(
     () =>
       todas
@@ -97,8 +109,26 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   )
 
   const valor = useMemo(
-    () => ({ todas, docsSaldo, carregando, erro, recarregar, aplicarEdicao, competenciaInicial }),
-    [todas, docsSaldo, carregando, erro, recarregar, aplicarEdicao, competenciaInicial],
+    () => ({
+      todas,
+      docsSaldo,
+      carregando,
+      erro,
+      recarregar,
+      aplicarEdicao,
+      aplicarRecategorizacao,
+      competenciaInicial,
+    }),
+    [
+      todas,
+      docsSaldo,
+      carregando,
+      erro,
+      recarregar,
+      aplicarEdicao,
+      aplicarRecategorizacao,
+      competenciaInicial,
+    ],
   )
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>

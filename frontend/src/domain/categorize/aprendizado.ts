@@ -1,5 +1,5 @@
 import { normalizeMerchant } from '../normalize/merchant'
-import { extrairCNPJ, type Regra } from './regras'
+import { casaRegra, extrairCNPJ, type Regra } from './regras'
 
 /** Cria uma regra do usuário a partir de uma correção manual.
  *
@@ -37,4 +37,37 @@ export function mesclarRegras(usuario: Regra[], globais: Regra[]): Regra[] {
     resultado.push(r)
   }
   return resultado
+}
+
+/** Transação já gravada, reduzida ao que a regra precisa enxergar. */
+export type TxAlcancavel = {
+  id: string
+  description: string
+  category_slug: string | null
+}
+
+/** Quais transações JÁ GRAVADAS esta regra corrigiria.
+ *
+ *  Existe porque aprender a regra só arrumava o futuro. A categoria mora numa
+ *  coluna, decidida na importação, e nada a relê: corrigir "ATACADAO" hoje
+ *  acertava as próximas compras e deixava as 26 já salvas na categoria errada.
+ *  O toast dizia "vou lembrar desta categoria" — verdade pela metade.
+ *
+ *  Duas exclusões, cada uma por um motivo: a transação em edição (quem chama
+ *  já a gravou por conta própria) e quem já está na categoria de destino (um
+ *  update sem efeito que só inflaria o número mostrado na prévia).
+ *
+ *  Casa pela `description`, o texto do banco — nunca pelo `label`. O rótulo é
+ *  do usuário, e renomear UMA compra não pode mudar o alcance de uma regra. */
+export function alcancadasPelaRegra<T extends TxAlcancavel>(
+  regra: Regra,
+  txs: T[],
+  excetoId: string,
+): T[] {
+  return txs.filter(
+    (t) =>
+      t.id !== excetoId &&
+      (t.category_slug ?? 'outros') !== regra.categoria &&
+      casaRegra(regra, t.description),
+  )
 }

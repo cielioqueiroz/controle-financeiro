@@ -129,6 +129,33 @@ export function extrairCNPJ(desc: string): string | null {
   return m ? m[1].replace(/\D/g, '') : null
 }
 
+/** Núcleo do casamento, com o merchant e o CNPJ já calculados. Recebe os
+ *  dois prontos porque `categoriaDe` roda as ~150 regras globais contra a
+ *  MESMA descrição: normalizar uma vez por regra multiplicaria por 150 o
+ *  custo de cada linha importada. */
+function casa(
+  regra: Regra,
+  description: string,
+  merchant: string,
+  cnpj: string | null,
+): boolean {
+  if (regra.tipo === 'cnpj') {
+    return cnpj !== null && regra.padrao.replace(/\D/g, '') === cnpj
+  }
+  return merchant.includes(regra.padrao) || description.toUpperCase().includes(regra.padrao)
+}
+
+/** Esta regra casa com esta descrição?
+ *
+ *  É o MESMO teste que `categoriaDe` aplica, exposto para uso avulso — e a
+ *  unicidade é o ponto: a prévia de "quantas compras esta correção também
+ *  conserta" tem que dar exatamente o veredito que a categorização daria.
+ *  Duas cópias da regra de casamento seriam duas opiniões, e a que o usuário
+ *  vê na tela é justamente a que não roda na importação. */
+export function casaRegra(regra: Regra, description: string): boolean {
+  return casa(regra, description, normalizeMerchant(description), extrairCNPJ(description))
+}
+
 /** Aplica as regras a uma transação e devolve o slug da categoria.
  *  Regras de maior prioridade vencem; empate resolve pela mais longa
  *  (mais específica). Sem match → 'outros'. */
@@ -141,11 +168,7 @@ export function categoriaDe(
 
   let melhor: Regra | null = null
   for (const r of regras) {
-    const casa =
-      r.tipo === 'cnpj'
-        ? cnpj !== null && r.padrao.replace(/\D/g, '') === cnpj
-        : merchant.includes(r.padrao) || tx.description.toUpperCase().includes(r.padrao)
-    if (!casa) continue
+    if (!casa(r, tx.description, merchant, cnpj)) continue
     if (
       !melhor ||
       r.prioridade > melhor.prioridade ||

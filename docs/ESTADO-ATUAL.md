@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-17**.
+> Documento de continuidade. Última atualização: **2026-08-18**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -12,6 +12,96 @@
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
 > | [`docs/adr/`](./adr/) | **As nove decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-18 — quatro repositórios open source, e a promessa que a UI cumpria pela metade
+
+O usuário mandou quatro links (Firefly III, Ghostfolio, web-budget, full-finan-as)
+pedindo o que dava para reaproveitar. A primeira conclusão foi jurídica e inverte
+a intuição: **os três projetos maduros são copyleft forte** — Firefly e Ghostfolio
+AGPL-3.0, web-budget GPL-3.0. Copiar código deles contamina o repositório inteiro.
+O único legalmente copiável é o `full-finan-as` (MIT), que é justamente o que não
+tem nada a copiar. Então "reaproveitar" aqui só pode significar **desenho**.
+
+O que ficou de cada um:
+
+| Projeto | Veredito |
+|---|---|
+| **Firefly III** | Os gatilhos de regra **são** a linguagem de busca (`config/search.php`): uma tabela só de operadores alimenta a caixa de busca e o motor de regras. Aqui `busca.ts` e `regras.ts` são dialetos separados e pobres. |
+| **Ghostfolio** | O padrão do X-ray: `Rule` abstrata com `evaluate() → { value, evaluation }` e `isActive` por regra. É o que `alertasDe()` quer virar quando crescer. Mais o "Zen Mode" (esconder valores absolutos). |
+| **web-budget** | Nada. v3 em manutenção, JSF/WildFly, e o domínio é prospectivo (período que abre e fecha) — conflita com o ADR-0005. |
+| **full-finan-as** | Nada. Projeto pessoal em vanilla JS; estado global em `window.*`, e uma pasta `js/ui.js/` que contém outros arquivos. |
+
+**O que foi recusado, e por quê:** orçamentos, piggy banks, metas e contas fixas
+cadastradas à mão contradizem o ADR-0005 — este app não deixa digitar número. A
+partida dobrada com conta origem/destino resolveria o que `linked_transaction_id`
++ vínculo já resolvem sem exigir cadastro. E a reconciliação do Firefly é mais
+fraca que o gabarito + `checksum.ts` daqui.
+
+⚠️ **Num ponto o projeto daqui é MELHOR que o Firefly, e isso quase passou batido.**
+As `bills` do Firefly pedem cadastro; `recorrencias.ts` **deduz** — mediana,
+classificação fixo/variável, `diaTipico`. Trazer o modelo do Firefly seria regressão.
+
+### O defeito: corrigir uma categoria consertava uma linha só
+
+Conferido no código, não presumido. `EditarCompra.salvar()` chamava
+`editarTransacao(tx.id, …)` — **uma** linha — e gravava a regra aprendida. Mas a
+categoria mora numa coluna, decidida na importação, e `agrupar.ts` lê a coluna:
+corrigir "ATACADAO" hoje acertava as compras **futuras** e deixava as 26 já salvas
+erradas. O toast dizia *"vou lembrar desta categoria"* — verdade pela metade.
+
+O Firefly tem exatamente isto resolvido: aplicar a regra ao histórico, com prévia
+de quantas transações seriam atingidas antes de confirmar.
+
+**O que entrou:**
+
+- **`casaRegra` extraída em `regras.ts`.** O casamento estava embutido dentro do
+  laço de `categoriaDe`. Duas cópias da regra de casamento seriam duas opiniões —
+  e a que o usuário vê na prévia é justamente a que não roda na importação. O
+  núcleo privado `casa()` recebe merchant e CNPJ já calculados: `categoriaDe` roda
+  ~150 regras contra a mesma descrição, e normalizar por regra multiplicaria por
+  150 o custo de cada linha importada.
+- **`alcancadasPelaRegra`** (`aprendizado.ts`): quem a regra corrigiria, excluindo
+  a transação em edição e quem já está na categoria de destino (update sem efeito
+  que só inflaria o número da prévia). Casa pela `description`, nunca pelo `label`.
+- **`recategorizarEmLote`** (`persist/editar.ts`), em lotes de 200.
+- **`aplicarRecategorizacao`** no `DadosProvider`: a tela reflete na hora, sem
+  reler o banco.
+- **A prévia** no editor, com caixa marcada por padrão e a contagem real.
+
+⚠️ **A regra aprendida é ESTREITA, e isso é de propósito.** `normalizeMerchant`
+não descarta a cidade: a chave de "Atacadao Palmas" não casa com "Atacadao
+Araguaina". Reclassificar em massa a loja de outra cidade suporia mais do que o
+usuário disse. Está fixado em teste para ninguém "consertar" isso sem querer.
+
+⚠️ **O diálogo de confirmação mentia por omissão** — achado na revisão, não no
+teste. Ele diz *"A compra passa a valer com o nome e a categoria que você
+escolheu"*, no singular, no exato momento em que 26 outras mudariam junto. A
+confirmação passou a declarar o alcance real (com variante de singular: "as
+outras 1 compras" é o tipo de desleixo que não passa aqui).
+
+⚠️ **`recategorizarEmLote` conta o que ENVIOU sem erro, não o que o banco
+confirmou.** A Data API não informa linhas afetadas sem um `select` extra. O que
+importa está garantido: com falha, `corrigidas` fica 0 e o toast cai no genérico
+em vez de anunciar correções que não houve.
+
+⚠️ **O teste de fiação foi PROVADO contra o defeito.** Trocar `ids` por `[]`
+deixa `EditarCompra.test.tsx` vermelho. Sem essa prova ele seria mais um teste
+verde que não testa nada — armadilha que já mordeu este repositório em 17/08.
+
+**A fila que sobrou** (do maior valor para o menor): vínculo editável pelo usuário
+(hoje `EdicaoTransacao` é só `{ label, category_slug }`, e o "gasto real" fica
+errado sem recurso quando a heurística erra); registro de diagnósticos no padrão
+X-ray; operadores únicos para busca e regra; modo discreto.
+
+**663 testes (83 arquivos)** — 11 novos: 6 puros do alcance da regra e 5 da
+fiação do editor. `npm run verificar` verde nos seis passos (typecheck, testes,
+lint, caminhos, build, CSP).
+
+⚠️ **O layout NÃO foi medido, e o motivo importa:** `medir-overflow.py` só faz
+`pagina.goto(URL)` — não clica para abrir modal nenhum. A caixa nova vive dentro
+do editor de compra, então o medidor não a alcança e rodá-lo não provaria nada.
+Falta abrir o editor no navegador. Contraste não se aplica: `accent-marca` é
+token que já existia, nenhum token novo foi criado.
 
 ## Rodada 2026-08-17 (parte 3) — `ui/` tinha 40% do código numa pasta plana
 

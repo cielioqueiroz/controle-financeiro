@@ -306,8 +306,16 @@ export const pt = {
   'editar.toastFalha': 'Falha ao salvar.',
   'editar.toastAprendeu': 'Compra atualizada — e vou lembrar desta categoria.',
   'editar.toastNaoAprendeu': 'Compra atualizada, mas não consegui memorizar a categoria.',
+  'editar.tambemHistorico': 'Corrigir também as outras {n} compras deste estabelecimento',
+  'editar.tambemHistoricoUm': 'Corrigir também a outra compra deste estabelecimento',
+  'editar.tambemHistoricoAjuda': 'Já estão gravadas em outra categoria e casam com esta mesma regra.',
+  'editar.toastAprendeuEHistorico': 'Compra atualizada — e mais {n} iguais foram corrigidas.',
+  'editar.toastAprendeuEHistoricoUm': 'Compra atualizada — e mais uma igual foi corrigida.',
+  'editar.toastHistoricoFalhou': 'Salvei esta compra, mas não consegui corrigir as anteriores.',
   'editar.confirmaTitulo': 'Salvar alterações?',
   'editar.confirmaDesc': 'A compra passa a valer com o nome e a categoria que você escolheu.',
+  'editar.confirmaDescHistorico': 'Além desta, outras {n} compras do mesmo estabelecimento passam para a categoria escolhida.',
+  'editar.confirmaDescHistoricoUm': 'Além desta, outra compra do mesmo estabelecimento passa para a categoria escolhida.',
 
   // Documentos
   'docs.titulo': 'Documentos importados',

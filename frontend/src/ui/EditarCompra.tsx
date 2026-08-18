@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { chaveDeErro } from '../lib/erro-usuario'
-import { editarTransacao } from '../persist/editar'
+import { editarTransacao, recategorizarEmLote } from '../persist/editar'
 import { criarCategoria } from '../persist/categoriasUsuario'
 import { salvarRegra } from '../persist/regras'
-import { regraDaCorrecao } from '../domain/categorize/aprendizado'
+import { regraDaCorrecao, alcancadasPelaRegra } from '../domain/categorize/aprendizado'
 import { todasCategorias, adicionarCategoriaExtra, nomeCategoria } from '../domain/categorize/categorias'
 import { formatBRL } from '../domain/normalize/money'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDados } from '../dados/DadosProvider'
 import type { TransacaoSalva } from '../persist/puxar'
 import { Confirmacao } from './acesso/Confirmacao'
 import { Portal, useTravarRolagem } from './Portal'
@@ -38,8 +39,20 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
   const [novoIcone, setNovoIcone] = useState('🏷️')
   const [novaCor, setNovaCor] = useState(CORES[0])
   const [salvandoCat, setSalvandoCat] = useState(false)
+  const [tambemHistorico, setTambemHistorico] = useState(true)
   const { t } = useT()
+  const { todas, aplicarRecategorizacao } = useDados()
   useTravarRolagem(true)
+
+  const trocouCategoria = slug !== (tx.category_slug ?? 'outros')
+
+  /** A prévia: quantas compras JÁ GRAVADAS esta mesma correção conserta.
+   *  Sai da mesma regra que será aprendida, então o número na tela é o que
+   *  de fato vai acontecer — não uma segunda contagem parecida. */
+  const alcancadas = useMemo(
+    () => (trocouCategoria && todas ? alcancadasPelaRegra(regraDaCorrecao(tx, slug), todas, tx.id) : []),
+    [trocouCategoria, todas, tx, slug],
+  )
 
   async function criarNova() {
     if (!novoNome.trim()) {
@@ -65,19 +78,38 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
   async function salvar() {
     setSalvando(true)
     const labelLimpo = label.trim() || null
-    const trocouCategoria = slug !== (tx.category_slug ?? 'outros')
+    const ids = tambemHistorico ? alcancadas.map((a) => a.id) : []
     try {
       await editarTransacao(tx.id, { label: labelLimpo, category_slug: slug })
       onSalvo(tx.id, { label: labelLimpo, category_slug: slug })
 
-      // Aprende com a correção: a próxima compra do mesmo estabelecimento
-      // já nasce nesta categoria. Falhar aqui NÃO desfaz a edição, que já
-      // foi gravada — o aviso é discreto de propósito.
       if (trocouCategoria) {
+        // Conserta o passado ANTES de aprender: é o que o usuário pediu e viu
+        // na prévia. Aprender a regra é o efeito colateral, não o pedido.
+        // `corrigidas` só sai de zero depois do sucesso — com falha o toast
+        // cai no genérico em vez de anunciar 26 correções que não houve.
+        let corrigidas = 0
+        if (ids.length > 0) {
+          try {
+            corrigidas = await recategorizarEmLote(ids, slug)
+            aplicarRecategorizacao(ids, slug)
+          } catch {
+            toast.warning(t('editar.toastHistoricoFalhou'))
+          }
+        }
+
+        // Falhar aqui NÃO desfaz a edição, que já foi gravada — o aviso é
+        // discreto de propósito.
         try {
           await salvarRegra(regraDaCorrecao(tx, slug))
           onAprendeu?.()
-          toast.success(t('editar.toastAprendeu'))
+          toast.success(
+            corrigidas === 0
+              ? t('editar.toastAprendeu')
+              : corrigidas === 1
+                ? t('editar.toastAprendeuEHistoricoUm')
+                : t('editar.toastAprendeuEHistorico', { n: corrigidas }),
+          )
         } catch {
           toast.warning(t('editar.toastNaoAprendeu'))
         }
@@ -217,6 +249,25 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
                 </div>
               </div>
             )}
+
+            {alcancadas.length > 0 && (
+              <label className="mt-3 flex items-start gap-2.5 rounded-lg border border-carvao-700 bg-carvao-850 p-3">
+                <input
+                  type="checkbox"
+                  checked={tambemHistorico}
+                  onChange={(e) => setTambemHistorico(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-marca"
+                />
+                <span className="text-xs text-tinta-fraca">
+                  {alcancadas.length === 1
+                    ? t('editar.tambemHistoricoUm')
+                    : t('editar.tambemHistorico', { n: alcancadas.length })}
+                  <span className="mt-0.5 block text-[11px] text-tinta-tenue">
+                    {t('editar.tambemHistoricoAjuda')}
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
         </div>
 
@@ -240,7 +291,16 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
       <Confirmacao
         aberto={confirmandoSalvar}
         titulo={t('editar.confirmaTitulo')}
-        descricao={t('editar.confirmaDesc')}
+        descricao={
+          // A confirmação tem que declarar o ALCANCE do que se confirma: com a
+          // caixa marcada, clicar em salvar mexe em dezenas de linhas, e a
+          // frase no singular esconderia exatamente isso.
+          !tambemHistorico || alcancadas.length === 0
+            ? t('editar.confirmaDesc')
+            : alcancadas.length === 1
+              ? t('editar.confirmaDescHistoricoUm')
+              : t('editar.confirmaDescHistorico', { n: alcancadas.length })
+        }
         rotuloConfirmar={t('geral.salvar')}
         severidade="normal"
         ocupado={salvando}
