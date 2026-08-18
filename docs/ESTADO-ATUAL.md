@@ -13,7 +13,125 @@
 > | [`docs/adr/`](./adr/) | **As nove decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
 
-## Rodada 2026-08-18 — quatro repositórios open source, e a promessa que a UI cumpria pela metade
+## Rodada 2026-08-18 (parte 2) — a fila dos quatro repositórios, fechada
+
+Os quatro itens que a análise de 18/08 deixou na fila foram feitos. Dois deles
+mudaram de forma durante a execução, e é isso que vale registrar.
+
+### O que eu previ errado, e o que a medição disse
+
+| Item | Previsão | O que a medição mostrou |
+|---|---|---|
+| **Vínculo editável** | "mexe em `kind`, tem CHECK em produção, é assunto de ADR" | **Nenhuma migração.** O CHECK aceita os quatro valores desde o schema inicial; marcar vínculo é gravar `internal_transfer`, sempre legal. O item que parecia mais caro era o mais barato. |
+| **Modo discreto** | "custo baixo, é só uma classe CSS" | **Errado.** Dinheiro sai por 60 lugares, vários DENTRO de string de tradução interpolada, onde CSS não alcança. A máscara teve que ir para o funil (`formatBRL`). |
+
+### 1. Vínculo editável (`kindComVinculo`, `ehVinculo`)
+
+O vínculo era 100% automático e sem recurso: quando `vincular()` erra, o "gasto
+real" fica errado e não havia conserto de dentro do app. Agora há um interruptor
+no editor.
+
+Desligar devolve `expense`/`income` **pelo sinal do valor**, porque o kind
+original não é recuperável — a coluna guarda um valor só. Ligar grava sempre
+`internal_transfer`, nunca `card_payment`: quitação é conclusão de uma
+conferência entre documentos, não algo que se afirme no olho.
+
+⚠️ **`kind` só entra no update se mudou.** Sem isso, editar o rótulo de uma
+quitação reescreveria `card_payment` como `internal_transfer` sem ninguém pedir.
+
+### 2. Diagnósticos (`domain/diagnosticos.ts`)
+
+Padrão "X-ray" do Ghostfolio: regras puras independentes, união discriminada
+como o `Alerta` de `recorrencias.ts`. Três achados — gasto parado em Outros,
+concentração num estabelecimento, e taxas como fatia do gasto (o análogo do
+`fees` de lá).
+
+**Todo limiar tem duas condições, percentual E absoluta.** É a lição do
+`alertasDe`: só o percentual faz um mês de R$ 200 gritar por R$ 60. Vínculo e
+entrada ficam fora da conta — a quitação da fatura é o maior valor de todo mês e
+dispararia a concentração para sempre.
+
+Clicar em "X% está sem categoria" abre a lista filtrada por `sem:categoria`.
+Fecha o ciclo com o item 1: o painel aponta, a lista mostra, e corrigir uma
+compra conserta as iguais.
+
+### 3. Modo discreto (`formatBRL` + `DiscretoProvider`)
+
+Máscara de tamanho **fixo**: `R$ •.•••,••` preservaria a forma do número e
+entregaria a ordem de grandeza. `formatBRLCru` é o desvio do relatório em PDF —
+exportar é ato deliberado, e um PDF de máscaras não serve para nada.
+
+O flag é ajustado no **inicializador do estado**, não num efeito: num efeito o
+primeiro render sairia com valores reais, um piscar de dinheiro a cada recarga.
+
+⚠️ **A caçada ao vazamento do `ValorAnimado` é a lição desta rodada.** Ele
+desenha por `useTransform`, que só recalcula quando o componente repinta;
+alternar o modo não muda `valor`. **Três versões do teste passaram com o defeito
+em pé:**
+
+1. A primeira montava com o modo já ligado — o funil mascara sozinho na primeira
+   passada.
+2. A segunda alternava, mas durante a animação de 0,9s: o motion value
+   recalculava por conta própria. **O teste vencia por corrida.**
+3. Só esperando o valor final assentar (`findByText('R$ 1.234,56')`) o teste
+   ficou válido.
+
+Com ele, as duas metades do meu conserto foram medidas **uma de cada vez**: sem
+assinar o contexto, vermelho; sem o curto-circuito que eu havia escrito junto,
+verde. O curto-circuito não defendia defeito nenhum e saiu. Previsão de defeito
+não é defeito — e guarda que nenhum teste válido derruba é código morto.
+
+### 4. Operadores de busca (`domain/consulta.ts`)
+
+Do Firefly III, onde a mesma tabela de operadores alimenta a busca e os gatilhos
+das regras. A busca aceita `>100`, `<50`, `banco:nubank`, `cat:farmacia` e
+`sem:categoria`, em pt/en/es.
+
+⚠️ **Operador desconhecido vira texto, nunca some.** O Firefly dá erro; aqui
+descartar em silêncio esconderia resultados sem o usuário saber por quê, e
+`PIX: Joao` é busca legítima.
+
+`busca.ts` perdeu normalizador e casador próprios — virariam a segunda opinião
+sobre "o que casa" no dia em que a busca ganhasse operadores, que é hoje.
+
+**Metade da unificação ficou de fora, de propósito.** O avaliador é puro e não
+sabe de onde vem a transação, então é o mesmo que uma regra usaria — mas
+`merchant_rules` guarda um padrão de texto e nada mais, e regra com operadores
+exige migração de schema para capacidade que ninguém pediu.
+
+### 5. O medidor de CSP reprovava um build correto, às vezes
+
+`medir-csp.py` passava o predicado de fonte como **expressão em string**, e o
+Playwright embrulha expressão em `new Function` — que a nossa própria CSP
+bloqueia de dentro da página medida.
+
+**Por isso falhava só às vezes:** quando uma fonte já estava carregada na
+primeira checagem, a chamada volta sem entrar no laço de polling; quando não
+estava, o laço roda e a medição morre com `EvalError`, reprovando um build
+correto. Passando uma arrow function, o Playwright usa `callFunctionOn`, que não
+passa por eval. Três execuções seguidas verdes.
+
+⚠️ **Armadilha de método, minha:** eu vinha checando `npx tsc … | head; echo
+$?`. Depois de um pipe, `$?` é o status do `head`, não do `tsc` — aqueles
+"exit=0" não mediam nada. Capturar em arquivo e testar o código de saída direto.
+
+**707 testes (86 arquivos)**, contra 663 no início desta parte. `npm run verificar`
+verde nos seis passos.
+
+⚠️ **O layout continua NÃO medido, e o motivo é o mesmo de sempre:**
+`medir-overflow.py` só faz `pagina.goto(URL)`. As peças novas desta rodada — as
+duas caixas do editor de compra e a dica de sintaxe da busca — só aparecem depois
+de um clique ou de um foco, então o medidor não as alcança. Falta abrir no
+navegador. Contraste não se aplica: nenhum token de cor novo foi criado.
+
+### O que sobrou da análise dos quatro repositórios
+
+Uma coisa só, e ela é uma decisão de produto, não de código: **fazer as regras de
+categorização usarem os operadores da busca**. Exige migração de `merchant_rules`,
+que hoje guarda `padrao` + `match_type` e nada mais. O avaliador (`consulta.ts`)
+já está pronto e é puro — falta querer a capacidade.
+
+## Rodada 2026-08-18 (parte 1) — quatro repositórios open source, e a promessa que a UI cumpria pela metade
 
 O usuário mandou quatro links (Firefly III, Ghostfolio, web-budget, full-finan-as)
 pedindo o que dava para reaproveitar. A primeira conclusão foi jurídica e inverte
@@ -680,9 +798,18 @@ os caminhos vulneráveis do `better-auth` (callback OAuth, sessão após exclus�
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**638 testes (81 arquivos)**, build e lint limpos, CSP completa medida contra o
-build **e** contra o site publicado. Trabalha-se direto na `main`; todo push
-publica sozinho em ~1 min.
+**707 testes (86 arquivos)**, `npm run verificar` verde nos seis passos.
+Trabalha-se direto na `main`; todo push publica sozinho em ~1 min.
+
+**A fila que veio da análise dos quatro repositórios open source (18/08) está
+fechada:** correção que alcança o histórico, vínculo editável, diagnósticos no
+painel, modo discreto e operadores de busca. O único item não feito é regra de
+categorização com operadores, que exige migração de `merchant_rules` — ver a
+rodada de 18/08 (parte 2).
+
+⚠️ **O que ficou por conferir no navegador** (nenhum medidor alcança): as duas
+caixas do editor de compra, a dica de sintaxe da busca, a faixa de diagnósticos
+no painel e o botão do modo discreto no cabeçalho.
 
 ⚠️ **Pendência de segurança viva:** `npm audit` acusa 6 falhas na cadeia do SDK do Neon
 (`@neondatabase/neon-js@0.6.2-beta` → `better-auth`). Existe uma `0.7.0-beta`. Não foi
