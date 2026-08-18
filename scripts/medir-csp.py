@@ -389,8 +389,17 @@ def jornada(page, base: str, pdf: Path | None) -> str:
     # medicao passava por ali cedo demais e reprovava um build correto —
     # aconteceu em 2026-08-12. Assim, so o esgotamento do tempo reprova, e ai
     # a fonte foi barrada de verdade.
+    #
+    # ⚠️ ARROW FUNCTION, nao expressao solta. O Playwright embrulha uma
+    # expressao em `new Function(...)`, e a nossa propria CSP (sem
+    # 'unsafe-eval') bloqueia isso DE DENTRO da pagina medida. O erro so
+    # aparecia as vezes: quando uma fonte ja estava carregada na primeira
+    # checagem, a chamada volta sem entrar no laco de polling e nada estoura;
+    # quando nao estava, o laco roda e a medicao morre com EvalError —
+    # reprovando um build correto. Passando a funcao, o Playwright usa
+    # callFunctionOn, que nao passa por eval.
     page.wait_for_function(
-        "Array.from(document.fonts).some((f) => f.status === 'loaded')",
+        "() => Array.from(document.fonts).some((f) => f.status === 'loaded')",
         timeout=20000,
     )
 
