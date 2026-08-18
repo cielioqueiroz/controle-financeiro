@@ -24,6 +24,8 @@ import { GraficoEvolucao } from '../ui/graficos/GraficoEvolucao'
 import { GraficoDiario } from '../ui/graficos/GraficoDiario'
 import { MaioresSaidas } from '../ui/listas/MaioresSaidas'
 import { TopEstabelecimentos } from '../ui/listas/TopEstabelecimentos'
+import { Diagnosticos } from '../ui/Diagnosticos'
+import { diagnosticar } from '../domain/diagnosticos'
 import { SaldoConta } from '../ui/SaldoConta'
 import { SaldoAberto } from '../ui/SaldoAberto'
 import { ErroCarregar } from '../ui/ErroCarregar'
@@ -75,6 +77,7 @@ export function Painel({ onAprendeu }: Props) {
   const abertos = useMemo(() => faturasAbertas(docsSaldo), [docsSaldo])
   const maiores = useMemo(() => maioresSaidas(txs, 5), [txs])
   const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
+  const diagnosticos = useMemo(() => diagnosticar(txs), [txs])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
 
   /** O ritmo diário desenha o MÊS quando o recorte é Dia ou Semana.
@@ -332,6 +335,8 @@ export function Painel({ onAprendeu }: Props) {
                 </Tile>
               </motion.div>
             </div>
+
+            <Diagnosticos itens={diagnosticos} />
 
             {/* Gráficos lado a lado. Sem sticky e sem rolagem interna: o que
                 exigia aquilo (a pilha de cinco cards) foi para outras
