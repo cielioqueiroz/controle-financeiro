@@ -1,4 +1,4 @@
-import { formatBRL } from '../domain/normalize/money'
+import { formatBRLCru } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 import { tAtual as t } from '../i18n/traduzir'
 
@@ -87,11 +87,11 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
   y += 28
 
   doc.setFontSize(11).setTextColor(40)
-  doc.text(`${t('dash.entradas')}: ${formatBRL(dados.entradasCents)}`, M, y)
+  doc.text(`${t('dash.entradas')}: ${formatBRLCru(dados.entradasCents)}`, M, y)
   y += 16
-  doc.text(`${t('pdf.saidas')}: ${formatBRL(dados.saidasCents)}`, M, y)
+  doc.text(`${t('pdf.saidas')}: ${formatBRLCru(dados.saidasCents)}`, M, y)
   y += 16
-  doc.text(`${t('pdf.saldoPeriodo')}: ${formatBRL(dados.saldoPeriodoCents)}`, M, y)
+  doc.text(`${t('pdf.saldoPeriodo')}: ${formatBRLCru(dados.saldoPeriodoCents)}`, M, y)
   y += 24
 
   if (dados.saldos.length > 0) {
@@ -101,7 +101,7 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
     for (const s of dados.saldos) {
       const nome = NOMES_BANCO[s.bank] ?? s.bank
       doc.text(
-        `${nome}: ${formatBRL(s.balanceCents)}  (${t('saldo.em', { data: dataCurta(s.date) })})`,
+        `${nome}: ${formatBRLCru(s.balanceCents)}  (${t('saldo.em', { data: dataCurta(s.date) })})`,
         M,
         y,
       )
@@ -113,7 +113,7 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
   autoTable(doc, {
     startY: y,
     head: [[t('pdf.categoria'), t('pdf.valor'), '%']],
-    body: dados.categorias.map((c) => [c.nome, formatBRL(c.valorCents), `${c.pct.toFixed(1)}%`]),
+    body: dados.categorias.map((c) => [c.nome, formatBRLCru(c.valorCents), `${c.pct.toFixed(1)}%`]),
     styles: { fontSize: 10 },
     headStyles: { fillColor: [40, 40, 40] },
     margin: { left: M, right: M },

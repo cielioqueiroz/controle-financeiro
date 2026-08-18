@@ -30,6 +30,7 @@ import { Rodape } from './ui/Rodape'
 import { Celebracao } from './ui/Celebracao'
 import { Auth } from './ui/acesso/Auth'
 import { ThemeToggle } from './ui/ThemeToggle'
+import { DiscretoToggle } from './ui/DiscretoToggle'
 import { ContaMenu } from './ui/ContaMenu'
 import { Tutorial } from './ui/Tutorial'
 import { EditarPerfil } from './ui/EditarPerfil'
@@ -265,6 +266,7 @@ export default function App() {
             </motion.h1>
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            <DiscretoToggle />
             <ThemeToggle />
             {logado && neon && (
               <ContaMenu

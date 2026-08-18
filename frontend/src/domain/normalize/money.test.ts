@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { parseBRL, formatBRL } from './money'
+import { parseBRL, formatBRL, formatBRLCru, definirDiscreto, discretoAtivo } from './money'
 import { definirLocale } from './locale'
 
 describe('formatBRL', () => {
@@ -62,5 +62,47 @@ describe('parseBRL', () => {
 
   it('lança em string vazia', () => {
     expect(() => parseBRL('')).toThrow('Valor monetário inválido')
+  })
+})
+
+describe('modo discreto', () => {
+  // Estado de módulo: sem isto o modo ligado vaza para os outros arquivos
+  // de teste e derruba asserções que nada têm a ver com privacidade.
+  afterEach(() => definirDiscreto(false))
+
+  it('nasce desligado', () => {
+    expect(discretoAtivo()).toBe(false)
+    expect(formatBRL(123_45)).toContain('123')
+  })
+
+  it('ligado, formatBRL não deixa dígito nenhum passar', () => {
+    definirDiscreto(true)
+    expect(formatBRL(123_45)).not.toMatch(/\d/)
+  })
+
+  it('a máscara NÃO entrega a ordem de grandeza', () => {
+    // Se preservasse os separadores ("R$ •.•••,••"), quem olha por cima do
+    // ombro leria "isto está na casa dos milhares" — que é metade do que o
+    // modo existe para esconder.
+    definirDiscreto(true)
+    expect(formatBRL(1_00)).toBe(formatBRL(9_999_999_00))
+  })
+
+  it('esconde também o sinal: entrada e saída ficam iguais', () => {
+    definirDiscreto(true)
+    expect(formatBRL(500_00)).toBe(formatBRL(-500_00))
+  })
+
+  it('formatBRLCru ignora o modo — é o caminho do PDF', () => {
+    definirDiscreto(true)
+    // Exportar é ato deliberado; um relatório de máscaras não serve para
+    // nada. O modo protege a tela, não o arquivo que o dono pediu.
+    expect(formatBRLCru(123_45)).toMatch(/123/)
+  })
+
+  it('desligar devolve o número', () => {
+    definirDiscreto(true)
+    definirDiscreto(false)
+    expect(formatBRL(123_45)).toMatch(/123/)
   })
 })

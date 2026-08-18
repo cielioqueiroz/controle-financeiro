@@ -28,9 +28,47 @@ export function parseBRL(raw: string): number {
   return negative ? -value : value
 }
 
+/** Modo discreto: estado de módulo, ajustado pela UI ao ligar o interruptor.
+ *  Mesmo desenho de `locale.ts` — o domínio não importa React, só expõe o
+ *  setter, e quem chama é a camada de cima.
+ *
+ *  Mora aqui, e não num módulo próprio, porque quem decide esconder tem que
+ *  ser o MESMO ponto que decide formatar: dinheiro sai por 60 lugares desta
+ *  função, vários deles dentro de string de tradução interpolada
+ *  (`t('diario.escala', { teto: formatBRL(...) })`), onde nenhuma regra de
+ *  CSS alcança. Mascarar em qualquer lugar acima do funil deixaria valor
+ *  visível nos rodapés dos gráficos e nos alertas — e privacidade que vaza
+ *  um número é pior que nenhuma, porque a pessoa confia nela. */
+let discreto = false
+
+export function definirDiscreto(v: boolean): void {
+  discreto = v
+}
+
+export function discretoAtivo(): boolean {
+  return discreto
+}
+
+/** Máscara de tamanho FIXO, sem separadores. "R$ •.•••,••" preservaria a
+ *  forma do número e entregaria a ordem de grandeza — que é exatamente o
+ *  que o modo discreto existe para esconder. */
+const MASCARA = 'R$ ••••'
+
 /** Formata centavos para exibição em real. A moeda é SEMPRE BRL; só o
- *  formato (separadores) segue a locale ativa — nunca converte o valor. */
+ *  formato (separadores) segue a locale ativa — nunca converte o valor.
+ *
+ *  Com o modo discreto ligado devolve a máscara: é o único ponto por onde
+ *  todo valor da tela passa. */
 export function formatBRL(cents: number): string {
+  return discreto ? MASCARA : formatBRLCru(cents)
+}
+
+/** O número, sempre, ignorando o modo discreto.
+ *
+ *  Para o relatório em PDF: exportar é ato deliberado, e um PDF de máscaras
+ *  não serve para nada. O modo discreto protege a TELA, de quem passa por
+ *  perto — não o arquivo que o dono pediu para gerar. */
+export function formatBRLCru(cents: number): string {
   return (cents / 100).toLocaleString(localeAtual(), {
     style: 'currency',
     currency: 'BRL',
