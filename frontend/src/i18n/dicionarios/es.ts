@@ -283,6 +283,10 @@ export const es: Dicionario = {
   'editar.confirmaDesc': 'La compra pasará a valer con el nombre y la categoría que elegiste.',
   'editar.confirmaDescHistorico': 'Además de esta, otras {n} compras del mismo establecimiento pasan a la categoría elegida.',
   'editar.confirmaDescHistoricoUm': 'Además de esta, otra compra del mismo establecimiento pasa a la categoría elegida.',
+  'editar.vinculo': 'No contar como gasto — el dinero solo cambió de lugar',
+  'editar.vinculoAjuda': 'Transferencia entre tus cuentas, pago de factura o inversión automática. Sale del gasto real, de los rankings y de los gráficos.',
+  'editar.confirmaVinculoOn': 'Este movimiento deja de contar en el gasto real y en los rankings.',
+  'editar.confirmaVinculoOff': 'Este movimiento vuelve a entrar en las cuentas.',
 
   'docs.titulo': 'Documentos importados',
   'docs.subtitulo': 'Elimina una factura/extracto o empieza de cero.',

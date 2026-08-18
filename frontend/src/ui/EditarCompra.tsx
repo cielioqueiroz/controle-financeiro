@@ -6,6 +6,7 @@ import { editarTransacao, recategorizarEmLote } from '../persist/editar'
 import { criarCategoria } from '../persist/categoriasUsuario'
 import { salvarRegra } from '../persist/regras'
 import { regraDaCorrecao, alcancadasPelaRegra } from '../domain/categorize/aprendizado'
+import { ehVinculo, kindComVinculo } from '../domain/link/vinculos'
 import { todasCategorias, adicionarCategoriaExtra, nomeCategoria } from '../domain/categorize/categorias'
 import { formatBRL } from '../domain/normalize/money'
 import { useT } from '../i18n/IdiomaProvider'
@@ -20,7 +21,10 @@ type Props = {
   tx: TransacaoSalva
   onFechar: () => void
   /** Devolve os campos alterados para o dashboard atualizar em memória. */
-  onSalvo: (id: string, campos: { label: string | null; category_slug: string }) => void
+  onSalvo: (
+    id: string,
+    campos: { label: string | null; category_slug: string; kind?: string },
+  ) => void
   /** Avisa que uma regra nova foi aprendida, para quem guarda as regras
    *  recarregá-las (a próxima importação já usa a correção). */
   onAprendeu?: () => void
@@ -40,11 +44,13 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
   const [novaCor, setNovaCor] = useState(CORES[0])
   const [salvandoCat, setSalvandoCat] = useState(false)
   const [tambemHistorico, setTambemHistorico] = useState(true)
+  const [vinculo, setVinculo] = useState(() => ehVinculo(tx.kind))
   const { t } = useT()
   const { todas, aplicarRecategorizacao } = useDados()
   useTravarRolagem(true)
 
   const trocouCategoria = slug !== (tx.category_slug ?? 'outros')
+  const trocouVinculo = vinculo !== ehVinculo(tx.kind)
 
   /** A prévia: quantas compras JÁ GRAVADAS esta mesma correção conserta.
    *  Sai da mesma regra que será aprendida, então o número na tela é o que
@@ -79,9 +85,15 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
     setSalvando(true)
     const labelLimpo = label.trim() || null
     const ids = tambemHistorico ? alcancadas.map((a) => a.id) : []
+    // Só manda `kind` se mudou: um update que reescreve o mesmo valor é
+    // ruído, e aqui ele reescreveria `card_payment` como `internal_transfer`
+    // em toda edição de rótulo de uma quitação.
+    const campos = trocouVinculo
+      ? { label: labelLimpo, category_slug: slug, kind: kindComVinculo(vinculo, tx.amount_cents) }
+      : { label: labelLimpo, category_slug: slug }
     try {
-      await editarTransacao(tx.id, { label: labelLimpo, category_slug: slug })
-      onSalvo(tx.id, { label: labelLimpo, category_slug: slug })
+      await editarTransacao(tx.id, campos)
+      onSalvo(tx.id, campos)
 
       if (trocouCategoria) {
         // Conserta o passado ANTES de aprender: é o que o usuário pediu e viu
@@ -269,6 +281,21 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
               </label>
             )}
           </div>
+
+          <label className="flex items-start gap-2.5 rounded-lg border border-carvao-700 bg-carvao-850 p-3">
+            <input
+              type="checkbox"
+              checked={vinculo}
+              onChange={(e) => setVinculo(e.target.checked)}
+              className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-marca"
+            />
+            <span className="text-xs text-tinta-fraca">
+              {t('editar.vinculo')}
+              <span className="mt-0.5 block text-[11px] text-tinta-tenue">
+                {t('editar.vinculoAjuda')}
+              </span>
+            </span>
+          </label>
         </div>
 
         <footer className="flex justify-end gap-2 border-t border-carvao-800 px-6 py-4">
@@ -292,14 +319,26 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
         aberto={confirmandoSalvar}
         titulo={t('editar.confirmaTitulo')}
         descricao={
-          // A confirmação tem que declarar o ALCANCE do que se confirma: com a
-          // caixa marcada, clicar em salvar mexe em dezenas de linhas, e a
-          // frase no singular esconderia exatamente isso.
-          !tambemHistorico || alcancadas.length === 0
-            ? t('editar.confirmaDesc')
-            : alcancadas.length === 1
-              ? t('editar.confirmaDescHistoricoUm')
-              : t('editar.confirmaDescHistorico', { n: alcancadas.length })
+          // A confirmação declara o ALCANCE do que se confirma, uma frase por
+          // consequência. Composta, e não um ternário só, porque as duas
+          // mudanças são independentes: dá para virar vínculo E corrigir 26
+          // compras no mesmo clique, e omitir qualquer uma delas esconderia
+          // do usuário metade do que ele está autorizando.
+          <>
+            {t('editar.confirmaDesc')}
+            {trocouVinculo && (
+              <span className="mt-2 block">
+                {vinculo ? t('editar.confirmaVinculoOn') : t('editar.confirmaVinculoOff')}
+              </span>
+            )}
+            {tambemHistorico && alcancadas.length > 0 && (
+              <span className="mt-2 block">
+                {alcancadas.length === 1
+                  ? t('editar.confirmaDescHistoricoUm')
+                  : t('editar.confirmaDescHistorico', { n: alcancadas.length })}
+              </span>
+            )}
+          </>
         }
         rotuloConfirmar={t('geral.salvar')}
         severidade="normal"

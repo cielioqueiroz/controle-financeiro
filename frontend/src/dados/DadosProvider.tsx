@@ -30,7 +30,10 @@ type Dados = {
    *  categoria ou importar. */
   recarregar: () => Promise<void>
   /** Aplica uma edição em memória, sem reidratar tudo do banco. */
-  aplicarEdicao: (id: string, campos: { label: string | null; category_slug: string }) => void
+  aplicarEdicao: (
+    id: string,
+    campos: { label: string | null; category_slug: string; kind?: string },
+  ) => void
   /** Aplica em memória a correção em bloco do histórico. Irmã de
    *  `aplicarEdicao`, e separada por um motivo: aqui só a categoria muda, e
    *  reaproveitar a outra obrigaria quem chama a repetir o `label` de cada
@@ -86,7 +89,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   }, [recarregar])
 
   const aplicarEdicao = useCallback(
-    (id: string, campos: { label: string | null; category_slug: string }) => {
+    (id: string, campos: { label: string | null; category_slug: string; kind?: string }) => {
       setTodas((atual) => (atual ? atual.map((t) => (t.id === id ? { ...t, ...campos } : t)) : atual))
     },
     [],

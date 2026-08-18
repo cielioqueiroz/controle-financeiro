@@ -1,10 +1,16 @@
 import { neon } from '../lib/neon'
 
 /** Campos que o usuário pode editar numa transação. A `description`
- *  (texto original do banco) é imutável — o apelido vive em `label`. */
+ *  (texto original do banco) é imutável — o apelido vive em `label`.
+ *
+ *  `kind` entra porque o vínculo era automático e sem recurso: ver
+ *  `kindComVinculo` em `domain/link/vinculos.ts`. Os quatro valores já são
+ *  aceitos pelo CHECK da coluna desde o schema inicial, então marcar à mão
+ *  não exigiu migração nenhuma. */
 export type EdicaoTransacao = {
   label?: string | null
   category_slug?: string
+  kind?: string
 }
 
 /** Atualiza uma transação do usuário (RLS garante que só a dele).

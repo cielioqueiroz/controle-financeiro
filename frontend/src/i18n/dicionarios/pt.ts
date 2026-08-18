@@ -316,6 +316,10 @@ export const pt = {
   'editar.confirmaDesc': 'A compra passa a valer com o nome e a categoria que você escolheu.',
   'editar.confirmaDescHistorico': 'Além desta, outras {n} compras do mesmo estabelecimento passam para a categoria escolhida.',
   'editar.confirmaDescHistoricoUm': 'Além desta, outra compra do mesmo estabelecimento passa para a categoria escolhida.',
+  'editar.vinculo': 'Não contar como gasto — o dinheiro só mudou de lugar',
+  'editar.vinculoAjuda': 'Transferência entre suas contas, quitação de fatura ou aplicação. Sai do gasto real, dos rankings e dos gráficos.',
+  'editar.confirmaVinculoOn': 'Este lançamento deixa de contar no gasto real e nos rankings.',
+  'editar.confirmaVinculoOff': 'Este lançamento volta a entrar nas contas.',
 
   // Documentos
   'docs.titulo': 'Documentos importados',

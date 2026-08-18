@@ -283,6 +283,10 @@ export const en: Dicionario = {
   'editar.confirmaDesc': 'The purchase will use the name and category you chose.',
   'editar.confirmaDescHistorico': 'Besides this one, {n} other purchases from the same merchant move to the chosen category.',
   'editar.confirmaDescHistoricoUm': 'Besides this one, one other purchase from the same merchant moves to the chosen category.',
+  'editar.vinculo': 'Do not count as spending — the money only moved',
+  'editar.vinculoAjuda': 'Transfer between your accounts, card payoff or investment sweep. Drops out of real spending, rankings and charts.',
+  'editar.confirmaVinculoOn': 'This entry stops counting towards real spending and rankings.',
+  'editar.confirmaVinculoOff': 'This entry goes back into the totals.',
 
   'docs.titulo': 'Imported documents',
   'docs.subtitulo': 'Delete a statement or start over.',

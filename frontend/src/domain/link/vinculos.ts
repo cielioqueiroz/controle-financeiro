@@ -146,3 +146,34 @@ export function gastoReal(linked: LinkedTransaction[]): number {
     .filter((t) => t.link === null && t.amountCents > 0)
     .reduce((a, t) => a + t.amountCents, 0)
 }
+
+/** `kind` gravado é um vínculo — dinheiro que só mudou de lugar?
+ *
+ *  Os dois valores respondem a mesma pergunta rio abaixo: `agregar` exclui
+ *  ambos do gasto, `maioresSaidas` ignora ambos e a lista desenha ambos
+ *  esmaecidos. Ter o teste num lugar só evita que alguém acrescente um
+ *  terceiro vínculo e conserte metade dos chamadores. */
+export function ehVinculo(kind: string): boolean {
+  return kind === 'internal_transfer' || kind === 'card_payment'
+}
+
+/** O `kind` a gravar quando o USUÁRIO liga ou desliga o vínculo à mão.
+ *
+ *  Existe porque o vínculo era 100% automático e sem recurso: quando a
+ *  heurística de `vincular()` erra — deixa passar uma transferência entre
+ *  contas próprias, ou marca como quitação o que era compra —, o "gasto
+ *  real", que o CONTEXT.md chama de número honesto do sistema, fica errado
+ *  e não havia como consertar de dentro do app.
+ *
+ *  Desligar devolve `expense`/`income` pelo SINAL do valor, porque o kind
+ *  original não é recuperável: a coluna guarda um valor só. É a mesma
+ *  convenção que `kindParaBanco` usa na importação.
+ *
+ *  Ligar grava sempre `internal_transfer`, nunca `card_payment`: a quitação
+ *  de fatura é conclusão de uma conferência entre documentos (o valor bate
+ *  com o total declarado), não algo que se afirme no olho. E como os dois
+ *  são equivalentes rio abaixo, nada se perde. */
+export function kindComVinculo(marcar: boolean, amountCents: number): string {
+  if (marcar) return 'internal_transfer'
+  return amountCents < 0 ? 'income' : 'expense'
+}

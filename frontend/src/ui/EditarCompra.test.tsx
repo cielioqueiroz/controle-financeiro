@@ -67,6 +67,10 @@ function abrir() {
   return { onFechar, onSalvo }
 }
 
+/** Há duas caixas no editor; cada uma se pega pelo nome acessível. */
+const caixaHistorico = () => screen.queryByRole('checkbox', { name: /corrigir também/i })
+const caixaVinculo = () => screen.getByRole('checkbox', { name: /não contar como gasto/i })
+
 /** Troca a categoria e confirma no diálogo. */
 async function corrigirPara(u: ReturnType<typeof userEvent.setup>, nome: string) {
   await u.click(screen.getByRole('button', { name: new RegExp(nome, 'i') }))
@@ -81,12 +85,11 @@ describe('EditarCompra — a correção alcança o histórico', () => {
     abrir()
 
     // Antes de trocar a categoria não há o que corrigir.
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(caixaHistorico()).not.toBeInTheDocument()
 
     await u.click(screen.getByRole('button', { name: /supermercado/i }))
 
-    const caixa = screen.getByRole('checkbox')
-    expect(caixa).toBeChecked()
+    expect(caixaHistorico()).toBeChecked()
     // As duas outras 'Atacadao Palmas'. A farmácia não entra.
     expect(screen.getByText(/outras 2 compras/i)).toBeInTheDocument()
   })
@@ -107,7 +110,7 @@ describe('EditarCompra — a correção alcança o histórico', () => {
     const u = userEvent.setup()
     abrir()
     await u.click(screen.getByRole('button', { name: /supermercado/i }))
-    await u.click(screen.getByRole('checkbox'))
+    await u.click(caixaHistorico()!)
 
     await u.click(screen.getByRole('button', { name: /^salvar$/i }))
     const dialogo = await screen.findByRole('dialog')
@@ -130,6 +133,69 @@ describe('EditarCompra — a correção alcança o histórico', () => {
     const u = userEvent.setup()
     abrir()
     await u.click(screen.getByRole('button', { name: /supermercado/i }))
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(caixaHistorico()).not.toBeInTheDocument()
+  })
+})
+
+describe('EditarCompra — vínculo marcado à mão', () => {
+  it('uma compra comum começa desmarcada', () => {
+    abrir()
+    expect(caixaVinculo()).not.toBeChecked()
+  })
+
+  it('marcar grava internal_transfer e tira do gasto', async () => {
+    const u = userEvent.setup()
+    abrir()
+    await u.click(caixaVinculo())
+    await u.click(screen.getByRole('button', { name: /^salvar$/i }))
+    const dialogo = await screen.findByRole('dialog')
+    // A confirmação avisa a consequência antes de acontecer.
+    expect(within(dialogo).getByText(/deixa de contar/i)).toBeInTheDocument()
+    await u.click(within(dialogo).getByRole('button', { name: /^salvar$/i }))
+
+    await waitFor(() => expect(editarTransacao).toHaveBeenCalledTimes(1))
+    expect(editarTransacao).toHaveBeenCalledWith('1', {
+      label: null,
+      category_slug: 'outros',
+      kind: 'internal_transfer',
+    })
+  })
+
+  it('desmarcar um vínculo devolve o kind pelo sinal do valor', async () => {
+    const u = userEvent.setup()
+    const entrada: TransacaoSalva = { ...EM_FOCO, kind: 'internal_transfer', amount_cents: -5000 }
+    render(<EditarCompra tx={entrada} onFechar={vi.fn()} onSalvo={vi.fn()} />)
+
+    expect(caixaVinculo()).toBeChecked()
+    await u.click(caixaVinculo())
+    await u.click(screen.getByRole('button', { name: /^salvar$/i }))
+    const dialogo = await screen.findByRole('dialog')
+    await u.click(within(dialogo).getByRole('button', { name: /^salvar$/i }))
+
+    await waitFor(() => expect(editarTransacao).toHaveBeenCalledTimes(1))
+    expect(editarTransacao).toHaveBeenCalledWith('1', {
+      label: null,
+      category_slug: 'outros',
+      kind: 'income',
+    })
+  })
+
+  it('sem mexer no vínculo, o kind NÃO vai no update', async () => {
+    // Senão toda edição de rótulo de uma quitação reescreveria card_payment
+    // como internal_transfer sem ninguém pedir.
+    const u = userEvent.setup()
+    const quitacao: TransacaoSalva = { ...EM_FOCO, kind: 'card_payment' }
+    render(<EditarCompra tx={quitacao} onFechar={vi.fn()} onSalvo={vi.fn()} />)
+
+    await u.type(screen.getByRole('textbox'), 'Fatura de junho')
+    await u.click(screen.getByRole('button', { name: /^salvar$/i }))
+    const dialogo = await screen.findByRole('dialog')
+    await u.click(within(dialogo).getByRole('button', { name: /^salvar$/i }))
+
+    await waitFor(() => expect(editarTransacao).toHaveBeenCalledTimes(1))
+    expect(editarTransacao).toHaveBeenCalledWith('1', {
+      label: 'Fatura de junho',
+      category_slug: 'outros',
+    })
   })
 })

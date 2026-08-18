@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { buildLines } from '../pdf/lines'
 import { parse } from '../parsers'
-import { vincular, paraVincular, gastoReal, type DocParaVincular } from './vinculos'
+import { vincular, paraVincular, gastoReal, type DocParaVincular, ehVinculo, kindComVinculo } from './vinculos'
 import type { TextItem } from '../pdf/types'
 
 function carregar(): DocParaVincular[] {
@@ -73,5 +73,34 @@ describe('vincular — o gasto real não conta o dinheiro duas vezes', () => {
   it('nenhum pagamento de fatura sobra no gasto real', () => {
     const real = linked.filter((t) => t.link === null && t.amountCents > 0)
     expect(real.some((t) => /Pagamento de fatura|GASTOS CARTAO/i.test(t.description))).toBe(false)
+  })
+})
+
+describe('vínculo marcado à mão pelo usuário', () => {
+  it('reconhece os dois vínculos, e só eles', () => {
+    expect(ehVinculo('internal_transfer')).toBe(true)
+    expect(ehVinculo('card_payment')).toBe(true)
+    expect(ehVinculo('expense')).toBe(false)
+    expect(ehVinculo('income')).toBe(false)
+  })
+
+  it('marcar grava internal_transfer, seja saída ou entrada', () => {
+    expect(kindComVinculo(true, 12300)).toBe('internal_transfer')
+    expect(kindComVinculo(true, -12300)).toBe('internal_transfer')
+  })
+
+  it('desmarcar devolve o kind pelo SINAL do valor', () => {
+    // Não dá para "lembrar" o kind anterior: a coluna guarda um valor só, e
+    // o sinal é a única informação que sobrevive. Positivo saiu, negativo
+    // entrou — é a mesma convenção de `kindParaBanco` na importação.
+    expect(kindComVinculo(false, 12300)).toBe('expense')
+    expect(kindComVinculo(false, -12300)).toBe('income')
+  })
+
+  it('desmarcar um card_payment devolve expense, não card_payment', () => {
+    // Um falso positivo da heurística de quitação tem que ter volta. Os dois
+    // vínculos são equivalentes rio abaixo (agrupar exclui os dois igual), e
+    // linkNote nem é coluna — então nada se perde ao voltar por expense.
+    expect(kindComVinculo(false, 45000)).toBe('expense')
   })
 })

@@ -1,4 +1,5 @@
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
+import { ehVinculo } from '../../domain/link/vinculos'
 import { formatBRL } from '../../domain/normalize/money'
 import { useT } from '../../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../../persist/puxar'
@@ -18,7 +19,7 @@ type Props = {
 export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Props) {
   const { t: tr } = useT()
   const cat = categoria(t.category_slug ?? 'outros')
-  const interno = t.kind === 'internal_transfer' || t.kind === 'card_payment'
+  const interno = ehVinculo(t.kind)
   return (
     <li
       className={`group flex items-center gap-3 px-3 py-1.5 text-sm transition-colors even:bg-carvao-950/25 hover:bg-carvao-850 ${
