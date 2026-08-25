@@ -2,46 +2,17 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Dropzone } from '../ui/Dropzone'
 import { ResultadoImport } from '../ui/ResultadoImport'
-import type { Regra } from '../domain/categorize/regras'
-import type { DocKind } from '../domain/pdf/detect'
-import type { ParseResult } from '../domain/parsers/types'
-
-export type EstadoImport =
-  | { fase: 'vazio' }
-  | { fase: 'lendo' }
-  | { fase: 'pronto'; kind: DocKind; result: ParseResult; bytes: ArrayBuffer; nome: string }
-
-type Props = {
-  estado: EstadoImport
-  regras: Regra[]
-  logado: boolean
-  salvando: boolean
-  /** Ficou true quando um documento acabou de ser gravado. Serve só para
-   *  levar de volta ao Painel; é consumido (zerado) ao ser usado. */
-  recemSalvo?: boolean
-  onArquivo: (f: File) => void
-  onSalvar: () => void
-  onLimpar: () => void
-  onConsumirRecemSalvo?: () => void
-}
+import { useImportacao } from '../dados/ImportacaoProvider'
 
 /** Importar um PDF: soltar o arquivo e conferir a prévia antes de salvar.
  *
- *  O estado da importação continua morando no App, não aqui: ele sobrevive
- *  à navegação (sair para o Painel e voltar não pode perder um PDF já lido
- *  esperando confirmação) e o `salvar` precisa das regras aprendidas, que
- *  são do App. Esta página é a superfície, não a dona. */
-export function Importacao({
-  estado,
-  regras,
-  logado,
-  salvando,
-  recemSalvo,
-  onArquivo,
-  onSalvar,
-  onLimpar,
-  onConsumirRecemSalvo,
-}: Props) {
+ *  O estado da importação NÃO mora aqui, e sim no `ImportacaoProvider`, que
+ *  fica acima das rotas: ele sobrevive à navegação (sair para o Painel e
+ *  voltar não pode perder um PDF já lido esperando confirmação). Esta
+ *  página é a superfície, não a dona. */
+export function Importacao() {
+  const { estado, regras, logado, salvando, recemSalvo, importar, salvar, limpar, consumirRecemSalvo } =
+    useImportacao()
   const navigate = useNavigate()
 
   // Gravou: leva ao Painel, que é onde o dado recém-importado aparece.
@@ -53,9 +24,9 @@ export function Importacao({
   // ainda ligado e chutaria a pessoa para o Painel de novo.
   useEffect(() => {
     if (!recemSalvo) return
-    onConsumirRecemSalvo?.()
+    consumirRecemSalvo()
     navigate('/', { replace: true })
-  }, [recemSalvo, navigate, onConsumirRecemSalvo])
+  }, [recemSalvo, navigate, consumirRecemSalvo])
 
   if (estado.fase === 'pronto') {
     return (
@@ -66,8 +37,8 @@ export function Importacao({
           regras={regras}
           podeSalvar={logado}
           salvando={salvando}
-          onSalvar={onSalvar}
-          onLimpar={onLimpar}
+          onSalvar={salvar}
+          onLimpar={limpar}
         />
       </div>
     )
@@ -75,7 +46,7 @@ export function Importacao({
 
   return (
     <div className="mx-auto mt-6 max-w-2xl">
-      <Dropzone onArquivo={onArquivo} ocupado={estado.fase === 'lendo'} />
+      <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
     </div>
   )
 }

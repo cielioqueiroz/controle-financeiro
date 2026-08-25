@@ -7,7 +7,7 @@
       "warn",
       {
         "allowConstantExport": true,
-        "allowExportNames": ["useT", "useDados", "useTravarRolagem", "useDiscreto"]
+        "allowExportNames": ["useT", "useDados", "useTravarRolagem", "useDiscreto", "useImportacao"]
       }
     ]
   }
