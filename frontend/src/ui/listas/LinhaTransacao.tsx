@@ -54,7 +54,7 @@ export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Prop
         onClick={() => onEditar(t)}
         aria-label={tr('editar.titulo')}
         title={tr('linha.renomearTitle')}
-        className="screen-only grid h-7 w-7 shrink-0 place-items-center rounded-md text-tinta-tenue opacity-0 transition-all hover:bg-carvao-800 hover:text-tinta focus:opacity-100 group-hover:opacity-100"
+        className="screen-only grid h-7 w-7 shrink-0 place-items-center rounded-md text-tinta-tenue opacity-0 transition-[opacity,background-color,color] hover:bg-carvao-800 hover:text-tinta focus:opacity-100 group-hover:opacity-100"
       >
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.7">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />

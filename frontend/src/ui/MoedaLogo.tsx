@@ -36,7 +36,7 @@ export function MoedaLogo({ size = 56 }: Props) {
   const idBrilho = `moeda-brilho-${id}`
 
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" className="drop-shadow-lg" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
       <defs>
         <clipPath id={idFace}>
           <circle cx="32" cy="32" r={R_ANEL} />

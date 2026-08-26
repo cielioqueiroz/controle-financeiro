@@ -254,7 +254,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
                   <button
                     onClick={criarNova}
                     disabled={salvandoCat}
-                    className="rounded-md bg-tinta px-3 py-1.5 text-xs font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+                    className="rounded-md bg-tinta px-3 py-1.5 text-xs font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca disabled:opacity-50"
                   >
                     {salvandoCat ? t('editar.criando') : t('editar.criarCat')}
                   </button>
@@ -308,7 +308,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
           <button
             onClick={() => setConfirmandoSalvar(true)}
             disabled={salvando}
-            className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca disabled:opacity-50"
           >
             {salvando ? t('geral.salvando') : t('geral.salvar')}
           </button>

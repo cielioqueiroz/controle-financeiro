@@ -102,7 +102,7 @@ export function Tutorial({ nome, onFechar }: Props) {
             {PASSOS.map((_, k) => (
               <span
                 key={k}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-1.5 rounded-full transition-[width,background-color] duration-200 ${
                   k === i ? 'w-5 bg-tinta' : 'w-1.5 bg-carvao-700'
                 }`}
               />
@@ -121,14 +121,14 @@ export function Tutorial({ nome, onFechar }: Props) {
             {ultimo ? (
               <button
                 onClick={onFechar}
-                className="rounded-lg bg-marca px-4 py-1.5 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+                className="bg-tinta px-4 py-1.5 text-sm font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca"
               >
                 {t('tutorial.comecar')}
               </button>
             ) : (
               <button
                 onClick={() => setI((v) => v + 1)}
-                className="rounded-lg bg-tinta px-4 py-1.5 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+                className="rounded-lg bg-tinta px-4 py-1.5 text-sm font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca"
               >
                 {t(boasVindas ? 'tutorial.boraVer' : 'tutorial.proximo')}
               </button>

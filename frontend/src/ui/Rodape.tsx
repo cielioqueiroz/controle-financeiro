@@ -39,7 +39,7 @@ export function Rodape({ className = '' }: Props) {
           href="https://cielio-portfolio.vercel.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-display text-base font-semibold text-marca underline decoration-marca/40 underline-offset-4 transition-all hover:decoration-marca hover:brightness-110"
+          className="font-display text-base font-semibold text-marca underline decoration-marca/40 underline-offset-4 transition-colors hover:decoration-marca hover:brightness-110"
         >
           Cielio Queiroz
         </a>

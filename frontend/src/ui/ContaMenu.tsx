@@ -79,7 +79,7 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil }: Props) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="absolute right-0 z-30 mt-2 w-60 origin-top-right overflow-hidden rounded-lg border border-carvao-700 bg-carvao-900 shadow-xl shadow-black/30"
+            className="absolute right-0 z-30 mt-2 w-60 origin-top-right overflow-hidden border border-borda bg-cartao sombra-flutuante"
           >
             <div className="border-b border-carvao-800 px-4 py-3">
               <p className="text-[10px] uppercase tracking-widest text-tinta-tenue">{t('conta.conectadoComo')}</p>

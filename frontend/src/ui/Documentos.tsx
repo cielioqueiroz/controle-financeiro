@@ -193,7 +193,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
         <button
           onClick={() => setApagandoTudo(true)}
           disabled={!docs || docs.length === 0}
-          className="text-xs font-medium text-falha transition-opacity hover:opacity-80 disabled:opacity-40"
+          className="text-xs font-medium text-falha transition-colors hover:text-tinta disabled:opacity-40"
         >
           {t('docs.apagarTudo')}
         </button>

@@ -229,7 +229,7 @@ export function Painel({ onAprendeu }: Props) {
             <button
               onClick={baixarPdf}
               disabled={gerandoPdf}
-              className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 active:translate-y-0 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:bg-carvao-850 disabled:opacity-50"
               title={t('dash.baixarTooltip')}
             >
               <IconeBaixar />
@@ -239,7 +239,7 @@ export function Painel({ onAprendeu }: Props) {
               <button
                 onClick={compartilharPdf}
                 disabled={gerandoPdf}
-                className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta active:translate-y-0 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-colors hover:bg-carvao-850 hover:text-tinta disabled:opacity-50"
                 title={t('dash.compartilharTooltip')}
               >
                 <IconeCompartilhar />
@@ -250,7 +250,7 @@ export function Painel({ onAprendeu }: Props) {
         )}
         <button
           onClick={() => navigate('/importar')}
-          className="rounded-xl bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-all hover:-translate-y-0.5 hover:opacity-90 active:translate-y-0"
+          className="rounded-xl bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca"
         >
           {t('dash.importar')}
         </button>
@@ -540,7 +540,7 @@ function Vazio() {
       <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-fraca">{t('estado.vazioCorpo')}</p>
       <Link
         to="/importar"
-        className="mt-6 inline-block rounded-sm bg-tinta px-5 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
+        className="mt-6 inline-block rounded-sm bg-tinta px-5 py-2 text-sm font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca"
       >
         {t('dash.importar')}
       </Link>

@@ -11,7 +11,7 @@ function Icone({ tipo }: { tipo: 'ok' | 'erro' | 'aviso' | 'info' }) {
   }[tipo]
   return (
     <span
-      className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white shadow-md"
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white"
       style={{ color: cfg.cor }}
     >
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -38,7 +38,7 @@ export function Notificacoes() {
         unstyled: true,
         classNames: {
           toast:
-            'flex w-full items-center gap-4 rounded-2xl px-6 py-5 shadow-2xl shadow-black/50 ring-1 ring-black/15',
+            'flex w-full items-center gap-4 px-6 py-5 sombra-flutuante',
           title: 'font-display text-[15px] font-bold leading-snug tracking-tight',
           description: 'font-sans text-[13px] font-medium leading-snug opacity-90',
           icon: 'shrink-0',

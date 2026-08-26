@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
-import { Celebracao } from '../ui/Celebracao'
 import { useT } from '../i18n/IdiomaProvider'
 import { chaveDeErro } from '../lib/erro-usuario'
 import { loadTextItems, PdfProtegidoError } from '../domain/pdf/load'
@@ -60,7 +59,6 @@ export function ImportacaoProvider({
   const [estado, setEstado] = useState<EstadoImport>({ fase: 'vazio' })
   const [salvando, setSalvando] = useState(false)
   const [recemSalvo, setRecemSalvo] = useState(false)
-  const [celebrando, setCelebrando] = useState(false)
   const { t } = useT()
 
   const importar = useCallback(
@@ -85,7 +83,6 @@ export function ImportacaoProvider({
 
         if (v.status === 'confere') {
           toast.success(t('importar.toastConfere', { n: v.contagem }))
-          setCelebrando(true) // bateu ao centavo: momento de confete
         } else if (v.status === 'sem-gabarito') {
           toast.warning(t('importar.toastSemGabarito', { n: v.contagem }))
         } else {
@@ -147,10 +144,6 @@ export function ImportacaoProvider({
   return (
     <Ctx.Provider value={valor}>
       {children}
-      {/* Mora aqui porque quem dispara o confete é o `importar` acima. Vai
-          para um Portal (ver Celebracao.tsx), então a posição na árvore não
-          afeta o layout. */}
-      <Celebracao ativo={celebrando} onFim={() => setCelebrando(false)} />
     </Ctx.Provider>
   )
 }

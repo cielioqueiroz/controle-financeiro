@@ -2,105 +2,145 @@
 @import "./fontes.css";
 
 /* ============================================================
-   CAPITAL FINANCEIRO — direção "livro-razão"
+   CAPITAL FINANCEIRO — direção "impresso e terminal"
    ============================================================
 
    De onde vem: o app existe para CONFERIR. Ele lê o extrato ou a fatura em
    PDF e bate o total contra o gabarito declarado pelo banco, ao centavo.
-   Isso é conciliação contábil, e é desse mundo que o desenho tira tudo —
-   colunas de débito e crédito, régua de formulário, números alinhados à
-   direita, "estar no vermelho".
+   Isso é conciliação contábil, e o desenho agora assume a consequência até
+   o fim: a tela É um documento impresso.
 
-   O que SAIU, e por quê: o visual anterior era café escuro + âmbar/dourado
-   + cantos de 16px + brilho + grão de papel + partículas em three.js. Fora
-   o peso (515 kB só de three.js), aquele conjunto — fundo creme perto de
-   #F4F1EA, display serifada de alto contraste, acento terracota — é hoje o
-   visual PADRÃO de página gerada por IA. O usuário reconheceu isso de olho
-   e pediu para sair. Papel creme, portanto, está fora de propósito.
+   UM ESQUELETO, DOIS MATERIAIS. O tema claro é o CUPOM — papel frio, tinta
+   preta, régua tracejada. O tema escuro é a MESA DE OPERAÇÕES — grafite,
+   fósforo, a mesma grade. Não é a inversão de cores do claro: é o mesmo
+   documento noutro suporte. Papel térmico não tem tema escuro, e foi esse
+   furo que a síntese fechou (escolha do usuário em 2026-08-25, entre dez
+   direções; ele marcou cupom, terminal, formulário contínuo e suíço — as
+   quatro da mesma família).
+
+   AS OITO REGRAS, na ordem em que se aplicam:
+     1. Raio ZERO, sem exceção. A única curva é o círculo de um indicador.
+     2. Nada de cartão nem de sombra. Seção se separa por régua.
+     3. Cor é racionada: sinal do valor, série dentro de gráfico, carimbo.
+     4. Todo número é mono e tabular.
+     5. Três réguas: tracejada separa seção, 1px separa linha, grossa fecha
+        total.
+     6. O pontilhado conduz o olho do rótulo até o valor.
+     7. Hover só muda o fundo. Nada de deslocar, projetar ou apagar.
+     8. Uma voz só: Courier Prime, na interface INTEIRA.
+
+   O que SAIU, e por quê: antes daqui houve café escuro + âmbar + cantos de
+   16px + três.js; depois, o "livro-razão" em IBM Plex, que estava certo na
+   tese e frouxo na execução — 8 raios diferentes em uso, `rounded-2xl` 14
+   vezes e sombra difusa no cartão de login, tudo contra o que este próprio
+   arquivo mandava. Zerar o raio no @theme resolve os 132 usos de uma vez,
+   sem reescrever 50 componentes.
+
+   Courier Prime é decisão do usuário, tomada com o risco na mão: traço fino
+   e mancha clara em corpo pequeno. A compensação está no `body` abaixo —
+   corpo mínimo maior e peso 700 (não 600) onde antes era semibold, porque a
+   família só tem 400 e 700 e pedir 600 traria peso sintético.
 
    Contraste: TODOS os pares abaixo são medidos, não opinados. Rodar
-   `python scripts/medir-contraste.py` depois de mexer em qualquer cor —
-   ele reprova o build do olho humano. A borda de campo do tema claro já foi
-   corrigida assim (#8b97a6 → #7f8c9d: 2.62:1 → 3.19:1, matiz e saturação
-   preservados, achado por busca).
+   `python scripts/medir-contraste.py` depois de mexer em qualquer cor — ele
+   reprova o build do olho humano.
    ============================================================ */
 
 @theme {
   /* ---------- Tipografia ----------
-     Uma família (IBM Plex), três vozes. Sem serifada decorativa: aquilo é
-     metade da assinatura do visual-padrão-de-IA que estamos deixando.
+     Uma voz só. Os quatro tokens continuam existindo porque 40 arquivos os
+     usam, mas hoje apontam todos para a mesma família — trocar de voz virou
+     trocar de PESO e de CAIXA, não de fonte.
 
-     • Mono é a voz principal dos NÚMEROS, e os números são o herói desta
-       tela. Livro-caixa se lê em coluna alinhada, não em fonte bonita.
-     • Condensed nos rótulos de coluna, como cabeçalho de formulário
-       bancário — dá hierarquia sem trocar de família.
-     • Sans no corpo. */
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-condensada: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
-  --font-display: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+     IBM Plex Mono segue no fim da pilha como rede: se o Courier falhar em
+     rede ou for bloqueado, a tela cai numa mono que já está no domínio, e
+     não num fallback de sistema com métrica imprevisível. */
+  --font-sans: "Courier Prime", "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono: "Courier Prime", "IBM Plex Mono", ui-monospace, monospace;
+  --font-condensada: "Courier Prime", "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Courier Prime", "IBM Plex Mono", ui-monospace, monospace;
 
-  /* ---------- Superfícies (tema CLARO é o padrão) ----------
-     Papel frio de formulário/impressão fiscal, não creme. A elevação sobe
-     para o BRANCO (o cartão é mais claro que a página) e o "afundado"
-     desce — as três superfícies são distinguíveis sem sombra nenhuma. */
-  --color-papel: #f6f7f9;
-  --color-cartao: #ffffff;
-  --color-afundado: #eef1f5;
-  --color-borda: #d7dde5;
-  --color-borda-forte: #b9c3ce;
-  /* Contorno de campo tem token próprio: a WCAG pede 3:1 para dizer "aqui
-     se digita", enquanto borda de cartão é decoração e pode ser sutil.
-     Engrossar as duas juntas engrossaria o desenho inteiro. */
-  --color-campo-borda: #7f8c9d;
+  /* ---------- Raio: zero, e é a regra 1 ----------
+     Zerar a escala do Tailwind derruba `rounded-sm` até `rounded-4xl` e o
+     `rounded-t` de uma vez — 132 usos espalhados por 50 arquivos, sem tocar
+     em nenhum deles. `rounded-full` NÃO entra aqui de propósito: ele desenha
+     o círculo do indicador de banco e a moeda do logotipo, que são a única
+     curva que a direção admite. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+
+  /* ---------- Superfícies · tema CLARO é o cupom ----------
+     Papel térmico: cinza frio de altíssima claridade, croma quase nulo. NÃO
+     é creme — a banda quente perto de #F4F1EA é a assinatura de página
+     gerada por IA, e sair dela foi pedido explícito do usuário.
+     O bloco é mais claro que a página; não há terceira superfície, porque
+     não há mais cartão dentro de cartão. */
+  --color-papel: #f2f3f4;
+  --color-cartao: #fbfbfc;
+  --color-afundado: #e9ebed;
+  --color-borda: #cdd2d7;
+  --color-borda-forte: #9aa2aa;
+  /* Contorno de campo: a WCAG pede 3:1 para dizer "aqui se digita", e a
+     régua de cartão é decoração e pode ser sutil. Tokens separados para que
+     engrossar um não engrosse o desenho inteiro. */
+  --color-campo-borda: #7a838c;
+
+  /* ---------- Réguas · regra 5 ----------
+     Três funções, três tokens. A tracejada e o pontilhado condutor usam a
+     forte; a linha entre lançamentos usa a fina; o total usa a tinta. */
+  --color-regua: #cdd2d7;
+  --color-regua-forte: #9aa2aa;
 
   /* ---------- Tinta ---------- */
-  --color-tinta: #0f1a24;
-  --color-tinta-fraca: #42525f;
-  --color-tinta-tenue: #5d6b78;
+  --color-tinta: #14171a;
+  --color-tinta-fraca: #4b545c;
+  --color-tinta-tenue: #656d75;
   /* Sobre fundo de cor viva (botão de perigo, selo). Não usa --color-tinta
      porque aquela inverte por tema; esta é sempre clara. */
   --color-tinta-viva: #ffffff;
 
   /* ---------- Marca ----------
-     Azul de carimbo de conferência. Substitui o âmbar/dourado, que além de
-     genérico se confundia com o amarelo de ressalva. */
+     Azul de carimbo de conferência. Pela regra 3 ele NÃO decora: aparece só
+     em foco de teclado, seleção, e na barra do dia em aberto. */
   --color-marca: #1b5e8f;
 
   /* Traço e brilho da moeda do logotipo. Têm valor próprio porque a face da
      moeda é sempre --color-marca nos dois temas: o resto dela segue a face,
-     não a página. Sem estes dois o logo nasceria sem cor — o `var()` cairia
-     em nada. */
+     não a página. */
   --color-moeda-traco: #0a2d47;
   --color-moeda-brilho: #eaf4fb;
 
   /* ---------- Semântica contábil ----------
      Crédito e débito, não "sucesso" e "erro". No extrato brasileiro entrada
-     é crédito e saída é débito, e "estar no vermelho" é literal — a cor
-     aqui carrega o vocabulário do assunto, não uma convenção de UI.
+     é crédito e saída é débito, e "estar no vermelho" é literal.
      NUNCA aparecem sozinhas: sempre com sinal (+/−) ou rótulo, porque cor
      sozinha não é informação para quem não a distingue. */
-  --color-credito: #1c6b4a;
-  --color-debito: #b3261e;
-  --color-ressalva: #8a5a00;
-  /* "O total bate ao centavo" — o momento que o app existe para produzir. */
-  --color-confere: #1c6b4a;
-  --color-falha: #b3261e;
+  --color-credito: #16603f;
+  --color-debito: #a8261c;
+  --color-ressalva: #7d5200;
+  /* "O total bate ao centavo" — o momento que o app existe para produzir, e
+     desde 2026-08-25 a ÚNICA celebração que existe (o confete saiu: 28
+     partículas de 8 matizes não cabem num sistema que raciona cor). */
+  --color-confere: #16603f;
+  --color-falha: #a8261c;
 
   /* Véu dos modais: escuro nos DOIS temas. Usar a cor da página fazia o véu
      não escurecer nada no tema claro, e véu que não escurece não é véu. */
-  --color-veu: #0b1219;
+  --color-veu: #080b0e;
 
   /* ---------- Séries dos gráficos ----------
      Oito matizes em ordem FIXA — jamais cicladas, jamais geradas. Uma nona
-     categoria vira "Outros", não uma cor nova.
-     Validadas por script (scripts/validate_palette.js da skill dataviz)
-     contra estas superfícies exatas: banda de luminosidade, piso de croma,
-     separação para daltonismo (pior par adjacente ΔE 9.1 protan) e piso de
-     visão normal (ΔE 19.6) — todos PASSAM.
-     No claro, quatro delas ficam abaixo de 3:1 contra o papel: por isso o
-     donut e as barras SEMPRE trazem rótulo direto com nome e valor. Isso
-     não é enfeite, é a condição que torna a paleta legal. */
+     categoria vira "Outros", não uma cor nova. São o segundo dos três
+     lugares onde a regra 3 admite cor.
+     No claro, quatro delas ficam abaixo de 3:1 contra o papel: por isso a
+     régua de composição e as barras SEMPRE trazem rótulo direto com nome e
+     valor. Isso não é enfeite, é a condição que torna a paleta legal. */
   --color-serie-1: #2a78d6;
   --color-serie-2: #eb6834;
   --color-serie-3: #1baf7a;
@@ -114,57 +154,56 @@
      aparece. Fica deliberadamente fora da paleta de séries: a série colore
      categorias diferentes, esta colore a MESMA grandeza repetida no tempo, e
      usar uma cor de série aqui prometeria uma distinção que não existe.
-     Antes, todas as barras eram `--color-debito` e só o pico era tinta: um
-     muro vermelho onde o vermelho não significava nada. Agora o campo é
-     neutro, o pico é `--color-debito` (o dia que custou mais) e o dia aberto
-     é `--color-marca`. Cada cor volta a carregar uma informação.
+     O campo é neutro, o pico é `--color-debito` (o dia que custou mais) e o
+     dia aberto é `--color-marca`. Cada cor carrega uma informação.
      Entrou no `scripts/medir-contraste.py` como forma cheia (piso 3:1, não
-     4.5 — não carrega texto dentro): 3.02:1 no claro e 3.44:1 no escuro,
-     contra a PIOR superfície. Sobre o painel, onde as barras de fato ficam,
-     folga mais. */
-  --color-barra: #7f8c9d;
+     4.5 — não carrega texto dentro). */
+  --color-barra: #7a838c;
 
   /* Compatibilidade: nomes antigos usados por componentes ainda não
-     migrados. Apontam para os tokens novos para nada nascer sem cor
-     durante a transição. */
-  --color-carvao-950: #f6f7f9;
-  --color-carvao-900: #ffffff;
-  --color-carvao-850: #eef1f5;
-  --color-carvao-800: #e4e9ef;
-  --color-carvao-700: #d7dde5;
-  --color-carvao-600: #b9c3ce;
+     migrados. Apontam para os tokens novos para nada nascer sem cor. */
+  --color-carvao-950: #f2f3f4;
+  --color-carvao-900: #fbfbfc;
+  --color-carvao-850: #e9ebed;
+  --color-carvao-800: #dfe3e6;
+  --color-carvao-700: #cdd2d7;
+  --color-carvao-600: #9aa2aa;
 }
 
-/* ---------- Tema ESCURO ----------
-   Azul-ferro profundo, não café nem preto puro: é a mesma tinta da versão
-   clara, virada do avesso. No escuro a elevação inverte — o cartão é mais
-   CLARO que a página. */
+/* ---------- Tema ESCURO · a mesa de operações ----------
+   Grafite azulado de bancada, não café nem preto puro. A elevação inverte:
+   o bloco é mais CLARO que a página, como um painel aceso. */
 :root[data-theme="dark"] {
-  --color-papel: #0d1319;
-  --color-cartao: #161d25;
-  --color-afundado: #1d252e;
-  --color-borda: #2b3641;
-  --color-borda-forte: #3d4a57;
-  --color-campo-borda: #6b7887;
+  --color-papel: #0b0f13;
+  --color-cartao: #12181e;
+  --color-afundado: #182028;
+  --color-borda: #232d36;
+  --color-borda-forte: #3a4650;
+  --color-campo-borda: #55636e;
 
-  --color-tinta: #e9eef3;
-  --color-tinta-fraca: #a8b5c1;
-  --color-tinta-tenue: #8b98a5;
+  --color-regua: #232d36;
+  --color-regua-forte: #3a4650;
 
-  --color-marca: #6bb3e8;
-  /* Só o TRAÇO muda por tema: a face da moeda é âmbar-azul nos dois, então
-     o reflexo sobre ela é o mesmo claro — mas o contorno precisa de
-     contraste diferente contra o resto da interface. */
+  --color-tinta: #ccd8e0;
+  --color-tinta-fraca: #93a3ae;
+  /* Sobe um degrau em relação ao valor "de projeto" (#74838e, 4.58:1): o
+     piso de 4.5 é apertado demais para texto em Courier, que tem traço fino
+     e mancha mais clara que a Plex no mesmo corpo. */
+  --color-tinta-tenue: #8a99a4;
+
+  /* Fósforo: o acento da mesa. Mesmo papel do azul de carimbo no claro. */
+  --color-marca: #4fc3e8;
+  /* Só o TRAÇO muda por tema: a face da moeda é a mesma nos dois, mas o
+     contorno precisa de contraste diferente contra o resto da interface. */
   --color-moeda-traco: #06202f;
-  --color-credito: #5fbf8f;
-  --color-debito: #f0817a;
+  --color-credito: #55c191;
+  --color-debito: #ef8177;
   --color-ressalva: #d9a441;
-  --color-confere: #5fbf8f;
-  --color-falha: #f0817a;
+  --color-confere: #55c191;
+  --color-falha: #ef8177;
 
   /* As mesmas oito matizes, RE-ESCALONADAS para a superfície escura — não
-     um flip automático da paleta clara. Revalidadas contra #161d25: todas
-     ≥ 3:1, pior par adjacente ΔE 8.4 protan. */
+     um flip automático da paleta clara. */
   --color-serie-1: #3987e5;
   --color-serie-2: #d95926;
   --color-serie-3: #199e70;
@@ -174,16 +213,14 @@
   --color-serie-7: #9085e9;
   --color-serie-8: #e66767;
 
-  /* Reescalonada para a superfície escura, como as séries: #6b7887 sobre
-     #161d25 dá 3.8:1. O tom claro (#7f8c9d) daria 2.6:1 aqui. */
-  --color-barra: #6b7887;
+  --color-barra: #55636e;
 
-  --color-carvao-950: #0d1319;
-  --color-carvao-900: #161d25;
-  --color-carvao-850: #1d252e;
-  --color-carvao-800: #232c36;
-  --color-carvao-700: #2b3641;
-  --color-carvao-600: #3d4a57;
+  --color-carvao-950: #0b0f13;
+  --color-carvao-900: #12181e;
+  --color-carvao-850: #182028;
+  --color-carvao-800: #1d2731;
+  --color-carvao-700: #232d36;
+  --color-carvao-600: #3a4650;
 
   color-scheme: dark;
 }
@@ -196,6 +233,11 @@ body {
   background: var(--color-papel);
   color: var(--color-tinta);
   font-family: var(--font-sans);
+  /* Courier Prime é mais clara e mais estreita na haste que a IBM Plex no
+     mesmo corpo. O piso sobe de 16 para 17px e a entrelinha abre, que é a
+     compensação combinada quando a fonte foi escolhida. */
+  font-size: 17px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -213,12 +255,12 @@ body {
     cursor: not-allowed;
   }
 
-  /* Títulos: condensada com tracking apertado. A largura estreita é o que
-     separa título de corpo — mesma família, outra proporção. */
+  /* Títulos. Numa família de dois pesos, hierarquia sai de CAIXA, TRACKING e
+     CORPO — não de largura, que era o que a condensada dava antes. */
   .font-display {
-    font-family: var(--font-condensada);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
     text-wrap: balance;
   }
 
@@ -233,6 +275,7 @@ body {
   textarea,
   select {
     border-color: var(--color-campo-borda);
+    border-radius: 0;
     transition:
       border-color 0.15s ease,
       box-shadow 0.15s ease;
@@ -247,9 +290,13 @@ body {
   select:focus {
     outline: none;
     border-color: var(--color-marca);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-marca) 25%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-marca) 30%, transparent);
   }
 
+  /* Regra 7: hover só muda o fundo, em 120ms. `transform`, `box-shadow` e
+     `opacity` saíram da transição de propósito — sem elas na lista, um
+     `hover:-translate-y-*` esquecido num componente vira um salto seco em
+     vez de uma animação, e denuncia a si mesmo na primeira passada de mouse. */
   button,
   a,
   [role="button"],
@@ -257,8 +304,7 @@ body {
     transition:
       background-color 0.12s ease,
       border-color 0.12s ease,
-      color 0.12s ease,
-      opacity 0.12s ease;
+      color 0.12s ease;
   }
 
   /* Foco por teclado. Só :focus-visible, para o clique de mouse não acender
@@ -273,9 +319,9 @@ body {
 }
 
 @layer components {
-  /* Números tabulares — a coluna de valores não pode tremer ao mudar de
-     dígito. É o comportamento de um livro-caixa, e o motivo de os números
-     serem mono nesta interface.
+  /* Números tabulares. Numa interface inteiramente monoespacada a família já
+     alinha sozinha, mas `tnum` continua necessário: Courier Prime desenha o
+     zero com corte e alguns dígitos com avanço próprio fora do modo tabular.
      Fica em @layer components de propósito: regra SEM layer vence utilitário
      do Tailwind, e uma letter-spacing solta aqui atropelaria o tracking dos
      rótulos pequenos que também usam .tabular. */
@@ -283,36 +329,78 @@ body {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 
   /* Rótulo de coluna, no capricho de um cabeçalho de formulário bancário. */
   .rotulo {
     font-family: var(--font-condensada);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--color-tinta-tenue);
   }
 
-  /* A régua do razão: a linha que separa lançamentos. 1px, sem sombra. */
+  /* Regra 5, primeira função: a régua entre lançamentos. 1px, sem sombra. */
   .regua {
-    border-bottom: 1px solid var(--color-borda);
+    border-bottom: 1px solid var(--color-regua);
+  }
+
+  /* Regra 5, segunda função: o tracejado que separa SEÇÕES. É o gesto que
+     mais diz "cupom" na tela inteira. */
+  .tracejado {
+    border-top: 1px dashed var(--color-regua-forte);
+  }
+
+  /* Regra 5, terceira função: a régua grossa que FECHA um total. */
+  .fecha-total {
+    border-top: 2px solid var(--color-tinta);
+  }
+
+  /* Regra 6: o pontilhado condutor. Vai num <span> vazio entre o rótulo e o
+     valor, dentro de um flex — é ele que impede o olho de pular de linha
+     quando a distância entre os dois passa de meia tela. */
+  .conduz {
+    flex: 1 1 auto;
+    min-width: 1rem;
+    border-bottom: 1px dotted var(--color-regua-forte);
+    transform: translateY(-0.25rem);
+  }
+
+  /* Regra 7, a forma canônica: linha de dados sob o cursor. */
+  .linha-viva:hover {
+    background: color-mix(in oklab, var(--color-tinta) 5%, transparent);
+  }
+
+  /* Do formulário contínuo: a faixa alternada. SÓ em lista longa, e por
+     função — numa coluna de cem linhas é ela que impede o olho de pular.
+     Em bloco curto seria enfeite, e enfeite não entra. */
+  .zebra > *:nth-child(odd) {
+    background: color-mix(in oklab, var(--color-tinta) 4%, transparent);
+  }
+
+  /* A descrição do banco vem em caixa-alta e gritava a lista inteira. O
+     TEXTO continua idêntico — muda só o desenho da letra, o que preserva a
+     regra do CONTEXT.md de que a descrição é imutável e auditável. */
+  .versalete {
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
   }
 }
 
-/* Modais e menus. Elevação por CONTORNO + sombra curta, não por borrão:
-   sombra difusa larga é assinatura de template. */
+/* Modais e menus — o único lugar onde existe elevação, e ela é por CONTORNO
+   mais sombra curta. Sombra difusa larga é assinatura de template, e a regra
+   2 a proíbe em qualquer outro lugar. */
 .sombra-flutuante {
   box-shadow:
-    0 1px 2px rgb(15 26 36 / 0.06),
-    0 8px 24px -8px rgb(15 26 36 / 0.18),
+    0 1px 2px rgb(20 23 26 / 0.06),
+    0 6px 18px -8px rgb(20 23 26 / 0.2),
     0 0 0 1px var(--color-borda);
 }
 :root[data-theme="dark"] .sombra-flutuante {
   box-shadow:
-    0 8px 24px -8px rgb(0 0 0 / 0.6),
+    0 6px 18px -8px rgb(0 0 0 / 0.65),
     0 0 0 1px var(--color-borda);
 }
 
@@ -345,8 +433,8 @@ body {
 .pulso {
   animation: pulso 1.4s ease-in-out infinite;
 }
-/* `carimbo` é a entrada do selo de "confere" — a única celebração que
-   sobrou, e a que fala a língua do assunto. */
+/* `carimbo` é a entrada do selo de "confere". Desde 2026-08-25 é a ÚNICA
+   celebração do app — o confete saiu junto com o componente Celebracao. */
 @keyframes carimbo {
   0% {
     opacity: 0;
@@ -374,13 +462,14 @@ body {
 
 /* Toasts. Fundo da superfície + uma barra da cor semântica na lateral, em
    vez do retângulo inteiro colorido: menos gritante e legível nos dois
-   temas sem par de cores próprio. */
+   temas sem par de cores próprio. Raio zero, como todo o resto. */
 [data-sonner-toast] {
   background: var(--color-cartao) !important;
   color: var(--color-tinta) !important;
   border: 1px solid var(--color-borda) !important;
-  border-radius: 3px !important;
+  border-radius: 0 !important;
   border-left-width: 3px !important;
+  font-family: var(--font-sans) !important;
 }
 [data-sonner-toast][data-type="success"] {
   border-left-color: var(--color-confere) !important;
@@ -397,7 +486,9 @@ body {
   display: none;
 }
 
-/* Impressão: papel branco, tinta preta, sem enfeite. */
+/* Impressão: papel branco, tinta preta, sem enfeite. A direção inteira já é
+   um documento impresso, então aqui muda pouca coisa — só o que a tela
+   precisava e o papel não. */
 @media print {
   .somente-impressao {
     display: block !important;
@@ -413,6 +504,8 @@ body {
     --color-cartao: #ffffff;
     --color-afundado: #f4f4f4;
     --color-borda: #d0d0d0;
+    --color-regua: #d0d0d0;
+    --color-regua-forte: #999999;
     --color-tinta: #111111;
     --color-tinta-fraca: #3a3a3a;
     --color-tinta-tenue: #5a5a5a;

@@ -174,7 +174,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
         // Hover floresce a sombra e esquenta a borda, mas NÃO levanta o card:
         // ele não é clicável (os cliques estão nos campos e botões dentro),
         // e subir prometeria um clique que não existe. Os internos é que sobem.
-        className="rounded-2xl border border-carvao-700 bg-carvao-900/90 px-6 py-5 shadow-2xl shadow-black/30 backdrop-blur-sm transition-all duration-300 hover:border-carvao-600 hover:shadow-black/50"
+        className="border border-borda bg-cartao px-6 py-5"
       >
         <motion.div
           className="mb-2 flex justify-center"
@@ -290,7 +290,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
 
           <button
             onClick={comGoogle}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-carvao-700 px-4 py-3 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:border-carvao-600 hover:bg-carvao-850 hover:shadow-lg hover:shadow-black/20 active:translate-y-0"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-carvao-700 px-4 py-3 text-sm text-tinta transition-colors hover:border-carvao-600 hover:bg-carvao-850"
           >
             <GoogleIcon /> {t('auth.google')}
           </button>

@@ -194,7 +194,7 @@ export function Confirmacao({
             onClick={onConfirmar}
             className={
               severidade === 'perigo'
-                ? 'rounded-xl bg-falha px-4 py-2 text-sm font-semibold text-tinta-viva transition-opacity hover:opacity-90 disabled:opacity-50'
+                ? 'rounded-xl bg-falha px-4 py-2 text-sm font-semibold text-tinta-viva transition-colors hover:bg-tinta-fraca disabled:opacity-50'
                 : BOTAO_CONFIRMAR_NORMAL
             }
           >
