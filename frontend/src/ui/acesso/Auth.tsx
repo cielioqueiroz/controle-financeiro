@@ -276,7 +276,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
             <button
               type="button"
               onClick={() => setModo('recuperar')}
-              className="mt-3 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
+              className="mt-3 flex min-h-11 w-full items-center justify-center text-center text-xs text-tinta-tenue hover:text-tinta"
             >
               {t('auth.esqueceu')}
             </button>
@@ -297,7 +297,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
 
           <button
             onClick={() => setModo(modo === 'entrar' ? 'criar' : 'entrar')}
-            className="mt-5 w-full text-center text-xs text-tinta-tenue hover:text-tinta"
+            className="mt-5 flex min-h-11 w-full items-center justify-center text-center text-xs text-tinta-tenue hover:text-tinta"
           >
             {modo === 'entrar' ? t('auth.trocarParaCriar') : t('auth.trocarParaEntrar')}
           </button>

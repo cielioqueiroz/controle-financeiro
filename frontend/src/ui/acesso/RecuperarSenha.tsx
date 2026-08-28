@@ -172,6 +172,7 @@ export function RecuperarSenha({ token, onVoltar }: Props) {
           type="email"
           ref={refEmail}
           required
+          aria-label={t('campo.rotulo.email')}
           placeholder={t('auth.ph.email')}
           value={email}
           onChange={(ev) => setEmail(ev.target.value)}

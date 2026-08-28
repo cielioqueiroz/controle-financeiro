@@ -41,7 +41,7 @@ export function ThemeToggle() {
       onClick={alternar}
       aria-label={t(claro ? 'tema.paraEscuro' : 'tema.paraClaro')}
       title={t(claro ? 'tema.escuro' : 'tema.claro')}
-      className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+      className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
     >
       <motion.span
         key={tema}

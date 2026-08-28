@@ -67,7 +67,7 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil }: Props) {
         onClick={() => setAberto((v) => !v)}
         aria-label={t('conta.aria')}
         title={t('conta.aria')}
-        className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 bg-carvao-850 text-sm font-medium text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+        className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 bg-carvao-850 text-sm font-medium text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
       >
         {inicial}
       </button>

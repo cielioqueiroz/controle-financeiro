@@ -56,7 +56,7 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
             <button
               key={p.id}
               onClick={() => setFiltros({ periodo: p.id })}
-              className={`relative rounded-full px-4 py-1.5 text-sm transition-colors ${
+              className={`relative min-h-11 rounded-full px-4 py-2.5 text-sm transition-colors ${
                 filtros.periodo === p.id ? 'text-carvao-950' : 'text-tinta-fraca hover:text-tinta'
               }`}
             >
@@ -102,7 +102,7 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
       <div className="flex items-center justify-center gap-6">
         <button
           onClick={() => setFiltros({ ref: mover(filtros.periodo, filtros.ref, -1) })}
-          className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+          className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
           aria-label={t('dash.periodoAnterior')}
         >
           ‹
@@ -126,7 +126,7 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
         </AnimatePresence>
         <button
           onClick={() => setFiltros({ ref: mover(filtros.periodo, filtros.ref, 1) })}
-          className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+          className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
           aria-label={t('dash.proximoPeriodo')}
         >
           ›
@@ -151,7 +151,7 @@ function BancoPill({
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition-colors ${
+      className={`relative flex min-h-11 items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition-colors ${
         ativo
           ? 'border-transparent text-carvao-950'
           : 'border-carvao-700 text-tinta-fraca hover:border-carvao-600 hover:text-tinta'

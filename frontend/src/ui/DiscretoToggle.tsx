@@ -13,7 +13,7 @@ export function DiscretoToggle() {
       aria-label={t(discreto ? 'discreto.mostrar' : 'discreto.esconder')}
       title={t(discreto ? 'discreto.mostrar' : 'discreto.esconder')}
       aria-pressed={discreto}
-      className="grid h-9 w-9 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+      className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
     >
       <motion.span
         key={String(discreto)}

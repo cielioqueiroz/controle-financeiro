@@ -14,14 +14,22 @@
     "test": "npm run test --workspace frontend",
     "test:watch": "npm run test:watch --workspace frontend",
     "lint": "oxlint --deny-warnings",
-    "verificar": "python scripts/verificar.py",
-    "verificar:rapido": "python scripts/verificar.py --rapido",
-    "caminhos": "python scripts/checar-caminhos.py",
+    "verificar": "uv run --with playwright python scripts/verificar.py",
+    "verificar:rapido": "uv run python scripts/verificar.py --rapido",
+    "caminhos": "uv run python scripts/checar-caminhos.py",
     "fixtures": "tsx scripts/gerar-fixtures.ts"
   },
   "devDependencies": {
     "oxlint": "^1.71.0",
     "tsx": "^4.20.6",
     "typescript": "~6.0.2"
+  },
+  "overrides": {
+    "@better-auth/api-key": "1.6.23",
+    "@better-auth/core": "1.6.23",
+    "@daveyplate/better-auth-ui": {
+      "@better-auth/api-key": "1.6.23",
+      "@better-auth/core": "1.6.23"
+    }
   }
 }
