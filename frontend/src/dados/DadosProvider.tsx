@@ -7,9 +7,13 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { puxarTudo, type TransacaoSalva } from '../persist/puxar'
-import { puxarCategoriasUsuario } from '../persist/categoriasUsuario'
-import { puxarSaldos, type DocDoPainel } from '../persist/documentos'
+import {
+  puxarTudo,
+  puxarCategoriasUsuario,
+  puxarSaldos,
+  type TransacaoSalva,
+  type DocDoPainel,
+} from '../aplicacao/consultas/historico'
 import { registrarCategoriasUsuario } from '../domain/categorize/categorias'
 import { chaveDeErro } from '../lib/erro-usuario'
 import { type Dicionario } from '../i18n/dicionarios/pt'

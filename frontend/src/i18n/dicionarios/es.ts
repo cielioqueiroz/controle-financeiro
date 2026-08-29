@@ -364,6 +364,7 @@ export const es: Dicionario = {
   'importar.toastSemGabarito': '{n} movimientos leídos, sin total para comprobar.',
   'importar.toastNaoFechou': 'El total leído no cuadró con el del banco. Revisa antes de guardar.',
   'importar.protegido': 'PDF protegido con contraseña.',
+  'importar.grande': 'Este PDF supera el límite de 25 MB.',
   'importar.naoLi': 'No pude leer este archivo.',
   'importar.emBreve': '{msg}. Muy pronto.',
   'salvar.okNovos': 'Guardado: {n} movimientos nuevos.',

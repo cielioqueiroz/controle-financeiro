@@ -7,7 +7,8 @@ import {
   apagarCategoria,
   type CategoriaUsuario,
 } from '../persist/categoriasUsuario'
-import { puxarRegras, apagarRegra } from '../persist/regras'
+import { puxarRegras } from '../aplicacao/consultas/regras'
+import { apagarRegra } from '../aplicacao/comandos/transacoes'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import type { Regra } from '../domain/categorize/regras'
 import { useT } from '../i18n/IdiomaProvider'

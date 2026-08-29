@@ -32,7 +32,7 @@ import { comoChamar } from './lib/perfil'
 import { useT } from './i18n/IdiomaProvider'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
-import { puxarRegras } from './persist/regras'
+import { puxarRegras } from './aplicacao/consultas/regras'
 import type { Regra } from './domain/categorize/regras'
 
 export default function App() {

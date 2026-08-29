@@ -2,13 +2,18 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { toast } from 'sonner'
 import { useT } from '../i18n/IdiomaProvider'
 import { chaveDeErro } from '../lib/erro-usuario'
-import { loadTextItems, PdfProtegidoError } from '../domain/pdf/load'
+import {
+  loadTextItems,
+  PdfGrandeError,
+  PdfProtegidoError,
+  validarArquivoPdf,
+} from '../domain/pdf/load'
 import { buildLines } from '../domain/pdf/lines'
 import { pareceDigitalizado } from '../domain/pdf/extract'
 import { parse, ParserNaoImplementadoError } from '../domain/parsers'
 import { validar } from '../domain/validate/checksum'
 import { dataLongaDe } from '../domain/normalize/data'
-import { salvarDocumento } from '../persist/salvar'
+import { salvarDocumento } from '../aplicacao/comandos/importacao'
 import type { Regra } from '../domain/categorize/regras'
 import type { DocKind } from '../domain/pdf/detect'
 import type { ParseResult } from '../domain/parsers/types'
@@ -67,6 +72,13 @@ export function ImportacaoProvider({
         toast.error(t('importar.naoPdf'))
         return
       }
+      try {
+        validarArquivoPdf(file)
+      } catch (err) {
+        if (err instanceof PdfGrandeError) toast.error(t('importar.grande'))
+        else toast.error(t('importar.naoLi'))
+        return
+      }
       setEstado({ fase: 'lendo' })
       try {
         const bytes = await file.arrayBuffer()
@@ -90,7 +102,8 @@ export function ImportacaoProvider({
         }
       } catch (err) {
         setEstado({ fase: 'vazio' })
-        if (err instanceof PdfProtegidoError) toast.error(t('importar.protegido'))
+        if (err instanceof PdfGrandeError) toast.error(t('importar.grande'))
+        else if (err instanceof PdfProtegidoError) toast.error(t('importar.protegido'))
         else if (err instanceof ParserNaoImplementadoError)
           toast.warning(t('importar.emBreve', { msg: err.message }))
         else toast.error(t('importar.naoLi'))

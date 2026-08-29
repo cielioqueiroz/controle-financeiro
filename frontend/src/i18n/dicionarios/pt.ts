@@ -401,6 +401,7 @@ export const pt = {
   'importar.toastSemGabarito': '{n} lançamentos lidos, sem total para conferir.',
   'importar.toastNaoFechou': 'O total lido não fechou com o do banco. Confira antes de salvar.',
   'importar.protegido': 'PDF protegido por senha.',
+  'importar.grande': 'Esse PDF é maior que o limite de 25 MB.',
   'importar.naoLi': 'Não consegui ler este arquivo.',
   'importar.emBreve': '{msg}. Em breve.',
   'salvar.okNovos': 'Salvo: {n} novos lançamentos.',

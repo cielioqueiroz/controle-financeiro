@@ -1,8 +1,10 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-18**.
+> Documento de continuidade. Última atualização: **2026-08-29**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
+
+> **Atualização 2026-08-29:** a migração `0003_integridade_referencias_por_usuario.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A função e os dois gatilhos de integridade entre usuários estão ativos.
 
 > **Três coisas saíram deste arquivo em 2026-08-17** e agora moram em lugar próprio.
 > Este documento continua sendo a porta de entrada, mas não é mais dono delas:
@@ -499,7 +501,7 @@ existe código. O app passou a se ajustar ao que **de fato chega na caixa de ent
 `verify-email` (`rateLimit` do plugin). O `429` tem mensagem própria — dizer "não
 consegui" ali mandaria a pessoa procurar defeito onde o conserto é **esperar**.
 
-**Sobre o "Hello cielioqueiroz@hotmail.com" em vez do nome:** não é um descuido do
+**Sobre o nome exibido no e-mail:** não é um descuido do
 template, é a **assinatura do callback**. O `sendVerificationOTP` recebe
 `{ email, otp, type }` — o objeto `user` não está lá, então o remetente da Neon não tem
 o nome para escrever. Só sai do lugar com **provedor de e-mail próprio + webhook**
@@ -1654,9 +1656,9 @@ gerou a dúvida das "Entradas" que durou de 05 a 09/08:
 Conta de teste no Neon: `teste.migracao@exemplo.com` (senha **não** versionada).
 ⚠️ **Essa conta nunca recebe e-mail** — `exemplo.com` é domínio reservado. Serve
 para logar, nunca para testar e-mail. Para isso use uma conta com caixa real.
-Existe também `cielioqueirozz@gmail.com`, criada via Google (sem senha própria,
-então não serve para testar redefinição), e `cielioqueiroz@hotmail.com`, criada
-com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
+Existe também uma conta criada via Google (sem senha própria, então não serve
+para testar redefinição), e uma conta criada com e-mail e senha justamente para
+testar a recuperação.
 
 ---
 
@@ -1707,8 +1709,9 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 
 ## 🚧 Fila do que falta — em ordem
 
-> **Estado em 2026-08-12 — a fila abaixo está toda ✅.** O que resta no projeto
-> inteiro são três coisas, e **nenhuma delas é código que dê para escrever hoje**:
+> **Estado em 2026-08-29:** a correção de integridade da migração `0003` foi aplicada
+> em produção. O que permanece na fila são três frentes, duas dependentes de
+> configuração/amostra e uma de validação manual:
 >
 > 1. **Fatia 1b (backend real)** — precisa da `DATABASE_URL` do Neon (role
 >    `authenticated`, sem BYPASSRLS) no `.env.local` da raiz. Sem ela não há o
@@ -1730,7 +1733,8 @@ com e-mail e senha em 2026-07-19 justamente para testar a recuperação.
 > foram entregues nesta sessão, junto do **polimento de design** (erro coeso, foco por
 > teclado, alvos de toque, donut sticky, ações no topo-direito). **Atualização
 > 2026-07-29: o item 3 (i18n) foi CONCLUÍDO** — resta só "mais bancos" (bloqueada até
-> vir amostra de PDF de texto) e o passo gated do item 4 (migração 0002 no Neon).
+> vir amostra de PDF de texto). As migrações `0002` e `0003` já foram aplicadas e
+> conferidas em produção.
 > O envio por **e-mail** (antigo passo 3 do item 2) foi **descartado**.
 > Spec/plano do design em `docs/superpowers/specs/2026-07-24-polimento-design-design.md`.
 
@@ -1744,7 +1748,7 @@ rolagem em 2026-07-23, mas **não** o fluxo de troca de senha real ponta a ponta
 
 O código está no ar e revisado; o fluxo de e-mail real ainda não foi exercido no navegador.
 
-⚠️ **Este roteiro troca a senha de verdade** de `cielioqueiroz@hotmail.com` — não é
+⚠️ **Este roteiro troca a senha de verdade** da conta de teste — não é
 ambiente de teste. Anote a senha que usar.
 
 Roteiro, em ordem (**1 e 2 já feitos em 2026-07-19**, o servidor sobe em
@@ -1752,7 +1756,7 @@ Roteiro, em ordem (**1 e 2 já feitos em 2026-07-19**, o servidor sobe em
 
 1. ~~`npm run dev`, `Ctrl+Shift+R` (nasceram arquivos novos).~~ ✅
 2. ~~`python scripts/medir-overflow.py` — sem rolagem lateral.~~ ✅
-3. "Esqueceu a senha?" → pedir link para `cielioqueiroz@hotmail.com`.
+3. "Esqueceu a senha?" → pedir link para a conta de teste.
 4. Abrir o link **no mesmo navegador** → trocar a senha → deve entrar direto,
    e o `?token=` deve sumir da barra de endereços.
 5. Limpar `localStorage.removeItem('cf:email-reset')` antes de abrir outro link

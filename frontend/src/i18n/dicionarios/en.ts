@@ -364,6 +364,7 @@ export const en: Dicionario = {
   'importar.toastSemGabarito': '{n} entries read, no total to check against.',
   'importar.toastNaoFechou': "The total read doesn't match the bank's. Check before saving.",
   'importar.protegido': 'Password-protected PDF.',
+  'importar.grande': 'This PDF is larger than the 25 MB limit.',
   'importar.naoLi': "Couldn't read this file.",
   'importar.emBreve': '{msg}. Coming soon.',
   'salvar.okNovos': 'Saved: {n} new entries.',
