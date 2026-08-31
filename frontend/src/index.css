@@ -388,11 +388,55 @@ body {
   animation: carimbo 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
+/* CHAMANDO: o halo que puxa o olho para o botão de salvar quando a
+   conferência FECHA.
+
+   Existe porque a prévia é longa — cabeçalho, carimbo, gráfico, lista de
+   lançamentos — e o botão que conclui o trabalho fica no topo, fora do campo
+   de visão de quem acabou de rolar até o fim. O halo diz "acabou, é aqui".
+
+   Três repetições, e não infinito: chamar para sempre é cobrar, e app de
+   dinheiro pede calma. Depois de ~5s ele se cala e o botão volta a ser um
+   botão.
+
+   Anel em `::after` ABSOLUTO, e não `box-shadow` no próprio botão: o botão já
+   tem sombra no hover, e animar a mesma propriedade faria uma apagar a outra.
+   `pointer-events: none` para o anel não roubar o clique — é o efeito que
+   existe justamente para o clique acontecer. */
+@keyframes halo {
+  0% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.22);
+  }
+}
+.chamando {
+  position: relative;
+}
+.chamando::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--halo, currentColor);
+  pointer-events: none;
+  animation: halo 1.6s ease-out 3;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .surgir,
   .carimbo,
   .pulso {
     animation: none;
+  }
+  /* O anel some por inteiro, e não fica parado em volta do botão: parado ele
+     viraria uma borda dupla permanente, que não quer dizer nada. */
+  .chamando::after {
+    animation: none;
+    content: none;
   }
 }
 

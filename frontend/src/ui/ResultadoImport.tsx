@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { BANCOS } from '../domain/banks'
 import type { DocKind } from '../domain/pdf/detect'
 import type { ParseResult } from '../domain/parsers/types'
@@ -108,12 +108,17 @@ export function ResultadoImport({
               {t('fila.progresso', { n: progresso.atual, total: progresso.total })}
             </span>
           )}
+          {/* O halo só quando a conferência FECHA. Documento que divergiu não
+              deve ser empurrado para o histórico com pressa — ali o que a
+              pessoa precisa é olhar a diferença, não clicar rápido. */}
           {podeSalvar && (
             <button
               onClick={onSalvar}
               disabled={salvando}
-              className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50"
-              style={{ background: tema.accent, color: tema.tinta }}
+              className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 ${
+                conf.status === 'confere' && !salvando ? 'chamando' : ''
+              }`}
+              style={{ background: tema.accent, color: tema.tinta, '--halo': tema.accent } as CSSProperties}
             >
               {salvando ? t('geral.salvando') : t('import.salvarHistorico')}
             </button>
