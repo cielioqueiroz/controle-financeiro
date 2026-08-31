@@ -24,9 +24,11 @@ sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature.
 ├── frontend/          o app inteiro: src, testes, index.html, vite.config.ts
 │   ├── index.html     ponto de entrada do Vite (NÃO fica na raiz)
 │   ├── demo.html      segunda entrada, só para gerar os prints do README
-│   ├── src/           125 arquivos de fonte + 85 de teste
-│   └── tests/fixtures/  7 JSONs de PDF já extraído
-├── backend/db/migrations/   0001_schema_inicial.sql, 0002_saldo_e_bancos.sql
+│   ├── src/           fonte e teste lado a lado (~135 + ~90 arquivos)
+│   └── tests/fixtures/  um JSON por documento de referência — hoje 9,
+│                        dois por banco de cartão e um por banco de conta
+├── backend/db/migrations/   0001 schema · 0002 saldo e bancos ·
+│                            0003 integridade entre usuários · 0004 Mercado Pago
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
@@ -41,10 +43,10 @@ sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature.
 | `persist/` | Conversa com o Neon + a agregação de leitura (`agrupar.ts`). |
 | `dados/` | Estado de tela compartilhado: os três providers, filtros da URL, recorte. |
 | `paginas/` | As seis telas **roteadas e autenticadas**. |
-| `ui/acesso/` | As telas de **anônimo** (entrar, criar conta, recuperar, confirmar) e o que só elas usam. |
+| `ui/acesso/` | As telas de **anônimo** (entrar, criar conta, recuperar, confirmar) e o que só elas usam — inclusive o `FundoAcesso`, a atmosfera em camada `fixed`. |
 | `ui/graficos/` | Os quatro gráficos e a escala robusta de barras. |
 | `ui/listas/` | Quem desenha linhas sobre transações: os dois rankings e as três listas. |
-| `ui/` (raiz) | O que não pertence a um grupo só — primitivos (`Portal`, `ValorAnimado`), marca (`Marca`, `MoedaLogo`), casco (`Cabecalho`, `Rodape`) e peças usadas por mais de um grupo (`MarcaCategoria`). |
+| `ui/` (raiz) | O que não pertence a um grupo só — primitivos (`Portal`, `ValorAnimado`), marca (`Marca`, `MoedaLogo`), casco (`Cabecalho`, `Rodape`) e peças usadas por mais de um grupo (`MarcaCategoria`, `CarimboConferencia`). |
 | `lib/` | Cliente do Neon, perfil, erros, PDF de relatório e utilidades de plataforma. |
 | `i18n/`, `navegacao/` | Dicionários (pt, en, es) e rotas. `navegacao/` tem **duas** navegações sobre a mesma `ROTAS`: `NavLateral` (a calha, `lg`+) e `NavPrincipal` (a barra horizontal, abaixo de `lg`). |
 
@@ -87,6 +89,13 @@ arquivo → domain/pdf/load.ts        pdf.js extrai os text items
         → persist/salvar.ts         categoriza, vincula, deduplica e grava
 ```
 
+⚠️ **Gravou, o histórico tem que reler.** O `ImportacaoProvider` incrementa
+`salvos`, e o `DadosProvider` escuta esse contador e chama `recarregar()`. Sem
+esse último passo o documento só aparece depois de um F5 — foi defeito real até
+2026-08-31, e o comentário que estava no lugar dele afirmava que voltar ao
+Painel "recarrega e mostra o que acabou de entrar". **Voltar é navegar, e
+navegar não remonta o `DadosProvider`**, que fica acima das `<Routes>`.
+
 `persist/salvar.ts` é onde três regras de domínio se encontram na gravação:
 `categorize/regras` (categoria), `link/vinculos` (o que não conta como gasto) e
 `dedupe/hash` (o que já está no banco). **É também onde mora o discriminador de
@@ -97,7 +106,8 @@ transações idênticas** — ele conta ocorrências e sufixa `#2`; não está n
 
 ```
 persist/puxar.ts + documentos.ts + categoriasUsuario.ts
-        → dados/DadosProvider      busca uma vez, na montagem do galho logado
+        → dados/DadosProvider      busca na montagem do galho logado, e de
+                                   novo a cada documento gravado (ver acima)
         → persist/agrupar.ts       competência, filtrar por período, agregar
         → dados/useFiltros         o recorte vem da URL
         → paginas/*                ui/graficos + ui/listas desenham
@@ -112,6 +122,14 @@ também as globais (`user_id is null`).
 
 Três índices em `transactions`: `(user_id, date)`, `(document_id)` e
 `(user_id, category_slug)`.
+
+**RLS não é a única defesa.** A migração `0003` acrescentou uma função e dois
+gatilhos que recusam relação apontando para linha de OUTRO usuário — chave
+estrangeira sozinha não garante isso. Ver
+[ADR-0010](./docs/adr/0010-cqrs-e-integridade-de-dados.md).
+
+⚠️ **`accounts.bank` tem CHECK**, e ele é a razão de banco novo exigir migração
+(ver §2.3). Hoje aceita os seis do catálogo mais `desconhecido`.
 
 O que protege o dado é **login + RLS + JWT**, não obscuridade: as `VITE_*` são
 URLs públicas por design.
@@ -171,13 +189,35 @@ sinônimo autorizado em código.
 
 ## 2.3 Adicionar um banco
 
-Um arquivo novo em `domain/parsers/`, uma assinatura em `domain/pdf/detect.ts` e
-uma entrada no `if` de `domain/parsers/index.ts`. **Nada a jusante muda**, porque
-todo parser devolve o mesmo `ParseResult` — transações, gabaritos, período,
-`AccountHint` e `Forward`.
+**Nada a jusante da leitura muda**, porque todo parser devolve o mesmo
+`ParseResult` — transações, gabaritos, período, `AccountHint` e `Forward`. Mas
+"a jusante" não é o repositório inteiro, e a lista abaixo é a conta completa:
+
+1. **O parser**, em `domain/parsers/`. Escrito contra um PDF real: assinatura de
+   layout é um conjunto de marcadores lidos do documento, e inventar um é
+   escrever um detector que nunca casa ou, pior, que casa com o errado.
+2. **A assinatura** em `domain/pdf/detect.ts` e o despacho em
+   `domain/parsers/index.ts`.
+3. **O valor no tipo `Bank`** e o tema em `domain/banks.ts` (o `Record<Bank, …>`
+   é exaustivo e cobra isso).
+4. ⚠️ **UMA MIGRAÇÃO**, ampliando o CHECK de `accounts.bank`. **Sem ela a
+   primeira importação daquele banco FALHA INTEIRA**, com uma mensagem de
+   Postgres que não diz ao usuário o que aconteceu — e ela precisa estar
+   aplicada no Neon, não só escrita em `backend/db/migrations/`.
+5. **O fixture**, por `npm run fixtures -- <pasta> [outra-pasta...]`, com as
+   regras de anonimização do banco novo. A auditoria do script **só sabe
+   procurar o que já lhe ensinaram**: em 31/08 dois dados atravessaram todas as
+   gerações anteriores porque ninguém os tinha posto na lista `PROIBIDOS`.
+6. **O carrossel da tela de acesso**, `ui/CarrosselBancos.tsx` — **e só depois
+   de os passos 1 e 2 existirem**. Aquilo diz "já lê os extratos de", e um nome
+   ali sem parser é o app mentindo na vitrine.
 
 No `detect.ts` a **ordem das assinaturas importa**: o extrato do Bradesco também
 contém "Fatura" no rodapé, então a assinatura mais específica vem primeiro.
+Melhor ainda é a assinatura que **não depende de ordem** — duas marcas
+exclusivas daquele emissor, como as do Mercado Pago (`DETALHE DOS MOVIMENTOS` +
+`ID da operação`). "EXTRATO DE CONTA" sozinho casaria por prefixo com o
+"Extrato de Conta Corrente" do BB.
 
 ## 2.4 Conferência antes de confiar
 
@@ -236,6 +276,29 @@ senão o lint `--deny-warnings` derruba a verificação inteira.
 - **Comentário só onde a regra de negócio não é dedutível do código** — as
   armadilhas abaixo merecem; o resto, não.
 - **Toda decisão que um leitor acharia errada vira ADR**, em `docs/adr/`.
+
+## 2.10 Desenho
+
+**A direção é o "livro-razão"**: IBM Plex Sans / Condensed / Mono, a escala de
+raio do Tailwind, cartão com sombra, e o gradiente do botão "Entrar" como o
+**único** gradiente do sistema (a tela de acesso é vitrine; o resto é
+ferramenta). Os tokens e o porquê de cada cor moram em `frontend/src/index.css`.
+
+⚠️ **Não reintroduzir o "impresso e terminal"** — Courier Prime, raio zero, sem
+cartão, cor racionada. Ele existiu entre 25 e 31/08 e foi revertido a pedido do
+dono; a história inteira está na
+[ADR-0012](./docs/adr/0012-o-livro-razao-volta-e-a-calha-lateral-nasce.md). Não
+houve achado técnico contra ele: perdeu por gosto, que é critério suficiente.
+
+**A consequência que vale para a próxima direção:** ela tem que caber num
+commit reversível. O `f4bd601` cabia — `index.css`, `fontes.css`, `index.html` e
+retoques — e por isso o `git revert` resolveu com dois conflitos. Redesenho
+espalhado por cinquenta arquivos de componente deixa de ser reversível e vira
+reescrita.
+
+**Cor é medida, não opinada.** `python scripts/medir-contraste.py` depois de
+mexer em qualquer cor. Texto sobre GRADIENTE passa nas duas pontas, não na
+média — o ciano da referência dava 3.94:1 no tema claro e foi recusado por isso.
 
 ---
 
