@@ -1,4 +1,6 @@
 import { motion } from 'motion/react'
+import { useLocation } from 'react-router-dom'
+import { ROTAS } from '../navegacao/rotas'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
 import { DiscretoToggle } from './DiscretoToggle'
@@ -30,6 +32,14 @@ type Props = {
  *  Irmão do `Rodape`: as duas pontas do mesmo casco. */
 export function Cabecalho({ logado, usuario, onSair, onVerTutorial, onEditarPerfil }: Props) {
   const { t } = useT()
+  const { pathname } = useLocation()
+
+  // A saudação é boas-vindas, e boas-vindas se dá UMA vez: repetida em cada
+  // seção ela vira moldura, e o "Importe a fatura, o resto a gente calcula"
+  // fica pedindo importação a quem está no meio de outra tarefa. Fora do
+  // Painel o título é a seção — que, até 2026-08-31, nenhuma página tinha.
+  const rota = ROTAS.find((r) => r.caminho === pathname)
+  const noPainel = pathname === '/'
 
   return (
     <>
@@ -57,7 +67,12 @@ export function Cabecalho({ logado, usuario, onSair, onVerTutorial, onEditarPerf
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
             className="screen-only mt-4 font-display text-3xl leading-[1.1] text-tinta sm:text-4xl lg:mt-0"
           >
-            {logado ? (
+            {logado && !noPainel ? (
+              // Rota desconhecida não chega aqui (o `<Routes>` redireciona ao
+              // Painel), mas se chegasse, cair na saudação é melhor que um
+              // título vazio.
+              t(rota?.chave ?? 'rota.painel')
+            ) : logado ? (
               <>
                 {t('header.ola', { nome: comoChamar(usuario?.nome, usuario?.email) })}{' '}
                 <motion.span

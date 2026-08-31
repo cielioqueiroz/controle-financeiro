@@ -1,9 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { ROTAS } from './rotas'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** Barra de seções do sistema. Estilo deliberadamente mínimo: esta fatia é
  *  estrutura, e o desenho vem na seguinte. */
 export function NavPrincipal() {
+  const { t } = useT()
   // O recorte (período, mês, banco, busca) vive na query, e as páginas são
   // vistas DIFERENTES DO MESMO recorte. Navegar para o caminho pelado o
   // jogava fora: quem estava em maio filtrando o Nubank clicava em
@@ -31,7 +33,7 @@ export function NavPrincipal() {
                 }`
               }
             >
-              {r.rotulo}
+              {t(r.chave)}
             </NavLink>
           </li>
         ))}

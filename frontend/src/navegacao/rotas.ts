@@ -1,3 +1,5 @@
+import type { Dicionario } from '../i18n/dicionarios/pt'
+
 /** As seções do sistema, em uma fonte da verdade só.
  *
  *  A barra de navegação e o <Routes> leem esta mesma lista, então não há
@@ -8,14 +10,21 @@
  *  retrospectivo (só mostra o que dá para derivar do que foi importado) e
  *  poupança, no app que serviu de referência, nasce de dado digitado.
  *  Decisão de 2026-08-05, reafirmada pelo usuário em 2026-08-07. */
+/** ⚠️ O rótulo é uma CHAVE do dicionário, não a palavra.
+ *
+ *  Ele era texto fixo em português aqui dentro, e passou despercebido
+ *  enquanto vivia só na barra de navegação. Em 2026-08-31 ele virou também o
+ *  TÍTULO da página — a maior frase de cinco das seis telas —, e uma frase
+ *  desse tamanho fora do dicionário quebra a regra do §2.7 em três idiomas
+ *  de uma vez. */
 export const ROTAS = [
-  { caminho: '/', rotulo: 'Painel' },
-  { caminho: '/lancamentos', rotulo: 'Lançamentos' },
-  { caminho: '/faturas', rotulo: 'Faturas' },
-  { caminho: '/importar', rotulo: 'Importação' },
-  { caminho: '/categorias', rotulo: 'Categorias' },
-  { caminho: '/recorrencias', rotulo: 'Recorrências' },
-] as const
+  { caminho: '/', chave: 'rota.painel' },
+  { caminho: '/lancamentos', chave: 'rota.lancamentos' },
+  { caminho: '/faturas', chave: 'rota.faturas' },
+  { caminho: '/importar', chave: 'rota.importacao' },
+  { caminho: '/categorias', chave: 'rota.categorias' },
+  { caminho: '/recorrencias', chave: 'rota.recorrencias' },
+] as const satisfies ReadonlyArray<{ caminho: string; chave: keyof Dicionario }>
 
 /* "Datas" (calendário do mês, derivado do `diaTipico` das recorrências) saiu
  * em 2026-08-12: com dois meses de histórico importado nada é reconhecido

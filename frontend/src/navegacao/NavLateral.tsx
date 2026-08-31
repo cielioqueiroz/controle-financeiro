@@ -4,6 +4,7 @@ import { ROTAS } from './rotas'
 import { Marca } from '../ui/Marca'
 import { ContaMenu } from '../ui/ContaMenu'
 import { neon } from '../lib/neon'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** Um ícone por seção, casado pelo CAMINHO e não pela posição na lista.
  *
@@ -66,6 +67,7 @@ type Props = {
  *  mesmo recorte. Navegar para o caminho pelado jogaria o recorte fora. */
 export function NavLateral({ usuario, onSair, onVerTutorial, onEditarPerfil }: Props) {
   const { search } = useLocation()
+  const { t } = useT()
 
   return (
     <aside className="screen-only sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-carvao-700 bg-carvao-900 lg:flex">
@@ -110,7 +112,7 @@ export function NavLateral({ usuario, onSair, onVerTutorial, onEditarPerfil }: P
                     >
                       {ICONES[r.caminho] ?? GENERICO}
                     </svg>
-                    <span className="truncate">{r.rotulo}</span>
+                    <span className="truncate">{t(r.chave)}</span>
                   </>
                 )}
               </NavLink>

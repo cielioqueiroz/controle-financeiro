@@ -4,6 +4,9 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { NavPrincipal } from './NavPrincipal'
 import { ROTAS } from './rotas'
+// O rótulo saiu de `rotas.ts` e virou chave de dicionário: o teste lê a
+// mesma fonte da verdade que a tela, em vez de repetir as seis palavras.
+import { pt } from './../i18n/dicionarios/pt'
 
 function montar(rota = '/') {
   return render(
@@ -17,7 +20,7 @@ describe('NavPrincipal', () => {
   it('oferece um link para cada rota declarada', () => {
     montar()
     for (const r of ROTAS) {
-      expect(screen.getByRole('link', { name: r.rotulo })).toHaveAttribute('href', r.caminho)
+      expect(screen.getByRole('link', { name: pt[r.chave] })).toHaveAttribute('href', r.caminho)
     }
   })
 
@@ -56,7 +59,7 @@ describe('NavPrincipal', () => {
   it('leva o recorte da URL junto ao trocar de página', () => {
     montar('/?p=dia&ref=2026-05-17&banco=nubank')
     for (const r of ROTAS) {
-      expect(screen.getByRole('link', { name: r.rotulo })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: pt[r.chave] })).toHaveAttribute(
         'href',
         `${r.caminho}?p=dia&ref=2026-05-17&banco=nubank`,
       )
