@@ -21,6 +21,7 @@ import { DiscretoProvider } from './dados/DiscretoProvider'
 import { diagnosticar } from './domain/diagnosticos'
 import { NavLateral } from './navegacao/NavLateral'
 import { CarimboConferencia } from './ui/CarimboConferencia'
+import { Procedencia } from './ui/Procedencia'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
@@ -213,6 +214,22 @@ export function Folha() {
 
       <Secao titulo="aviso-email">
         <AvisoConfirmarEmail email="voce@exemplo.com" onConfirmado={() => {}} />
+      </Secao>
+
+      {/* Amostra propria, e nao TUDO: aquele e um documento so, e a linha
+          existe justamente para mostrar a mistura. O rotulo tem a forma que
+          `rotuloPeriodo` devolve ("jul 2026") — passar outra coisa aqui faria
+          a folha provar um caso que a tela nao produz. */}
+      <Secao titulo="procedencia">
+        <Procedencia
+          txs={[
+            tx({ document_id: 'nu-fat', doc_type: 'fatura', bank: 'nubank' }),
+            tx({ document_id: 'nu-ext', doc_type: 'extrato', bank: 'nubank' }),
+            tx({ document_id: 'bra-fat', doc_type: 'fatura', bank: 'bradesco' }),
+            tx({ document_id: 'mp-ext', doc_type: 'extrato', bank: 'mercadopago' }),
+          ]}
+          periodo="jul 2026"
+        />
       </Secao>
 
       <Secao titulo="saldos">

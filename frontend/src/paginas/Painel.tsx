@@ -19,6 +19,7 @@ import { useRecorte } from '../dados/useRecorte'
 import { escreverFiltros } from '../dados/filtros'
 import { BarraFiltros } from '../ui/BarraFiltros'
 import { rotuloPeriodo } from '../dados/periodo'
+import { Procedencia } from '../ui/Procedencia'
 import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
 import { GraficoEvolucao } from '../ui/graficos/GraficoEvolucao'
 import { GraficoDiario } from '../ui/graficos/GraficoDiario'
@@ -291,6 +292,13 @@ export function Painel({ onAprendeu }: Props) {
           <span className="capitalize">{rotuloPeriodo(filtros.periodo, filtros.ref)}</span>
         </h1>
       </div>
+
+      {/* A procedência antes de qualquer número: é ela que diz de QUE
+          documentos os totais abaixo saíram. Fica fora do bloco dos tiles
+          de propósito — descreve o bloco, não é um item dele. */}
+      {!carregando && !erro && !vazio && (
+        <Procedencia txs={txs} periodo={rotuloPeriodo(filtros.periodo, filtros.ref)} />
+      )}
 
       <div className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900">
         {carregando ? (
