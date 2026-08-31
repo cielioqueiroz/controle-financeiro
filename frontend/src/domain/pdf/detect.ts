@@ -1,6 +1,19 @@
 import type { Line } from './lines'
 
-export type Bank = 'bradesco' | 'nubank' | 'bb' | 'sicredi' | 'sicoob' | 'desconhecido'
+export type Bank =
+  | 'bradesco'
+  | 'nubank'
+  | 'bb'
+  | 'sicredi'
+  | 'sicoob'
+  /** ⚠️ SEM PARSER AINDA. O tipo, o tema e a migração `0004` existem para
+   *  que o parser possa nascer sem mexer em mais nada; a assinatura em
+   *  `ASSINATURAS` (abaixo) e o despacho em `parsers/index.ts` só podem
+   *  ser escritos contra um PDF de verdade. Enquanto isso `detect` nunca
+   *  devolve este valor, e o Mercado Pago NÃO entra no carrossel da tela
+   *  de acesso — ele diz "já lê os extratos de", e ainda não lê. */
+  | 'mercadopago'
+  | 'desconhecido'
 export type DocType = 'fatura' | 'extrato' | 'desconhecido'
 export type DocKind = { bank: Bank; docType: DocType }
 

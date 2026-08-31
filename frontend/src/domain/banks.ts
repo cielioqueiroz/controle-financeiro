@@ -41,6 +41,12 @@ export const BANCOS: Record<Bank, BankTheme> = {
     wash: 'rgba(0, 174, 157, 0.12)',
     tinta: '#F5F3EF',
   },
+  mercadopago: {
+    nome: 'Mercado Pago',
+    accent: '#009EE3',
+    wash: 'rgba(0, 158, 227, 0.12)',
+    tinta: '#F5F3EF',
+  },
   desconhecido: {
     nome: 'Documento',
     accent: '#8A857C',
