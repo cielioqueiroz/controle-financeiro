@@ -7,6 +7,8 @@ import { parseBradescoFatura } from './bradesco-fatura'
 import { parseBBExtrato } from './bb-extrato'
 import { parseSicrediExtrato } from './sicredi-extrato'
 import { parseSicoobExtrato } from './sicoob-extrato'
+import { parseMercadoPagoFatura } from './mercadopago-fatura'
+import { parseMercadoPagoExtrato } from './mercadopago-extrato'
 import type { ParseResult } from './types'
 
 export class ParserNaoImplementadoError extends Error {
@@ -48,6 +50,13 @@ export function parse(lines: Line[]): { kind: DocKind; result: ParseResult } {
   }
   if (kind.bank === 'sicoob' && kind.docType === 'extrato') {
     return { kind, result: parseSicoobExtrato(lines) }
+  }
+
+  if (kind.bank === 'mercadopago' && kind.docType === 'fatura') {
+    return { kind, result: parseMercadoPagoFatura(lines) }
+  }
+  if (kind.bank === 'mercadopago' && kind.docType === 'extrato') {
+    return { kind, result: parseMercadoPagoExtrato(lines) }
   }
 
   throw new ParserNaoImplementadoError(kind)

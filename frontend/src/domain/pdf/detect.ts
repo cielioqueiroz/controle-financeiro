@@ -6,12 +6,6 @@ export type Bank =
   | 'bb'
   | 'sicredi'
   | 'sicoob'
-  /** ⚠️ SEM PARSER AINDA. O tipo, o tema e a migração `0004` existem para
-   *  que o parser possa nascer sem mexer em mais nada; a assinatura em
-   *  `ASSINATURAS` (abaixo) e o despacho em `parsers/index.ts` só podem
-   *  ser escritos contra um PDF de verdade. Enquanto isso `detect` nunca
-   *  devolve este valor, e o Mercado Pago NÃO entra no carrossel da tela
-   *  de acesso — ele diz "já lê os extratos de", e ainda não lê. */
   | 'mercadopago'
   | 'desconhecido'
 export type DocType = 'fatura' | 'extrato' | 'desconhecido'
@@ -49,6 +43,19 @@ const ASSINATURAS: Array<{ kind: DocKind; marcadores: RegExp[] }> = [
   {
     kind: { bank: 'sicoob', docType: 'extrato' },
     marcadores: [/SICOOB/i, /SISBR|PLATAFORMA DE SERVI[çc]OS/i],
+  },
+  {
+    kind: { bank: 'mercadopago', docType: 'fatura' },
+    marcadores: [/Essa [ée] sua fatura de/i, /Detalhes de consumo/i],
+  },
+  {
+    // "EXTRATO DE CONTA" sozinho seria imprudente: o do BB começa com
+    // "Extrato de Conta Corrente" e casaria por prefixo. Estas duas são
+    // exclusivas do Mercado Pago, então a ordem desta entrada na lista
+    // deixa de importar — e uma assinatura que não depende de ordem é uma
+    // armadilha a menos no dia em que a lista crescer.
+    kind: { bank: 'mercadopago', docType: 'extrato' },
+    marcadores: [/DETALHE DOS MOVIMENTOS/i, /ID da opera[çc][ãa]o/i],
   },
 ]
 

@@ -7,7 +7,7 @@
  *
  *  Uso: npm run fixtures -- <pasta-com-os-pdfs>
  */
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, access } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 import { extractFromDocument } from '../frontend/src/domain/pdf/extract'
@@ -20,6 +20,8 @@ const ENTRADAS = [
   { arquivo: 'extratoBradescoJunho.pdf', saida: 'bradesco-extrato' },
   { arquivo: 'NuBank_extratoConta.pdf', saida: 'nubank-extrato' },
   { arquivo: 'Nubank_faturaCartao.pdf', saida: 'nubank-fatura' },
+  { arquivo: 'credit-card-mp-statement.pdf', saida: 'mercadopago-fatura' },
+  { arquivo: 'ffd46a6a-b950-498a-a701-3aab2897172d.pdf', saida: 'mercadopago-extrato' },
 ]
 
 /** Substituições literais, aplicadas na ordem. As mais longas vêm antes
@@ -60,7 +62,38 @@ const SUBSTITUICOES: Array<[RegExp, string]> = [
   [/\b698\b/g, '111'],
   [/00200000406655999845516420260617202606280000/g, '00200000411155999999999920260617202606280000'],
   [/1FP005VPC103PF/g, '1XX000XXX000XX'],
+  // ACHADO EM 2026-08-31, ao gerar os fixtures do Mercado Pago: estes
+  // dois atravessaram todas as geracoes anteriores SEM anonimizacao, e o
+  // repositorio e publico desde 25/08. Nenhum e nome de pessoa nem CPF —
+  // um numero de conta solto no extrato Nubank e a razao social de um
+  // terceiro — mas a regra do projeto nao abre excecao por severidade.
+  [/3117878715-6/g, '5566778899-0'],
+  // Mercado Pago. O extrato quebra o nome do titular no meio da descricao
+  // do Pix ("Pix recebido JACIELIO DA" / "SILVA QUEIROZ"), entao o par
+  // colado precisa de regra propria — as de cima so pegam o nome inteiro.
+  [/SILVA QUEIROZ/g, 'APARECIDA SANTOSS'],
+  [/07612746425/g, '00011122233'],
+  [/10624791647/g, '99988877766'],
+  [/1465\]/g, '9012]'],
+  [/L C COMERCIO/g, 'X Y COMERCIO'],
+  [/GREYCOMLTDA/g, 'LOJAUMLTDA'],
+  [/EXTRACTONATU/g, 'PRODUTOSNAT'],
 ]
+
+/** SO PARA O MERCADO PAGO. Identificadores de operacao do extrato: 9+
+ *  digitos que
+ *  referenciam UMA transacao da conta. Nao sao dado publico, e sao 21
+ *  diferentes — lista literal envelheceria no proximo extrato.
+ *
+ *  O deslocamento e deterministico de proposito: fixture e versionado, e um
+ *  embaralhamento aleatorio faria o arquivo mudar a cada geracao, poluindo
+ *  o diff sem mudar nada de verdade. Preserva o COMPRIMENTO, que e o que o
+ *  parser enxerga (ele exige 6+ digitos). */
+function embaralharIds(texto: string): string {
+  return texto.replace(/\b\d{9,}\b/g, (d) =>
+    [...d].map((c) => String((Number(c) + 3) % 10)).join(''),
+  )
+}
 
 /** Substituições por item INTEIRO. O Bradesco fatia o nome do titular em
  *  items separados no bloco de endereço ("MARIAXXX" / "DA" / "SILVA" /
@@ -74,7 +107,11 @@ const EXATOS: Record<string, string> = {
   Queiroz: 'Santoss',
 }
 
-function anonimizar(items: TextItem[]): TextItem[] {
+/** `embaralhar` fica desligado fora do Mercado Pago: ligado para todos,
+ *  ele reescrevia dado que JA estava falso — o codigo de barras e a conta
+ *  trocada do Bradesco — e fixture que muda sem motivo e diff que ninguem
+ *  le. Anonimizar duas vezes nao protege mais; so esconde o que mudou. */
+function anonimizar(items: TextItem[], embaralhar: boolean): TextItem[] {
   return items.map((item) => {
     const exato = EXATOS[item.text.trim()]
     if (exato !== undefined) return { ...item, text: exato }
@@ -83,7 +120,7 @@ function anonimizar(items: TextItem[]): TextItem[] {
     for (const [padrao, troca] of SUBSTITUICOES) {
       texto = texto.replace(padrao, troca)
     }
-    return { ...item, text: texto }
+    return { ...item, text: embaralhar ? embaralharIds(texto) : texto }
   })
 }
 
@@ -103,6 +140,11 @@ const PROIBIDOS = [
   /deividy/i,
   /tathiana/i,
   /8304/,
+  /3117878715/,
+  /07612746425/,
+  /10624791647/,
+  /1465\]/,
+  /L C COMERCIO/,
   /5164/,
 ]
 
@@ -113,10 +155,28 @@ function auditar(nome: string, items: TextItem[]): string[] {
   )
 }
 
+/** Acha o PDF na primeira pasta que o tiver.
+ *
+ *  As amostras vivem por safra (`junho2026`, `agosto2026`), e nao numa
+ *  pasta so: exigir tudo junto obrigaria a copiar PDF com CPF de um lugar
+ *  para outro toda vez que um banco novo entrasse. */
+async function acharPdf(pastas: string[], arquivo: string): Promise<string> {
+  for (const pasta of pastas) {
+    const caminho = join(pasta, arquivo)
+    try {
+      await access(caminho)
+      return caminho
+    } catch {
+      // proxima pasta
+    }
+  }
+  throw new Error(`nao achei ${arquivo} em: ${pastas.join(', ')}`)
+}
+
 async function main() {
-  const pasta = process.argv[2]
-  if (!pasta) {
-    console.error('Uso: npm run fixtures -- <pasta-com-os-pdfs>')
+  const pastas = process.argv.slice(2)
+  if (pastas.length === 0) {
+    console.error('Uso: npm run fixtures -- <pasta-com-os-pdfs> [outra-pasta...]')
     process.exit(1)
   }
 
@@ -126,12 +186,12 @@ async function main() {
   const problemas: string[] = []
 
   for (const { arquivo, saida } of ENTRADAS) {
-    const buffer = await readFile(join(pasta, arquivo))
+    const buffer = await readFile(await acharPdf(pastas, arquivo))
     const data = new Uint8Array(buffer)
 
     const doc = await pdfjs.getDocument({ data, useSystemFonts: false }).promise
     const items = await extractFromDocument(doc)
-    const anonimos = anonimizar(items)
+    const anonimos = anonimizar(items, saida.startsWith('mercadopago'))
 
     problemas.push(...auditar(saida, anonimos))
 
