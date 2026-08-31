@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { mesAbrev } from '../../domain/normalize/data'
 import { BANCOS } from '../../domain/banks'
 import type { Bank } from '../../domain/pdf/detect'
 import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
 import type { MesFuturo } from '../../persist/agrupar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   meses: MesFuturo[]
@@ -37,6 +38,7 @@ function tema(bank: string) {
  *  nunca vai sozinha: cada barra tem o valor no nome acessível, com a parte
  *  de cada banco, e a legenda nomeia quem está no gráfico. */
 export function GraficoCompromissos({ meses, onSelecionar }: Props) {
+  const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const { t } = useT()
   const [emFoco, setEmFoco] = useState<string | null>(null)

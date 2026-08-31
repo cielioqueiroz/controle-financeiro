@@ -1,9 +1,10 @@
-import { formatBRL } from '../domain/normalize/money'
+
 // `dataLongaDe` entrega dd/mm/aaaa na locale ativa — o nome diz "longa",
 // o comportamento e o comentario dela dizem numerica curta.
 import { dataLongaDe } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
 import type { Validacao } from '../domain/validate/checksum'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 type Props = {
   conf: Validacao
@@ -34,6 +35,7 @@ type Props = {
  *  diz o estado por extenso, e o `role="status"` faz um leitor de tela
  *  anunciá-lo quando ele aparece. */
 export function CarimboConferencia({ conf, data }: Props) {
+  const formatBRL = useDinheiro()
   const { t } = useT()
 
   const { palavra, detalhe, cor, giro } =

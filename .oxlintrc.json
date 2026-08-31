@@ -13,7 +13,8 @@
           "useTravarRolagem",
           "useDiscreto",
           "useImportacao",
-          "useImportacaoOpcional"
+          "useImportacaoOpcional",
+          "useDinheiro"
         ]
       }
     ]

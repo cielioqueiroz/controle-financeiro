@@ -2,9 +2,10 @@ import { useId, useMemo, useState } from 'react'
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
 import { buscar } from '../../domain/busca'
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { useT } from '../../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../../persist/puxar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   txs: TransacaoSalva[]
@@ -28,6 +29,7 @@ type Props = {
  *  tinha resposta antes: só dava para navegar por agrupamento, nunca
  *  procurar. Ordena por data desc, a ordem que a memória usa. */
 export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props) {
+  const formatBRL = useDinheiro()
   const { t, idioma } = useT()
   const [focado, setFocado] = useState(false)
   const dicaId = useId()

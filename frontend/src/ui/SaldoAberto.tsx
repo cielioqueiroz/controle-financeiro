@@ -1,8 +1,9 @@
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
-import { formatBRL } from '../domain/normalize/money'
+
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 /** "2026-07-20" → "20/jul" (mês na locale ativa). Constrói a data local para
  *  não escorregar de fuso (a data já é local, da fatura). */
@@ -37,6 +38,7 @@ type Props = {
  *  Irmão de `SaldoConta` (saldo do extrato) e mora na mesma grade. Banco fora
  *  do catálogo cai no tema "desconhecido" sem quebrar. */
 export function SaldoAberto({ bank, abertoCents, futurasCents, proximoFechamento }: Props) {
+  const formatBRL = useDinheiro()
   const tema = BANCOS[bank as Bank] ?? BANCOS.desconhecido
   const { t } = useT()
 

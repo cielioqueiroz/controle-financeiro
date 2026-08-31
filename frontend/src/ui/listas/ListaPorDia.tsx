@@ -1,7 +1,8 @@
 import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
-import { formatBRL } from '../../domain/normalize/money'
+
 import type { GrupoDia } from '../../persist/agrupar'
 import type { TransacaoSalva } from '../../persist/puxar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   grupos: GrupoDia<TransacaoSalva>[]
@@ -21,6 +22,7 @@ function cabecalhoDia(iso: string): string {
  *  subtotal (gasto e entradas), e abaixo tudo o que rolou naquele dia —
  *  compras, débitos, créditos, estornos. */
 export function ListaPorDia({ grupos, onEditar }: Props) {
+  const formatBRL = useDinheiro()
   if (grupos.length === 0) {
     return <p className="px-6 py-10 text-center text-sm text-tinta-fraca">Sem lançamentos neste período.</p>
   }

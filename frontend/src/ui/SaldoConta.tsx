@@ -1,8 +1,9 @@
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
-import { formatBRL } from '../domain/normalize/money'
+
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 /** "2026-06-30" → "30/jun" (mês na locale ativa). Constrói a data local para
  *  não escorregar de fuso (a data já é local, do extrato). */
@@ -16,6 +17,7 @@ type Props = { bank: string; balanceCents: number; date: string }
 /** Card compacto do saldo de uma conta. Nome e cor vêm do catálogo canônico
  *  (`BANCOS`); banco fora do catálogo cai em "Documento" sem quebrar. */
 export function SaldoConta({ bank, balanceCents, date }: Props) {
+  const formatBRL = useDinheiro()
   const tema = BANCOS[bank as Bank] ?? BANCOS.desconhecido
   const negativo = balanceCents < 0
   const { t } = useT()

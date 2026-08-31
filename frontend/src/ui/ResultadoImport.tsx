@@ -2,7 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { BANCOS } from '../domain/banks'
 import type { DocKind } from '../domain/pdf/detect'
 import type { ParseResult } from '../domain/parsers/types'
-import { formatBRL } from '../domain/normalize/money'
+
 import { dataLongaDe } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { validar } from '../domain/validate/checksum'
@@ -13,6 +13,7 @@ import { CATEGORIAS, nomeCategoria } from '../domain/categorize/categorias'
 import { useT } from '../i18n/IdiomaProvider'
 import { interpolarNos } from '../i18n/interpolarNos'
 import { GraficoCategorias } from './graficos/GraficoCategorias'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 type Props = {
   kind: DocKind
@@ -46,6 +47,7 @@ export function ResultadoImport({
   progresso,
   onCancelarFila,
 }: Props) {
+  const formatBRL = useDinheiro()
   const { t } = useT()
   const tema = BANCOS[kind.bank]
   const conf = validar(result)
@@ -213,6 +215,7 @@ function LinhaTransacao({
   onCategoria: (slug: string) => void
   onLabel: (txt: string) => void
 }) {
+  const formatBRL = useDinheiro()
   const { t: tr } = useT()
   const [editando, setEditando] = useState(false)
   const interno = t.link !== null
@@ -300,6 +303,7 @@ function Veredito({
   accent: string
   data: Date | null
 }) {
+  const formatBRL = useDinheiro()
   const cor =
     conf.status === 'confere'
       ? 'var(--color-confere)'

@@ -1,9 +1,10 @@
-import { formatBRL } from '../../domain/normalize/money'
+
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
 import { MarcaCategoria } from '../MarcaCategoria'
 import type { TransacaoSalva } from '../../persist/puxar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   /** Já vem cortado e ordenado por `maioresSaidas`. */
@@ -17,6 +18,7 @@ type Props = {
  *  para que as duas colunas alinhem. A diferença entre elas é a pergunta,
  *  não o desenho: esta acha o empréstimo e a geladeira. */
 export function MaioresSaidas({ itens, onEditar }: Props) {
+  const formatBRL = useDinheiro()
   const { t } = useT()
   if (itens.length === 0) return null
 

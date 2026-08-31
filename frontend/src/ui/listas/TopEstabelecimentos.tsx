@@ -1,7 +1,8 @@
-import { formatBRL } from '../../domain/normalize/money'
+
 import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
 import type { GrupoEstabelecimento } from '../../persist/agrupar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   /** Já vem somado, ordenado e cortado por `porEstabelecimento`. */
@@ -23,6 +24,7 @@ type Props = {
  *  Desenha pela mesma `LinhaRanking` da irmã: perguntas diferentes, caixa
  *  igual. Sem isso as duas colunas do painel não alinham. */
 export function TopEstabelecimentos({ itens, onAbrir }: Props) {
+  const formatBRL = useDinheiro()
   const { t } = useT()
   if (itens.length === 0) return null
 

@@ -59,8 +59,20 @@ const MASCARA = 'R$ ••••'
  *
  *  Com o modo discreto ligado devolve a máscara: é o único ponto por onde
  *  todo valor da tela passa. */
+/** A decisão da máscara, com o modo vindo de FORA.
+ *
+ *  Existe para a UI: lá o modo tem que chegar do React (ver `useDinheiro`),
+ *  senão o componente formata com o valor de módulo e nunca repinta. Aqui
+ *  mora a única implementação da máscara — o `formatBRL` abaixo é esta
+ *  função lendo o estado de módulo. */
+export function formatarDinheiro(cents: number, esconder: boolean): string {
+  return esconder ? MASCARA : formatBRLCru(cents)
+}
+
+/** A versão que lê o estado de módulo. Para o domínio e para o que roda
+ *  fora do React. **Na UI, use `useDinheiro()`** — há teste que cobra. */
 export function formatBRL(cents: number): string {
-  return discreto ? MASCARA : formatBRLCru(cents)
+  return formatarDinheiro(cents, discreto)
 }
 
 /** O número, sempre, ignorando o modo discreto.

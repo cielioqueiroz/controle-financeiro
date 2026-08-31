@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { formatBRL } from '../domain/normalize/money'
+
 import { useT } from '../i18n/IdiomaProvider'
 import type { Recorrencia, Alerta } from '../domain/recorrencias'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 type Props = {
   recorrencias: Recorrencia[]
@@ -20,6 +21,7 @@ const VISIVEIS = 5
  *
  *  Os alertas vêm primeiro de propósito — são a única parte acionável. */
 export function Recorrencias({ recorrencias, alertas }: Props) {
+  const formatBRL = useDinheiro()
   const [expandido, setExpandido] = useState(false)
   const { t } = useT()
   if (recorrencias.length === 0) return null

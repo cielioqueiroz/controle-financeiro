@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import type { CategoriaResumo } from '../../domain/insights'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { nomeCategoria } from '../../domain/categorize/categorias'
 import { useFiltros } from '../../dados/useFiltros'
 import { escreverFiltros } from '../../dados/filtros'
 import { useT } from '../../i18n/IdiomaProvider'
 import { MarcaCategoria } from '../MarcaCategoria'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   categorias: CategoriaResumo[]
@@ -35,6 +36,7 @@ const VAO = 2
  *  Interativo: passar o mouse (ou focar pelo teclado) destaca a fatia e
  *  mostra o valor dela no centro; clicar abre os lançamentos da categoria. */
 export function GraficoCategorias({ categorias, totalCents }: Props) {
+  const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const navigate = useNavigate()
   const { filtros } = useFiltros()

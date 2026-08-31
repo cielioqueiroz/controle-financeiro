@@ -1,8 +1,9 @@
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 import { ehVinculo } from '../../domain/link/vinculos'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { useT } from '../../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../../persist/puxar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   t: TransacaoSalva
@@ -17,6 +18,7 @@ type Props = {
  *  descrição, categoria (desktop) e valor, com um lápis no hover para
  *  editar. Zebra via `even:`. Reutilizada nas visões por dia e categoria. */
 export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Props) {
+  const formatBRL = useDinheiro()
   const { t: tr } = useT()
   const cat = categoria(t.category_slug ?? 'outros')
   const interno = ehVinculo(t.kind)

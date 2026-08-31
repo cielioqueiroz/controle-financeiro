@@ -186,6 +186,13 @@ sinônimo autorizado em código.
 - **Sinal:** positivo = saiu dinheiro; negativo = entrou.
 - **A formatação passa por `formatBRL`** (`domain/normalize/money`), que é também
   o funil do modo discreto. Formatar dinheiro na mão fura a máscara.
+- ⚠️ **Na UI, `useDinheiro()` — nunca o `formatBRL` direto.** Os dois formatam
+  igual; só o hook **inscreve o componente** no modo discreto e o faz repintar.
+  Trocar o valor de um contexto repinta quem CONSOME o contexto, e o
+  `formatBRL` lê um estado de MÓDULO: o componente que o importa direto segue
+  mostrando a saída da renderização anterior. Em 31/08 isso deixou **74
+  valores na tela** com o modo ligado, mascarando três. Há teste que varre
+  `ui/` e `paginas/` e falha no import direto.
 
 ## 2.3 Adicionar um banco
 

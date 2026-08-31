@@ -3,12 +3,13 @@ import { toast } from 'sonner'
 import { chaveDeErro } from '../lib/erro-usuario'
 import { puxarDocumentos, type DocumentoSalvo } from '../persist/documentos'
 import { apagarDocumento, apagarTudo } from '../aplicacao/comandos/documentos'
-import { formatBRL } from '../domain/normalize/money'
+
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { temaDoBanco } from '../domain/banks'
 import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './acesso/Confirmacao'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 type Props = {
   /** Chamado quando algo é apagado, para o histórico recarregar. */
@@ -75,6 +76,7 @@ function realcarNumeros(texto: string) {
  *  dentro de página que já rola é a barra dupla que o usuário reclamou:
  *  aqui a lista simplesmente flui. */
 export function ConteudoDocumentos({ onMudou, contagem }: Props) {
+  const formatBRL = useDinheiro()
   const { t } = useT()
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
   const [confirmando, setConfirmando] = useState<string | null>(null)

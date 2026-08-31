@@ -1,6 +1,7 @@
-import { formatBRL } from '../domain/normalize/money'
+
 import type { Diagnostico } from '../domain/diagnosticos'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 /** Faixa de diagnósticos do recorte, entre os tiles e os gráficos.
  *
@@ -18,6 +19,7 @@ type Props = {
 }
 
 export function Diagnosticos({ itens, onVerSemCategoria }: Props) {
+  const dinheiro = useDinheiro()
   const { t } = useT()
   if (itens.length === 0) return null
 
@@ -40,10 +42,10 @@ export function Diagnosticos({ itens, onVerSemCategoria }: Props) {
               onClick={onVerSemCategoria}
               className="min-w-0 flex-1 text-left text-xs text-tinta-fraca underline decoration-dotted underline-offset-4 transition-colors hover:text-tinta"
             >
-              {frase(d, t)}
+              {frase(d, t, dinheiro)}
             </button>
           ) : (
-            <p className="min-w-0 flex-1 text-xs text-tinta-fraca">{frase(d, t)}</p>
+            <p className="min-w-0 flex-1 text-xs text-tinta-fraca">{frase(d, t, dinheiro)}</p>
           )}
         </li>
       ))}
@@ -51,9 +53,16 @@ export function Diagnosticos({ itens, onVerSemCategoria }: Props) {
   )
 }
 
-function frase(d: Diagnostico, t: ReturnType<typeof useT>['t']): string {
+/** O formatador chega por PARÂMETRO, como o `t` ao lado: esta função é pura
+ *  e não pode chamar hook. Quem assina o modo discreto é o componente que a
+ *  chama — e é ele que repinta. */
+function frase(
+  d: Diagnostico,
+  t: ReturnType<typeof useT>['t'],
+  dinheiro: (cents: number) => string,
+): string {
   const pct = Math.round(d.pct * 100)
-  const valor = formatBRL(d.totalCents)
+  const valor = dinheiro(d.totalCents)
   if (d.tipo === 'muito-em-outros') return t('diag.outros', { pct, valor })
   if (d.tipo === 'concentracao') return t('diag.concentracao', { rotulo: d.rotulo, pct, valor })
   return t('diag.taxas', { pct, valor })

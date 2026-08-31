@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { animate, motion, useMotionValue, useTransform } from 'motion/react'
-import { formatBRL } from '../domain/normalize/money'
+
 import { useDiscreto } from '../dados/DiscretoProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 /** Número que "conta" do valor anterior até o novo — dá vida aos totais.
  *  `moeda` formata em BRL; senão mostra inteiro. */
@@ -14,6 +15,7 @@ export function ValorAnimado({
   moeda?: boolean
   className?: string
 }) {
+  const formatBRL = useDinheiro()
   // O valor não é lido: o que importa é ASSINAR o contexto. Alternar o modo
   // discreto não muda `valor`, então sem esta linha o componente não
   // repintaria — e `useTransform` só recalcula quando o componente repinta.

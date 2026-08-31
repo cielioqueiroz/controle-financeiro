@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { mesAbrev } from '../../domain/normalize/data'
 import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
 import type { GrupoDia } from '../../persist/agrupar'
 import type { TransacaoSalva } from '../../persist/puxar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   /** Dias do período, como `porDia` devolve (mais recente primeiro). */
@@ -56,6 +57,7 @@ function rotuloDia(iso: string): string {
  *
  *  Clicar num dia leva a tela para ele, como clicar num mês na evolução. */
 export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props) {
+  const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const { t } = useT()
   const [emFoco, setEmFoco] = useState<string | null>(null)

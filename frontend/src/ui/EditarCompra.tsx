@@ -7,12 +7,13 @@ import { criarCategoria } from '../persist/categoriasUsuario'
 import { regraDaCorrecao, alcancadasPelaRegra } from '../domain/categorize/aprendizado'
 import { ehVinculo, kindComVinculo } from '../domain/link/vinculos'
 import { todasCategorias, adicionarCategoriaExtra, nomeCategoria } from '../domain/categorize/categorias'
-import { formatBRL } from '../domain/normalize/money'
+
 import { useT } from '../i18n/IdiomaProvider'
 import { useDados } from '../dados/DadosProvider'
 import type { TransacaoSalva } from '../persist/puxar'
 import { Confirmacao } from './acesso/Confirmacao'
 import { Portal, useTravarRolagem } from './Portal'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 
@@ -32,6 +33,7 @@ type Props = {
 /** Editor de uma compra: renomeia o estabelecimento (label) e troca a
  *  categoria. A descrição original do banco fica visível, mas imutável. */
 export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
+  const formatBRL = useDinheiro()
   const [label, setLabel] = useState(tx.label ?? '')
   const [slug, setSlug] = useState(tx.category_slug ?? 'outros')
   const [salvando, setSalvando] = useState(false)

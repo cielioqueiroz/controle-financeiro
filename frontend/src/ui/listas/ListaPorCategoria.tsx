@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { LinhaTransacao } from './LinhaTransacao'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { nomeCategoria } from '../../domain/categorize/categorias'
 import type { GrupoCategoria } from '../../persist/agrupar'
 import type { TransacaoSalva } from '../../persist/puxar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   grupos: GrupoCategoria<TransacaoSalva>[]
@@ -16,6 +17,7 @@ type Props = {
  *  abre a tabela das compras daquela categoria (data, estabelecimento,
  *  valor). Abre a maior categoria por padrão. */
 export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
+  const formatBRL = useDinheiro()
   const [abertas, setAbertas] = useState<Set<string>>(() =>
     grupos[0] ? new Set([grupos[0].slug]) : new Set(),
   )

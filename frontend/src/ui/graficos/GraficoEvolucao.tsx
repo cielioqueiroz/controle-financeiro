@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { formatBRL } from '../../domain/normalize/money'
+
 import { mesAbrev } from '../../domain/normalize/data'
 import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
 import type { PontoMes } from '../../persist/agrupar'
+import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {
   serie: PontoMes[]
@@ -39,6 +40,7 @@ function rotulo(comp: string): string {
  *  Clicar num mês leva a tela para ele. Passar o mouse ou focar pelo
  *  teclado mostra os dois valores. */
 export function GraficoEvolucao({ serie, ativo, onSelecionar }: Props) {
+  const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const { t } = useT()
   const [emFoco, setEmFoco] = useState<string | null>(null)

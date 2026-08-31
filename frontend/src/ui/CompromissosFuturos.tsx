@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'motion/react'
-import { formatBRL } from '../domain/normalize/money'
+
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import type { MesFuturo } from '../persist/agrupar'
+import { useDinheiro } from '../dados/DiscretoProvider'
 
 type Props = {
   meses: MesFuturo[]
@@ -24,6 +25,7 @@ function rotuloMes(comp: string): string {
  *  projeção (não está no banco), então não infla os totais atuais nem
  *  duplica quando a próxima fatura chegar. */
 export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
+  const formatBRL = useDinheiro()
   const { t } = useT()
   if (meses.length === 0) return null
 
