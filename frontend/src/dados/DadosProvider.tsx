@@ -4,9 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
+import { useImportacaoOpcional } from './ImportacaoProvider'
 import {
   puxarTudo,
   puxarCategoriasUsuario,
@@ -112,6 +114,25 @@ export function DadosProvider({
   useEffect(() => {
     recarregar()
   }, [recarregar])
+
+  // Documento gravado: relê o banco, sem F5.
+  //
+  // O `ImportacaoProvider` fica ACIMA deste, então quem avisa é ele e quem
+  // escuta é este — nunca o contrário. `Opcional` porque a folha de provas
+  // e os testes de página montam este provider sozinho, e ali não há
+  // importação nenhuma para escutar.
+  //
+  // A `ref` guarda o último contador já atendido: o efeito também roda na
+  // montagem, e sem ela a primeira renderização dispararia uma segunda
+  // busca em cima da que o efeito acima acabou de fazer.
+  const importacao = useImportacaoOpcional()
+  const salvos = importacao?.salvos ?? 0
+  const ultimoAtendido = useRef(salvos)
+  useEffect(() => {
+    if (salvos === ultimoAtendido.current) return
+    ultimoAtendido.current = salvos
+    recarregar()
+  }, [salvos, recarregar])
 
   const aplicarEdicao = useCallback(
     (id: string, campos: { label: string | null; category_slug: string; kind?: string }) => {

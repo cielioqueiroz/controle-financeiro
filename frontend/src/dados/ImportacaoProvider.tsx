@@ -32,9 +32,17 @@ type FluxoImportacao = {
   logado: boolean
   salvando: boolean
   /** Ligado por um instante quando um documento acaba de ser gravado. A
-   *  página de importação o consome para levar de volta ao Painel — onde o
-   *  dado recém-importado aparece. */
+   *  página de importação o consome para levar de volta ao Painel. */
   recemSalvo: boolean
+  /** Quantos documentos foram gravados nesta sessão. É o sinal que o
+   *  `DadosProvider` escuta para reler o histórico.
+   *
+   *  CONTADOR, e não o `recemSalvo` acima, de propósito: aquele é
+   *  CONSUMIDO pela página de importação assim que ela navega, e dois
+   *  efeitos disparando no mesmo commit correriam entre si — quem lesse
+   *  depois acharia `false` e não releria nada. Um contador que só cresce
+   *  não tem corrida: cada valor novo é um evento. */
+  salvos: number
   importar: (f: File) => Promise<void>
   salvar: () => Promise<void>
   limpar: () => void
@@ -65,6 +73,7 @@ export function ImportacaoProvider({
   const [estado, setEstado] = useState<EstadoImport>({ fase: 'vazio' })
   const [salvando, setSalvando] = useState(false)
   const [recemSalvo, setRecemSalvo] = useState(false)
+  const [salvos, setSalvos] = useState(0)
   const [celebrando, setCelebrando] = useState(false)
   const { t } = useT()
 
@@ -126,9 +135,15 @@ export function ImportacaoProvider({
             ? t('salvar.okComExistentes', { n: r.inseridas, ja: r.jaExistiam })
             : t('salvar.okNovos', { n: r.inseridas }),
         )
-        // Volta ao histórico, que recarrega e mostra o que acabou de entrar.
         setEstado({ fase: 'vazio' })
+        // Duas coisas diferentes, e as duas precisam acontecer: `recemSalvo`
+        // leva a pessoa de volta ao Painel; `salvos` faz o Painel reler o
+        // banco. Até 2026-08-31 só existia o primeiro, e um comentário aqui
+        // afirmava que voltar "recarrega e mostra o que acabou de entrar" —
+        // não recarregava. Voltar é navegar, e o DadosProvider fica ACIMA
+        // das rotas: trocar de rota não o remonta. Só o F5 remontava.
         setRecemSalvo(true)
+        setSalvos((n) => n + 1)
       } else if (r.status === 'documento-duplicado') {
         toast.warning(t('salvar.duplicado', { data: dataLongaDe(new Date(r.importadoEm)) }))
       }
@@ -149,12 +164,13 @@ export function ImportacaoProvider({
       logado,
       salvando,
       recemSalvo,
+      salvos,
       importar,
       salvar,
       limpar,
       consumirRecemSalvo,
     }),
-    [estado, regras, logado, salvando, recemSalvo, importar, salvar, limpar, consumirRecemSalvo],
+    [estado, regras, logado, salvando, recemSalvo, salvos, importar, salvar, limpar, consumirRecemSalvo],
   )
 
   return (
@@ -174,4 +190,16 @@ export function useImportacao(): FluxoImportacao {
   const ctx = useContext(Ctx)
   if (!ctx) throw new Error('useImportacao precisa estar dentro de <ImportacaoProvider>')
   return ctx
+}
+
+/** A variante que NÃO lança, para quem só quer saber se houve importação.
+ *
+ *  É a mesma distinção que o projeto já faz entre `useDados` (lança: uma
+ *  página fora da árvore é erro) e `useDiscreto` (padrão seguro: um
+ *  componente isolado num teste não deve quebrar por causa de um modo de
+ *  exibição). Aqui a ausência é legítima e prevista: o `DadosProvider` é
+ *  montado sem o de importação na folha de provas e em vários testes de
+ *  página, e ali simplesmente não há importação para escutar. */
+export function useImportacaoOpcional(): FluxoImportacao | null {
+  return useContext(Ctx)
 }
