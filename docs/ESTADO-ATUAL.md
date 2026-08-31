@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-31** (parte 3).
+> Documento de continuidade. Última atualização: **2026-08-31** (parte 4).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,66 @@
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
 > | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-31 (parte 4) — o F5 que o usuário estava dando, e o carimbo
+
+### 1. O documento importado não aparecia sem recarregar
+
+Relatado com dado real: importou a fatura e o extrato do Mercado Pago e teve
+que dar F5 para os valores aparecerem.
+
+⚠️ **A causa era um comentário que mentia.** No `ImportacaoProvider`, logo
+depois de gravar:
+
+```
+// Volta ao histórico, que recarrega e mostra o que acabou de entrar.
+```
+
+**Voltar não recarrega.** "Voltar" é navegar para `/`, e o `DadosProvider` fica
+ACIMA das `<Routes>`: trocar de rota não o remonta, então ele seguia servindo a
+lista que buscou no login. Só o F5 remontava a árvore — que era exatamente o
+que o usuário fazia à mão.
+
+`recarregar()` é chamado ao apagar documento, ao mexer em categoria e como
+"tentar de novo" do estado de erro. **Nunca na importação** — o único fluxo que
+ACRESCENTA dado.
+
+Ficou assim porque o `ImportacaoProvider` está acima do `DadosProvider`: o
+primeiro não consegue chamar `useDados()`. O sinal tinha que descer, e não
+descia. Agora desce por um **contador** (`salvos`), não pelo `recemSalvo` que já
+existia — aquele é *consumido* pela página de importação assim que ela navega, e
+dois efeitos no mesmo commit correriam entre si. Número que só cresce não tem
+corrida.
+
+**Nenhum teste cobria a importação**, e é por isso que a promessa do comentário
+pôde ficar falsa. Agora são 4, e o primeiro falhava com o código antigo pelo
+motivo certo (`puxarTudo` chamado 1 vez, esperado 2).
+
+### 2. O carimbo de conferência
+
+A primeira das seis propostas da prancheta. O app existe para bater o total ao
+centavo, e isso era uma frase do tamanho de qualquer outra, com um distintivo
+redondo de ✓/~/! ao lado.
+
+Cada estado carrega o dado que serve nele: **CONFERE** traz a data e o valor que
+bateu; **DIVERGE** traz a diferença e a contagem, porque é o que a pessoa vai
+caçar; **SEM GABARITO** é pálido e inclinado **para o outro lado** — não é um
+confere mais fraco, é outra categoria.
+
+⚠️ **Uma colisão de cascata que só a tela mostra:** a classe `.carimbo` anima com
+`animation-fill-mode: both`, e nesse modo **o transform do último quadro vence o
+estilo inline**. Escrita como `transform`, a inclinação era código morto e os
+três pousavam no mesmo ângulo — e os testes, que leem texto, passavam dos dois
+jeitos. O ângulo virou a variável `--giro`, que o último quadro consome.
+
+⚠️ **E uma armadilha de MEDIÇÃO, nova:** a aba do painel do navegador em segundo
+plano **congela a linha do tempo das animações** — `playState: running` com
+`currentTime: 0`. O ângulo lido ali é o do primeiro quadro, não o final. Ler os
+keyframes (ou chamar `.finish()`) mostra o que a tela de verdade faz.
+
+**754 testes (92 arquivos)**, `npm run verificar` verde nos seis passos,
+contraste OK nos dois temas, 10 medições de overflow verdes. O carimbo virou
+print do README.
 
 ## Rodada 2026-08-31 (parte 3) — o Mercado Pago passou a ser lido
 
@@ -1097,7 +1157,7 @@ os caminhos vulneráveis do `better-auth` (callback OAuth, sessão após exclus�
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**743 testes (90 arquivos)**, `npm run verificar` verde nos seis passos.
+**754 testes (92 arquivos)**, `npm run verificar` verde nos seis passos.
 Trabalha-se direto na `main`; todo push publica sozinho em ~1 min.
 
 **O desenho é o "livro-razão"** (IBM Plex, raio, cartão com sombra) desde a
@@ -1135,7 +1195,6 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
-| **Carimbo de conferência** — a tese do produto virando desenho | pequeno |
 | **Folha de fechamento** — bloco de identificação no topo do painel | médio |
 | **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |

@@ -358,6 +358,15 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
   camada `#bg-animation` (`position: fixed`); o brilho da tela de login já criou
   barra lateral pulsante por escalar dentro do `scrollWidth`.
 - **O medidor só reprova rolagem LATERAL** — vertical é normal.
+- **`animation-fill-mode: both` faz o último quadro VENCER o `style` inline.**
+  A classe `.carimbo` é assim: quem escrever `transform` no componente vê o
+  valor ser ignorado, e o teste que lê texto passa dos dois jeitos. O ângulo
+  do carimbo virou a variável `--giro`, que o último quadro consome.
+- **Aba em segundo plano CONGELA a linha do tempo das animações.** No painel
+  do navegador embutido, `playState` fica `running` com `currentTime: 0` — o
+  ângulo/opacidade que se lê ali é o do PRIMEIRO quadro. Para medir o estado
+  final, leia os keyframes (`getAnimations()[0].effect.getKeyframes()`) ou
+  chame `.finish()` antes.
 - **Filho de `grid` ou `flex` não encolhe sozinho: o padrão é `min-width: auto`**,
   que recusa ficar menor que o min-content do conteúdo. Foi assim que a página de
   Recorrências rolou de lado em 390px por semanas — os dois cards de compromissos
