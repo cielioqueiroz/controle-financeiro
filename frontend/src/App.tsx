@@ -37,6 +37,7 @@ import { useT } from './i18n/IdiomaProvider'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
 import { avisarSaida, ouvirSaida } from './lib/sessao-canal'
+import { sessaoAindaVale } from './lib/sessao-remota'
 import { puxarRegras } from './aplicacao/consultas/regras'
 import type { Regra } from './domain/categorize/regras'
 
@@ -141,6 +142,45 @@ export default function App() {
       toast.info(t('header.saiuNoutraAba'))
     })
   }, [t])
+
+  // Rede de segurança do aviso acima: ao voltar para a aba, confere a sessão
+  // NO SERVIDOR.
+  //
+  // Cobre o que o canal entre abas não alcança — a aba que o navegador
+  // suspendeu e não recebeu a mensagem, e o logout feito noutro navegador ou
+  // noutro aparelho, onde não existe canal comum.
+  //
+  // ⚠️ Só derruba com um "não há sessão" EXPLÍCITO (`false`). `null` é "não
+  // sei" — rede fora, servidor intermitente — e deslogar quem está sem
+  // internet trocaria um defeito por outro pior.
+  //
+  // O intervalo mínimo existe porque `visibilitychange` dispara a cada
+  // alt-tab: sem ele, quem trabalha com duas janelas lado a lado geraria uma
+  // requisição por troca de foco.
+  useEffect(() => {
+    if (!logado) return
+    let ultima = Date.now()
+    const INTERVALO = 10_000
+
+    async function conferir() {
+      if (document.visibilityState !== 'visible') return
+      if (Date.now() - ultima < INTERVALO) return
+      ultima = Date.now()
+      if ((await sessaoAindaVale()) === false) {
+        setLogado(false)
+        setUsuario(null)
+        neon?.auth.signOut().catch(() => {})
+        toast.info(t('header.sessaoTerminou'))
+      }
+    }
+
+    document.addEventListener('visibilitychange', conferir)
+    window.addEventListener('focus', conferir)
+    return () => {
+      document.removeEventListener('visibilitychange', conferir)
+      window.removeEventListener('focus', conferir)
+    }
+  }, [logado, t])
 
   // Com Neon configurado e sem login → tela de entrar. Token de redefinição
   // na URL também leva ao card, mesmo com sessão ativa.
