@@ -22,7 +22,7 @@ export type TxConsultavel = {
   kind: string
 }
 
-export type Filtro =
+export type Operador =
   | { tipo: 'valor-min'; cents: number }
   | { tipo: 'valor-max'; cents: number }
   | { tipo: 'banco'; valor: string }
@@ -32,7 +32,7 @@ export type Filtro =
 export type Consulta = {
   /** O que sobrou depois de tirar os operadores, normalizado. */
   texto: string
-  filtros: Filtro[]
+  operadores: Operador[]
 }
 
 /** Caixa baixa, sem acento, sem espaço sobrando. Aplicado dos dois lados
@@ -70,13 +70,13 @@ function paraCents(bruto: string): number | null {
   return Number.isFinite(cents) ? cents : null
 }
 
-/** Quebra a consulta em filtros e texto livre.
+/** Quebra a consulta em operadores e texto livre.
  *
  *  ⚠️ Pedaço que PARECE operador mas não é reconhecido volta para o texto,
  *  nunca é descartado. Descartar em silêncio esconderia resultados sem o
  *  usuário saber por quê, e "PIX: Joao" é busca legítima. */
 export function analisarConsulta(bruto: string): Consulta {
-  const filtros: Filtro[] = []
+  const operadores: Operador[] = []
   const sobra: string[] = []
 
   for (const pedaco of bruto.split(/\s+/)) {
@@ -86,7 +86,7 @@ export function analisarConsulta(bruto: string): Consulta {
     if (comparacao) {
       const cents = paraCents(comparacao[2])
       if (cents !== null) {
-        filtros.push(
+        operadores.push(
           comparacao[1] === '>'
             ? { tipo: 'valor-min', cents }
             : { tipo: 'valor-max', cents },
@@ -102,15 +102,15 @@ export function analisarConsulta(bruto: string): Consulta {
       const chave = normalizar(chaveado[1])
       const valor = normalizar(chaveado[2])
       if (CHAVES_BANCO.includes(chave)) {
-        filtros.push({ tipo: 'banco', valor })
+        operadores.push({ tipo: 'banco', valor })
         continue
       }
       if (CHAVES_CATEGORIA.includes(chave)) {
-        filtros.push({ tipo: 'categoria', slug: valor })
+        operadores.push({ tipo: 'categoria', slug: valor })
         continue
       }
       if (CHAVES_SEM.includes(chave) && ALVO_CATEGORIA.includes(valor)) {
-        filtros.push({ tipo: 'sem-categoria' })
+        operadores.push({ tipo: 'sem-categoria' })
         continue
       }
     }
@@ -118,7 +118,7 @@ export function analisarConsulta(bruto: string): Consulta {
     sobra.push(pedaco)
   }
 
-  return { texto: normalizar(sobra.join(' ')), filtros }
+  return { texto: normalizar(sobra.join(' ')), operadores }
 }
 
 /** O texto procura no rótulo do usuário E na descrição do banco: quem
@@ -128,26 +128,26 @@ function casaTexto(tx: TxConsultavel, texto: string): boolean {
   return normalizar(`${tx.label ?? ''} ${tx.description}`).includes(texto)
 }
 
-function casaFiltro(tx: TxConsultavel, f: Filtro): boolean {
-  switch (f.tipo) {
+function casaOperador(tx: TxConsultavel, op: Operador): boolean {
+  switch (op.tipo) {
     // Valor ABSOLUTO: uma entrada de R$ 500 também é um lançamento de
     // quinhentos reais, e quem procura ">100" quer tamanho, não sinal.
     case 'valor-min':
-      return Math.abs(tx.amount_cents) > f.cents
+      return Math.abs(tx.amount_cents) > op.cents
     case 'valor-max':
-      return Math.abs(tx.amount_cents) < f.cents
+      return Math.abs(tx.amount_cents) < op.cents
     case 'banco':
-      return normalizar(tx.bank) === f.valor
+      return normalizar(tx.bank) === op.valor
     case 'categoria':
-      return (tx.category_slug ?? 'outros') === f.slug
+      return (tx.category_slug ?? 'outros') === op.slug
     // Nulo e 'outros' são a mesma coisa em toda a base (ver `agrupar`), e
-    // este filtro é o par de tela do diagnóstico "X% está sem categoria".
+    // este operador é o par de tela do diagnóstico "X% está sem categoria".
     case 'sem-categoria':
       return (tx.category_slug ?? 'outros') === 'outros'
   }
 }
 
-/** Todos os filtros valem juntos (E), e o texto também. */
+/** Todos os operadores valem juntos (E), e o texto também. */
 export function casaConsulta(tx: TxConsultavel, c: Consulta): boolean {
-  return casaTexto(tx, c.texto) && c.filtros.every((f) => casaFiltro(tx, f))
+  return casaTexto(tx, c.texto) && c.operadores.every((op) => casaOperador(tx, op))
 }

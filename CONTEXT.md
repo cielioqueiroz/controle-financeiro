@@ -161,6 +161,22 @@ A descrição do recorte, que vive na query string da URL — período, referên
 banco, categoria e busca.
 _Evitar_: recorte, estado da tela, parâmetros
 
+**Operador**:
+O pedaço da busca que restringe por algo que não é texto — `>100`, `<50`,
+`banco:nubank`, `cat:farmacia`, `sem:categoria`. Mora dentro da caixa de busca, e
+**não** é um filtro: filtro é a descrição do recorte inteiro, escrita na URL.
+Operador que o app não conhece vira texto, nunca some.
+_Em código_: `Operador`, `casaOperador` (`domain/consulta.ts`)
+_Evitar_: filtro, modificador, comando
+
+**Consulta**:
+Uma busca já analisada: o texto livre que sobrou, mais os operadores extraídos
+dele. (Em `aplicacao/consultas/` a palavra tem outro sentido, de arquitetura — o
+lado de leitura do CQRS, oposto de `comandos/`. Ver
+[ADR-0010](./docs/adr/0010-cqrs-e-integridade-de-dados.md).)
+_Em código_: `Consulta`, `analisarConsulta`, `casaConsulta`
+_Evitar_: query, pesquisa, termo
+
 **Período**:
 A granularidade do recorte: `dia`, `semana`, `mes` ou `ano`. Dia e Semana usam a
 data real da transação; Mês e Ano usam a competência.

@@ -15,7 +15,7 @@ const casa = (t: TxConsultavel, q: string) => casaConsulta(t, analisarConsulta(q
 
 describe('analisarConsulta', () => {
   it('consulta vazia não filtra nada', () => {
-    expect(analisarConsulta('')).toEqual({ texto: '', filtros: [] })
+    expect(analisarConsulta('')).toEqual({ texto: '', operadores: [] })
   })
 
   it('texto puro continua sendo texto puro', () => {
@@ -23,14 +23,14 @@ describe('analisarConsulta', () => {
     // notar diferença nenhuma.
     expect(analisarConsulta('atacadao palmas')).toEqual({
       texto: 'atacadao palmas',
-      filtros: [],
+      operadores: [],
     })
   })
 
   it('separa os operadores do texto livre', () => {
     const c = analisarConsulta('atacadao >100 banco:nubank')
     expect(c.texto).toBe('atacadao')
-    expect(c.filtros).toEqual([
+    expect(c.operadores).toEqual([
       { tipo: 'valor-min', cents: 100_00 },
       { tipo: 'banco', valor: 'nubank' },
     ])
@@ -40,15 +40,15 @@ describe('analisarConsulta', () => {
     // Descartar em silêncio esconderia resultados sem o usuário saber por
     // quê — e "PIX: Joao" é uma busca legítima.
     const c = analisarConsulta('pix:joao')
-    expect(c.filtros).toEqual([])
+    expect(c.operadores).toEqual([])
     expect(c.texto).toBe('pix:joao')
   })
 
   it('aceita valor com milhar e decimal', () => {
-    expect(analisarConsulta('>1.234,56').filtros).toEqual([
+    expect(analisarConsulta('>1.234,56').operadores).toEqual([
       { tipo: 'valor-min', cents: 123456 },
     ])
-    expect(analisarConsulta('<10,50').filtros).toEqual([{ tipo: 'valor-max', cents: 1050 }])
+    expect(analisarConsulta('<10,50').operadores).toEqual([{ tipo: 'valor-max', cents: 1050 }])
   })
 
   it('valor sem número é texto', () => {
@@ -124,7 +124,7 @@ describe('casaConsulta', () => {
     })
   })
 
-  it('os filtros se somam com E, junto com o texto', () => {
+  it('os operadores se somam com E, junto com o texto', () => {
     const t = tx({ description: 'ATACADAO PALMAS', amount_cents: 15000, bank: 'nubank' })
     expect(casa(t, 'atacadao >100 banco:nubank')).toBe(true)
     expect(casa(t, 'atacadao >100 banco:bradesco')).toBe(false)
