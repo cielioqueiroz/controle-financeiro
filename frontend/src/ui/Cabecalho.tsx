@@ -16,6 +16,7 @@ type Props = {
   onSair: () => void
   onVerTutorial: () => void
   onEditarPerfil: () => void
+  onAbrirAjuda: () => void
 }
 
 /** O topo da tela logada: marca, saudação e os controles do canto.
@@ -30,7 +31,14 @@ type Props = {
  *  alguém pediu.
  *
  *  Irmão do `Rodape`: as duas pontas do mesmo casco. */
-export function Cabecalho({ logado, usuario, onSair, onVerTutorial, onEditarPerfil }: Props) {
+export function Cabecalho({
+  logado,
+  usuario,
+  onSair,
+  onVerTutorial,
+  onEditarPerfil,
+  onAbrirAjuda,
+}: Props) {
   const { t } = useT()
   const { pathname } = useLocation()
 
@@ -96,6 +104,17 @@ export function Cabecalho({ logado, usuario, onSair, onVerTutorial, onEditarPerf
           </motion.h1>
         </div>
         <div className="flex shrink-0 items-center gap-3">
+          {/* O "?" fica ANTES dos outros: quem está perdido procura ajuda,
+              não o seletor de idioma. E aparece logado ou não — o modo
+              "importa e vê" também tem o que explicar. */}
+          <button
+            onClick={onAbrirAjuda}
+            aria-label={t('ajuda.abrir')}
+            title={t('ajuda.abrir')}
+            className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-sm font-semibold text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+          >
+            ?
+          </button>
           <DiscretoToggle />
           <ThemeToggle />
           {logado && neon && (

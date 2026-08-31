@@ -26,6 +26,7 @@ import { Recorrencias } from './paginas/Recorrencias'
 import { Importacao } from './paginas/Importacao'
 import { Cabecalho } from './ui/Cabecalho'
 import { Tutorial } from './ui/Tutorial'
+import { Ajuda } from './ui/ajuda/Ajuda'
 import { EditarPerfil } from './ui/EditarPerfil'
 import { Notificacoes } from './ui/Notificacoes'
 import { TelaAcesso } from './ui/acesso/TelaAcesso'
@@ -62,6 +63,7 @@ export default function App() {
    *  pelo outro. */
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
+  const [mostrarAjuda, setMostrarAjuda] = useState(false)
 
   // Primeiro login da pessoa: o tutorial abre sozinho. A dependência é só o
   // `logado` de propósito — é a TRANSIÇÃO para logado que justifica abrir.
@@ -257,6 +259,7 @@ export default function App() {
                 setMostrarTutorial(true)
               }}
               onEditarPerfil={() => setMostrarPerfil(true)}
+              onAbrirAjuda={() => setMostrarAjuda(true)}
             />
 
             {/* Só com o servidor dizendo explicitamente `false`: quando o campo
@@ -330,6 +333,15 @@ export default function App() {
                 onFechar={() => {
                   marcarTutorialVisto()
                   setMostrarTutorial(false)
+                }}
+              />
+            )}
+            {mostrarAjuda && (
+              <Ajuda
+                onFechar={() => setMostrarAjuda(false)}
+                onVerTutorial={() => {
+                  reabrirTutorial()
+                  setMostrarTutorial(true)
                 }}
               />
             )}

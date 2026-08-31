@@ -22,6 +22,7 @@ function montar(rota: string) {
         onSair={vi.fn()}
         onVerTutorial={vi.fn()}
         onEditarPerfil={vi.fn()}
+        onAbrirAjuda={vi.fn()}
       />
     </MemoryRouter>,
   )
