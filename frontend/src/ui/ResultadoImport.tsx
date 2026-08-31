@@ -24,6 +24,9 @@ type Props = {
   salvando: boolean
   onSalvar: () => void
   onLimpar: () => void
+  /** Onde a fila está, quando há fila. */
+  progresso?: { atual: number; total: number } | null
+  onCancelarFila?: () => void
 }
 
 const dm = (d: Date) => dataLongaDe(d)
@@ -40,6 +43,8 @@ export function ResultadoImport({
   salvando,
   onSalvar,
   onLimpar,
+  progresso,
+  onCancelarFila,
 }: Props) {
   const { t } = useT()
   const tema = BANCOS[kind.bank]
@@ -94,7 +99,15 @@ export function ResultadoImport({
             </p>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Onde a fila está. Fica JUNTO dos botões porque é ali que a
+              decisão é tomada — quem vai clicar "salvar" pela terceira vez
+              precisa saber que faltam duas. */}
+          {progresso && progresso.total > 1 && (
+            <span className="tabular text-[11px] uppercase tracking-widest text-tinta-tenue">
+              {t('fila.progresso', { n: progresso.atual, total: progresso.total })}
+            </span>
+          )}
           {podeSalvar && (
             <button
               onClick={onSalvar}
@@ -111,6 +124,16 @@ export function ResultadoImport({
           >
             {t('import.limpar')} ✕
           </button>
+          {/* Abandonar a leva inteira. Só aparece quando há resto: sem fila,
+              "descartar os restantes" não descreve nada. */}
+          {progresso && progresso.atual < progresso.total && onCancelarFila && (
+            <button
+              onClick={onCancelarFila}
+              className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-falha"
+            >
+              {t('fila.cancelar')}
+            </button>
+          )}
         </div>
       </header>
 

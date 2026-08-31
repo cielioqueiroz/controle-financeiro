@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Dropzone } from '../ui/Dropzone'
 import { ResultadoImport } from '../ui/ResultadoImport'
 import { useImportacao } from '../dados/ImportacaoProvider'
+import { useT } from '../i18n/IdiomaProvider'
 
 /** Importar um PDF: soltar o arquivo e conferir a prévia antes de salvar.
  *
@@ -11,8 +12,20 @@ import { useImportacao } from '../dados/ImportacaoProvider'
  *  voltar não pode perder um PDF já lido esperando confirmação). Esta
  *  página é a superfície, não a dona. */
 export function Importacao() {
-  const { estado, regras, logado, salvando, recemSalvo, importar, salvar, limpar, consumirRecemSalvo } =
-    useImportacao()
+  const {
+    estado,
+    regras,
+    logado,
+    salvando,
+    recemSalvo,
+    progresso,
+    importar,
+    salvar,
+    limpar,
+    cancelarFila,
+    consumirRecemSalvo,
+  } = useImportacao()
+  const { t } = useT()
   const navigate = useNavigate()
 
   // Gravou: leva ao Painel, que é onde o dado recém-importado aparece.
@@ -39,6 +52,8 @@ export function Importacao() {
           salvando={salvando}
           onSalvar={salvar}
           onLimpar={limpar}
+          progresso={progresso}
+          onCancelarFila={cancelarFila}
         />
       </div>
     )
@@ -46,7 +61,14 @@ export function Importacao() {
 
   return (
     <div className="mx-auto mt-6 max-w-2xl">
-      <Dropzone onArquivo={importar} ocupado={estado.fase === 'lendo'} />
+      <Dropzone onArquivos={importar} ocupado={estado.fase === 'lendo'} />
+      {/* Enquanto lê o 3º de 5, a pessoa precisa saber que ainda há fila —
+          senão a espera parece travamento. */}
+      {progresso && estado.fase === 'lendo' && (
+        <p className="tabular mt-4 text-center text-xs text-tinta-tenue">
+          {t('fila.progresso', { n: progresso.atual, total: progresso.total })}
+        </p>
+      )}
     </div>
   )
 }

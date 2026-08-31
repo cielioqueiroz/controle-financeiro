@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Celebracao } from '../ui/Celebracao'
 import { useT } from '../i18n/IdiomaProvider'
@@ -43,9 +43,20 @@ type FluxoImportacao = {
    *  depois acharia `false` e não releria nada. Um contador que só cresce
    *  não tem corrida: cada valor novo é um evento. */
   salvos: number
-  importar: (f: File) => Promise<void>
+  /** Onde a fila está: `{ atual: 2, total: 5 }`. `null` fora de uma leva.
+   *
+   *  Existe porque importar cinco documentos e não saber em qual deles se
+   *  está é pior que importar um por um — a pessoa perde a conta do que já
+   *  conferiu. */
+  progresso: { atual: number; total: number } | null
+  /** Aceita um arquivo ou vários. Vários viram FILA: o app lê um, mostra a
+   *  prévia, espera a decisão, e só então começa o próximo. */
+  importar: (entrada: File | File[]) => Promise<void>
   salvar: () => Promise<void>
+  /** Descarta o documento na tela e passa ao próximo da fila. */
   limpar: () => void
+  /** Abandona a leva inteira, incluindo o que está na tela. */
+  cancelarFila: () => void
   consumirRecemSalvo: () => void
 }
 
@@ -74,15 +85,21 @@ export function ImportacaoProvider({
   const [salvando, setSalvando] = useState(false)
   const [recemSalvo, setRecemSalvo] = useState(false)
   const [salvos, setSalvos] = useState(0)
+  const [progresso, setProgresso] = useState<{ atual: number; total: number } | null>(null)
+  /** Os arquivos que ainda não foram lidos.
+   *
+   *  ⚠️ **`ref`, e não `state`.** Avançar a fila é "tira o próximo E começa a
+   *  ler", e pôr o "começa a ler" dentro de um atualizador de estado seria
+   *  efeito colateral num lugar que o React pode chamar duas vezes (é o que
+   *  o StrictMode faz). O `ref` guarda a fila; o `progresso` acima é a cópia
+   *  que a tela lê. */
+  const filaRef = useRef<File[]>([])
   const [celebrando, setCelebrando] = useState(false)
   const { t } = useT()
 
-  const importar = useCallback(
+  /** Lê UM arquivo e para na prévia. Não mexe na fila. */
+  const ler = useCallback(
     async (file: File) => {
-      if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
-        toast.error(t('importar.naoPdf'))
-        return
-      }
       try {
         validarArquivoPdf(file)
       } catch (err) {
@@ -124,6 +141,47 @@ export function ImportacaoProvider({
     [t],
   )
 
+  const ehPdf = (f: File) => /\.pdf$/i.test(f.name) || f.type === 'application/pdf'
+
+  const importar = useCallback(
+    async (entrada: File | File[]) => {
+      const todos = Array.isArray(entrada) ? entrada : [entrada]
+      const pdfs = todos.filter(ehPdf)
+      // Avisa sobre o que ficou de fora em vez de ignorar em silêncio: quem
+      // arrasta uma pasta inteira precisa saber que o .jpg não entrou.
+      if (pdfs.length < todos.length) {
+        toast.error(
+          pdfs.length === 0
+            ? t('importar.naoPdf')
+            : t('importar.ignorados', { n: todos.length - pdfs.length }),
+        )
+      }
+      if (pdfs.length === 0) return
+
+      const [primeiro, ...resto] = pdfs
+      filaRef.current = resto
+      setProgresso({ atual: 1, total: pdfs.length })
+      await ler(primeiro)
+    },
+    [ler, t],
+  )
+
+  /** Resolveu o documento da tela (gravado ou descartado): puxa o próximo.
+   *
+   *  Quando a fila esvazia é que `recemSalvo` liga — é ele que leva ao
+   *  Painel. Navegar a cada documento tiraria a pessoa da fila no meio dela. */
+  const avancar = useCallback(async () => {
+    const proximo = filaRef.current.shift()
+    if (proximo) {
+      setProgresso((p) => (p ? { ...p, atual: p.atual + 1 } : p))
+      await ler(proximo)
+      return
+    }
+    setProgresso(null)
+    setEstado({ fase: 'vazio' })
+    setRecemSalvo(true)
+  }, [ler])
+
   const salvar = useCallback(async () => {
     if (estado.fase !== 'pronto') return
     setSalvando(true)
@@ -135,26 +193,37 @@ export function ImportacaoProvider({
             ? t('salvar.okComExistentes', { n: r.inseridas, ja: r.jaExistiam })
             : t('salvar.okNovos', { n: r.inseridas }),
         )
-        setEstado({ fase: 'vazio' })
-        // Duas coisas diferentes, e as duas precisam acontecer: `recemSalvo`
-        // leva a pessoa de volta ao Painel; `salvos` faz o Painel reler o
-        // banco. Até 2026-08-31 só existia o primeiro, e um comentário aqui
-        // afirmava que voltar "recarrega e mostra o que acabou de entrar" —
-        // não recarregava. Voltar é navegar, e o DadosProvider fica ACIMA
-        // das rotas: trocar de rota não o remonta. Só o F5 remontava.
-        setRecemSalvo(true)
+        // `salvos` faz o Painel reler o banco. Até 2026-08-31 ele não
+        // existia, e um comentário aqui afirmava que voltar ao Painel
+        // "recarrega e mostra o que acabou de entrar" — não recarregava.
+        // Voltar é navegar, e o DadosProvider fica ACIMA das rotas.
         setSalvos((n) => n + 1)
+        await avancar()
       } else if (r.status === 'documento-duplicado') {
         toast.warning(t('salvar.duplicado', { data: dataLongaDe(new Date(r.importadoEm)) }))
+        // Duplicado NÃO trava a fila: é um documento resolvido como outro
+        // qualquer. Quem soltou cinco arquivos de uma vez provavelmente
+        // repetiu algum, e parar ali obrigaria a recomeçar a leva.
+        await avancar()
       }
     } catch (err) {
       toast.error(t(chaveDeErro(err, 'salvar.falha')))
     } finally {
       setSalvando(false)
     }
-  }, [estado, regras, t])
+  }, [estado, regras, t, avancar])
 
-  const limpar = useCallback(() => setEstado({ fase: 'vazio' }), [])
+  const limpar = useCallback(() => {
+    void avancar()
+  }, [avancar])
+
+  const cancelarFila = useCallback(() => {
+    const restantes = filaRef.current.length
+    filaRef.current = []
+    setProgresso(null)
+    setEstado({ fase: 'vazio' })
+    if (restantes > 0) toast.warning(t('fila.cancelada', { n: restantes }))
+  }, [t])
   const consumirRecemSalvo = useCallback(() => setRecemSalvo(false), [])
 
   const valor = useMemo(
@@ -165,12 +234,27 @@ export function ImportacaoProvider({
       salvando,
       recemSalvo,
       salvos,
+      progresso,
       importar,
       salvar,
       limpar,
+      cancelarFila,
       consumirRecemSalvo,
     }),
-    [estado, regras, logado, salvando, recemSalvo, salvos, importar, salvar, limpar, consumirRecemSalvo],
+    [
+      estado,
+      regras,
+      logado,
+      salvando,
+      recemSalvo,
+      salvos,
+      progresso,
+      importar,
+      salvar,
+      limpar,
+      cancelarFila,
+      consumirRecemSalvo,
+    ],
   )
 
   return (

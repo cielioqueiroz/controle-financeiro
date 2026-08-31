@@ -50,16 +50,29 @@ import { puxarTudo } from '../persist/puxar'
 import { salvarDocumento } from '../aplicacao/comandos/importacao'
 
 /** A superfície mínima: importa e grava, como a página de importação faz. */
+const pdf = (nome: string) => new File(['x'], nome, { type: 'application/pdf' })
+
 function Gatilho() {
-  const { importar, salvar, estado } = useImportacao()
+  const { importar, salvar, limpar, cancelarFila, estado, progresso } = useImportacao()
   const { carregando } = useDados()
   return (
     <div>
-      <button onClick={() => importar(new File(['x'], 'extrato.pdf', { type: 'application/pdf' }))}>
-        importar
+      <button onClick={() => importar(pdf('extrato.pdf'))}>importar</button>
+      <button onClick={() => importar([pdf('a.pdf'), pdf('b.pdf'), pdf('c.pdf')])}>
+        importar tres
+      </button>
+      <button
+        onClick={() =>
+          importar([pdf('a.pdf'), new File(['x'], 'foto.jpg', { type: 'image/jpeg' })])
+        }
+      >
+        importar com lixo
       </button>
       <button onClick={() => salvar()}>gravar</button>
+      <button onClick={() => limpar()}>descartar</button>
+      <button onClick={() => cancelarFila()}>cancelar fila</button>
       <span data-testid="fase">{estado.fase}</span>
+      <span data-testid="progresso">{progresso ? `${progresso.atual}/${progresso.total}` : '-'}</span>
       <span data-testid="carregando">{String(carregando)}</span>
     </div>
   )
@@ -144,3 +157,86 @@ function SoDados() {
   const { carregando } = useDados()
   return <span data-testid="sozinho">{carregando ? 'carregando' : 'ok'}</span>
 }
+
+describe('a fila: varios arquivos de uma vez', () => {
+  beforeEach(() => {
+    vi.mocked(puxarTudo).mockClear()
+    vi.mocked(salvarDocumento).mockClear()
+  })
+
+  it('le o primeiro e SEGURA os outros na fila', async () => {
+    const user = userEvent.setup()
+    montar()
+    await waitFor(() => expect(puxarTudo).toHaveBeenCalledTimes(1))
+
+    await user.click(screen.getByRole('button', { name: 'importar tres' }))
+
+    // Um de cada vez, e a previa do primeiro na tela: e a conferencia antes
+    // de confiar que impede isto de virar "salva os cinco e avisa depois".
+    await waitFor(() => expect(screen.getByTestId('fase')).toHaveTextContent('pronto'))
+    expect(screen.getByTestId('progresso')).toHaveTextContent('1/3')
+    expect(salvarDocumento).not.toHaveBeenCalled()
+  })
+
+  it('gravar puxa o proximo sozinho, ate a fila acabar', async () => {
+    const user = userEvent.setup()
+    montar()
+    await waitFor(() => expect(puxarTudo).toHaveBeenCalledTimes(1))
+    await user.click(screen.getByRole('button', { name: 'importar tres' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('1/3'))
+
+    await user.click(screen.getByRole('button', { name: 'gravar' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('2/3'))
+    await user.click(screen.getByRole('button', { name: 'gravar' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('3/3'))
+
+    await user.click(screen.getByRole('button', { name: 'gravar' }))
+    // Fila vazia: volta ao estado inicial, e o Painel rele os TRES.
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('-'))
+    expect(salvarDocumento).toHaveBeenCalledTimes(3)
+    await waitFor(() => expect(puxarTudo).toHaveBeenCalledTimes(4))
+  })
+
+  // Descartar nao e abandonar: quem viu que o terceiro documento estava
+  // errado ainda quer os outros dois.
+  it('descartar tambem avanca a fila', async () => {
+    const user = userEvent.setup()
+    montar()
+    await user.click(screen.getByRole('button', { name: 'importar tres' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('1/3'))
+
+    await user.click(screen.getByRole('button', { name: 'descartar' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('2/3'))
+    expect(salvarDocumento).not.toHaveBeenCalled()
+  })
+
+  it('cancelar a fila larga tudo de uma vez', async () => {
+    const user = userEvent.setup()
+    montar()
+    await user.click(screen.getByRole('button', { name: 'importar tres' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('1/3'))
+
+    await user.click(screen.getByRole('button', { name: 'cancelar fila' }))
+    await waitFor(() => expect(screen.getByTestId('progresso')).toHaveTextContent('-'))
+    expect(screen.getByTestId('fase')).toHaveTextContent('vazio')
+    expect(salvarDocumento).not.toHaveBeenCalled()
+  })
+
+  // Quem arrasta uma pasta inteira precisa saber que o .jpg nao entrou —
+  // ignorar em silencio faria a contagem da fila mentir.
+  it('descarta o que nao e PDF e segue com o resto', async () => {
+    const user = userEvent.setup()
+    montar()
+    await user.click(screen.getByRole('button', { name: 'importar com lixo' }))
+    await waitFor(() => expect(screen.getByTestId('fase')).toHaveTextContent('pronto'))
+    expect(screen.getByTestId('progresso')).toHaveTextContent('1/1')
+  })
+
+  it('um arquivo so continua funcionando, sem fila na tela', async () => {
+    const user = userEvent.setup()
+    montar()
+    await user.click(screen.getByRole('button', { name: 'importar' }))
+    await waitFor(() => expect(screen.getByTestId('fase')).toHaveTextContent('pronto'))
+    expect(screen.getByTestId('progresso')).toHaveTextContent('1/1')
+  })
+})

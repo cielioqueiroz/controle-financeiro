@@ -3,21 +3,23 @@ import { useT } from '../i18n/IdiomaProvider'
 import { interpolarNos } from '../i18n/interpolarNos'
 
 type Props = {
-  onArquivo: (file: File) => void
+  /** Recebe TODOS os arquivos soltos de uma vez. Quem enfileira é o
+   *  provider — aqui só se entrega o que a pessoa escolheu. */
+  onArquivos: (files: File[]) => void
   ocupado: boolean
 }
 
-export function Dropzone({ onArquivo, ocupado }: Props) {
+export function Dropzone({ onArquivos, ocupado }: Props) {
   const { t } = useT()
   const [sobre, setSobre] = useState(false)
   const input = useRef<HTMLInputElement>(null)
 
   const receber = useCallback(
     (files: FileList | null) => {
-      const file = files?.[0]
-      if (file) onArquivo(file)
+      const todos = files ? [...files] : []
+      if (todos.length > 0) onArquivos(todos)
     },
-    [onArquivo],
+    [onArquivos],
   )
 
   return (
@@ -58,17 +60,21 @@ export function Dropzone({ onArquivo, ocupado }: Props) {
           </div>
         </div>
 
-        <div className="mt-10 flex items-center gap-3 pl-11">
+        <div className="mt-10 flex flex-wrap items-center gap-3 pl-11">
           <span className="h-px w-8 bg-carvao-600" />
           <span className="tabular text-[11px] uppercase tracking-[0.2em] text-tinta-tenue">
             {ocupado ? t('drop.processando') : t('drop.clique')}
           </span>
+          {!ocupado && (
+            <span className="text-[11px] text-tinta-tenue">· {t('drop.varios')}</span>
+          )}
         </div>
       </button>
 
       <input
         ref={input}
         type="file"
+        multiple
         accept="application/pdf,.pdf"
         className="hidden"
         onChange={(e) => receber(e.target.files)}
