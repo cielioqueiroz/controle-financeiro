@@ -12,6 +12,13 @@ import { GraficoCompromissos } from './ui/graficos/GraficoCompromissos'
 import { CompromissosFuturos } from './ui/CompromissosFuturos'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
 import { MaioresSaidas } from './ui/listas/MaioresSaidas'
+import { ListaTodos } from './ui/listas/ListaTodos'
+import { Diagnosticos } from './ui/Diagnosticos'
+import { DiscretoToggle } from './ui/DiscretoToggle'
+import { EditarCompra } from './ui/EditarCompra'
+import { DadosProvider } from './dados/DadosProvider'
+import { DiscretoProvider } from './dados/DiscretoProvider'
+import { diagnosticar } from './domain/diagnosticos'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
@@ -224,7 +231,73 @@ export function Folha() {
           <GraficoCompromissos meses={futuros} onSelecionar={setMesAberto} />
         </div>
       </Secao>
+
+      <Interativas />
     </main>
+  )
+}
+
+/** As peças que só existem depois de um clique ou de um foco.
+ *
+ *  Elas ficaram TRÊS RODADAS sem medição nenhuma, e sempre pela mesma razão:
+ *  `medir-overflow.py` fazia `goto(URL)` e nada mais, então media a tela de
+ *  acesso e nada além dela. Estão aqui, cada uma com um gatilho estável, e a
+ *  jornada que as abre é a lista `JORNADAS` de `scripts/medir-overflow.py`.
+ *
+ *  **Gatilho é contrato:** mudar o texto de um botão daqui quebra a jornada
+ *  lá — de propósito. Uma peça que perde o gatilho tem que ficar vermelha,
+ *  não voltar em silêncio para a lista das não medidas. */
+function Interativas() {
+  const [editando, setEditando] = useState<TransacaoSalva | null>(null)
+  const [termo, setTermo] = useState('')
+  const [cat, setCat] = useState<string | null>(null)
+
+  return (
+    <>
+      {/* A faixa some quando não há achado — a amostra é escolhida para ter:
+          TUDO concentra R$ 41.653 num estabelecimento só. */}
+      <Secao titulo="diagnosticos">
+        <Diagnosticos itens={diagnosticar(TUDO)} onVerSemCategoria={() => {}} />
+      </Secao>
+
+      <Secao titulo="controles-cabecalho">
+        <div className="flex items-center gap-2">
+          <DiscretoToggle />
+          <span className="text-xs text-tinta-tenue">
+            clique para mascarar todo dinheiro da folha
+          </span>
+        </div>
+      </Secao>
+
+      {/* A dica de sintaxe é `sr-only` até o campo receber foco: sem focar,
+          o medidor mede uma linha invisível de altura zero. */}
+      <Secao titulo="busca-operadores">
+        <ListaTodos
+          txs={TUDO}
+          onEditar={setEditando}
+          termo={termo}
+          cat={cat}
+          onTermo={setTermo}
+          onCat={setCat}
+        />
+      </Secao>
+
+      <Secao titulo="editor-compra">
+        <button
+          onClick={() => setEditando(TUDO[0])}
+          className="min-h-11 rounded-lg border border-carvao-700 px-4 text-sm text-tinta"
+        >
+          Abrir editor de compra
+        </button>
+        {editando && (
+          <EditarCompra
+            tx={editando}
+            onFechar={() => setEditando(null)}
+            onSalvo={() => setEditando(null)}
+          />
+        )}
+      </Secao>
+    </>
   )
 }
 
@@ -234,7 +307,13 @@ createRoot(document.getElementById('root')!).render(
       {/* O donut navega para /lancamentos no clique: sem Router ele derruba
           a folha inteira na montagem. */}
       <MemoryRouter>
-        <Folha />
+        {/* `EditarCompra` chama `useDados`, que lança fora do provider. As
+            sementes existem para isto: o provider de verdade, sem banco. */}
+        <DadosProvider sementes={TUDO}>
+          <DiscretoProvider>
+            <Folha />
+          </DiscretoProvider>
+        </DadosProvider>
       </MemoryRouter>
     </IdiomaProvider>
   </StrictMode>,

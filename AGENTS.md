@@ -247,7 +247,7 @@ isso que ela virou script em vez de continuar sendo uma tabela num documento:
 ```bash
 python scripts/medir-contraste.py   # se mexeu em COR
 npm run dev                         # e então, noutro terminal:
-python scripts/medir-overflow.py    # se mexeu em LAYOUT
+python scripts/medir-overflow.py    # se mexeu em LAYOUT (mede 5 jornadas)
 python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de provas
 ```
 
@@ -332,6 +332,17 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
   camada `#bg-animation` (`position: fixed`); o brilho da tela de login já criou
   barra lateral pulsante por escalar dentro do `scrollWidth`.
 - **O medidor só reprova rolagem LATERAL** — vertical é normal.
+- **Filho de `grid` ou `flex` não encolhe sozinho: o padrão é `min-width: auto`**,
+  que recusa ficar menor que o min-content do conteúdo. Foi assim que a página de
+  Recorrências rolou de lado em 390px por semanas — os dois cards de compromissos
+  ficavam com 414px numa coluna de 342, e `overflow-hidden` no filho não resolve,
+  porque o que estoura é o próprio filho. A cura é `min-w-0` **no item do grid**.
+- **`medir-overflow.py` mede JORNADAS, não uma URL.** Cada peça que só existe
+  depois de um clique ou de um foco tem uma entrada em `JORNADAS`, e cada jornada
+  tem uma **prova** — a asserção de que a peça está mesmo na tela. Sem a prova,
+  medir depois de um clique que não aconteceu devolve OK, o mesmo OK de uma tela
+  sã. Peça nova interativa **entra na lista**, senão ela não é medida por
+  ninguém.
 - **Canvas precisa de `width/height` no CSS.** `renderer.setSize(w, h, false)` não
   escreve o style, e canvas sem dimensão CSS cai no tamanho intrínseco: em HiDPI
   fica com o dobro do viewport, borrado. **Invisível em navegador headless, que

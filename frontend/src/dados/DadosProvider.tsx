@@ -56,7 +56,22 @@ const Ctx = createContext<Dados | null>(null)
  *  Os volumes são de uso pessoal, então buscar tudo e fatiar no cliente é
  *  mais rápido que ir ao banco a cada troca de período — e é o que permite
  *  navegar entre as páginas sem nova espera. */
-export function DadosProvider({ children }: { children: ReactNode }) {
+export function DadosProvider({
+  children,
+  sementes,
+}: {
+  children: ReactNode
+  /** Histórico fixo em vez de ir ao banco. É a porta da FOLHA DE PROVAS
+   *  (`demo.html`): `BarraFiltros` e `EditarCompra` chamam `useDados`, que
+   *  lança fora do provider, e num navegador não existe `vi.mock` — que é
+   *  como os testes resolvem o mesmo problema.
+   *
+   *  Não é dado mockado silencioso: quem passa é `demo.tsx`, que o `vite
+   *  build` não inclui (a única entrada de produção é `index.html`). Sem
+   *  esta porta, as duas peças ficam fora de qualquer medição — foi o que
+   *  aconteceu com elas por três rodadas. */
+  sementes?: TransacaoSalva[]
+}) {
   const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
   const [docsSaldo, setDocsSaldo] = useState<DocDoPainel[]>([])
   const [carregando, setCarregando] = useState(true)
@@ -65,6 +80,12 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   const recarregar = useCallback(async () => {
     setCarregando(true)
     setErro(null)
+    // A folha de provas não tem banco para consultar.
+    if (sementes) {
+      setTodas(sementes)
+      setCarregando(false)
+      return
+    }
     try {
       // As categorias do usuário entram no registro ANTES das transações
       // serem expostas, para que categoria() já conheça as personalizadas
@@ -86,7 +107,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     } finally {
       setCarregando(false)
     }
-  }, [])
+  }, [sementes])
 
   useEffect(() => {
     recarregar()
