@@ -12,7 +12,7 @@
 > | Onde | O quê |
 > |---|---|
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
-> | [`docs/adr/`](./adr/) | **As nove decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
+> | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
 
 ## Rodada 2026-08-18 (parte 2) — a fila dos quatro repositórios, fechada

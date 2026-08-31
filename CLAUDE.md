@@ -15,5 +15,5 @@ a que você leu. Regra nova entra no `AGENTS.md`, nunca aqui.
 |---|---|
 | [`AGENTS.md`](./AGENTS.md) | **Mapa, padrões, verificação e armadilhas.** |
 | [`CONTEXT.md`](./CONTEXT.md) | Glossário do domínio. **Leia antes de nomear qualquer coisa.** |
-| [`docs/adr/`](./docs/adr/) | As nove decisões que um leitor acharia erradas sem contexto. |
+| [`docs/adr/`](./docs/adr/) | As decisões que um leitor acharia erradas sem contexto. |
 | [`docs/ESTADO-ATUAL.md`](./docs/ESTADO-ATUAL.md) | Diário de rodadas: o que foi feito, quando e por quê. |

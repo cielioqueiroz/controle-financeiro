@@ -14,4 +14,4 @@ estaticamente. Recusada.
   deploy**, porque o chunk que a aba aberta tenta buscar já não existe no servidor.
   Pagar isso por 2,6% seria um mau negócio mesmo se o ganho fosse real.
 - O caminho que teria efeito é reduzir ou adiar o SDK do Neon — trabalho de outra
-  ordem de grandeza, e hoje bloqueado por [ADR-0008](./0008-sdk-do-neon-nao-atualizado.md).
+  ordem de grandeza, e hoje bloqueado por [ADR-0008](./0008-o-login-nao-tem-rede-de-testes.md).

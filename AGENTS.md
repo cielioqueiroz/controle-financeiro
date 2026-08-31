@@ -9,8 +9,9 @@ sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature.
 | Onde | O quê |
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | Glossário do domínio. **Leia antes de nomear qualquer coisa.** |
-| [`docs/adr/`](./docs/adr/) | As nove decisões que um leitor acharia erradas sem contexto. |
+| [`docs/adr/`](./docs/adr/) | As decisões que um leitor acharia erradas sem contexto. |
 | [`docs/ESTADO-ATUAL.md`](./docs/ESTADO-ATUAL.md) | Diário de rodadas: o que foi feito, quando e por quê. |
+| [`docs/VALIDACAO-MANUAL.md`](./docs/VALIDACAO-MANUAL.md) | O que só o usuário, com conta real, consegue conferir. |
 | [`docs/SETUP-NEON.md`](./docs/SETUP-NEON.md) | Como o banco e o Auth foram configurados. |
 
 ---
@@ -276,7 +277,7 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
   extraído e `domain/pdf/load.ts` é mockado em jsdom (que não tem `DOMMatrix`): a
   suíte passa verde com o parser quebrado. Upgrade de pdf.js exige prova à parte.
 - **A suíte mocka o SDK do Neon inteiro.** Regressão de login não é pega por teste
-  nenhum — ver [ADR-0008](./docs/adr/0008-sdk-do-neon-nao-atualizado.md).
+  nenhum — ver [ADR-0008](./docs/adr/0008-o-login-nao-tem-rede-de-testes.md).
 - **`vi.mock('../x')` recebe STRING, não import.** Nem o `tsc` nem o build reclamam
   quando o caminho deixa de resolver: o módulo **real** entra no lugar do dublê e o
   teste passa a exercitar outra coisa. Mover um arquivo de teste de pasta quebra
