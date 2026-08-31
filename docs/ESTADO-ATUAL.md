@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-31** (parte 4).
+> Documento de continuidade. Última atualização: **2026-08-31** (parte 5).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,61 @@
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
 > | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-31 (parte 5) — a procedência, e o AGENTS.md que descrevia outro repositório
+
+### 1. `AGENTS.md`: a conta completa de adicionar um banco
+
+⚠️ **A §2.3 dizia "nada a jusante muda"**, e isso era falso no ponto que custa
+caro: sem a migração que amplia o CHECK de `accounts.bank`, a primeira
+importação daquele banco **falha inteira**, com uma mensagem de Postgres que não
+diz ao usuário o que aconteceu. Foi o que quase aconteceu com o Mercado Pago.
+
+Agora são seis passos numerados, e o sexto (o carrossel) traz a condição: só
+depois de o parser existir, porque a faixa diz "já lê os extratos de". Entrou
+junto a lição do detector — **melhor que acertar a ordem é a assinatura que não
+depende dela**: `EXTRATO DE CONTA` sozinho casaria por prefixo com o `Extrato de
+Conta Corrente` do BB.
+
+E a **§2.10 é nova**: a direção de desenho. O app trocou de direção duas vezes em
+seis dias e o `AGENTS.md` não mencionava nenhuma — quem lesse só ele
+reintroduziria o "impresso e terminal" sem saber que foi revertido.
+
+### 2. A procedência
+
+Segunda proposta da prancheta, na parte que sobreviveu à reversão. O app é
+retrospectivo — **todo número veio de um documento do banco** —, e essa promessa
+não aparecia em lugar nenhum da tela: os totais simplesmente estavam lá, do
+mesmo jeito que estariam se tivessem sido digitados.
+
+Uma linha acima dos tiles: `jul 2026 · Nubank Bradesco Mercado Pago · 2 faturas
+e 2 extratos`.
+
+**Não é a barra de filtros de novo**, e a distinção entrou no `CONTEXT.md`
+porque é exatamente o par que o glossário existe para separar: filtro é o que foi
+**escolhido**, procedência é o que foi **encontrado**, e os dois divergem sempre
+que o recorte cai num mês cuja fatura ninguém importou.
+
+Conta documentos distintos, derivada das próprias transações da tela — nunca de
+uma segunda consulta, porque duas contagens que discordam é pior que uma só.
+
+⚠️ **Duas coisas que só a folha de provas pegou**, e nenhuma apareceria em teste:
+
+1. `capitalize` do Tailwind maiusculiza **toda** palavra ("Julho De 2026"). Hoje
+   `rotuloPeriodo` devolve uma palavra só e os dois dariam no mesmo — mas o
+   componente recebe o rótulo pronto de fora e não manda no formato dele.
+   `first-letter:uppercase`.
+2. A seção da folha passava `TUDO`, que é **um** documento só — e a linha existe
+   justamente para mostrar a mistura. **Folha que prova um caso que a tela não
+   produz não prova nada.**
+
+E uma armadilha de método, minha: procurei o componente com
+`secao.querySelector('p')` e li o `<p>` do TÍTULO da seção, concluindo que ele
+não renderizava. Renderizava. Antes de investigar o código, conferir que a sonda
+mede o que se pensa que ela mede.
+
+**761 testes (93 arquivos)**, `npm run verificar` verde nos seis passos, 10
+medições de overflow verdes.
 
 ## Rodada 2026-08-31 (parte 4) — o F5 que o usuário estava dando, e o carimbo
 
@@ -71,7 +126,7 @@ plano **congela a linha do tempo das animações** — `playState: running` com
 `currentTime: 0`. O ângulo lido ali é o do primeiro quadro, não o final. Ler os
 keyframes (ou chamar `.finish()`) mostra o que a tela de verdade faz.
 
-**754 testes (92 arquivos)**, `npm run verificar` verde nos seis passos,
+**761 testes (93 arquivos)**, `npm run verificar` verde nos seis passos,
 contraste OK nos dois temas, 10 medições de overflow verdes. O carimbo virou
 print do README.
 
@@ -1195,7 +1250,6 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
-| **Folha de fechamento** — bloco de identificação no topo do painel | médio |
 | **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
 
