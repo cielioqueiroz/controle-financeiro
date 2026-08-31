@@ -210,6 +210,7 @@ export const es: Dicionario = {
   'header.sub': 'Importa la factura, del resto nos encargamos.',
   'header.voltar': '‹ Volver al historial',
   'header.ateLogo': '¡Hasta luego, {quem}!',
+  'header.saiuNoutraAba': 'Cerraste sesión en otra pestaña.',
   'header.sessaoEncerrada': 'Tu sesión se cerró en este navegador.',
 
   'conta.aria': 'Cuenta',

@@ -396,6 +396,17 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
 - **Nunca commitar PDF real** (`*.pdf` no `.gitignore`): contém CPF, conta e nomes
   de terceiros. `scripts/diagnostico.ts` também é local e git-ignored.
 
+- **A sessão vive em estado do React, lido UMA vez na montagem.** Nada no app
+  reconsulta sozinho — então tudo o que muda a sessão de fora precisa ser
+  EMPURRADO para as outras abas (`lib/sessao-canal.ts`). Sair da conta era o
+  caso que faltava: as outras abas seguiam com `logado = true` até o F5.
+- ⚠️ **Não dá para descobrir logout perguntando ao SDK.** O
+  `@neondatabase/auth` guarda a sessão em memória e o `getSession` responde do
+  CACHE, sem tocar na rede, com TTL igual à validade do JWT. Uma aba que
+  reconsultasse depois do logout de outra ouviria "ainda logado" — quem recebe
+  o aviso derruba direto. É o mesmo cache que fez o aviso de e-mail confirmado
+  não sumir em 13/08.
+
 ## 4.3 Segurança e cabeçalhos
 
 - **Nada do `vercel.json` vale localmente** — nem em `npm run dev`, nem em `vite

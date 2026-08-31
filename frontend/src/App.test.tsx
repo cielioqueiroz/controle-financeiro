@@ -293,3 +293,70 @@ describe('App — frase do header por estado', () => {
     ).toHaveTextContent('Importe a fatura, o resto a gente calcula.')
   })
 })
+
+describe('sair numa aba derruba as outras', () => {
+  /** A "outra aba": mesmo canal, outro objeto — e o navegador faz
+   *  exatamente isto entre dois documentos da mesma origem. */
+  function outraAbaSai() {
+    const c = new BroadcastChannel('cf:sessao')
+    c.postMessage('saiu')
+    c.close()
+  }
+
+  // O defeito relatado: duas abas logadas, sai de uma, a outra continua
+  // mostrando dado financeiro de uma conta que ja nao tem sessao. So o F5
+  // derrubava.
+  it('a aba logada volta ao login quando outra aba sai', async () => {
+    authMocks.setSessaoAtiva(true)
+    render(<App />)
+    expect(await screen.findByText('DASHBOARD_STUB')).toBeInTheDocument()
+
+    outraAbaSai()
+
+    expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+    expect(screen.queryByText('DASHBOARD_STUB')).not.toBeInTheDocument()
+  })
+
+  // ⚠️ O que garante que a correcao NAO depende do SDK: o mock continua
+  // devolvendo sessao ativa o tempo todo (`setSessaoAtiva(true)` nunca e
+  // desfeito aqui), como o cache em memoria do neon-js faria de verdade. Se
+  // o App reconsultasse a sessao em vez de derrubar direto, ouviria "ainda
+  // logado" e este teste ficaria vermelho.
+  it('derruba mesmo com o SDK ainda respondendo "logado"', async () => {
+    authMocks.setSessaoAtiva(true)
+    render(<App />)
+    await screen.findByText('DASHBOARD_STUB')
+
+    outraAbaSai()
+    await screen.findByRole('button', { name: 'Entrar' })
+
+    const { data } = await authMocks.getSession()
+    expect(data?.session).toBeDefined()
+  })
+
+  it('tambem cai pelo localStorage, para quem nao tem BroadcastChannel', async () => {
+    authMocks.setSessaoAtiva(true)
+    render(<App />)
+    await screen.findByText('DASHBOARD_STUB')
+
+    window.dispatchEvent(
+      new StorageEvent('storage', { key: 'cf:sessao-saida', newValue: String(Date.now()) }),
+    )
+
+    expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument()
+  })
+
+  // Aviso de outro assunto no mesmo canal nao pode derrubar ninguem.
+  it('nao cai por mensagem alheia no canal', async () => {
+    authMocks.setSessaoAtiva(true)
+    render(<App />)
+    await screen.findByText('DASHBOARD_STUB')
+
+    const c = new BroadcastChannel('cf:sessao')
+    c.postMessage('outra-coisa')
+    c.close()
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(screen.getByText('DASHBOARD_STUB')).toBeInTheDocument()
+  })
+})

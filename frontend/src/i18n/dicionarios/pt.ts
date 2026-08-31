@@ -235,6 +235,7 @@ export const pt = {
   'header.sub': 'Importe a fatura, o resto a gente calcula.',
   'header.voltar': '‹ Voltar ao histórico',
   'header.ateLogo': 'Até logo, {quem}!',
+  'header.saiuNoutraAba': 'Você saiu da conta em outra aba.',
   'header.sessaoEncerrada': 'Sua sessão foi encerrada neste navegador.',
 
   // Menu da conta

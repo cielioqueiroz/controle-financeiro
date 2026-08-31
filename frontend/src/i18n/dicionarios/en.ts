@@ -210,6 +210,7 @@ export const en: Dicionario = {
   'header.sub': 'Import the statement, we handle the rest.',
   'header.voltar': '‹ Back to history',
   'header.ateLogo': 'See you, {quem}!',
+  'header.saiuNoutraAba': 'You signed out in another tab.',
   'header.sessaoEncerrada': 'Your session ended in this browser.',
 
   'conta.aria': 'Account',

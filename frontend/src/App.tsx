@@ -36,6 +36,7 @@ import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, ler
 import { useT } from './i18n/IdiomaProvider'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
+import { avisarSaida, ouvirSaida } from './lib/sessao-canal'
 import { puxarRegras } from './aplicacao/consultas/regras'
 import type { Regra } from './domain/categorize/regras'
 
@@ -105,6 +106,9 @@ export default function App() {
       await neon?.auth.signOut()
       setLogado(false)
       setUsuario(null)
+      // Derruba as OUTRAS abas. Depois do signOut de propósito: avisar antes
+      // faria as outras caírem por uma saída que ainda pode falhar.
+      avisarSaida()
       toast.success(t('header.ateLogo', { quem }), {
         description: t('header.sessaoEncerrada'),
       })
@@ -117,6 +121,26 @@ export default function App() {
     checarSessao()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Outra aba saiu da conta: esta cai junto.
+  //
+  // ⚠️ Derruba DIRETO, sem reconsultar a sessão. O SDK do Neon guarda a
+  // sessão em memória e o `getSession` responde do cache sem tocar na rede
+  // (é o mesmo cache que fez o aviso de e-mail confirmado não sumir em
+  // 13/08): perguntar a ele aqui ouviria "ainda logado" e a aba continuaria
+  // mostrando dado financeiro de uma conta sem sessão.
+  //
+  // O `signOut` local é só higiene — limpa o que esta aba ainda guardava —
+  // e vai sem `await` e com o erro engolido: a sessão já não existe do lado
+  // do servidor, então falhar aqui é esperado e não muda nada na tela.
+  useEffect(() => {
+    return ouvirSaida(() => {
+      setLogado(false)
+      setUsuario(null)
+      neon?.auth.signOut().catch(() => {})
+      toast.info(t('header.saiuNoutraAba'))
+    })
+  }, [t])
 
   // Com Neon configurado e sem login → tela de entrar. Token de redefinição
   // na URL também leva ao card, mesmo com sessão ativa.
