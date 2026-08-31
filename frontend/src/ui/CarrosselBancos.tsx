@@ -5,7 +5,7 @@ import { useT } from '../i18n/IdiomaProvider'
 
 /** Bancos que o app realmente lê — nunca 'desconhecido'. A ordem fixa dá um
  *  ritmo estável ao laço. */
-const SUPORTADOS: Bank[] = ['nubank', 'bradesco', 'bb', 'sicredi', 'sicoob']
+const SUPORTADOS: Bank[] = ['nubank', 'bradesco', 'bb', 'sicredi', 'sicoob', 'mercadopago']
 
 /** Faixa monocromática dos bancos suportados, passando em laço infinito, só
  *  na tela de acesso. Diz "trouxe o seu?" sem prometer o que não entrega:

@@ -128,18 +128,26 @@ só por URL digitada.
 ## 1.6 Cobertura de bancos
 
 **Seis** bancos no catálogo (`nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`,
-`mercadopago`) e
-**sete parsers**: fatura e extrato do Nubank e do Bradesco, extrato do BB, do
-Sicredi e do Sicoob. Ver
+`mercadopago`) e **nove parsers**: fatura e extrato do Nubank, do Bradesco e do
+Mercado Pago, mais o extrato do BB, do Sicredi e do Sicoob. Ver
 [ADR-0006](./docs/adr/0006-detector-de-layout-e-um-parser-por-banco.md).
 
-⚠️ **`mercadopago` está no catálogo e NÃO tem parser** (31/08). O tipo, o tema e
-a migração `0004` existem para que o parser nasça sem mexer em mais nada — a
-assinatura em `detect.ts` e o despacho em `parsers/index.ts` só podem ser
-escritos contra um PDF de verdade, que ainda não chegou. Enquanto isso ele fica
-**fora do carrossel** da tela de acesso: aquilo diz "já lê os extratos de", e
-ainda não lê. **A migração `0004` precisa ser aplicada no Neon antes do primeiro
-documento** — sem ela o insert bate no CHECK e a importação falha inteira.
+⚠️ **A migração `0004` precisa estar aplicada no Neon** antes do primeiro
+documento do Mercado Pago — sem ela o insert bate no `accounts_bank_check` e a
+importação falha inteira, com uma mensagem de Postgres que não diz ao usuário o
+que aconteceu.
+
+**Duas coisas que só o Mercado Pago faz**, e que qualquer mexida nesses parsers
+precisa preservar:
+
+- **No extrato, a descrição pode ficar ACIMA e ABAIXO da linha do valor ao
+  mesmo tempo.** O que junta os três é a **distância** (5–7pt), não a
+  vizinhança: entre dois lançamentos há ~30pt, e a linha logo abaixo de um
+  valor pode ser o prefixo do *próximo*.
+- **Na fatura, a palavra "Total" aparece três vezes**, em páginas diferentes e
+  com sentidos diferentes — o total da fatura (p. 1 e 2) e o dos lançamentos
+  futuros (p. 4). Cada leitura é ancorada num título; confundi-las faria o
+  gabarito conferir contra o número errado, que é pior que não conferir.
 
 ---
 

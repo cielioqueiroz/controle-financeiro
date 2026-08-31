@@ -33,11 +33,11 @@ saldo ao longo de um período.
 _Evitar_: statement, movimentação
 
 **Banco**:
-A instituição emissora do documento, de um catálogo fechado: `nubank`,
-`bradesco`, `bb`, `sicredi`, `sicoob`, `mercadopago`. **Estar no catálogo não é
-o mesmo que ser legível** — `mercadopago` foi declarado em 2026-08-31 (tipo,
-tema e migração `0004`) e ainda não tem parser, então o detector nunca o
-devolve. Quem diz o que o app *lê* é `domain/parsers/index.ts`, não esta lista.
+A instituição emissora do documento, de um catálogo fechado do que o app sabe
+ler: `nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`, `mercadopago`. **Estar no
+catálogo não é o mesmo que ser legível**: quem responde o que o app lê é
+`domain/parsers/index.ts`, não esta lista — e é ele, não ela, que autoriza um
+nome novo no carrossel da tela de acesso.
 _Evitar_: instituição, emissor, financeira
 
 **Gabarito**:

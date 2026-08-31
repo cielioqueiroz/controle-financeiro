@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-31** (parte 2).
+> Documento de continuidade. Última atualização: **2026-08-31** (parte 3).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,90 @@
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
 > | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-31 (parte 3) — o Mercado Pago passou a ser lido
+
+As amostras chegaram (fatura do cartão e extrato da conta) e os dois parsers
+foram escritos contra elas. **Os dois conferem ao centavo** na primeira
+execução: a fatura fecha R$ 621,34 contra o "Resumo da fatura", o extrato fecha
+R$ 135,18 de entradas e R$ 135,18 de saídas contra os totais declarados.
+
+9 lançamentos na fatura, 21 no extrato, 27 testes novos.
+
+### O que este banco faz e nenhum outro fazia
+
+**No extrato, a descrição fica ACIMA e ABAIXO da linha do valor ao mesmo
+tempo:**
+
+```
+Pix recebido MARIAXXX DA                      ← prefixo   (y 417)
+08-08-2026 171802730931 R$ 100,00 R$ 100,00   ← o valor   (y 410)
+APARECIDA SANTOSS                             ← sufixo    (y 405)
+```
+
+⚠️ **O que junta os três é a DISTÂNCIA, não a vizinhança.** "A linha de cima e a
+de baixo" quebra em lançamentos seguidos: entre dois valores há ~30pt, e a
+linha logo abaixo de um deles pode ser o prefixo do *próximo*. Fragmentos da
+mesma descrição ficam a 5–7pt. O teste que guarda isso conta as 11 linhas de
+"Rendimentos" — se o critério estivesse errado, uma delas viria colada em
+"Débito por dívida".
+
+**Na fatura, a palavra "Total" aparece três vezes**, em páginas diferentes e
+com sentidos diferentes: R$ 621,34 é a fatura (p. 1 e 2) e R$ 711,89 são os
+lançamentos futuros (p. 4). Cada leitura é ancorada num título. Ler o segundo
+faria o gabarito **conferir contra o número errado**, que é pior que não
+conferir — a conferência é o mecanismo de confiança do sistema.
+
+### Um erro meu, achado antes de commitar
+
+Classifiquei "Débito por dívida Empréstimos Mercado Pago" como `pagamento`.
+Estava errado: `pagamento` vira `card_payment`, que é **vínculo**, e sairia do
+gasto real — R$ 79,32 desapareceriam da conta sem ninguém pedir. O vínculo
+existe contra **dupla contagem** entre fatura e extrato do mesmo mês
+(`CONTEXT.md`: quitação de fatura, transferência entre contas próprias,
+varredura automática), e a parcela do empréstimo não está contada em documento
+nenhum além deste. É `compra`, e tem categoria própria.
+
+### ⚠️ Dois dados que atravessaram todas as gerações de fixture sem anonimizar
+
+Achados ao gerar os fixtures novos, **não** procurados:
+
+| O quê | Onde |
+|---|---|
+| `3117878715-6` — número de conta solto | `nubank-extrato.items.json` |
+| `L C COMERCIO` — razão social de terceiro | `nubank-extrato.items.json` |
+
+Nenhum é nome de pessoa nem CPF, e a varredura de 13/08 (que declarou os
+fixtures anonimizados) olhava a lista `PROIBIDOS`, que não os continha — a
+auditoria só sabe procurar o que já lhe ensinaram. Os dois ganharam regra e
+entraram na lista. **O repositório é público desde 25/08**, então eles
+estiveram expostos por seis dias.
+
+Junto: o embaralhador de IDs de operação (9+ dígitos, determinístico) ficou
+**restrito ao Mercado Pago**. Ligado para todos, ele reescrevia dado que já era
+falso — o código de barras e a conta trocada do Bradesco — e fixture que muda
+sem motivo é diff que ninguém lê.
+
+### O que mais entrou
+
+- `extractInstallment` ganhou o **terceiro** formato de parcela do projeto:
+  "Parcela 1 de 4" (o Nubank escreve "- Parcela 5/8", o Bradesco cola "02/06").
+- `gerar-fixtures.ts` aceita **várias pastas**: as amostras vivem por safra
+  (`junho2026`, `agosto2026`), e exigir tudo numa pasta só obrigaria a copiar
+  PDF com CPF de um lugar para outro a cada banco novo.
+- **Mercado Pago entrou no carrossel** da tela de acesso — agora ele lê, então
+  agora pode dizer que lê.
+- As assinaturas do detector não dependem de ordem: `DETALHE DOS MOVIMENTOS` +
+  `ID da operação` são exclusivas. "EXTRATO DE CONTA" sozinho casaria por
+  prefixo com o "Extrato de Conta Corrente" do BB.
+
+⚠️ **A migração `0004` continua sem ser aplicada no Neon** — é ela que autoriza
+`mercadopago` no `accounts_bank_check`. Sem ela, a primeira importação falha
+inteira. O MCP do Neon não está autorizado nesta sessão; é passo manual no SQL
+Editor.
+
+`npm run verificar` verde nos seis passos; 10 medições de overflow verdes com o
+sexto banco no carrossel; prints regerados.
 
 ## Rodada 2026-08-31 (parte 2) — o desenho volta seis dias, e a navegação vira calha
 
@@ -1026,12 +1110,11 @@ Fatia 1b. Vermelho no `audit` voltou a significar descuido, não decisão.
 nunca houve `.env`, PDF ou credencial versionados), mas a regra "nunca commitar
 PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
-**Quatro coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
+**Três coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
 
 | O que | Por que está parado |
 |---|---|
-| **Aplicar a migração `0004` no Neon** | Pré-requisito do Mercado Pago. Sem ela a primeira importação dele falha inteira |
-| **Parser do Mercado Pago** | Falta a amostra — o usuário disse que vai enviar fatura e extrato |
+| **Aplicar a migração `0004` no Neon** | Pré-requisito do Mercado Pago. Sem ela a primeira importação dele falha inteira. Passo manual: o MCP do Neon não está autorizado |
 | **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — é o que substitui o teste de login que não existe |
 | **Mais bancos** (Caixa, layout A do BB) e **revisão de en/es** | Falta amostra com camada de texto; e olho de nativo |
 
