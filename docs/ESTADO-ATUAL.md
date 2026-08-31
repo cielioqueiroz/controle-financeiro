@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-31**.
+> Documento de continuidade. Última atualização: **2026-08-31** (parte 2).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,95 @@
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
 > | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-31 (parte 2) — o desenho volta seis dias, e a navegação vira calha
+
+O usuário mandou duas imagens e pediu a barra lateral de uma e a tela de acesso
+da outra. **As duas imagens eram do desenho de ANTES de 25/08** — conferido
+extraindo o print do commit `c90851b`, que bate item a item com a referência:
+moeda R$, card arredondado com sombra, "OU", rodapé com a assinatura.
+
+Isso punha os dois pedidos em conflito: as seis propostas aprovadas de manhã
+eram todas continuações do "impresso e terminal" (carimbo, régua grossa, banda,
+impressão), e as imagens pedem raio, cartão e gradiente — o oposto das regras
+1, 2 e 3. Perguntado se era só a estrutura ou a direção inteira, o usuário
+respondeu **a direção inteira**.
+
+### 1. O revert, e por que ele foi barato
+
+`git revert f4bd601` — a direção inteira cabia num commit: `index.css`,
+`fontes.css`, `index.html` e retoques em 18 componentes. **Dois conflitos**, e
+os dois resolvidos a favor do HEAD porque não eram de desenho: o alvo de toque
+de 44px veio da correção de acessibilidade de 28/08. *Desenho é gosto;
+contraste e alvo de toque são requisito.*
+
+Isso virou a consequência principal da [ADR-0012](./adr/0012-o-livro-razao-volta-e-a-calha-lateral-nasce.md):
+**toda direção visual futura tem que caber num commit reversível.** Se um
+redesenho se espalhar por cinquenta arquivos de componente, ele deixa de ser
+reversível e vira reescrita.
+
+Voltou junto a `Celebracao.tsx`, o confete que o redesign havia aposentado por
+"não caber num sistema que raciona cor". Não raciona mais.
+
+### 2. A calha lateral
+
+Duas navegações sobre a mesma `ROTAS`: `NavLateral` a partir de `lg`,
+`NavPrincipal` horizontal abaixo. 16rem num viewport de 390px levaria metade da
+tela — e 390 é uma das duas larguras que o medidor roda.
+
+⚠️ **Os modais de tutorial e de perfil subiram para o `App`.** Eles moravam no
+`Cabecalho` com a razão escrita no próprio arquivo: *"só o menu de conta os
+abre"*. O menu desceu para a calha e agora **dois** lugares o abrem — a razão
+expirou, e o comentário que a guardava foi reescrito em vez de apagado.
+
+Ícones casados pelo **caminho**, não pela posição: array paralelo deslocaria
+todos os outros, em silêncio, no dia em que uma rota nova entrasse sem ícone.
+
+### 3. A tela de acesso, e a medição que pagou na hora
+
+O card de vidro e a moeda voltaram com o revert. Faltavam três coisas: o
+gradiente ciano, o clima e os pontos dos bancos.
+
+⚠️ **O ciano da imagem, aplicado ao tema claro, dá 3.94:1 — reprovado.** Texto
+sobre gradiente precisa passar nas **duas pontas**, não na média, e o laço
+antigo do `medir-contraste.py` não alcançava esse caso (lá o texto fica sobre
+uma das três superfícies, nunca sobre algo que muda de cor ao longo da própria
+largura). O script ganhou o par. No claro o gradiente ficou azul escuro com
+tinta branca (**6.90:1**); o ciano ficou no escuro (**8.22:1**).
+
+O `FundoAcesso` é `fixed` + `pointer-events-none` + `overflow-hidden`, como a
+regra manda: o brilho **desta mesma tela** já criou barra de rolagem lateral
+uma vez. 10 medições de overflow verdes.
+
+### 4. Mercado Pago: metade, e a metade que falta é a que importa
+
+Entrou o valor no tipo `Bank`, o tema e a **migração `0004`**. Não entrou a
+assinatura em `detect.ts` nem o despacho em `parsers/index.ts` — assinatura de
+layout é um conjunto de marcadores lidos de um PDF real, e inventar um é
+escrever um detector que nunca casa ou, pior, que casa com o documento errado.
+
+⚠️ **A migração `0004` é pré-requisito, não acabamento.** Sem ela o primeiro
+insert de uma conta do Mercado Pago bate no CHECK e a importação inteira falha.
+Aplicar na branch `production` do Neon **antes** do primeiro documento.
+
+E ele fica **fora do carrossel**: aquilo diz "já lê os extratos de", e ainda não
+lê.
+
+### 5. O que aconteceu com as seis propostas de manhã
+
+A reversão as atinge de forma desigual, e nenhuma foi feita:
+
+| Proposta | Depois do revert |
+|---|---|
+| 01 carimbo de conferência | **Sobrevive.** Não depende de raio nem de fonte — depende de a conferência ser a tese, e ela continua sendo. |
+| 02 folha de fechamento | **Sobrevive em parte.** O bloco de identificação vale; a "régua grossa que fecha total" era vocabulário do impresso. |
+| 03 conciliação em duas colunas | **Sobrevive inteira.** É informação, não material. Continua a mais cara. |
+| 04 banda de competência | **Sobrevive.** Bandar por bloco em vez de por linha independe da direção. |
+| 05 régua do banco no lugar do ponto | **Morreu.** O argumento era gastar a única exceção de raio zero. Não há mais raio zero — e o ponto agora aparece também no carrossel. |
+| 06 imprimir de verdade | **Enfraqueceu.** Era "a piada funcionando" num app que parecia impresso. Continua barata, mas perdeu o motivo. |
+
+`npm run verificar` verde nos seis passos; contraste OK nos dois temas; 10
+medições de overflow verdes; prints regerados.
 
 ## Rodada 2026-08-31 — a fila que sobrou era menor do que parecia, e mais suja
 
@@ -937,13 +1026,14 @@ Fatia 1b. Vermelho no `audit` voltou a significar descuido, não decisão.
 nunca houve `.env`, PDF ou credencial versionados), mas a regra "nunca commitar
 PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
-**Três coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
+**Quatro coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
 
 | O que | Por que está parado |
 |---|---|
+| **Aplicar a migração `0004` no Neon** | Pré-requisito do Mercado Pago. Sem ela a primeira importação dele falha inteira |
+| **Parser do Mercado Pago** | Falta a amostra — o usuário disse que vai enviar fatura e extrato |
 | **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — é o que substitui o teste de login que não existe |
-| **Mais bancos** (Caixa, layout A do BB) | Falta amostra: o extrato da Caixa veio como imagem, e o app lê texto |
-| **Revisão de en/es** | As traduções são minhas; falta olho de nativo |
+| **Mais bancos** (Caixa, layout A do BB) e **revisão de en/es** | Falta amostra com camada de texto; e olho de nativo |
 
 > A **Fatia 1b** saiu desta tabela: foi descartada em 31/08, com
 > [ADR-0011](./adr/0011-backend-serverless-descartado.md). Não está parada — não

@@ -46,7 +46,7 @@ sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature.
 | `ui/listas/` | Quem desenha linhas sobre transações: os dois rankings e as três listas. |
 | `ui/` (raiz) | O que não pertence a um grupo só — primitivos (`Portal`, `ValorAnimado`), marca (`Marca`, `MoedaLogo`), casco (`Cabecalho`, `Rodape`) e peças usadas por mais de um grupo (`MarcaCategoria`). |
 | `lib/` | Cliente do Neon, perfil, erros, PDF de relatório e utilidades de plataforma. |
-| `i18n/`, `navegacao/` | Dicionários (pt, en, es) e rotas. |
+| `i18n/`, `navegacao/` | Dicionários (pt, en, es) e rotas. `navegacao/` tem **duas** navegações sobre a mesma `ROTAS`: `NavLateral` (a calha, `lg`+) e `NavPrincipal` (a barra horizontal, abaixo de `lg`). |
 
 **A regra que decide um caso novo:** uma peça usada por **um** grupo mora nele;
 usada por **dois**, sobe para `ui/`. Foi o que manteve `MarcaCategoria` na raiz
@@ -66,8 +66,11 @@ tira o sentido de ter a pasta.
 2. **`src/main.tsx`** — `createRoot` + `StrictMode` › `IdiomaProvider` ›
    `DiscretoProvider` › `<App/>`.
 3. **`src/App.tsx`** — sessão, o galho anônimo (`TelaAcesso`) e, no galho logado,
-   `BrowserRouter` › `ImportacaoProvider` › `Cabecalho` + `DadosProvider` ›
-   `<Routes>`.
+   `BrowserRouter` › `ImportacaoProvider` › casco em duas colunas
+   (`NavLateral` + `<main>` com `Cabecalho`) › `DadosProvider` › `<Routes>`.
+   Os modais de **tutorial** e de **perfil** moram aqui, não no `Cabecalho`:
+   dois lugares os abrem (a calha no desktop, o cabeçalho no celular) e estado
+   duplicado seria um tutorial aberto por um e fechado pelo outro.
 
 ## 1.3 O caminho do dinheiro
 
@@ -124,10 +127,19 @@ só por URL digitada.
 
 ## 1.6 Cobertura de bancos
 
-Cinco bancos no catálogo (`nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`) e
+**Seis** bancos no catálogo (`nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`,
+`mercadopago`) e
 **sete parsers**: fatura e extrato do Nubank e do Bradesco, extrato do BB, do
 Sicredi e do Sicoob. Ver
 [ADR-0006](./docs/adr/0006-detector-de-layout-e-um-parser-por-banco.md).
+
+⚠️ **`mercadopago` está no catálogo e NÃO tem parser** (31/08). O tipo, o tema e
+a migração `0004` existem para que o parser nasça sem mexer em mais nada — a
+assinatura em `detect.ts` e o despacho em `parsers/index.ts` só podem ser
+escritos contra um PDF de verdade, que ainda não chegou. Enquanto isso ele fica
+**fora do carrossel** da tela de acesso: aquilo diz "já lê os extratos de", e
+ainda não lê. **A migração `0004` precisa ser aplicada no Neon antes do primeiro
+documento** — sem ela o insert bate no CHECK e a importação falha inteira.
 
 ---
 
@@ -297,6 +309,12 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
 - **`frontend/tests/fixtures/` é onde os fixtures moram**, de propósito: 13 testes
   fazem `readFileSync('tests/fixtures/…')` relativo ao CWD e o Vitest roda de
   `frontend/`. Os scripts da raiz apontam para `frontend/tests/fixtures/`.
+- **O Vite serve em `localhost`, e `127.0.0.1` pode dar `ERR_CONNECTION_REFUSED`**
+  nesta máquina: `localhost` resolve para `::1` primeiro. O padrão de
+  `gerar-prints.py` é `http://127.0.0.1:5173` e por isso ele falha sem
+  argumento — passe a URL que o `npm run dev` imprimiu. E confira a PORTA: com
+  um `dev` já de pé o Vite sobe na seguinte (5174, 5175…) e o medidor apontado
+  para a porta velha mede um servidor morto ou, pior, o build anterior.
 - **Vite não recarrega bem quando arquivos nascem ou mudam de lugar.** Depois de
   criar arquivo ou refatorar pastas: reinicie `npm run dev` e dê `Ctrl+Shift+R`.
 - **Build verde ≠ runtime verde.** Já quebrou com React duplicado pelo sonner
