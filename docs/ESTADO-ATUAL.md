@@ -91,10 +91,19 @@ sem motivo é diff que ninguém lê.
   `ID da operação` são exclusivas. "EXTRATO DE CONTA" sozinho casaria por
   prefixo com o "Extrato de Conta Corrente" do BB.
 
-⚠️ **A migração `0004` continua sem ser aplicada no Neon** — é ela que autoriza
-`mercadopago` no `accounts_bank_check`. Sem ela, a primeira importação falha
-inteira. O MCP do Neon não está autorizado nesta sessão; é passo manual no SQL
-Editor.
+✅ **A migração `0004` foi APLICADA e conferida em produção (2026-08-31).** Feita
+pelo console do Neon (branch `production`, base `neondb`), no navegador do
+usuário — o MCP do Neon segue sem autorização, mas o console logado serve.
+
+Antes: `CHECK (bank = ANY (ARRAY['nubank','bradesco','bb','sicredi','sicoob','desconhecido']))`.
+Depois: a mesma lista **com `mercadopago`**, lida de volta com
+`pg_get_constraintdef` — não pelo "Statement executed successfully", que só diz
+que o comando não deu erro.
+
+Conferido junto, porque é o outro jeito de a importação falhar inteira: as cinco
+colunas que `salvar.ts` grava a partir do `Forward` e do `balance` existem em
+`documents` (`end_balance_cents`, `future_installments_total`, `next_close_date`,
+`next_invoice_balance`, `total_open_balance`).
 
 `npm run verificar` verde nos seis passos; 10 medições de overflow verdes com o
 sexto banco no carrossel; prints regerados.
@@ -1110,11 +1119,10 @@ Fatia 1b. Vermelho no `audit` voltou a significar descuido, não decisão.
 nunca houve `.env`, PDF ou credencial versionados), mas a regra "nunca commitar
 PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
-**Três coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
+**Duas coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
 
 | O que | Por que está parado |
 |---|---|
-| **Aplicar a migração `0004` no Neon** | Pré-requisito do Mercado Pago. Sem ela a primeira importação dele falha inteira. Passo manual: o MCP do Neon não está autorizado |
 | **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — é o que substitui o teste de login que não existe |
 | **Mais bancos** (Caixa, layout A do BB) e **revisão de en/es** | Falta amostra com camada de texto; e olho de nativo |
 
