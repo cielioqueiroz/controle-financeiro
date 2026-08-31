@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-29**.
+> Documento de continuidade. Última atualização: **2026-08-31**.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,121 @@
 > | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
 > | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+## Rodada 2026-08-31 — a fila que sobrou era menor do que parecia, e mais suja
+
+Quatro decisões do usuário, todas executadas. Duas mudaram de forma no meio,
+pelo mesmo motivo de sempre: a medição discordou da previsão.
+
+### 1. O backend serverless nunca entrou — e era ele a dívida de segurança
+
+Havia código **não commitado** na árvore desde 28/08: `api/data.ts`,
+`backend/api/{data,_auth,_db}.ts` e três dependências no `backend/package.json`.
+A Fatia 1b, escrita contra um bloqueio que ninguém removeu em três semanas.
+
+Descartada, com [ADR-0011](./adr/0011-backend-serverless-descartado.md). O que
+o handler fazia era receber o Bearer, perguntar a sessão ao Neon Auth e injetar
+o `sub` por `set_config` para então **deixar o RLS decidir** — que é o que ele
+decide hoje, quando o navegador fala direto com a Data API. Uma indireção de
+ganho, três de custo.
+
+⚠️ **E aqui a previsão errou por completo.** O diário registrava, desde 13/08,
+"pendência de segurança viva: 6 falhas na cadeia do SDK do Neon". Duas coisas
+estavam erradas nessa frase:
+
+1. **O SDK JÁ tinha sido atualizado** para `0.7.0-beta`, no commit `8a4130f`
+   (28/08), e ninguém registrou. A [ADR-0008](./adr/0008-o-login-nao-tem-rede-de-testes.md)
+   passou três dias afirmando o contrário do `package.json`.
+2. **As 5 falhas que restavam eram do `@vercel/node`** — a dependência que a
+   Fatia 1b trouxe. `path-to-regexp` e `undici`, 3 delas `high`.
+
+Removida a pasta, `npm audit` foi a **zero**. A dívida de segurança do projeto
+era a pasta que nunca deveria ter existido, não a biblioteca que se recusou a
+atualizar por dois meses.
+
+### 2. A ADR-0008 foi renomeada para o que ela sempre foi
+
+`0008-sdk-do-neon-nao-atualizado.md` → `0008-o-login-nao-tem-rede-de-testes.md`.
+A recusa do upgrade acabou; a **razão** dela não: a suíte mocka o SDK inteiro, e
+regressão de autenticação passa verde do começo ao fim.
+
+E como o que substitui o teste que não há é uma pessoa entrando com conta real,
+o roteiro virou arquivo: [`docs/VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md),
+com uma tabela de *quando* rodar cada seção. Fica de fora dele tudo o que virou
+medidor — **lista manual que cresce é lista que ninguém roda**, e era isso que
+estava acontecendo com as quatro peças do item 4.
+
+### 3. Operador não é filtro, e o glossário não sabia
+
+`domain/consulta.ts` exportava `type Filtro` para o pedaço de busca que
+restringe (`>100`, `banco:nubank`). O `CONTEXT.md` já definia **Filtros** como
+outra coisa: a descrição do recorte, que vive na URL. Dois conceitos separados
+por **uma letra**, os dois vivos no mesmo código — `useRecorte.ts` usa `filtros`
+num sentido, `consulta.ts` usava no outro.
+
+O próprio módulo já chamava aquilo de operador na prosa. `Filtro` → `Operador`,
+contido em dois arquivos. As duas palavras entraram no glossário, junto com a
+**segunda colisão, que fica**: `consulta` é a busca analisada em `domain/` e o
+lado de leitura do CQRS em `aplicacao/consultas/`. Essa não se resolve por
+rename — a ADR-0010 nomeia a pasta — então ficou registrada, como a `assinatura`
+já estava.
+
+### 4. O medidor aprendeu a clicar, e achou um defeito de verdade
+
+`medir-overflow.py` fazia `pagina.goto(URL)` e nada mais: media a tela de acesso
+e **achava que tinha medido o app**. As quatro peças que atravessaram três
+rodadas na lista do "falta abrir no navegador" — diagnósticos, modo discreto,
+dica de sintaxe da busca, editor de compra — só existem depois de um clique ou
+de um foco.
+
+Agora são **jornadas**: rota + passos + **prova** + amostras. A prova não é
+enfeite: medir depois de um clique que não aconteceu devolve OK, o mesmo OK de
+uma tela sã — seria a versão em Playwright do "teste que passa dos dois jeitos"
+já registrado aqui. Conferido quebrando de propósito: gatilho inexistente dá
+`TimeoutError`, prova falsa dá `AssertionError`, e o medidor sai 1.
+
+O alvo é a folha de provas (`demo.html`), que já era onde se olha antes de
+publicar. Só o editor precisou de porta nova — chama `useDados`, que lança fora
+do provider, e num navegador não existe `vi.mock`. Daí `DadosProvider sementes`.
+
+⚠️ **E na primeira execução ele achou um defeito real: 438px num viewport de
+390.** Não era da folha — o mesmo markup está em `Recorrencias.tsx:55`. Filho de
+`grid` tem `min-width: auto` e recusa encolher abaixo do min-content: os dois
+cards de compromissos ficavam com 414px numa coluna de 342, e **a página rolava
+de lado no celular**. `overflow-hidden` no filho não resolvia, porque quem
+estoura é o próprio filho. `min-w-0` nos dois, e o `scrollWidth` voltou a 390.
+
+10 medições verdes (5 jornadas × 2 viewports). `npm run verificar` verde nos
+seis passos.
+
+### 5. O que a Vercel e a Data API disseram, sem credencial nenhuma
+
+- **Deployment Protection: desligada** nos três modos (senha, SSO, IPs). É o que
+  o `CLAUDE.md` prescreve — quem protege dado é login + RLS + JWT.
+- **Zero erros de runtime** em 7 dias.
+- **A Data API responde 404 sem JWT**, para `transactions` e `documents`: não
+  vaza nem a existência da tabela. `/api/data` também dá 404, coerente com o
+  backend descartado.
+- ⚠️ **O REPOSITÓRIO NÃO É MAIS PRIVADO.** Os deploys a partir de 25/08 marcam
+  `githubRepoVisibility: "public"`, e o `gh` confirma. A linha da auditoria de
+  13/08 aqui neste arquivo dizia "privado" e foi corrigida. **Nada vazou** — a
+  varredura daquela rodada já provava que nunca houve `.env`, PDF ou credencial
+  versionados, e as `VITE_*` são públicas por design. Mas a decisão de manter
+  público é sua, e ela muda o peso da regra "nunca commitar PDF real": antes um
+  descuido ficaria entre você e o GitHub; agora não.
+
+### O que continua aberto, e é curto
+
+| O que | Por que está parado |
+|---|---|
+| **Rodar o `VALIDACAO-MANUAL.md`** | Precisa de conta real e caixa de entrada real |
+| **Mais bancos** (Caixa, layout A do BB) | Falta amostra: o extrato da Caixa veio como imagem |
+| **Regra de categorização com operadores** | Exige migração de `merchant_rules`; o avaliador já está pronto |
+| **Revisão de en/es por nativo** | Traduções são minhas |
+
+**O MCP do Neon não está autorizado nesta sessão** — o banco não foi inspecionado
+de dentro. A migração `0003` foi conferida em 29/08 e nada nesta rodada tocou em
+schema.
 
 ## Rodada 2026-08-18 (parte 2) — a fila dos quatro repositórios, fechada
 
@@ -785,7 +900,7 @@ de volta pela mesma chamada do app (`getDocument` → `getTextContent` → `str`
 | Prints do README | **fictícios**, e conferido: os valores batem com `demo.tsx:171-182` |
 | Fixtures | **anonimizados** (`MARIA APARECIDA SANTOSS`, agência `111`, conta `1234-5`) |
 | RLS | as **5** tabelas criadas são as 5 com RLS ligado |
-| Repositório | **privado** |
+| Repositório | **privado** — deixou de ser em 2026-08-25; ver a rodada de 31/08 |
 
 **Upgrade do SDK do Neon: NÃO feito, de propósito.** As 6 falhas restantes do `npm
 audit` são todas da cadeia `@neondatabase/neon-js` → `better-auth`. Existe uma
@@ -809,22 +924,30 @@ painel, modo discreto e operadores de busca. O único item não feito é regra d
 categorização com operadores, que exige migração de `merchant_rules` — ver a
 rodada de 18/08 (parte 2).
 
-⚠️ **O que ficou por conferir no navegador** (nenhum medidor alcança): as duas
-caixas do editor de compra, a dica de sintaxe da busca, a faixa de diagnósticos
-no painel e o botão do modo discreto no cabeçalho.
+✅ **As quatro peças que "nenhum medidor alcançava" agora são medidas** — o
+editor de compra, a dica de sintaxe da busca, os diagnósticos e o modo discreto
+viraram jornadas de `medir-overflow.py` (31/08). Peça interativa nova **entra na
+lista `JORNADAS`**, senão volta a não ser medida por ninguém.
 
-⚠️ **Pendência de segurança viva:** `npm audit` acusa 6 falhas na cadeia do SDK do Neon
-(`@neondatabase/neon-js@0.6.2-beta` → `better-auth`). Existe uma `0.7.0-beta`. Não foi
-aplicada porque **a suíte mocka o SDK inteiro** — regressão de login não seria pega por
-teste. Exige entrar com conta real para validar. Ver a rodada de 13/08, item 8.
+✅ **`npm audit`: zero falhas** (31/08). O SDK do Neon está em `0.7.0-beta` desde
+28/08, e as 5 falhas que restavam eram do `@vercel/node`, que saiu junto com a
+Fatia 1b. Vermelho no `audit` voltou a significar descuido, não decisão.
+
+⚠️ **O repositório é PÚBLICO** desde 25/08. Nada vazou (a varredura de 13/08 vale:
+nunca houve `.env`, PDF ou credencial versionados), mas a regra "nunca commitar
+PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
 **Três coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
 
 | O que | Por que está parado |
 |---|---|
-| **Fatia 1b** — backend real (Vercel Functions) | Falta a `DATABASE_URL` do Neon (role `authenticated`, sem BYPASSRLS) no `.env.local` da raiz |
+| **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — é o que substitui o teste de login que não existe |
 | **Mais bancos** (Caixa, layout A do BB) | Falta amostra: o extrato da Caixa veio como imagem, e o app lê texto |
-| **Conferir logado, no navegador** | A senha da conta de teste não é versionada — é o usuário quem valida contra dado real |
+| **Revisão de en/es** | As traduções são minhas; falta olho de nativo |
+
+> A **Fatia 1b** saiu desta tabela: foi descartada em 31/08, com
+> [ADR-0011](./adr/0011-backend-serverless-descartado.md). Não está parada — não
+> existe mais.
 
 **A fila de pendências que dava para escrever em código ACABOU em 13/08.** Os seis itens
 (erro cru em inglês, duas frases fora do dicionário, i18n do donut, severidade da senha,
@@ -883,12 +1006,13 @@ Plano da fatia 1a: `docs/superpowers/plans/2026-08-07-reforma-fatia-1a-arquitetu
 | 2 | router + páginas de navegação (a 7ª, "Datas", saiu em 12/08) | ✅ **no ar** (07/08) |
 | 3 | design "livro-razão" + gráficos interativos | ✅ **no ar** (07/08) |
 | 4b | CSP completa, medida contra o build | ✅ **no ar** (09/08) |
-| 1b | backend real (Vercel Functions) | ⛔ **bloqueada**: falta `DATABASE_URL` no `.env.local` |
+| 1b | backend real (Vercel Functions) | ❌ **descartada** (31/08) — [ADR-0011](./adr/0011-backend-serverless-descartado.md) |
 
-**A fatia 1b é o único item aberto da reforma**, e o que falta para destravá-la
-não é código: é a connection string do Neon (role `authenticated`, sem
-BYPASSRLS) no `.env.local` da raiz. Enquanto ela não vier, o cliente segue
-falando direto com a Data API — que funciona, com RLS, como sempre funcionou.
+~~**A fatia 1b é o único item aberto da reforma**~~ — **descartada em
+2026-08-31**. O código chegou a ser escrito em 28/08 e nunca foi commitado; o
+cliente segue falando direto com a Data API, que funciona, com RLS, como sempre
+funcionou. O porquê está na [ADR-0011](./adr/0011-backend-serverless-descartado.md).
+**A reforma acabou: as seis fatias estão resolvidas.**
 
 **Decisões da reforma:** nginx/apache foi **descartado** (o app está na
 Vercel, não há servidor próprio nem painel de banco exposto); o backend será
