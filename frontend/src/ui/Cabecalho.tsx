@@ -1,13 +1,10 @@
-import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
 import { DiscretoToggle } from './DiscretoToggle'
 import { ContaMenu } from './ContaMenu'
-import { Tutorial } from './Tutorial'
-import { EditarPerfil } from './EditarPerfil'
 import { FraseDeslogado } from './acesso/TelaAcesso'
-import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, lerApelido } from '../lib/perfil'
+import { comoChamar } from '../lib/perfil'
 import { useT } from '../i18n/IdiomaProvider'
 import { neon } from '../lib/neon'
 
@@ -15,28 +12,24 @@ type Props = {
   logado: boolean
   usuario: { nome: string | null; email: string | null } | null
   onSair: () => void
-  /** Chamado após salvar o perfil, para o App recarregar a sessão e a
-   *  saudação repintar com o novo nome. */
-  onPerfilSalvo: () => void
+  onVerTutorial: () => void
+  onEditarPerfil: () => void
 }
 
-/** O topo da tela logada: marca, saudação, os dois toggles e o menu de
- *  conta — mais os dois modais que só o menu abre (tutorial e perfil), que
- *  por isso moram aqui e não no App.
+/** O topo da tela logada: marca, saudação e os controles do canto.
+ *
+ *  ⚠️ **A marca e o menu de conta somem a partir de `lg`**: dali para cima
+ *  eles moram na `NavLateral`, e mostrá-los duas vezes seria duas âncoras de
+ *  identidade e dois "sair" na mesma tela.
+ *
+ *  Os modais de tutorial e de perfil moravam aqui, porque "só o menu de
+ *  conta os abre". O menu desceu para a barra lateral em 2026-08-31 e essa
+ *  razão expirou: hoje eles são do `App`, e este componente só avisa que
+ *  alguém pediu.
  *
  *  Irmão do `Rodape`: as duas pontas do mesmo casco. */
-export function Cabecalho({ logado, usuario, onSair, onPerfilSalvo }: Props) {
-  const [mostrarTutorial, setMostrarTutorial] = useState(false)
-  const [mostrarPerfil, setMostrarPerfil] = useState(false)
+export function Cabecalho({ logado, usuario, onSair, onVerTutorial, onEditarPerfil }: Props) {
   const { t } = useT()
-
-  // Primeiro login da pessoa: o tutorial abre sozinho. A dependência é só o
-  // `logado` de propósito — é a TRANSIÇÃO para logado que justifica abrir.
-  // Reagir a cada recarga de sessão (salvar o perfil dispara uma) reabriria
-  // o tutorial no meio de outra tarefa.
-  useEffect(() => {
-    if (logado && tutorialPendente()) setMostrarTutorial(true)
-  }, [logado])
 
   return (
     <>
@@ -48,7 +41,8 @@ export function Cabecalho({ logado, usuario, onSair, onPerfilSalvo }: Props) {
             transition={{ duration: 0.4 }}
             // Só posiciona: a tipografia do logotipo mora na Marca (mesma
             // dupla que a TelaAcesso usa no topo dela).
-            className="flex items-center gap-2.5"
+            // `lg:hidden`: dali para cima a marca mora na NavLateral.
+            className="flex items-center gap-2.5 lg:hidden"
           >
             <motion.span
               className="inline-block h-2 w-2 rounded-full bg-marca"
@@ -61,7 +55,7 @@ export function Cabecalho({ logado, usuario, onSair, onPerfilSalvo }: Props) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="screen-only mt-4 font-display text-3xl leading-[1.1] text-tinta sm:text-4xl"
+            className="screen-only mt-4 font-display text-3xl leading-[1.1] text-tinta sm:text-4xl lg:mt-0"
           >
             {logado ? (
               <>
@@ -90,37 +84,17 @@ export function Cabecalho({ logado, usuario, onSair, onPerfilSalvo }: Props) {
           <DiscretoToggle />
           <ThemeToggle />
           {logado && neon && (
-            <ContaMenu
-              onEditarPerfil={() => setMostrarPerfil(true)}
-              onVerTutorial={() => {
-                reabrirTutorial()
-                setMostrarTutorial(true)
-              }}
-              onSair={onSair}
-            />
+            <span className="lg:hidden">
+              <ContaMenu
+                onEditarPerfil={onEditarPerfil}
+                onVerTutorial={onVerTutorial}
+                onSair={onSair}
+              />
+            </span>
           )}
         </div>
       </header>
 
-      <AnimatePresence>
-        {mostrarTutorial && logado && (
-          <Tutorial
-            nome={comoChamar(usuario?.nome, usuario?.email)}
-            onFechar={() => {
-              marcarTutorialVisto()
-              setMostrarTutorial(false)
-            }}
-          />
-        )}
-        {mostrarPerfil && logado && (
-          <EditarPerfil
-            nomeAtual={usuario?.nome ?? ''}
-            apelidoAtual={lerApelido() ?? ''}
-            onFechar={() => setMostrarPerfil(false)}
-            onSalvo={onPerfilSalvo}
-          />
-        )}
-      </AnimatePresence>
     </>
   )
 }

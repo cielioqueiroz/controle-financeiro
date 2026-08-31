@@ -19,6 +19,7 @@ import { EditarCompra } from './ui/EditarCompra'
 import { DadosProvider } from './dados/DadosProvider'
 import { DiscretoProvider } from './dados/DiscretoProvider'
 import { diagnosticar } from './domain/diagnosticos'
+import { NavLateral } from './navegacao/NavLateral'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
@@ -168,6 +169,27 @@ export function Folha() {
       <h1 className="mb-8 font-display text-2xl text-tinta">
         Capital Financeiro · folha de provas <span className="text-tinta-tenue">(dados fictícios)</span>
       </h1>
+
+      {/* O casco vem primeiro: é a moldura de tudo o mais. A calha é
+          `hidden lg:flex` — abaixo de 1024px ela não existe, e é por isso
+          que o medidor a vê em 1280 e não em 390. A moldura de altura fixa
+          é só da folha; na tela real ela ocupa a janela. */}
+      <Secao titulo="nav-lateral">
+        {/* `h-dvh` porque a calha tambem e `h-dvh`: numa moldura mais
+            baixa o rodape dela (o bloco da conta) ficaria cortado, e era
+            justamente ele que se queria ver. */}
+        {/* Sem `overflow-hidden`: a calha e `sticky`, e um pai que corta
+            o overflow recortava justamente o rodape dela (o bloco da
+            conta) — a peca que se queria ver. */}
+        <div className="relative h-dvh border border-carvao-700">
+          <NavLateral
+            usuario={{ nome: 'Célio Queiroz', email: 'celio@exemplo.com' }}
+            onSair={() => {}}
+            onVerTutorial={() => {}}
+            onEditarPerfil={() => {}}
+          />
+        </div>
+      </Secao>
 
       <Secao titulo="aviso-email">
         <AvisoConfirmarEmail email="voce@exemplo.com" onConfirmado={() => {}} />

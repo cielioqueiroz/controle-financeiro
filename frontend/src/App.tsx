@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import { chaveDeErro } from './lib/erro-usuario'
 import { NavPrincipal } from './navegacao/NavPrincipal'
+import { NavLateral } from './navegacao/NavLateral'
 import { DadosProvider } from './dados/DadosProvider'
 import { ImportacaoProvider } from './dados/ImportacaoProvider'
 // As sete páginas entram ESTÁTICAS, e isso foi MEDIDO, não presumido
@@ -23,12 +25,14 @@ import { Lancamentos } from './paginas/Lancamentos'
 import { Recorrencias } from './paginas/Recorrencias'
 import { Importacao } from './paginas/Importacao'
 import { Cabecalho } from './ui/Cabecalho'
+import { Tutorial } from './ui/Tutorial'
+import { EditarPerfil } from './ui/EditarPerfil'
 import { Notificacoes } from './ui/Notificacoes'
 import { TelaAcesso } from './ui/acesso/TelaAcesso'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
 import { Rodape } from './ui/Rodape'
 import { Auth } from './ui/acesso/Auth'
-import { comoChamar } from './lib/perfil'
+import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
 import { useT } from './i18n/IdiomaProvider'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
@@ -49,6 +53,21 @@ export default function App() {
    *  recarregadas quando ele corrige uma compra, para que a prévia da
    *  próxima importação já reflita a correção. */
   const [regras, setRegras] = useState<Regra[]>([])
+  /** Os dois modais de conta. Moravam no `Cabecalho` porque só o menu de
+   *  conta os abria; o menu desceu para a `NavLateral` em 2026-08-31 e
+   *  agora DOIS lugares o abrem (a calha no desktop, o cabeçalho no
+   *  celular). Estado duplicado seria um tutorial aberto por um e fechado
+   *  pelo outro. */
+  const [mostrarTutorial, setMostrarTutorial] = useState(false)
+  const [mostrarPerfil, setMostrarPerfil] = useState(false)
+
+  // Primeiro login da pessoa: o tutorial abre sozinho. A dependência é só o
+  // `logado` de propósito — é a TRANSIÇÃO para logado que justifica abrir.
+  // Reagir a cada recarga de sessão (salvar o perfil dispara uma) reabriria
+  // o tutorial no meio de outra tarefa.
+  useEffect(() => {
+    if (logado && tutorialPendente()) setMostrarTutorial(true)
+  }, [logado])
   const { t } = useT()
   // Lido na montagem. Quem clica no link do e-mail quer redefinir, mesmo já
   // tendo sessão ativa — por isso o token vence o `logado` abaixo NA ENTRADA.
@@ -143,15 +162,37 @@ export default function App() {
       {/* Acima das <Routes> de propósito: é isso que faz um PDF já lido
           sobreviver a uma ida ao Painel e volta. Ver ImportacaoProvider. */}
       <ImportacaoProvider regras={regras} logado={logado}>
-        <div className="min-h-dvh">
+        {/* Duas colunas a partir de `lg`: a calha da NavLateral e o corpo.
+            Abaixo disso a calha não existe e o `flex` não tem o que
+            arranjar — por isso ele só liga em `lg`. */}
+        <div className="min-h-dvh lg:flex">
           <Notificacoes />
 
-          <main className="relative z-10 mx-auto w-full max-w-[104rem] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
+          {logado && (
+            <NavLateral
+              usuario={usuario}
+              onSair={sair}
+              onVerTutorial={() => {
+                reabrirTutorial()
+                setMostrarTutorial(true)
+              }}
+              onEditarPerfil={() => setMostrarPerfil(true)}
+            />
+          )}
+
+          {/* `min-w-0`: filho de flex não encolhe abaixo do min-content sem
+              isto, e o corpo (que tem tabela e gráfico) empurraria a calha
+              para fora da tela. Mesma armadilha do grid em Recorrências. */}
+          <main className="relative z-10 mx-auto w-full min-w-0 max-w-[104rem] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
             <Cabecalho
               logado={logado}
               usuario={usuario}
               onSair={sair}
-              onPerfilSalvo={checarSessao}
+              onVerTutorial={() => {
+                reabrirTutorial()
+                setMostrarTutorial(true)
+              }}
+              onEditarPerfil={() => setMostrarPerfil(true)}
             />
 
             {/* Só com o servidor dizendo explicitamente `false`: quando o campo
@@ -178,7 +219,14 @@ export default function App() {
               />
             )}
 
-            {logado && <NavPrincipal />}
+            {/* A horizontal continua sendo a navegação do celular: uma
+                calha de 16rem num viewport de 390px levaria metade da tela.
+                As duas leem a mesma ROTAS. */}
+            {logado && (
+              <div className="lg:hidden">
+                <NavPrincipal />
+              </div>
+            )}
 
             {logado ? (
               // O provider fica DENTRO do ramo logado de propósito: ele busca o
@@ -210,6 +258,26 @@ export default function App() {
 
             <Rodape className="mt-16" />
           </main>
+
+          <AnimatePresence>
+            {mostrarTutorial && logado && (
+              <Tutorial
+                nome={comoChamar(usuario?.nome, usuario?.email)}
+                onFechar={() => {
+                  marcarTutorialVisto()
+                  setMostrarTutorial(false)
+                }}
+              />
+            )}
+            {mostrarPerfil && logado && (
+              <EditarPerfil
+                nomeAtual={usuario?.nome ?? ''}
+                apelidoAtual={lerApelido() ?? ''}
+                onFechar={() => setMostrarPerfil(false)}
+                onSalvo={checarSessao}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </ImportacaoProvider>
     </BrowserRouter>
