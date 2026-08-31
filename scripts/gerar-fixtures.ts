@@ -11,6 +11,9 @@ import { readFile, writeFile, mkdir, access } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 import { extractFromDocument } from '../frontend/src/domain/pdf/extract'
+import { buildLines } from '../frontend/src/domain/pdf/lines'
+import { parse } from '../frontend/src/domain/parsers/index'
+import { validar } from '../frontend/src/domain/validate/checksum'
 import type { TextItem } from '../frontend/src/domain/pdf/types'
 
 const require = createRequire(import.meta.url)
@@ -62,6 +65,13 @@ const SUBSTITUICOES: Array<[RegExp, string]> = [
   [/\b698\b/g, '111'],
   [/00200000406655999845516420260617202606280000/g, '00200000411155999999999920260617202606280000'],
   [/1FP005VPC103PF/g, '1XX000XXX000XX'],
+  // CEP e cidade: os dois ultimos dados que apontavam para uma pessoa
+  // especifica, e os unicos que a troca de nome nao alcancava.
+  [/68560-000/g, '01000-000'],
+  [/SANTANA/g, 'BOA VISTA'],
+  [/Santana/g, 'Boa Vista'],
+  [/ARAGUAIA/g, 'SERRA NOVA'],
+  [/Araguaia/g, 'Serra Nova'],
   // ACHADO EM 2026-08-31, ao gerar os fixtures do Mercado Pago: estes
   // dois atravessaram todas as geracoes anteriores SEM anonimizacao, e o
   // repositorio e publico desde 25/08. Nenhum e nome de pessoa nem CPF —
@@ -111,18 +121,113 @@ const EXATOS: Record<string, string> = {
  *  ele reescrevia dado que JA estava falso — o codigo de barras e a conta
  *  trocada do Bradesco — e fixture que muda sem motivo e diff que ninguem
  *  le. Anonimizar duas vezes nao protege mais; so esconde o que mudou. */
-function anonimizar(items: TextItem[], embaralhar: boolean): TextItem[] {
+function anonimizar(
+  items: TextItem[],
+  embaralhar: boolean,
+  estabelecimentos: Array<[string, string]>,
+): TextItem[] {
   return items.map((item) => {
     const exato = EXATOS[item.text.trim()]
     if (exato !== undefined) return { ...item, text: exato }
 
     let texto = item.text
+    // Estabelecimento ANTES das outras regras: sao as strings mais longas, e
+    // uma regra curta que casasse dentro delas deixaria meio nome de loja.
+    for (const [de, para] of estabelecimentos) {
+      if (texto.includes(de)) texto = texto.split(de).join(para)
+      // Descricao montada de VARIOS items (o Bradesco quebra o historico em
+      // dois, o Mercado Pago poe pedaco acima e abaixo do valor): ali a
+      // string inteira nunca casa um item sozinho. Casa-se o item DENTRO da
+      // descricao. O piso de 6 letras evita trocar "PIX" ou uma data solta.
+      else if (
+        texto.trim().length >= 6 &&
+        /[A-Za-zÀ-ÿ]/.test(texto) &&
+        de.includes(texto.trim())
+      ) {
+        texto = para
+      }
+    }
     for (const [padrao, troca] of SUBSTITUICOES) {
       texto = texto.replace(padrao, troca)
     }
     return { ...item, text: embaralhar ? embaralharIds(texto) : texto }
   })
 }
+
+/** As descricoes que o parser extrai do documento ORIGINAL, cada uma
+ *  apontando para um nome de fantasia.
+ *
+ *  Sai do parser, e nao de uma lista escrita a mao: lista a mao esquece um, e
+ *  o que ela esquece e exatamente o estabelecimento que fica no repositorio
+ *  publico. Deterministico (indice da ordem alfabetica) para o fixture nao
+ *  mudar a cada geracao. */
+function mapaEstabelecimentos(_items: TextItem[]): Array<[string, string]> {
+  // DESLIGADO em 2026-08-31, depois de implementado e medido. Fica a
+  // maquinaria (o parametro de `anonimizar`, a verificacao por reparse) para
+  // quando a lista vier a mao.
+  //
+  // A substituicao AUTOMATICA de estabelecimento nao converge, e cada regra
+  // que eu acrescentava para salvar um caso de teste deixava um nome real no
+  // repositorio:
+  //
+  //  1. Trocar toda descricao reclassificou transacoes — o `kind` sai do
+  //     texto — e a fatura do Nubank foi de `confere` para `diverge`.
+  //  2. Restringir a `compra` consertou aquilo e apagou "Debito por divida
+  //     Emprestimos", que e justamente o caso que prova que emprestimo nao e
+  //     quitacao.
+  //  3. Uma lista de exclusao de vocabulario bancario reduziu o estrago, mas
+  //     decidir "isto e loja, aquilo e palavra do banco" por regex e adivinhar.
+  //
+  //  O caminho certo e o que este arquivo JA usa para nome de pessoa: uma
+  //  lista escrita a mao, em SUBSTITUICOES, onde um humano decide caso a
+  //  caso. Custa uma passada pelas ~150 descricoes distintas e nao tem como
+  //  apagar um caso de teste sem alguem ver.
+  return []
+}
+
+/** POR QUE OS VALORES NAO SAO TROCADOS.
+ *
+ *  Foi tentado em 2026-08-31, por pedido do usuario, e desfeito no mesmo dia
+ *  — vale registrar para nao ser tentado de novo.
+ *
+ *  Sortear valor nao funciona: o gabarito E a soma. A fatura declara o total
+ *  das compras, o extrato declara entradas e saidas, e tres extratos carregam
+ *  SALDO CORRENTE linha a linha. Sortear quebra os tres, e consertar
+ *  significaria recalcular a aritmetica interna do documento — deixando de
+ *  ter o extrato do banco e passando a ter um sintetico, que nao prova layout
+ *  nenhum.
+ *
+ *  Escalar por inteiro preserva a soma exatamente e foi implementado. Foi
+ *  DESCARTADO por outro motivo: o fator moraria neste arquivo, no mesmo
+ *  repositorio publico. Dividir por ele devolve o valor original. E teatro —
+ *  custa 49 expectativas de teste reescritas e nao esconde nada.
+ *
+ *  O que de fato tira o dono dos dados esta implementado e e irreversivel:
+ *  nome, CPF, agencia, conta, ID de operacao, ESTABELECIMENTO, CEP e cidade.
+ *  Resta o valor e a data de compras que ninguem consegue atribuir a uma
+ *  pessoa nem a um lugar. */
+
+/** POR QUE OS VALORES NAO SAO TROCADOS.
+ *
+ *  Foi tentado em 2026-08-31, por pedido do usuario, e desfeito no mesmo dia
+ *  — vale registrar para nao ser tentado de novo.
+ *
+ *  Sortear valor nao funciona: o gabarito E a soma. A fatura declara o total
+ *  das compras, o extrato declara entradas e saidas, e tres extratos carregam
+ *  SALDO CORRENTE linha a linha. Sortear quebra os tres, e consertar
+ *  significaria recalcular a aritmetica interna do documento — deixando de
+ *  ter o extrato do banco e passando a ter um sintetico, que nao prova layout
+ *  nenhum.
+ *
+ *  Escalar por inteiro preserva a soma exatamente e foi implementado. Foi
+ *  DESCARTADO por outro motivo: o fator moraria neste arquivo, no mesmo
+ *  repositorio publico. Dividir por ele devolve o valor original. E teatro —
+ *  custa 49 expectativas de teste reescritas e nao esconde nada.
+ *
+ *  O que de fato tira o dono dos dados esta implementado e e irreversivel:
+ *  nome, CPF, agencia, conta, ID de operacao, ESTABELECIMENTO, CEP e cidade.
+ *  Resta o valor e a data de compras que ninguem consegue atribuir a uma
+ *  pessoa nem a um lugar. */
 
 /** Termos que não podem sobrar em nenhum fixture. */
 const PROIBIDOS = [
@@ -141,6 +246,11 @@ const PROIBIDOS = [
   /tathiana/i,
   /8304/,
   /3117878715/,
+  // Cidade e CEP: os ultimos dados que apontavam para uma pessoa
+  // especifica, e os unicos que a troca de nome nao alcancava.
+  /68560/,
+  /santana/i,
+  /araguaia/i,
   /07612746425/,
   /10624791647/,
   /1465\]/,
@@ -191,7 +301,30 @@ async function main() {
 
     const doc = await pdfjs.getDocument({ data, useSystemFonts: false }).promise
     const items = await extractFromDocument(doc)
-    const anonimos = anonimizar(items, saida.startsWith('mercadopago'))
+    const estabelecimentos = mapaEstabelecimentos(items)
+    const anonimos = anonimizar(items, saida.startsWith('mercadopago'), estabelecimentos)
+
+    // A PROVA de que a anonimizacao nao deixou resto E de que ela nao quebrou
+    // o documento. Roda sobre o RESULTADO, nao sobre a intencao: reparsear e
+    // o unico jeito de saber que o gabarito ainda fecha depois de todo valor
+    // ter sido multiplicado.
+    try {
+      const depois = parse(buildLines(anonimos)).result
+      const antes = parse(buildLines(items)).result
+      const sobrou = depois.transactions
+        .map((x) => x.description)
+        .filter((d) => estabelecimentos.some(([de]) => d.includes(de)))
+      if (sobrou.length > 0) {
+        problemas.push(`${saida}: estabelecimento nao trocado — ${sobrou.slice(0, 3).join(' | ')}`)
+      }
+      const st = validar(depois).status
+      const stAntes = validar(antes).status
+      if (st !== stAntes) {
+        problemas.push(`${saida}: conferencia mudou de ${stAntes} para ${st} ao anonimizar`)
+      }
+    } catch (e) {
+      problemas.push(`${saida}: nao reparseou depois de anonimizar — ${String(e)}`)
+    }
 
     problemas.push(...auditar(saida, anonimos))
 
