@@ -1097,14 +1097,16 @@ os caminhos vulneráveis do `better-auth` (callback OAuth, sessão após exclus�
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**707 testes (86 arquivos)**, `npm run verificar` verde nos seis passos.
+**743 testes (90 arquivos)**, `npm run verificar` verde nos seis passos.
 Trabalha-se direto na `main`; todo push publica sozinho em ~1 min.
 
-**A fila que veio da análise dos quatro repositórios open source (18/08) está
-fechada:** correção que alcança o histórico, vínculo editável, diagnósticos no
-painel, modo discreto e operadores de busca. O único item não feito é regra de
-categorização com operadores, que exige migração de `merchant_rules` — ver a
-rodada de 18/08 (parte 2).
+**O desenho é o "livro-razão"** (IBM Plex, raio, cartão com sombra) desde a
+reversão de 31/08 — ver [ADR-0012](./adr/0012-o-livro-razao-volta-e-a-calha-lateral-nasce.md).
+A navegação é a **calha lateral** a partir de `lg`; abaixo disso, a barra
+horizontal. **Não sugerir voltar ao "impresso e terminal".**
+
+**Seis bancos, nove parsers.** O Mercado Pago entrou em 31/08 (fatura e
+extrato), com a migração `0004` aplicada e conferida em produção.
 
 ✅ **As quatro peças que "nenhum medidor alcançava" agora são medidas** — o
 editor de compra, a dica de sintaxe da busca, os diagnósticos e o modo discreto
@@ -1119,22 +1121,33 @@ Fatia 1b. Vermelho no `audit` voltou a significar descuido, não decisão.
 nunca houve `.env`, PDF ou credencial versionados), mas a regra "nunca commitar
 PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
-**Duas coisas estão abertas, e nenhuma é código que dê para escrever sozinho:**
+**O QUE DEPENDE DE VOCÊ — ninguém mais pode fazer:**
 
 | O que | Por que está parado |
 |---|---|
-| **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — é o que substitui o teste de login que não existe |
-| **Mais bancos** (Caixa, layout A do BB) e **revisão de en/es** | Falta amostra com camada de texto; e olho de nativo |
+| **Importar os PDFs do Mercado Pago pelo app** | Os parsers conferem contra fixture; ninguém ainda gravou no banco de verdade. É a prova que falta |
+| **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — substitui o teste de login que não existe |
+| **Amostra da Caixa / layout A do BB** | O extrato da Caixa veio como imagem, e o app lê texto |
+| **Revisão de en/es** | As traduções são minhas; falta olho de nativo |
 
-> A **Fatia 1b** saiu desta tabela: foi descartada em 31/08, com
+**O QUE DÁ PARA ESCREVER EM CÓDIGO** (a fila voltou a existir em 31/08, depois
+de ter acabado em 13/08):
+
+| O que | Tamanho |
+|---|---|
+| **Carimbo de conferência** — a tese do produto virando desenho | pequeno |
+| **Folha de fechamento** — bloco de identificação no topo do painel | médio |
+| **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
+| **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
+
+> As três primeiras vêm da prancheta de 31/08. Duas propostas daquela lista
+> morreram na reversão do desenho: a régua do banco (o argumento era gastar a
+> única exceção de raio zero, e não há mais raio zero) e a impressão de verdade
+> (era "a piada funcionando" num app que parecia impresso).
+
+> A **Fatia 1b** saiu daqui: foi descartada em 31/08, com
 > [ADR-0011](./adr/0011-backend-serverless-descartado.md). Não está parada — não
 > existe mais.
-
-**A fila de pendências que dava para escrever em código ACABOU em 13/08.** Os seis itens
-(erro cru em inglês, duas frases fora do dicionário, i18n do donut, severidade da senha,
-import inútil, code-splitting) foram fechados ou medidos e recusados com número — ver a
-rodada de 13/08, item 7. O que sobra são as três linhas da tabela acima, e nenhuma delas
-é código: são uma variável de ambiente, uma amostra de PDF e uma conferência no navegador.
 
 **O que o usuário precisa conferir na próxima vez que abrir** (nesta ordem):
 
