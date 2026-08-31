@@ -2,8 +2,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useT } from '../i18n/IdiomaProvider'
 import { useFiltros } from '../dados/useFiltros'
 import { useDados } from '../dados/DadosProvider'
-import { BANCOS } from '../domain/banks'
-import type { Bank } from '../domain/pdf/detect'
+import { temaDoBanco } from '../domain/banks'
 import type { Periodo } from '../persist/agrupar'
 import { mover, rotuloPeriodo } from '../dados/periodo'
 import type { Dicionario } from '../i18n/dicionarios/pt'
@@ -21,8 +20,10 @@ function agrupamentoDe(periodo: Periodo): keyof Dicionario {
 }
 
 function bancoInfo(b: string): { nome: string; cor?: string } {
-  const tema = BANCOS[b as Bank]
-  return tema ? { nome: tema.nome, cor: tema.accent } : { nome: b }
+  // Era uma cópia local do acesso seguro ao catálogo; virou uma opinião só
+  // em `domain/banks.ts`, que é de quem o catálogo é.
+  const tema = temaDoBanco(b)
+  return { nome: tema.nome, cor: tema.accent }
 }
 
 type Props = {

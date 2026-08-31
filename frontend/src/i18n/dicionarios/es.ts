@@ -298,6 +298,7 @@ export const es: Dicionario = {
   'docs.subtitulo': 'Elimina una factura/extracto o empieza de cero.',
   'docs.carregando': 'Cargando…',
   'docs.vazio': 'Aún no hay documentos importados.',
+  'docs.semPeriodo': 'sin período',
   'docs.nLancamentos': '{n} movimientos',
   'docs.importadoEm': 'importado el {data}',
   'docs.apagarDoc': 'Eliminar documento',

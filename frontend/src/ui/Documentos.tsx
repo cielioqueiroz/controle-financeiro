@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { chaveDeErro } from '../lib/erro-usuario'
 import { puxarDocumentos, type DocumentoSalvo } from '../persist/documentos'
 import { apagarDocumento, apagarTudo } from '../aplicacao/comandos/documentos'
 import { formatBRL } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
+import { localeAtual } from '../domain/normalize/locale'
+import { temaDoBanco } from '../domain/banks'
 import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './acesso/Confirmacao'
 
@@ -13,6 +15,28 @@ type Props = {
   onMudou: () => void
   /** Contagem/soma por documento, vinda do provider (já em memória). */
   contagem: Map<string, { qtd: number; totalCents: number }>
+}
+
+/** A competência do documento: o mês em que ele conta para o usuário.
+ *
+ *  Sai do `period_end` — que numa fatura é o VENCIMENTO e num extrato é o
+ *  fim do período —, exatamente como `competenciaDe` faz para a transação.
+ *  Duas definições de competência divergiriam, e a lista diria um mês
+ *  enquanto o Painel diz outro.
+ *
+ *  Sem `period_end` (documento antigo, ou parser que não achou o período) o
+ *  documento cai num grupo próprio no fim, em vez de num mês inventado. */
+function competenciaDoc(d: DocumentoSalvo): string {
+  return d.period_end?.slice(0, 7) ?? ''
+}
+
+/** "Agosto de 2026" na locale ativa. */
+function tituloCompetencia(comp: string, semData: string): string {
+  if (!comp) return semData
+  const [y, m] = comp.split('-').map(Number)
+  return new Intl.DateTimeFormat(localeAtual(), { month: 'long', year: 'numeric' }).format(
+    new Date(y, m - 1, 1),
+  )
 }
 
 function periodoCurto(ini: string | null, fim: string | null): string {
@@ -103,6 +127,32 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
     }
   }
 
+  /** Documentos por competência, do mês mais recente para o mais antigo.
+   *
+   *  A lista chega ordenada por `imported_at` desc, e era isso que
+   *  atrapalhava: importar a fatura de junho depois da de agosto punha
+   *  junho no topo. Quem procura documento procura pelo MÊS dele, não pelo
+   *  dia em que o subiu.
+   *
+   *  Dentro do mês a ordem de chegada é preservada — ali ela é útil, porque
+   *  distingue o que acabou de entrar. O grupo sem período vai para o fim:
+   *  é o único cuja chave não ordena junto com as outras. */
+  const agrupados = useMemo(() => {
+    const mapa = new Map<string, DocumentoSalvo[]>()
+    for (const d of docs ?? []) {
+      const comp = competenciaDoc(d)
+      const atual = mapa.get(comp)
+      if (atual) atual.push(d)
+      else mapa.set(comp, [d])
+    }
+    return [...mapa.entries()].sort(([a], [b]) => {
+      if (a === b) return 0
+      if (!a) return 1
+      if (!b) return -1
+      return b.localeCompare(a)
+    })
+  }, [docs])
+
   // Nomeia o documento em vez de um "tem certeza?" genérico: quem apaga
   // precisa reconhecer qual fatura/extrato está prestes a perder.
   const docAlvo = docs?.find((d) => d.id === confirmando)
@@ -143,7 +193,16 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
           <p className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.vazio')}</p>
         ) : (
           <ul className="space-y-1">
-            {docs.map((d) => {
+            {agrupados.map(([comp, doDoMes]) => (
+              <li key={comp || 'sem-periodo'}>
+                {/* O cabeçalho do mês é `sticky`: numa lista longa, rolar
+                    sem ele faz a pessoa perder de vista em que mês está —
+                    que é justamente a queixa que originou o agrupamento. */}
+                <p className="tabular sticky top-0 z-10 bg-carvao-900 px-3 pt-3 pb-1 text-[10px] uppercase tracking-[0.2em] text-tinta-tenue first-letter:uppercase">
+                  {tituloCompetencia(comp, t('docs.semPeriodo'))}
+                </p>
+                <ul className="space-y-1">
+                  {doDoMes.map((d) => {
               const c = contagem.get(d.id)
               const ehFatura = d.doc_type === 'fatura'
               return (
@@ -151,19 +210,25 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
                   key={d.id}
                   className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-carvao-850"
                 >
+                  {/* Do CATÁLOGO, não de um ternário de dois bancos. O
+                      código antigo pintava de vermelho-Bradesco tudo o que
+                      não fosse Nubank — o Mercado Pago entrou em 31/08 e
+                      apareceu com a cor do concorrente. */}
                   <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-semibold capitalize"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-semibold"
                     style={{
-                      background: d.bank === 'nubank' ? '#8a05be22' : '#cc092f22',
-                      color: d.bank === 'nubank' ? '#c17ce0' : '#e8637a',
+                      background: temaDoBanco(d.bank).wash,
+                      color: temaDoBanco(d.bank).accent,
                     }}
                   >
-                    {d.bank.slice(0, 2)}
+                    {temaDoBanco(d.bank).nome.slice(0, 2)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-tinta">
                       {t(ehFatura ? 'doc.fatura' : 'doc.extrato')} ·{' '}
-                      <span className="capitalize">{d.bank}</span>
+                      {/* `BANCOS[...].nome`, não o slug com `capitalize`:
+                          aquele escrevia "Mercadopago" e "Bb". */}
+                      <span>{temaDoBanco(d.bank).nome}</span>
                       <span className="text-tinta-tenue"> · {periodoCurto(d.period_start, d.period_end)}</span>
                     </p>
                     <p className="tabular text-[11px] text-tinta-tenue">
@@ -183,9 +248,12 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
                     </svg>
                   </button>
-                </li>
-              )
-            })}
+                    </li>
+                      )
+                    })}
+                </ul>
+              </li>
+            ))}
           </ul>
         )}
       </div>

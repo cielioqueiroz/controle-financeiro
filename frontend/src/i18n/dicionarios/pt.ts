@@ -332,6 +332,7 @@ export const pt = {
   'docs.subtitulo': 'Apague uma fatura/extrato ou recomece do zero.',
   'docs.carregando': 'Carregando…',
   'docs.vazio': 'Nenhum documento importado ainda.',
+  'docs.semPeriodo': 'sem período',
   'docs.nLancamentos': '{n} lançamentos',
   'docs.importadoEm': 'importado em {data}',
   'docs.apagarDoc': 'Apagar documento',

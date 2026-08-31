@@ -55,3 +55,16 @@ export const BANCOS: Record<Bank, BankTheme> = {
   },
 }
 
+/** O tema de um banco vindo do BANCO DE DADOS, onde `bank` é `text`.
+ *
+ *  O CHECK de `accounts.bank` limita os valores, mas uma linha gravada
+ *  antes de o catálogo crescer — ou por uma versão futura do app — chegaria
+ *  aqui como string qualquer. Cair em `desconhecido` desenha o documento
+ *  com cor neutra; indexar direto explodiria a tela inteira por causa de
+ *  uma linha.
+ *
+ *  Mora aqui, e não em cada componente, porque "o que mostrar para um banco
+ *  que não conheço" é uma opinião só. Havia duas até 2026-08-31. */
+export function temaDoBanco(bank: string): BankTheme {
+  return BANCOS[bank as Bank] ?? BANCOS.desconhecido
+}

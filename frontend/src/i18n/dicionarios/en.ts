@@ -298,6 +298,7 @@ export const en: Dicionario = {
   'docs.subtitulo': 'Delete a statement or start over.',
   'docs.carregando': 'Loading…',
   'docs.vazio': 'No documents imported yet.',
+  'docs.semPeriodo': 'no period',
   'docs.nLancamentos': '{n} entries',
   'docs.importadoEm': 'imported on {data}',
   'docs.apagarDoc': 'Delete document',
