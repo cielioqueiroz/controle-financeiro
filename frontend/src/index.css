@@ -364,6 +364,13 @@ body {
 }
 /* `carimbo` é a entrada do selo de "confere" — a única celebração que
    sobrou, e a que fala a língua do assunto. */
+/* O ângulo final sai de `--giro`, e não é detalhe de estilo.
+   `.carimbo` roda com `animation-fill-mode: both`, e nesse modo o transform
+   do último quadro VENCE o `style` inline do elemento — quem escrever a
+   inclinação no componente descobre, olhando a tela, que os três carimbos
+   pousaram no mesmo ângulo. Com a variável, quem carimba escolhe o ângulo e
+   a animação o respeita. O padrão continua sendo o -2deg de antes, para o
+   selo de banco (ResultadoImport) não mudar. */
 @keyframes carimbo {
   0% {
     opacity: 0;
@@ -374,7 +381,7 @@ body {
   }
   100% {
     opacity: 1;
-    transform: scale(1) rotate(-2deg);
+    transform: scale(1) rotate(var(--giro, -2deg));
   }
 }
 .carimbo {

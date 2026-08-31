@@ -20,6 +20,7 @@ import { DadosProvider } from './dados/DadosProvider'
 import { DiscretoProvider } from './dados/DiscretoProvider'
 import { diagnosticar } from './domain/diagnosticos'
 import { NavLateral } from './navegacao/NavLateral'
+import { CarimboConferencia } from './ui/CarimboConferencia'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
@@ -187,6 +188,25 @@ export function Folha() {
             onSair={() => {}}
             onVerTutorial={() => {}}
             onEditarPerfil={() => {}}
+          />
+        </div>
+      </Secao>
+
+      {/* Os tres estados lado a lado: e a unica tela onde da para comparar
+          o peso visual deles, e o carimbo so aparece depois de ler um PDF. */}
+      <Secao titulo="carimbo-conferencia">
+        <div className="flex flex-wrap items-center gap-10 bg-cartao px-6 py-8">
+          <CarimboConferencia
+            conf={{ status: 'confere', contagem: 21, somaExtraida: 4101225, diferenca: 0 }}
+            data={new Date(2026, 5, 30)}
+          />
+          <CarimboConferencia
+            conf={{ status: 'diverge', contagem: 18, somaExtraida: 4098385, diferenca: -12840 }}
+            data={new Date(2026, 5, 30)}
+          />
+          <CarimboConferencia
+            conf={{ status: 'sem-gabarito', contagem: 9, somaExtraida: 62134, diferenca: null }}
+            data={null}
           />
         </div>
       </Secao>

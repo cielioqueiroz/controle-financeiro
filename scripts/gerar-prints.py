@@ -35,6 +35,10 @@ ALVOS = [
     ("print-acesso-escuro.png", "/", None, 1280, None),
     ("print-graficos.png", "/demo.html", '[data-prova="graficos-painel"]', 1440, None),
     ("print-saldos.png", "/demo.html", '[data-prova="saldos"]', 1280, None),
+    # O carimbo e a tese do produto virando desenho: o app existe para bater
+    # o total ao centavo, e este e o unico lugar onde os tres vereditos
+    # aparecem lado a lado.
+    ("print-carimbo.png", "/demo.html", '[data-prova="carimbo-conferencia"]', 1100, None),
     ("print-compromissos.png", "/demo.html", '[data-prova="compromissos"]', 1280, None),
     # Os dois rankings lado a lado. A largura importa aqui: abaixo de 1024 o
     # grid empilha, e o print perderia justamente a comparacao entre eles.

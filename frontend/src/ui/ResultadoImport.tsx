@@ -6,6 +6,7 @@ import { formatBRL } from '../domain/normalize/money'
 import { dataLongaDe } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { validar } from '../domain/validate/checksum'
+import { CarimboConferencia } from './CarimboConferencia'
 import { construirInsights, type TxView } from '../domain/insights'
 import type { Regra } from '../domain/categorize/regras'
 import { CATEGORIAS, nomeCategoria } from '../domain/categorize/categorias'
@@ -113,7 +114,12 @@ export function ResultadoImport({
         </div>
       </header>
 
-      <Veredito conf={conf} total={result.declaredTotal} accent={tema.accent} />
+      <Veredito
+        conf={conf}
+        total={result.declaredTotal}
+        accent={tema.accent}
+        data={result.period?.end ?? null}
+      />
 
       {/* Gráfico de categorias + gasto real */}
       {baseInsights.porCategoria.length > 0 && (
@@ -259,10 +265,12 @@ function Veredito({
   conf,
   total,
   accent,
+  data,
 }: {
   conf: ReturnType<typeof validar>
   total: number | null
   accent: string
+  data: Date | null
 }) {
   const cor =
     conf.status === 'confere'
@@ -281,22 +289,19 @@ function Veredito({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 px-8 py-6">
-      <div className="flex items-center gap-4">
-        <span
-          className="carimbo grid h-11 w-11 place-items-center rounded-full text-lg"
-          style={{ background: `${cor}22`, color: cor }}
-        >
-          {conf.status === 'confere' ? '✓' : conf.status === 'sem-gabarito' ? '~' : '!'}
-        </span>
+      {/* O carimbo primeiro, a frase depois: o carimbo é o veredito e a
+          frase é a explicação dele. Antes havia um distintivo redondo com
+          ✓/~/! que dizia a mesma coisa em símbolo — o carimbo diz por
+          extenso E carrega o dado (a data e o valor que bateu, ou a
+          diferença a caçar), que o símbolo não tinha onde pôr. */}
+      <div className="flex flex-wrap items-center gap-5">
+        <CarimboConferencia conf={conf} data={data} />
         <div>
           <p className="font-display text-lg" style={{ color: cor }}>
             {titulo}
           </p>
           <p className="tabular text-xs text-tinta-tenue">
             {t('docs.nLancamentos', { n: conf.contagem })}
-            {conf.diferenca != null &&
-              conf.diferenca !== 0 &&
-              ` · ${t('import.faltam', { v: formatBRL(Math.abs(conf.diferenca)) })}`}
           </p>
         </div>
       </div>
