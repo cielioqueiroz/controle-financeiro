@@ -111,19 +111,48 @@
       .linha b.debito { color: #b3261e; }
       .linha b.credito { color: #1c6b4a; }
 
-      .confere {
-        display: flex; align-items: center; gap: 10px;
-        margin-top: 18px;
-        font-family: 'Plex Mono', monospace;
-        font-size: 15px; font-weight: 600; letter-spacing: 0.06em;
+      /* O CARIMBO, o mesmo que a tela desenha desde 2026-08-31
+         (`ui/CarimboConferencia.tsx`): traço duplo, inclinado, caixa alta com
+         espacejamento, e o detalhe embaixo separado por régua. Era um ✓ num
+         quadradinho; virou o que o app de fato mostra — um card de
+         compartilhamento que promete uma tela diferente da real é propaganda
+         enganosa de si mesmo. */
+      .carimbo {
+        display: inline-block;
+        margin-top: 22px;
+        padding: 9px 16px 7px;
+        border: 2px solid #1c6b4a;
+        border-radius: 3px;
+        box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px #1c6b4a;
         color: #1c6b4a;
+        transform: rotate(-2.4deg);
+        text-align: center;
       }
-      .confere .marca-check {
-        width: 22px; height: 22px; border-radius: 3px;
-        background: #1c6b4a; color: #ffffff;
-        display: grid; place-items: center;
-        font-size: 13px; font-weight: 700;
+      .carimbo .palavra {
+        font-family: 'Plex Mono', monospace;
+        font-size: 17px; font-weight: 600;
+        letter-spacing: 0.2em; text-transform: uppercase; line-height: 1;
       }
+      .carimbo .detalhe {
+        font-family: 'Plex Mono', monospace;
+        font-size: 10px; letter-spacing: 0.1em;
+        margin-top: 5px; padding-top: 4px;
+        border-top: 1px solid currentColor;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Os bancos que o app lê. Entra no card porque é a primeira pergunta de
+         quem vê o link: "serve para o MEU banco?". */
+      .bancos {
+        margin-top: 22px; max-width: 540px;
+        font-family: 'Plex Mono', monospace;
+        font-size: 13px; letter-spacing: 0.05em; line-height: 1.7;
+        color: #5d6b78;
+      }
+      /* Cada banco carrega o próprio separador e não quebra no meio: sem
+         isto o "·" sobra sozinho no começo da segunda linha. */
+      .bancos .banco { white-space: nowrap; }
+      .bancos b { color: #0f1a24; font-weight: 500; }
     </style>
   </head>
   <body>
@@ -136,6 +165,14 @@
         <span class="fraca">em menos de um minuto.</span>
       </h1>
       <p>Importe faturas e extratos em PDF e veja para onde seu dinheiro foi — conferido contra o total do próprio banco.</p>
+      <div class="bancos">
+        Lê <span class="banco"><b>Nubank</b> ·</span>
+        <span class="banco"><b>Bradesco</b> ·</span>
+        <span class="banco"><b>Banco do Brasil</b> ·</span>
+        <span class="banco"><b>Sicredi</b> ·</span>
+        <span class="banco"><b>Sicoob</b> ·</span>
+        <span class="banco"><b>Mercado Pago</b></span>
+      </div>
       <div class="rodape">Do extrato ao gráfico · cada centavo no lugar certo</div>
     </div>
 
@@ -145,7 +182,10 @@
       <div class="linha"><span>Débitos</span><b class="debito">−5.529,44</b></div>
       <div class="linha"><span>Créditos</span><b class="credito">+4.839,43</b></div>
       <div class="linha" style="border-bottom: none"><span>Total do banco</span><b>5.529,44</b></div>
-      <div class="confere"><span class="marca-check">✓</span> confere ao centavo</div>
+      <div class="carimbo">
+        <div class="palavra">Confere</div>
+        <div class="detalhe">30/06/2026 · R$ 5.529,44</div>
+      </div>
     </div>
   </body>
 </html>
