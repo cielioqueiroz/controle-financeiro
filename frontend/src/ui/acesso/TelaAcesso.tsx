@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { Marca } from '../Marca'
+import { FundoAcesso } from './FundoAcesso'
 import { ThemeToggle } from '../ThemeToggle'
 import { Rodape } from '../Rodape'
 import { CarrosselBancos } from '../CarrosselBancos'
@@ -36,6 +37,7 @@ export function FraseDeslogado() {
 export function TelaAcesso({ children }: { children: ReactNode }) {
   return (
     <div className="relative z-10 flex min-h-dvh flex-col px-4 py-3 sm:px-6 lg:px-10">
+      <FundoAcesso />
       <header className="mx-auto flex w-full max-w-[104rem] items-center justify-between gap-4">
         <motion.p
           initial={{ opacity: 0, y: -6 }}

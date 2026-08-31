@@ -22,6 +22,9 @@ CLARO = {
     "tinta-fraca": "#42525f",
     "tinta-tenue": "#5d6b78",
     "marca": "#1b5e8f",
+    "cta-de": "#14507a",
+    "cta-ate": "#1b5e8f",
+    "cta-tinta": "#ffffff",
     "credito": "#1c6b4a",
     "debito": "#b3261e",
     "ressalva": "#8a5a00",
@@ -38,6 +41,9 @@ ESCURO = {
     "tinta-fraca": "#a8b5c1",
     "tinta-tenue": "#8b98a5",
     "marca": "#6bb3e8",
+    "cta-de": "#4fc3e8",
+    "cta-ate": "#6bb3e8",
+    "cta-tinta": "#0d1319",
     "credito": "#5fbf8f",
     "debito": "#f0817a",
     "ressalva": "#d9a441",
@@ -50,6 +56,12 @@ TEXTO = ["tinta", "tinta-fraca", "tinta-tenue", "marca", "credito", "debito", "r
 # Cores que só desenham CONTORNO de controle, ou uma FORMA cheia que carrega
 # informação sem texto dentro (a barra do gráfico) — a WCAG pede 3:1.
 CONTORNO = ["borda-campo", "barra"]
+
+# O botao "Entrar" e o unico gradiente do sistema, e por isso e o unico par
+# que o laco acima nao alcanca: ali o texto nao fica sobre uma das tres
+# SUPERFICIES, fica sobre a chamada — que muda de cor ao longo da propria
+# largura. Medir a media seria mentir; medem-se as DUAS pontas, e vale a pior.
+GRADIENTE = ("cta-tinta", ["cta-de", "cta-ate"])
 
 
 def _lin(c: float) -> float:
@@ -84,6 +96,15 @@ def medir(nome: str, tokens: dict) -> list:
             print(f"  [{marca}] {cor:<14} {pior:5.2f}:1  (pior: sobre {onde}, minimo {minimo})")
             if not ok:
                 falhas.append((nome, cor, pior, onde, minimo))
+
+    tinta, pontas = GRADIENTE
+    piores = sorted((contraste(tokens[tinta], tokens[p]), p) for p in pontas)
+    pior, onde = piores[0]
+    ok = pior >= 4.5
+    print(f"  [{'OK  ' if ok else 'FALHA'}] {tinta:<14} {pior:5.2f}:1  "
+          f"(pior: sobre {onde}, minimo 4.5)")
+    if not ok:
+        falhas.append((nome, tinta, pior, onde, 4.5))
     return falhas
 
 

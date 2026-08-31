@@ -67,6 +67,17 @@
      genérico se confundia com o amarelo de ressalva. */
   --color-marca: #1b5e8f;
 
+  /* ---------- Chamada principal (o botão "Entrar") ----------
+     Gradiente, e não cor chapada: é o único gradiente do sistema, e existe
+     porque a tela de acesso é a vitrine — o resto do app é ferramenta.
+     Os dois extremos são medidos junto com o resto (`medir-contraste.py`),
+     porque texto sobre gradiente precisa passar nas DUAS pontas, não na
+     média. No claro o azul é escuro e a tinta é branca: um ciano claro aqui
+     derrubaria o texto para 3.9:1. */
+  --color-cta-de: #14507a;
+  --color-cta-ate: #1b5e8f;
+  --color-cta-tinta: #ffffff;
+
   /* Traço e brilho da moeda do logotipo. Têm valor próprio porque a face da
      moeda é sempre --color-marca nos dois temas: o resto dela segue a face,
      não a página. Sem estes dois o logo nasceria sem cor — o `var()` cairia
@@ -152,6 +163,12 @@
   --color-tinta-tenue: #8b98a5;
 
   --color-marca: #6bb3e8;
+
+  /* No escuro a lógica inverte: o botão é a coisa mais clara da tela e a
+     tinta dele é a da página. É o ciano da imagem de referência. */
+  --color-cta-de: #4fc3e8;
+  --color-cta-ate: #6bb3e8;
+  --color-cta-tinta: #0d1319;
   /* Só o TRAÇO muda por tema: a face da moeda é âmbar-azul nos dois, então
      o reflexo sobre ela é o mesmo claro — mas o contorno precisa de
      contraste diferente contra o resto da interface. */

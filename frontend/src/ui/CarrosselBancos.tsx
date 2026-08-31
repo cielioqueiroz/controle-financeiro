@@ -18,7 +18,7 @@ const SUPORTADOS: Bank[] = ['nubank', 'bradesco', 'bb', 'sicredi', 'sicoob']
 export function CarrosselBancos() {
   const semMovimento = useReducedMotion()
   const { t } = useT()
-  const nomes = SUPORTADOS.map((b) => BANCOS[b].nome)
+  const bancos = SUPORTADOS.map((b) => BANCOS[b])
 
   return (
     <div>
@@ -38,13 +38,22 @@ export function CarrosselBancos() {
           animate={semMovimento ? undefined : { x: ['0%', '-50%'] }}
           transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
         >
-          {[...nomes, ...nomes].map((nome, i) => (
+          {[...bancos, ...bancos].map((banco, i) => (
             <span
               key={i}
-              aria-hidden={i >= nomes.length}
-              className="font-display text-xl whitespace-nowrap text-tinta-fraca/70 transition-colors"
+              aria-hidden={i >= bancos.length}
+              className="flex items-center gap-2 font-display text-xl whitespace-nowrap text-tinta-fraca/70 transition-colors"
             >
-              {nome}
+              {/* A cor institucional do banco, e só ela — o nome continua
+                  monocromático. O ponto é o mesmo indicador que a lista de
+                  lançamentos usa, então quem vê aqui reconhece lá dentro.
+                  `aria-hidden` porque a cor não é informação: o nome é. */}
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: banco.accent }}
+              />
+              {banco.nome}
             </span>
           ))}
         </motion.div>
