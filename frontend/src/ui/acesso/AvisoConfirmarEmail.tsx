@@ -131,7 +131,7 @@ export function AvisoConfirmarEmail({ email, onConfirmado }: Props) {
             <button
               type="submit"
               disabled={codigo.length < TAMANHO_CODIGO || ocupado !== null}
-              className="rounded-sm bg-tinta px-3 py-1.5 text-xs font-medium text-carvao-950 transition-colors hover:bg-tinta-fraca disabled:opacity-40"
+              className="rounded-sm bg-tinta px-3 py-1.5 text-xs font-medium text-carvao-950 transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               {ocupado === 'confirmando' ? t('aviso.confirmando') : t('aviso.confirmar')}
             </button>

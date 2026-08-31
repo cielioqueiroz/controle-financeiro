@@ -98,7 +98,7 @@ export function ResultadoImport({
             <button
               onClick={onSalvar}
               disabled={salvando}
-              className="rounded-xl px-3 py-1.5 text-xs font-medium transition-colors hover:bg-tinta-fraca disabled:opacity-50"
+              className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50"
               style={{ background: tema.accent, color: tema.tinta }}
             >
               {salvando ? t('geral.salvando') : t('import.salvarHistorico')}

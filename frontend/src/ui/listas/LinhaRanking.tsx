@@ -48,24 +48,11 @@ export function LinhaRanking({
       <button
         onClick={onClick}
         aria-label={rotuloAcessivel}
-        className="linha-viva flex w-full items-stretch gap-3 px-2 py-2 text-left transition-colors"
+        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-carvao-850"
       >
-        {/* A posição ganha calha própria, com régua: era a informação que dava
-            sentido à lista e a menos visível da tela. Mono tabular alinhado à
-            direita, como a coluna de item de uma nota fiscal. */}
-        <span className="tabular w-6 shrink-0 self-stretch border-r border-regua pr-2 pt-px text-right text-[13px] text-tinta-fraca">
-          {posicao}
-        </span>
+        <span className="tabular w-4 shrink-0 text-[11px] text-tinta-tenue">{posicao}</span>
         <span className="min-w-0 flex-1">
-          {/* O pontilhado condutor: sem ele o olho atravessa meia tela de vazio
-              entre o nome e o valor, e erra de linha. */}
-          <span className="flex items-baseline gap-2">
-            {/* `versalete` desenha a caixa-alta do banco sem gritar. O TEXTO
-                continua idêntico — a descrição é imutável (ver CONTEXT.md). */}
-            <span className="versalete min-w-0 truncate text-sm text-tinta">{titulo}</span>
-            <span className="conduz" aria-hidden />
-            <span className="tabular shrink-0 text-sm text-tinta">{valor}</span>
-          </span>
+          <span className="block truncate text-sm text-tinta">{titulo}</span>
           {/* `truncate` também aqui: a linha de baixo é a que tem texto de
               tamanho imprevisível (nome de categoria traduzido, contagem em
               três idiomas) e era por ela que a coluna estourava. */}
@@ -73,6 +60,7 @@ export function LinhaRanking({
             {meta}
           </span>
         </span>
+        <span className="tabular shrink-0 text-sm text-tinta">{valor}</span>
       </button>
     </motion.li>
   )

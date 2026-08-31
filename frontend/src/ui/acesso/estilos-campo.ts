@@ -6,9 +6,7 @@
  *  precisa de 3:1 para a WCAG — é ela que diz "aqui se digita". A dos cartões
  *  continua sutil; só os campos sobem. */
 export const CAMPO =
-  'w-full border border-campo-borda bg-afundado px-4 py-3 text-sm text-tinta outline-none transition-colors placeholder:text-tinta-tenue hover:border-borda-forte focus:border-marca'
+  'w-full rounded-xl border border-campo-borda bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca'
 
-/** Regras 2 e 7 do `index.css`: sem sombra, sem levantar. Um botão cheio
- *  responde ao cursor trocando o próprio preenchimento, e só isso. */
 export const BOTAO_PRIMARIO =
-  'w-full bg-tinta px-4 py-3 text-sm font-semibold text-carvao-950 transition-colors hover:bg-tinta-fraca disabled:opacity-50'
+  'w-full rounded-xl bg-tinta px-4 py-3 text-sm font-semibold text-carvao-950 shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none'
