@@ -50,7 +50,11 @@ export async function loadTextItems(file: File): Promise<TextItem[]> {
   const pdfjs = await carregarPdfjs()
   try {
     const doc = await pdfjs.getDocument({ data }).promise
-    return await extractFromDocument(doc)
+    return await extractFromDocument(doc, {
+      setFillRGBColor: pdfjs.OPS.setFillRGBColor,
+      setTextMatrix: pdfjs.OPS.setTextMatrix,
+      showText: pdfjs.OPS.showText,
+    })
   } catch (err) {
     if (
       err instanceof Error &&

@@ -1,4 +1,4 @@
-import type { Line } from '../pdf/lines'
+import type { Cell, Line } from '../pdf/lines'
 import { cellAtRight } from '../pdf/lines'
 import { parseBRL } from '../normalize/money'
 import type { ParseResult, RawKind, RawTransaction } from './types'
@@ -34,6 +34,19 @@ const ehAncora = (line: Line): boolean =>
   cellAtRight(line, COL.saldoRight, TOL) !== null &&
   (cellAtRight(line, COL.creditoRight, TOL) !== null ||
     cellAtRight(line, COL.debitoRight, TOL) !== null)
+
+function celulaSaldo(line: Line): Cell | null {
+  return line.cells.find((c) => Math.abs(c.right - COL.saldoRight) <= TOL) ?? null
+}
+
+/** O Bradesco usa vermelho para saldo devedor e azul para saldo credor.
+ *  O sinal não aparece no texto extraído do PDF. */
+function saldoBradesco(line: Line): number | null {
+  const cell = celulaSaldo(line)
+  if (!cell) return null
+  const cents = parseBRL(cell.text)
+  return cell.color?.toLowerCase() === '#ff0000' ? -Math.abs(cents) : cents
+}
 
 /** Texto de histórico de uma linha vizinha, se ela não for âncora. */
 function historicoVizinho(line: Line | undefined, ancora: Line): string | null {
@@ -86,10 +99,11 @@ function titular(lines: Line[]): string | null {
 }
 
 export function parseBradescoExtrato(lines: Line[]): ParseResult {
-  // O extrato principal cobre o período declarado (páginas 1-2). A página
-  // 3 ("Últimos Lancamentos") é de OUTRO período (julho) com seu próprio
-  // Total — incluí-la quebraria a conferência de junho. Paramos no
-  // primeiro "Total".
+  // O extrato principal pode terminar antes da última página. A página
+  // "Últimos Lancamentos" repete o saldo e traz lançamentos recentes que
+  // podem ainda estar dentro do período declarado. O Total anterior continua
+  // sendo o gabarito da parte principal; portanto, não misturamos esses
+  // lançamentos à conferência, mas usamos o saldo mais recente do período.
   let fim = lines.length
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].cells[0]?.text.trim() === 'Total') {
@@ -114,8 +128,8 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
       // "COD. LANC. 0" marca o saldo inicial — atualiza data, não é transação.
       const dt = xAt(l, COL.data)?.match(DATA)
       if (dt) dataCorrente = new Date(Number(dt[3]), Number(dt[2]) - 1, Number(dt[1]))
-      const s = cellAtRight(l, COL.saldoRight, TOL)
-      if (s) saldoInicialCents = parseBRL(s)
+      const s = saldoBradesco(l)
+      if (s != null) saldoInicialCents = s
       continue
     }
 
@@ -128,8 +142,8 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
     const debito = cellAtRight(l, COL.debitoRight, TOL)
 
     // O saldo desta âncora; a última a sobreviver ao loop é o saldo final.
-    const saldoTexto = cellAtRight(l, COL.saldoRight, TOL)
-    if (saldoTexto) saldoFinalCents = parseBRL(saldoTexto)
+    const saldo = saldoBradesco(l)
+    if (saldo != null) saldoFinalCents = saldo
 
     const acima = historicoVizinho(lines[i - 1], l)
     const abaixo = historicoVizinho(lines[i + 1], l)
@@ -159,6 +173,8 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
   }
 
   const { income, expense } = totaisDeclarados(lines, fim + 1)
+  const per = periodo(lines)
+  const saldoDaContinuacao = saldoFinalNaContinuacao(lines, fim, per)
   const { agency, number } = conta(lines)
 
   return {
@@ -167,10 +183,10 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
     declaredIncome: income,
     declaredExpense: expense,
     balance:
-      saldoInicialCents != null && saldoFinalCents != null
-        ? { initial: saldoInicialCents, final: saldoFinalCents }
+      saldoInicialCents != null && (saldoDaContinuacao ?? saldoFinalCents) != null
+        ? { initial: saldoInicialCents, final: saldoDaContinuacao ?? saldoFinalCents! }
         : null,
-    period: periodo(lines),
+    period: per,
     account: {
       bank: 'bradesco',
       type: 'checking',
@@ -186,4 +202,30 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
       futureInstallmentsTotal: null,
     },
   }
+}
+
+/** A última página pode ser uma continuação informativa após o Total. Só
+ *  atualiza o saldo quando a data ainda pertence ao período do Documento;
+ *  assim o bloco "Últimos Lancamentos" de julho não contamina um extrato de
+ *  junho, mas o saldo de 31/08 deste extrato chega ao card do painel. */
+function saldoFinalNaContinuacao(
+  lines: Line[],
+  aPartirDe: number,
+  per: { start: Date; end: Date } | null,
+): number | null {
+  if (!per) return null
+  let dataCorrente: Date | null = null
+  let saldo: number | null = null
+  for (let i = aPartirDe; i < lines.length; i++) {
+    const line = lines[i]
+    if (!ehAncora(line)) continue
+    const dataTexto = xAt(line, COL.data)
+    const dm = dataTexto?.match(DATA)
+    if (dm) dataCorrente = new Date(Number(dm[3]), Number(dm[2]) - 1, Number(dm[1]))
+    if (!dataCorrente || dataCorrente < per.start || dataCorrente > per.end) continue
+    if (SALDO_INICIAL.test(xAt(line, COL.historico) ?? '')) continue
+    const saldoDaLinha = saldoBradesco(line)
+    if (saldoDaLinha != null) saldo = saldoDaLinha
+  }
+  return saldo
 }

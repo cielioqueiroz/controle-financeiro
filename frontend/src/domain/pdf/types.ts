@@ -10,4 +10,6 @@ export type TextItem = {
   width: number
   height: number
   page: number
+  /** Cor do preenchimento usada pelo PDF, quando o documento a declara. */
+  color?: string
 }

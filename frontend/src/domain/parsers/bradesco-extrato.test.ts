@@ -5,11 +5,8 @@ import { parseBradescoExtrato } from './bradesco-extrato'
 import { validar } from '../validate/checksum'
 import type { TextItem } from '../pdf/types'
 
-const r = parseBradescoExtrato(
-  buildLines(
-    JSON.parse(readFileSync('tests/fixtures/bradesco-extrato.items.json', 'utf-8')) as TextItem[],
-  ),
-)
+const itens = JSON.parse(readFileSync('tests/fixtures/bradesco-extrato.items.json', 'utf-8')) as TextItem[]
+const r = parseBradescoExtrato(buildLines(itens))
 
 const entradas = () =>
   r.transactions.filter((t) => t.amountCents < 0).reduce((a, t) => a - t.amountCents, 0)
@@ -25,6 +22,39 @@ describe('parseBradescoExtrato — saldo', () => {
   it('a variação de saldo fecha com a soma dos lançamentos com sinal', () => {
     const soma = r.transactions.reduce((a, t) => a + t.amountCents, 0)
     expect(soma).toBe(r.balance!.initial - r.balance!.final)
+  })
+
+  it('não troca o saldo final pela página de últimos lançamentos de outro período', () => {
+    expect(r.balance?.final).toBe(4699901)
+  })
+
+  it('usa o saldo da continuação quando ela ainda pertence ao período', () => {
+    const continuacao = [
+      { text: '30/06/2026', x: 45.75, y: 300, width: 36, height: 9, page: 4 },
+      { text: 'PIX ENVIADO', x: 109.5, y: 300, width: 70, height: 9, page: 4 },
+      { text: '10,00', x: 468.53, y: 300, width: 22, height: 9, page: 4 },
+      { text: '46.989,01', x: 518.55, y: 300, width: 32.45, height: 9, page: 4 },
+      { text: 'Total', x: 45.75, y: 280, width: 25, height: 9, page: 4 },
+    ] satisfies TextItem[]
+    const comContinuacao = parseBradescoExtrato(buildLines([...itens, ...continuacao]))
+    expect(comContinuacao.balance?.final).toBe(4698901)
+  })
+
+  it('interpreta saldo vermelho como negativo mesmo sem sinal no texto', () => {
+    const linhas = [
+      { text: 'Movimentação entre: 01/08/2026 e 31/08/2026', x: 45.75, y: 700, width: 200, height: 9, page: 1 },
+      { text: '01/08/2026', x: 45.75, y: 650, width: 36, height: 9, page: 1 },
+      { text: 'COD. LANC. 0', x: 109.5, y: 650, width: 70, height: 9, page: 1 },
+      { text: '0,00', x: 405, y: 650, width: 22, height: 9, page: 1 },
+      { text: '1.000,00', x: 518.55, y: 650, width: 32.45, height: 9, page: 1, color: '#ff0000' },
+      { text: '31/08/2026', x: 45.75, y: 620, width: 36, height: 9, page: 1 },
+      { text: 'PIX ENVIADO', x: 109.5, y: 620, width: 70, height: 9, page: 1 },
+      { text: '10,00', x: 468.53, y: 620, width: 22, height: 9, page: 1 },
+      { text: '990,00', x: 518.55, y: 620, width: 32.45, height: 9, page: 1, color: '#ff0000' },
+      { text: 'Total', x: 45.75, y: 580, width: 25, height: 9, page: 1 },
+    ] satisfies TextItem[]
+    const resultado = parseBradescoExtrato(buildLines(linhas))
+    expect(resultado.balance).toEqual({ initial: -100000, final: -99000 })
   })
 })
 

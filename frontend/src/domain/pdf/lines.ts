@@ -13,6 +13,7 @@ export type Cell = {
    *  longo como colunas diferentes — no extrato Bradesco isso faria
    *  crédito virar débito conforme o tamanho do número. */
   right: number
+  color?: string
 }
 
 export type Line = { cells: Cell[]; text: string; y: number; page: number }
@@ -56,6 +57,7 @@ export function buildLines(
         x: i.x,
         width: i.width,
         right: i.x + i.width,
+        color: i.color,
       }))
 
     return {
