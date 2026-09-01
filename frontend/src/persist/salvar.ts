@@ -1,7 +1,7 @@
 import { neon } from '../lib/neon'
 import type { ParseResult, RawTransaction } from '../domain/parsers/types'
 import type { DocKind } from '../domain/pdf/detect'
-import { hashDocumento, chaveTransacao, sha256 } from '../domain/dedupe/hash'
+import { hashConteudoDocumento, hashDocumento, chaveTransacao, sha256 } from '../domain/dedupe/hash'
 import { categoriaDe, REGRAS_GLOBAIS, type Regra } from '../domain/categorize/regras'
 import { mesclarRegras } from '../domain/categorize/aprendizado'
 import { vincular, paraVincular } from '../domain/link/vinculos'
@@ -44,16 +44,39 @@ export async function salvarDocumento(
   if (!sess?.session) throw new Error('Faça login para salvar.')
 
   const fileHash = await hashDocumento(fileBytes)
+  const contentHash = await hashConteudoDocumento(result, kind)
 
   // 1. Documento já importado? (RLS já escopa ao usuário)
-  const { data: docsExistentes, error: dupErr } = await neon
+  const camposDocumento =
+    'imported_at, content_hash, bank, doc_type, period_start, period_end, declared_total, declared_income, declared_expense, next_close_date, next_invoice_balance, total_open_balance, future_installments_total, accounts(bank, type, last4, agency, number), transactions(date, description, amount_cents, installment, fx)'
+  let consultaDuplicata = await neon
     .from('documents')
-    .select('imported_at')
-    .eq('file_hash', fileHash)
-    .limit(1)
-  if (dupErr) throw new Error(dupErr.message)
-  if (docsExistentes && docsExistentes.length > 0) {
-    return { status: 'documento-duplicado', importadoEm: docsExistentes[0].imported_at }
+    .select(camposDocumento)
+    // Inclui os Documentos antigos (content_hash NULL) para a migração não
+    // deixar passar uma duplicata já existente no histórico.
+    .or(`file_hash.eq.${fileHash},content_hash.eq.${contentHash},content_hash.is.null`)
+  // Permite que o app continue funcionando enquanto a migração é aplicada;
+  // sem content_hash, ainda há a comparação de conteúdo dos Documentos antigos.
+  if (consultaDuplicata.error && /content_hash/i.test(consultaDuplicata.error.message)) {
+    consultaDuplicata = await neon.from('documents').select(camposDocumento.replace('content_hash, ', ''))
+  }
+  if (consultaDuplicata.error) throw new Error(consultaDuplicata.error.message)
+  const docsExistentes = (consultaDuplicata.data ?? []) as DocumentoExistente[]
+  let duplicado = docsExistentes.find(
+    (doc) => doc.content_hash === contentHash || doc.file_hash === fileHash,
+  )
+  // Documentos anteriores à 0005 não têm content_hash. Comparamos seus
+  // dados persistidos para que a correção também cubra o histórico existente.
+  if (!duplicado) {
+    for (const doc of docsExistentes) {
+      if (!doc.content_hash && (await hashPersistido(doc)) === contentHash) {
+        duplicado = doc
+        break
+      }
+    }
+  }
+  if (duplicado) {
+    return { status: 'documento-duplicado', importadoEm: duplicado.imported_at }
   }
 
   // 2. Conta bancária: busca-ou-cria (sem upsert)
@@ -63,6 +86,7 @@ export async function salvarDocumento(
   const docBase = {
     account_id: accountId,
     file_hash: fileHash,
+    content_hash: contentHash,
     bank: kind.bank,
     doc_type: kind.docType,
     period_start: result.period?.start.toISOString().slice(0, 10) ?? null,
@@ -87,6 +111,17 @@ export async function salvarDocumento(
     .single()
   if (insercao.error && /end_balance_cents/i.test(insercao.error.message)) {
     insercao = await neon.from('documents').insert(docBase).select('id').single()
+  }
+  if (insercao.error && /content_hash/i.test(insercao.error.message)) {
+    const { content_hash: _contentHash, ...semHashDeConteudo } = docBase
+    insercao = await neon
+      .from('documents')
+      .insert({ ...semHashDeConteudo, end_balance_cents: result.balance?.final ?? null })
+      .select('id')
+      .single()
+    if (insercao.error && /end_balance_cents/i.test(insercao.error.message)) {
+      insercao = await neon.from('documents').insert(semHashDeConteudo).select('id').single()
+    }
   }
   const doc = insercao.data
   if (insercao.error || !doc) throw new Error(insercao.error?.message ?? 'Falha ao salvar o documento')
@@ -148,6 +183,61 @@ export async function salvarDocumento(
     inseridas: novos.length,
     jaExistiam: comHash.length - novos.length,
   }
+}
+
+type DocumentoExistente = {
+  imported_at: string
+  file_hash?: string
+  content_hash?: string | null
+  bank: string
+  doc_type: DocKind['docType']
+  period_start: string | null
+  period_end: string | null
+  declared_total: number | null
+  declared_income: number | null
+  declared_expense: number | null
+  next_close_date: string | null
+  next_invoice_balance: number | null
+  total_open_balance: number | null
+  future_installments_total: number | null
+  accounts: { bank?: string; type?: 'checking' | 'credit_card'; last4?: string | null; agency?: string | null; number?: string | null } | null
+  transactions: Array<{ date: string; description: string; amount_cents: number; installment: RawTransaction['installment']; fx: RawTransaction['fx'] }>
+}
+
+function hashPersistido(doc: DocumentoExistente): Promise<string> {
+  return hashConteudoDocumento(
+    {
+      transactions: doc.transactions.map((tx) => ({
+        date: new Date(tx.date),
+        description: tx.description,
+        amountCents: tx.amount_cents,
+        installment: tx.installment,
+        card: null,
+        fx: tx.fx,
+        kind: 'compra',
+        raw: tx.description,
+      })),
+      declaredTotal: doc.declared_total,
+      declaredIncome: doc.declared_income,
+      declaredExpense: doc.declared_expense,
+      period: doc.period_start && doc.period_end ? { start: new Date(doc.period_start), end: new Date(doc.period_end) } : null,
+      account: {
+        bank: (doc.accounts?.bank ?? doc.bank) as ParseResult['account']['bank'],
+        type: doc.accounts?.type ?? 'checking',
+        last4: doc.accounts?.last4 ?? null,
+        agency: doc.accounts?.agency ?? null,
+        number: doc.accounts?.number ?? null,
+        holderName: null,
+      },
+      forward: {
+        nextCloseDate: doc.next_close_date ? new Date(doc.next_close_date) : null,
+        nextInvoiceBalance: doc.next_invoice_balance,
+        totalOpenBalance: doc.total_open_balance,
+        futureInstallmentsTotal: doc.future_installments_total,
+      },
+    },
+    { bank: doc.bank as DocKind['bank'], docType: doc.doc_type },
+  )
 }
 
 /** Busca a conta pelo banco+tipo+final; cria se não existir. Substitui o

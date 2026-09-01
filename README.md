@@ -2,8 +2,9 @@
 
 **Importe a fatura ou o extrato do banco em PDF e veja para onde o seu dinheiro foi.**
 O PDF é lido **dentro do navegador** — ele nunca sai da sua máquina. O app extrai os
-lançamentos, confere o total **contra o gabarito impresso no próprio PDF** e guarda só
-as transações.
+lançamentos, confere o total **contra o gabarito impresso no próprio PDF**, impede a
+reimportação do mesmo Documento mesmo quando o PDF é renomeado ou reexportado, e
+guarda só as transações.
 
 <p align="center">
   <a href="https://capital-financeiro.vercel.app"><strong>🔗 Abrir o app</strong></a> ·
@@ -76,7 +77,7 @@ Bradesco — as cores institucionais, as mesmas em toda a tela):
 |---|---|
 | 📄 **Lê o PDF no navegador** | pdf.js em worker; o arquivo não é enviado a servidor nenhum |
 | ✅ **Confere ao centavo** | cada parser valida o total lido contra o total declarado no PDF |
-| 🏦 **5 bancos** | Nubank, Bradesco, Banco do Brasil, Sicredi e Sicoob (fatura e/ou extrato) |
+| 🏦 **6 bancos** | Nubank, Bradesco, Banco do Brasil, Sicredi, Sicoob e Mercado Pago (fatura e/ou extrato) |
 | 🏷️ **Categoriza e aprende** | 30 categorias embutidas; corrigir uma compra ensina o app para as próximas |
 | 🔗 **Não conta o mesmo dinheiro duas vezes** | cruza fatura × extrato e marca quitação e transferência entre contas próprias |
 | 📅 **Dia / Semana / Mês / Ano** | Mês e Ano agrupam por **competência da fatura**; Dia e Semana, pela data da compra |
@@ -102,7 +103,7 @@ flowchart LR
         W["pdf.js worker<br/>→ linhas com coordenadas"]
         P["detecta o banco<br/>→ parser (5 layouts)"]
         V{{"confere contra o<br/>gabarito do PDF"}}
-        C["categoriza · vincula<br/>· dedupe por hash"]
+        C["categoriza · vincula<br/>· dedupe por conteúdo"]
         AV["avisa, não esconde"]
     end
 
@@ -173,7 +174,7 @@ capital-financeiro/
 │       │   ├── categorize/      # catálogo de 30 categorias, regras e aprendizado
 │       │   ├── validate/        # conferência contra o gabarito do banco
 │       │   ├── link/            # vínculos entre documentos (dupla contagem)
-│       │   ├── dedupe/          # hash de documento e de transação
+│       │   ├── dedupe/          # conteúdo do Documento e hash de transação
 │       │   └── recorrencias.ts  # séries que se repetem + alertas
 │       ├── persist/             # Data API + agregação de leitura
 │       ├── dados/               # filtros na URL, recorte, provider do histórico
@@ -217,7 +218,8 @@ erDiagram
     }
     DOCUMENTS {
         uuid id PK
-        text file_hash "dedupe do arquivo"
+        text file_hash "identidade do PDF bruto"
+        text content_hash "identidade do conteúdo financeiro"
         text doc_type "fatura, extrato"
         date period_end "⭐ define a COMPETÊNCIA"
         bigint declared_total "o gabarito do banco"
@@ -272,6 +274,11 @@ número que mente com confiança:
 4. **Compromissos futuros nunca vão para o banco.** São calculados na hora, a partir da
    parcela mais recente de cada série — por isso não duplicam quando a próxima fatura é
    importada. → `persist/agrupar.ts::projecaoFutura`
+
+5. **Um Documento é identificado pelo conteúdo financeiro, não pelo nome do PDF.**
+   Reexportar o mesmo extrato pode mudar metadados e IDs internos do PDF; a impressão
+   canônica usa banco, período, gabarito, conta e transações normalizadas. →
+   `domain/dedupe/hash.ts`
 
 ---
 

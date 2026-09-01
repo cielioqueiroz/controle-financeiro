@@ -1,10 +1,28 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-08-31** (parte 5).
+> Documento de continuidade. Última atualização: **2026-09-01** (parte 6).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
 > **Atualização 2026-08-29:** a migração `0003_integridade_referencias_por_usuario.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A função e os dois gatilhos de integridade entre usuários estão ativos.
+
+> **Atualização 2026-09-01:** a migração `0005_deduplicacao_por_conteudo.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A importação agora calcula `content_hash` a partir do conteúdo financeiro normalizado, ignorando nome e metadados variáveis do PDF; Documentos anteriores à migração também são comparados pelos dados já persistidos.
+
+## Rodada 2026-09-01 (parte 6) — reexportar o mesmo Documento não cria histórico duplicado
+
+O hash anterior era do PDF bruto. Exportar de novo o mesmo Documento podia trocar
+metadados internos, IDs de objetos e a ordem dos objetos, fazendo o hash mudar e a
+importação passar como nova.
+
+Agora `domain/dedupe/hash.ts` produz uma impressão canônica do conteúdo financeiro:
+banco, tipo, período, conta, gabarito, projeção e transações normalizadas. O nome do
+PDF e seus metadados não entram. A ordem das transações também não entra, mas a
+multiplicidade entra — duas compras iguais no mesmo Documento continuam sendo duas.
+
+A migração 0005 adiciona `documents.content_hash` e um índice único por usuário. O
+fluxo ainda conserva `file_hash` para o PDF bruto e, enquanto houver Documentos antigos
+sem `content_hash`, reconstrói a impressão usando os dados salvos e as transações
+relacionadas.
 
 > **Três coisas saíram deste arquivo em 2026-08-17** e agora moram em lugar próprio.
 > Este documento continua sendo a porta de entrada, mas não é mais dono delas:
