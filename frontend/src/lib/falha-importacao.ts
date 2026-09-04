@@ -11,6 +11,7 @@ import {
   PdfProtegidoError,
 } from '../domain/pdf/load'
 import { ParserNaoImplementadoError } from '../domain/parsers'
+import { ehFalhaDeChunk } from './chunk'
 
 /** O que a tela mostra quando um documento não entra.
  *
@@ -68,7 +69,20 @@ export function classificarFalha(erro: unknown, arquivo: string): FalhaImportaca
   if (erro instanceof PdfCorrompidoError) return par('falha.corrompido', 'falha.corrompidoSaida')
   if (erro instanceof PdfDigitalizadoError)
     return par('falha.digitalizado', 'falha.digitalizadoSaida')
-  if (erro instanceof LeitorIndisponivelError) return par('falha.leitor', 'falha.leitorSaida')
+  // Duas causas MUITO diferentes chegam como "o leitor não carregou":
+  //
+  //   rede caiu          → esperar e tentar de novo
+  //   aba de antes do deploy → recarregar, e só isso resolve
+  //
+  // Cada build gera nomes com hash novo, então o JavaScript velho pede um
+  // chunk que não existe mais no servidor. Mandar "confira a conexão" a
+  // quem precisa de um F5 é apontar o lugar errado — e quem acabou de
+  // receber o app é justamente quem não tem como desconfiar disso.
+  if (erro instanceof LeitorIndisponivelError) {
+    return ehFalhaDeChunk(erro.causa)
+      ? par('falha.desatualizado', 'falha.desatualizadoSaida')
+      : par('falha.leitor', 'falha.leitorSaida')
+  }
   if (erro instanceof NavegadorSemSuporteError)
     return par('falha.navegador', 'falha.navegadorSaida')
   // Banco fora do catálogo, ou tipo de documento ainda sem parser. Não é

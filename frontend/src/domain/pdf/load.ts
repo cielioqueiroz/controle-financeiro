@@ -107,7 +107,14 @@ export class NavegadorSemSuporteError extends Error {
 }
 
 /** O pdf.js não chegou. São ~400 kB por import dinâmico: numa rede móvel
- *  ruim o download falha, e falhar aqui não é culpa do documento. */
+ *  ruim o download falha, e falhar aqui não é culpa do documento.
+ *
+ *  ⚠️ **Guarda a `causa`, e ela decide a frase.** Há DOIS motivos muito
+ *  diferentes para o chunk não chegar: a rede caiu, ou a aba está rodando
+ *  código de antes do último deploy e pede um arquivo com hash que já não
+ *  existe. O primeiro se resolve esperando, o segundo recarregando. Quem
+ *  separa os dois é `lib/falha-importacao.ts`, com o `ehFalhaDeChunk` —
+ *  aqui não, porque `domain/` não conhece `lib/`. */
 export class LeitorIndisponivelError extends Error {
   readonly causa: unknown
 

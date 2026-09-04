@@ -465,6 +465,12 @@ export const es: Dicionario = {
   'falha.leitor': 'No pude cargar el lector de PDF.',
   'falha.leitorSaida':
     'Es la conexión, no tu archivo: faltó descargar una parte de la aplicación. Revisa la red y toca otra vez para elegir el archivo.',
+  'versao.nova': 'Salió una versión nueva del sistema.',
+  'versao.atualizar': 'Actualizar',
+  'falha.desatualizado': 'Esta página está desactualizada.',
+  'falha.desatualizadoSaida':
+    'El sistema se actualizó mientras esta pestaña estaba abierta, y la parte que lee PDF ya no existe en esta versión. Toca actualizar y trae el archivo de nuevo — no se pierde nada de lo que importaste.',
+  'falha.recarregar': 'Actualizar la página',
   'falha.navegador': 'El navegador de este dispositivo es demasiado antiguo para abrir PDF.',
   'falha.navegadorSaida':
     'No es tu extracto: al navegador le falta una función que usa el lector de PDF. Actualízalo desde la tienda de aplicaciones, o abre el sitio en otro (Chrome, Firefox o Safari al día).',

@@ -30,6 +30,7 @@ import { Ajuda } from './ui/ajuda/Ajuda'
 import { EditarPerfil } from './ui/EditarPerfil'
 import { Notificacoes } from './ui/Notificacoes'
 import { AberturaTutorial } from './ui/AberturaTutorial'
+import { AvisoVersaoNova } from './ui/AvisoVersaoNova'
 import { TelaAcesso } from './ui/acesso/TelaAcesso'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
 import { Rodape } from './ui/Rodape'
@@ -199,6 +200,7 @@ export default function App() {
             (O <FundoAnimado/> em three.js dividia esta posição e saiu em
             2026-08-07 — era decoração de 515 kB.) */}
         <Notificacoes />
+        <AvisoVersaoNova />
         <TelaAcesso>
           <Auth
             onAutenticado={checarSessao}
@@ -231,6 +233,7 @@ export default function App() {
             arranjar — por isso ele só liga em `lg`. */}
         <div className="min-h-dvh lg:flex">
           <Notificacoes />
+          <AvisoVersaoNova />
 
           {logado && (
             <NavLateral

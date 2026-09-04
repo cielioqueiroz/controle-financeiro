@@ -465,6 +465,12 @@ export const en: Dicionario = {
   'falha.leitor': "I couldn't load the PDF reader.",
   'falha.leitorSaida':
     "It's the connection, not your file: part of the app failed to download. Check your network and tap to choose the file again.",
+  'versao.nova': 'A new version of the app is out.',
+  'versao.atualizar': 'Refresh',
+  'falha.desatualizado': 'This page is out of date.',
+  'falha.desatualizadoSaida':
+    'The app was updated while this tab was open, and the part that reads PDFs no longer exists in this version. Refresh and bring the file again — nothing you imported is lost.',
+  'falha.recarregar': 'Refresh the page',
   'falha.navegador': "This device's browser is too old to open PDFs.",
   'falha.navegadorSaida':
     'It is not your statement: the browser is missing a feature the PDF reader uses. Update the browser from your app store, or open the site in another one (an up-to-date Chrome, Firefox or Safari).',

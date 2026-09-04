@@ -506,6 +506,13 @@ export const pt = {
   'falha.leitor': 'Não consegui carregar o leitor de PDF.',
   'falha.leitorSaida':
     'É a internet, não o seu arquivo: falta baixar uma parte do app. Confira a conexão e toque em escolher o arquivo de novo.',
+  // Versão nova publicada enquanto a aba estava aberta (lib/versao.ts)
+  'versao.nova': 'Saiu uma versão nova do sistema.',
+  'versao.atualizar': 'Atualizar',
+  'falha.desatualizado': 'Esta página está desatualizada.',
+  'falha.desatualizadoSaida':
+    'O sistema foi atualizado enquanto esta aba estava aberta, e a parte que lê PDF já não existe nesta versão. Toque em atualizar e traga o arquivo de novo — nada do que você importou se perde.',
+  'falha.recarregar': 'Atualizar a página',
   'falha.navegador': 'O navegador deste aparelho é antigo demais para abrir PDF.',
   'falha.navegadorSaida':
     'Não é o seu extrato: falta ao navegador um recurso que o leitor de PDF usa. Atualize o navegador do aparelho pela loja de aplicativos, ou abra o site em outro navegador (Chrome, Firefox ou Safari atualizados).',

@@ -31,7 +31,13 @@ describe('classificarFalha', () => {
     ['protegido', new PdfProtegidoError()],
     ['corrompido', new PdfCorrompidoError()],
     ['digitalizado', new PdfDigitalizadoError()],
-    ['leitor fora', new LeitorIndisponivelError()],
+    ['leitor fora', new LeitorIndisponivelError(new Error('NetworkError'))],
+    [
+      'aba de antes do deploy',
+      new LeitorIndisponivelError(
+        new Error('Failed to fetch dynamically imported module: /assets/pdf-abc123.js'),
+      ),
+    ],
     ['navegador antigo', new NavegadorSemSuporteError()],
     ['sem parser', new ParserNaoImplementadoError({ bank: 'desconhecido', docType: 'desconhecido' })],
     ['desconhecido', new Error('qualquer outra coisa')],
@@ -68,6 +74,19 @@ describe('classificarFalha', () => {
 
   // O que não é `Error` também precisa chegar à tela sem quebrar: uma
   // promessa rejeitada com string é o caso comum.
+  // As duas chegam como "o leitor não carregou", e a saída é OPOSTA: uma
+  // pede paciência, a outra um F5. Confundi-las manda a pessoa olhar o
+  // sinal do celular por um problema que recarregar resolve.
+  it('separa a aba desatualizada da rede fora', () => {
+    const velha = classificarFalha(
+      new LeitorIndisponivelError(new Error('error loading dynamically imported module')),
+      'x.pdf',
+    )
+    const semRede = classificarFalha(new LeitorIndisponivelError(new Error('Failed to fetch')), 'x.pdf')
+    expect(velha.titulo).toBe('falha.desatualizado')
+    expect(semRede.titulo).toBe('falha.leitor')
+  })
+
   it('não quebra com um erro que não é Error', () => {
     const f = classificarFalha('deu ruim', 'x.pdf')
     expect(f.titulo).toBe('falha.generica')

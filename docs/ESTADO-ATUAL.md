@@ -121,6 +121,50 @@ O componente vive dentro do `DadosProvider` porque é ele que sabe se a conta te
 espera o carregamento terminar: `todas === null` é "ainda não sei", não "conta vazia" —
 confundir os dois jogaria o tutorial na cara de quem tem três anos de histórico.
 
+### 8. "Desloga todo mundo para pegarem a versão nova" — o que isso não faz
+
+Publicada a correção acima, veio o pedido natural: derrubar a sessão de todos, para
+entrarem de novo e o sistema atualizar. **Não funciona, e o motivo importa.**
+
+O que fica velho numa aba é o **código**, não a sessão. Derrubar a sessão leva a aba à
+tela de entrar DENTRO do bundle que já está em memória; a pessoa entra de novo, no
+mesmo JavaScript de antes, com o mesmo defeito que o deploy corrigiu. O que troca o
+código é recarregar a página — e só.
+
+O que foi feito no lugar, e vale para todo deploy futuro:
+
+- **`lib/versao.ts`** compara o módulo de entrada que ESTA aba carregou com o que o
+  servidor publica agora, buscando o `index.html` com `cache: 'no-store'`. O
+  `index.html` é o único arquivo sem hash no nome, então ele é a fonte da verdade —
+  sem endpoint próprio, sem service worker, sem número de versão para manter.
+- **`ui/AvisoVersaoNova.tsx`** confere ao voltar o foco à aba (com o mesmo intervalo
+  mínimo de 10s da recheca de sessão, senão cada alt-tab vira uma requisição). Sem
+  nada em andamento, **recarrega sozinho**; com um documento na tela, mostra um aviso
+  que não some, com botão — recarregar no meio de uma importação jogaria fora o PDF
+  já lido e conferido, que é o estado que o `ImportacaoProvider` existe para proteger.
+  Trava de laço: uma recarga automática por aba (`sessionStorage`).
+- **"Não sei" nunca vira "há versão nova".** Offline, 500, HTML de captive portal,
+  página sem módulo de entrada: tudo devolve `false`. Recarregar por engano é perder
+  o que a pessoa estava fazendo, e num celular o caso mais comum de tudo isso rodar é
+  justamente a rede oscilando. Há um teste por caminho.
+
+E um defeito que apareceu junto: **falha de chunk estava sendo chamada de rede fora**.
+Duas causas muito diferentes chegavam como "não consegui carregar o leitor de PDF" —
+
+| causa | saída |
+|---|---|
+| rede caiu | esperar e tentar de novo |
+| aba de antes do deploy (chunk com hash que não existe mais) | **recarregar**, e só isso |
+
+— e a mensagem mandava conferir a conexão nos dois casos. O `lib/chunk.ts` já
+reconhecia isso desde o relatório em PDF; a importação não usava. Agora
+`classificarFalha` separa os dois pela causa guardada no `LeitorIndisponivelError`.
+
+⚠️ A separação vive em `lib/`, **não em `domain/`**: a primeira versão punha o
+`ehFalhaDeChunk` dentro do `domain/pdf/load.ts` e inverteu a seta de dependência do
+projeto — `domain/` é o núcleo puro e não conhece `lib/`. Quem traduz erro em frase já
+morava do lado certo.
+
 ### 7. A causa raiz: `Promise.withResolvers`
 
 Com o PDF dela em mãos, no fim do dia, a causa apareceu — e **não era o documento**.
