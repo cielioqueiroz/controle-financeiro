@@ -121,6 +121,44 @@ O componente vive dentro do `DadosProvider` porque é ele que sabe se a conta te
 espera o carregamento terminar: `todas === null` é "ainda não sei", não "conta vazia" —
 confundir os dois jogaria o tutorial na cara de quem tem três anos de histórico.
 
+### 9. O card do WhatsApp: o HTML estava certo, e era esse o problema
+
+O preview do link parou de aparecer. A imagem estava impecável — 1200×630, RGB **sem
+canal alfa**, 61 kB, servida com `image/png` e 200 —, as onze metas estavam todas no
+`index.html`, e mesmo assim nada subia. O defeito era a **forma** do HTML, e ele passa
+despercebido justamente porque o HTML estava **correto**:
+
+1. **`og:description` e `twitter:description` quebradas em três linhas.** O formatador
+   fez isso, e é HTML válido para qualquer navegador. O robô do WhatsApp não é um
+   navegador: ele varre o texto com expressão regular, e meta partida em várias linhas
+   some da varredura. Provado com um parser ingênuo contra a produção: a regex que
+   exige a tag numa linha só **não achava** a descrição.
+2. **O comentário ACIMA do bloco escrevia `og:image` por extenso**, para explicar que
+   a URL precisa ser absoluta. Um robô que pega a PRIMEIRA ocorrência do nome achava o
+   comentário — na posição 425 do arquivo, contra 1489 da tag verdadeira.
+
+Corrigido: cada meta em uma linha, o comentário desceu para depois do bloco e passou a
+falar de "a imagem" sem escrever o nome da propriedade. Entraram também
+`og:image:secure_url` e `og:image:type`.
+
+**`src/lib/compartilhamento.test.ts` guarda as duas regras de forma** — mais a URL
+absoluta, as dimensões declaradas conferidas contra os bytes do PNG, a ausência de
+canal alfa (transparência vira mancha preta em parte dos clientes) e o teto de 300 kB.
+Nenhum desses defeitos quebra typecheck, lint, teste ou build, e nenhum aparece no
+navegador: só aparece quando alguém manda o link e o card vem vazio, que é tarde.
+O teste foi conferido **reintroduzindo os dois defeitos**: 3 falhas, com a frase que
+explica cada uma.
+
+⚠️ **O `?v=` da imagem NÃO limpa o cache do LINK.** WhatsApp e Facebook guardam o
+preview pelo ENDEREÇO DA PÁGINA, por semanas. Depois de corrigir metas, forçar a
+rebusca no Sharing Debugger do Facebook (`developers.facebook.com/tools/debug` — o
+WhatsApp usa a mesma infraestrutura), ou conferir compartilhando com uma query nova
+(`/?x=1`): endereço diferente, cache diferente.
+
+**A arte foi para o tema escuro** (`?v=escuro`), com os valores lidos do bloco
+`:root[data-theme="dark"]` do `index.css` — nenhuma cor escolhida a olho. Card claro
+levando a um app que agora abre escuro é o link parecendo de outro produto.
+
 ### 8. "Desloga todo mundo para pegarem a versão nova" — o que isso não faz
 
 Publicada a correção acima, veio o pedido natural: derrubar a sessão de todos, para

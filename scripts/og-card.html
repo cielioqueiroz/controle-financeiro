@@ -36,15 +36,15 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
 
       /* Papel frio de formulário fiscal e tinta azul-ferro: os mesmos tokens
-         do app (--color-papel #f6f7f9, --color-tinta #0f1a24,
-         --color-marca #1b5e8f). Zero gradiente, zero brilho, zero sombra
+         do app (--color-papel #0d1319, --color-tinta #e9eef3,
+         --color-marca #6bb3e8). Zero gradiente, zero brilho, zero sombra
          difusa — o card anterior era exatamente isso, e era a assinatura do
          visual que este projeto deixou para trás. */
       body {
         width: 1200px; height: 630px;
-        background: #f6f7f9;
+        background: #0d1319;
         font-family: 'Plex Sans', sans-serif;
-        color: #0f1a24;
+        color: #e9eef3;
         display: flex; align-items: center; gap: 64px;
         padding: 0 80px;
         position: relative;
@@ -52,7 +52,7 @@
 
       /* Régua superior: a única "decoração", e é estrutural — é o filete de
          um formulário. */
-      .filete { position: absolute; top: 0; left: 0; right: 0; height: 10px; background: #1b5e8f; }
+      .filete { position: absolute; top: 0; left: 0; right: 0; height: 10px; background: #6bb3e8; }
 
       .conteudo { flex: 1; }
 
@@ -60,7 +60,7 @@
         font-family: 'Plex Mono', monospace;
         font-size: 19px; font-weight: 600;
         letter-spacing: 0.34em; text-transform: uppercase;
-        color: #1b5e8f;
+        color: #6bb3e8;
         margin-bottom: 30px;
       }
 
@@ -72,44 +72,44 @@
         line-height: 1.1; letter-spacing: -0.02em;
         white-space: nowrap;
       }
-      h1 .fraca { color: #5b6b7c; }
+      h1 .fraca { color: #a8b5c1; }
 
-      p { margin-top: 26px; font-size: 24px; line-height: 1.35; color: #4a5967; max-width: 520px; }
+      p { margin-top: 26px; font-size: 24px; line-height: 1.35; color: #a8b5c1; max-width: 520px; }
 
       .rodape {
         position: absolute; bottom: 46px; left: 80px;
         font-family: 'Plex Mono', monospace;
         font-size: 15px; letter-spacing: 0.2em;
-        text-transform: uppercase; color: #6f7d8c;
+        text-transform: uppercase; color: #8b98a5;
       }
 
       /* O "documento": o que o app faz, no formato em que ele faz. Não é um
          gráfico bonito de enfeite — é a conferência ao centavo, que é a razão
          de o sistema existir. */
       .doc {
-        width: 420px; background: #ffffff;
-        border: 1px solid #c8d0d9; border-radius: 3px;
+        width: 420px; background: #161d25;
+        border: 1px solid #2b3641; border-radius: 3px;
         padding: 26px 28px 22px;
       }
       .doc-titulo {
         font-family: 'Plex Mono', monospace;
         font-size: 12px; font-weight: 600; letter-spacing: 0.18em;
-        text-transform: uppercase; color: #6f7d8c;
-        padding-bottom: 14px; border-bottom: 1px solid #e2e7ec;
+        text-transform: uppercase; color: #8b98a5;
+        padding-bottom: 14px; border-bottom: 1px solid #2b3641;
       }
       .linha {
         display: flex; align-items: baseline; justify-content: space-between;
-        gap: 16px; padding: 13px 0; border-bottom: 1px solid #eef1f4;
+        gap: 16px; padding: 13px 0; border-bottom: 1px solid #232c36;
       }
-      .linha span { font-size: 17px; color: #4a5967; }
+      .linha span { font-size: 17px; color: #a8b5c1; }
       .linha b {
         font-family: 'Plex Mono', monospace;
-        font-size: 19px; font-weight: 500; letter-spacing: -0.015em; color: #0f1a24;
+        font-size: 19px; font-weight: 500; letter-spacing: -0.015em; color: #e9eef3;
         font-variant-numeric: tabular-nums;
       }
       /* Semântica contábil: crédito/débito com SINAL, nunca cor sozinha. */
-      .linha b.debito { color: #b3261e; }
-      .linha b.credito { color: #1c6b4a; }
+      .linha b.debito { color: #f0817a; }
+      .linha b.credito { color: #5fbf8f; }
 
       /* O CARIMBO, o mesmo que a tela desenha desde 2026-08-31
          (`ui/CarimboConferencia.tsx`): traço duplo, inclinado, caixa alta com
@@ -121,10 +121,10 @@
         display: inline-block;
         margin-top: 22px;
         padding: 9px 16px 7px;
-        border: 2px solid #1c6b4a;
+        border: 2px solid #5fbf8f;
         border-radius: 3px;
-        box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px #1c6b4a;
-        color: #1c6b4a;
+        box-shadow: 0 0 0 1px #161d25, 0 0 0 3px #5fbf8f;
+        color: #5fbf8f;
         transform: rotate(-2.4deg);
         text-align: center;
       }
@@ -147,12 +147,12 @@
         margin-top: 22px; max-width: 540px;
         font-family: 'Plex Mono', monospace;
         font-size: 13px; letter-spacing: 0.05em; line-height: 1.7;
-        color: #5d6b78;
+        color: #8b98a5;
       }
       /* Cada banco carrega o próprio separador e não quebra no meio: sem
          isto o "·" sobra sozinho no começo da segunda linha. */
       .bancos .banco { white-space: nowrap; }
-      .bancos b { color: #0f1a24; font-weight: 500; }
+      .bancos b { color: #e9eef3; font-weight: 500; }
     </style>
   </head>
   <body>

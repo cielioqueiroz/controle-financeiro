@@ -3,41 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Capital Financeiro — importe faturas e extratos em PDF e veja para onde seu dinheiro foi."
-    />
+    <meta name="description" content="Capital Financeiro — importe faturas e extratos em PDF e veja para onde seu dinheiro foi." />
     <meta name="author" content="Cielio Queiroz" />
-    <!-- Card de compartilhamento (WhatsApp, Telegram, Discord).
-         og:image PRECISA ser URL absoluta: os servidores desses apps buscam a
-         imagem de fora e não alcançam caminho relativo nem localhost. Trocar
-         o domínio abaixo quando o deploy definir a URL real.
 
-         ⚠️ O `?v=` NÃO é enfeite. WhatsApp, Telegram e as redes guardam o
-         card por semanas: publicar um og.png novo na MESMA URL não muda o
-         que aparece quando alguém compartilha. Trocar o sufixo é o que força
-         a rebusca — mesma razão do `?v=moeda` no favicon. Mudou a imagem,
-         muda o sufixo. -->
+    <!-- ⚠️ AS METAS DE COMPARTILHAMENTO ABAIXO TÊM DUAS REGRAS DE FORMA, E AS
+         DUAS SÃO SOBRE O LEITOR, NÃO SOBRE O HTML.
+
+         1. CADA UMA EM UMA LINHA SÓ. Quebrar os atributos em várias linhas é
+            HTML perfeitamente válido, e foi o que o formatador fez aqui — mas
+            o robô do WhatsApp não é um navegador: ele varre o texto com
+            expressão regular, e uma meta partida em três linhas some da
+            varredura. Era o caso de `description` (e da do Twitter): as duas
+            existiam no arquivo e nenhum leitor simplório as encontrava.
+
+         2. NENHUM COMENTÁRIO ACIMA DELAS PODE CITAR O NOME DAS PROPRIEDADES.
+            Este texto vinha ANTES do bloco e escrevia o nome da propriedade da
+            imagem por extenso, para explicar que ela precisa de URL absoluta.
+            Um robô que pega a PRIMEIRA ocorrência do nome no arquivo achava o
+            comentário — 1.000 caracteres antes da tag verdadeira — e voltava
+            com lixo. É por isso que este bloco de texto está aqui embaixo, e
+            é por isso que ele fala de "a imagem" e não escreve o nome da
+            propriedade.
+
+         O resto continua valendo:
+
+         - A URL da imagem PRECISA ser absoluta: os servidores desses apps
+           buscam a imagem de fora e não alcançam caminho relativo nem
+           localhost. Trocar o domínio quando o deploy mudar de endereço.
+         - O `?v=` NÃO é enfeite: as redes guardam a imagem por semanas, e
+           publicar um arquivo novo na MESMA URL não muda o que aparece.
+           Mudou a imagem, muda o sufixo — a mesma razão do `?v=moeda` no
+           favicon.
+         - ⚠️ **O `?v=` da imagem NÃO limpa o cache do LINK.** WhatsApp e
+           Facebook guardam o preview pelo ENDEREÇO DA PÁGINA, e um card
+           errado fica semanas. Para forçar a rebusca depois de corrigir algo
+           aqui: passar a URL no Sharing Debugger do Facebook
+           (developers.facebook.com/tools/debug — o WhatsApp usa a mesma
+           infraestrutura de robô) e clicar em "Scrape Again". Para conferir
+           antes disso, compartilhe com uma query nova (`/?x=1`): endereço
+           diferente, cache diferente. -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Capital Financeiro" />
     <meta property="og:title" content="Capital Financeiro — Seu extrato vira gráfico, em menos de um minuto." />
-    <meta
-      property="og:description"
-      content="Importe faturas e extratos em PDF e enxergue seus gastos por categoria, dia, mês e ano."
-    />
+    <meta property="og:description" content="Importe faturas e extratos em PDF e enxergue seus gastos por categoria, dia, mês e ano." />
     <meta property="og:url" content="https://capital-financeiro.vercel.app/" />
-    <meta property="og:image" content="https://capital-financeiro.vercel.app/og.png?v=carimbo" />
+    <meta property="og:image" content="https://capital-financeiro.vercel.app/og.png?v=escuro" />
+    <meta property="og:image:secure_url" content="https://capital-financeiro.vercel.app/og.png?v=escuro" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Capital Financeiro — seu extrato vira gráfico, em menos de um minuto." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Capital Financeiro — Seu extrato vira gráfico, em menos de um minuto." />
-    <meta
-      name="twitter:description"
-      content="Importe faturas e extratos em PDF e enxergue seus gastos por categoria, dia, mês e ano."
-    />
-    <meta name="twitter:image" content="https://capital-financeiro.vercel.app/og.png?v=carimbo" />
+    <meta name="twitter:description" content="Importe faturas e extratos em PDF e enxergue seus gastos por categoria, dia, mês e ano." />
+    <meta name="twitter:image" content="https://capital-financeiro.vercel.app/og.png?v=escuro" />
     <!-- O `?v=` é o que faz o ícone novo aparecer. Favicon é dos recursos mais
          agressivamente cacheados que existe: o navegador continua servindo o
          desenho antigo por dias mesmo com deploy novo, e trocar o conteúdo do
