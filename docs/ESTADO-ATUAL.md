@@ -121,13 +121,65 @@ O componente vive dentro do `DadosProvider` porque é ele que sabe se a conta te
 espera o carregamento terminar: `todas === null` é "ainda não sei", não "conta vazia" —
 confundir os dois jogaria o tutorial na cara de quem tem três anos de histórico.
 
-### O que ficou de fora, e por quê
+### 7. A causa raiz: `Promise.withResolvers`
 
-**A causa exata da falha da parente continua desconhecida.** Não há o PDF dela nem o
-aparelho, e os quatro documentos de referência importam sem erro num Chrome móvel
-emulado (390px, verificado nesta rodada). O que esta rodada garante é que a próxima
-tentativa **diz qual das nove causas foi** — na tela, sem sumir, com uma linha técnica
-para fotografar. Se ainda falhar, o print agora vale um diagnóstico.
+Com o PDF dela em mãos, no fim do dia, a causa apareceu — e **não era o documento**.
+
+O extrato importa sem um arranhão: 22 lançamentos, confere ao centavo. Importa também
+na versão do app **de antes de qualquer correção desta rodada** (conferido num worktree
+em `e300fba`). Duas leituras verdes com o mesmo arquivo que falhava no celular dela
+significam uma coisa só: o problema estava no **navegador**, não no PDF.
+
+O `pdfjs-dist` 6 usa **`Promise.withResolvers`**, que existe a partir de:
+
+| navegador | versão | quando |
+|---|---|---|
+| Chrome / Edge | 119 | out/2023 |
+| Safari (iOS) | 17.4 | mar/2024 |
+| Firefox | 121 | dez/2023 |
+
+Num aparelho anterior a isso o app inteiro funciona — React, telas, gráficos, login,
+nada mais usa aquela API — e **só a importação quebra**, com um `TypeError` que o
+`catch` genérico transformava em *"Não consegui ler este arquivo."*
+
+Reproduzido em laboratório, e o resultado é o print dela, palavra por palavra:
+
+```
+ctx.add_init_script("delete Promise.withResolvers")   # simula o aparelho
+```
+
+| | código de antes | código de hoje |
+|---|---|---|
+| aparelho sem a API | toast **"Não consegui ler este arquivo."** | `TypeError: Promise.withResolvers is not a function`, na tela |
+
+**A cura são seis linhas de polyfill — e a parte que não é óbvia é que ele precisa ser
+aplicado DUAS vezes.** O `pdf.worker.min.mjs` usa a mesma API e roda em **outra
+thread**, com outro `globalThis`: nada declarado na página chega lá. O `workerSrc`
+passa a apontar para um `blob:` que aplica o polyfill e então importa o worker de
+verdade. A CSP já permitia (`worker-src 'self' blob:`), e o Blob herda a origem, então
+o `import` de dentro dele continua same-origin.
+
+Só quando falta: num navegador atual o caminho é byte a byte o de antes.
+
+**Verificado com o build de produção servido com os headers reais do `vercel.json`**,
+nos dois casos e sem uma única violação de CSP:
+
+```
+[navegador ATUAL]  LEU ✓   violacoes CSP: []
+[navegador ANTIGO] LEU ✓   violacoes CSP: []
+```
+
+Depois do polyfill, o piso da importação passa a ser o mesmo do app: removendo também
+`structuredClone`, `Array.findLast` e `.at()` o extrato continua sendo lido. **Quem
+consegue abrir o app consegue importar.**
+
+Fica também a classe `NavegadorSemSuporteError` para a PRÓXIMA API que o pdf.js adotar:
+`TypeError`/`ReferenceError` de método ausente deixa de cair no genérico e vira "o
+navegador deste aparelho é antigo demais — atualize, ou abra em outro". Documento ruim
+nunca produz "is not a function".
+
+⚠️ A armadilha inteira está registrada no `AGENTS.md` §4.1, com o comando para conferir
+o piso depois de cada upgrade do pdf.js.
 
 ---
 

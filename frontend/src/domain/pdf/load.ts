@@ -86,6 +86,26 @@ export class PdfCorrompidoError extends Error {
   }
 }
 
+/** O navegador é velho demais para o leitor de PDF.
+ *
+ *  Nasce do caso real de 2026-09-04: `Promise.withResolvers` não existia no
+ *  celular, e o `TypeError` daí virava "não consegui ler este arquivo" — uma
+ *  frase que manda a pessoa culpar o próprio extrato e tentar de novo para
+ *  sempre. Aquela API específica agora tem polyfill; esta classe existe para
+ *  a PRÓXIMA, porque o pdf.js continuará adotando o que for novo.
+ *
+ *  Distinguir importa porque a saída é outra: nem "baixe o arquivo de novo"
+ *  nem "confira a conexão", e sim "atualize o navegador, ou abra em outro". */
+export class NavegadorSemSuporteError extends Error {
+  readonly causa: unknown
+
+  constructor(causa?: unknown) {
+    super('O navegador não tem o que o leitor de PDF precisa')
+    this.name = 'NavegadorSemSuporteError'
+    this.causa = causa
+  }
+}
+
 /** O pdf.js não chegou. São ~400 kB por import dinâmico: numa rede móvel
  *  ruim o download falha, e falhar aqui não é culpa do documento. */
 export class LeitorIndisponivelError extends Error {
@@ -151,6 +171,80 @@ export async function lerBytes(file: File): Promise<ArrayBuffer> {
   return bytes
 }
 
+/** ## `Promise.withResolvers`, o defeito que derrubou a importação num celular
+ *
+ *  Em 2026-09-04 um extrato do Bradesco não importava num telefone. O mesmo
+ *  arquivo abria sem um arranhão no desktop — e abria também na versão do
+ *  app de antes de qualquer correção. O documento não era o problema: o
+ *  navegador era.
+ *
+ *  O `pdfjs-dist` 6 usa **`Promise.withResolvers`**, que só existe em
+ *  **Chrome 119** (out/2023), **Safari 17.4** (mar/2024, ou seja iOS 17.4) e
+ *  **Firefox 121**. Num aparelho anterior a isso o app inteiro funciona —
+ *  React, telas, gráficos, nada usa essa API — e **só a importação quebra**,
+ *  com um `TypeError` que virava "Não consegui ler este arquivo". Aparelho
+ *  de entrada com Chrome velho e iPhone parado no iOS 16 são comuns, e são
+ *  exatamente as pessoas a quem se manda um app dizendo "é só arrastar o
+ *  PDF".
+ *
+ *  A cura são seis linhas de polyfill. O que não é óbvio é que ele precisa
+ *  ser aplicado **DUAS vezes**:
+ *
+ *  1. na thread principal, onde vive a API do pdf.js;
+ *  2. **dentro do worker**, que é outra thread com outro `globalThis` — o
+ *     `pdf.worker.min.mjs` usa a mesma API, e nada do que se declara aqui
+ *     chega lá.
+ *
+ *  Para o worker, o `workerSrc` passa a apontar para um Blob que aplica o
+ *  polyfill e então importa o worker de verdade. A CSP já permite
+ *  (`worker-src 'self' blob:`), o Blob herda a origem — então o `import` de
+ *  dentro dele continua same-origin —, e o pdf.js segue criando e destruindo
+ *  workers como sempre, porque continua sendo uma URL e não um port.
+ *
+ *  ⚠️ **Só quando falta.** Num navegador atual nada disso acontece e o
+ *  caminho é byte a byte o de antes: um desvio que só a minoria paga, e que
+ *  não pode introduzir risco para a maioria. */
+export const POLYFILL_WITH_RESOLVERS = `if (typeof Promise.withResolvers !== "function") {
+  Promise.withResolvers = function () {
+    let resolve, reject
+    const promise = new Promise(function (res, rej) { resolve = res; reject = rej })
+    return { promise: promise, resolve: resolve, reject: reject }
+  }
+}
+`
+
+type PromiseComWithResolvers = PromiseConstructor & { withResolvers?: unknown }
+
+export function faltaWithResolvers(): boolean {
+  return typeof (Promise as PromiseComWithResolvers).withResolvers !== 'function'
+}
+
+/** Aplica o polyfill nesta thread. Idempotente. */
+function polyfillAqui(): void {
+  if (!faltaWithResolvers()) return
+  ;(Promise as PromiseComWithResolvers).withResolvers = function <T>() {
+    let resolve!: (value: T | PromiseLike<T>) => void
+    let reject!: (reason?: unknown) => void
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res
+      reject = rej
+    })
+    return { promise, resolve, reject }
+  }
+}
+
+/** A URL do worker, embrulhada num Blob que aplica o polyfill antes de
+ *  importá-lo — porque o worker é outra thread e não enxerga o polyfill
+ *  desta. Devolve a URL original quando o navegador não precisa de ajuda. */
+function urlDoWorker(urlOriginal: string): string {
+  if (!faltaWithResolvers()) return urlOriginal
+  // Absoluta: dentro de um `blob:` não há caminho relativo que resolva.
+  const absoluta = new URL(urlOriginal, window.location.href).href
+  const fonte = `${POLYFILL_WITH_RESOLVERS}import ${JSON.stringify(absoluta)}
+`
+  return URL.createObjectURL(new Blob([fonte], { type: 'text/javascript' }))
+}
+
 /** O pdf.js entra por import dinâmico: são ~400 kB que só quem importa um
  *  PDF paga — fora do bundle inicial, como o three.js e o jsPDF. A promise
  *  é memoizada para o download acontecer uma vez só. */
@@ -158,6 +252,8 @@ let pdfjsPronto: Promise<typeof import('pdfjs-dist')> | null = null
 
 function carregarPdfjs() {
   if (!pdfjsPronto) {
+    // ANTES do import: o módulo do pdf.js pode usar a API já na avaliação.
+    polyfillAqui()
     pdfjsPronto = Promise.all([
       import('pdfjs-dist'),
       import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
@@ -165,7 +261,7 @@ function carregarPdfjs() {
       .then(([pdfjs, worker]) => {
         // O pdf.js roda o parsing numa worker thread — sem isso a UI congela
         // enquanto lê uma fatura de 8 páginas.
-        pdfjs.GlobalWorkerOptions.workerSrc = worker.default
+        pdfjs.GlobalWorkerOptions.workerSrc = urlDoWorker(worker.default)
         return pdfjs
       })
       .catch((err) => {
@@ -215,5 +311,16 @@ function traduzirErroDoPdfjs(err: unknown): Error {
     return new PdfCorrompidoError(err)
   if (nome === 'MissingPDFException' || /missing pdf|unexpected server response/i.test(msg))
     return new ArquivoIlegivelError(err)
+
+  // Sobra de API: o motor não tem algo que o pdf.js usa. Um documento
+  // ruim nunca produz `TypeError: X is not a function` — isso é o navegador
+  // não conhecendo um método, não o PDF estando torto.
+  if (
+    (nome === 'TypeError' || nome === 'ReferenceError') &&
+    /is not a function|is not defined|undefined is not an object|has no method/i.test(msg)
+  ) {
+    return new NavegadorSemSuporteError(err)
+  }
+
   return err instanceof Error ? err : new Error(String(err))
 }

@@ -465,6 +465,9 @@ export const en: Dicionario = {
   'falha.leitor': "I couldn't load the PDF reader.",
   'falha.leitorSaida':
     "It's the connection, not your file: part of the app failed to download. Check your network and tap to choose the file again.",
+  'falha.navegador': "This device's browser is too old to open PDFs.",
+  'falha.navegadorSaida':
+    'It is not your statement: the browser is missing a feature the PDF reader uses. Update the browser from your app store, or open the site in another one (an up-to-date Chrome, Firefox or Safari).',
   'falha.semParser': "I can't read this document yet.",
   'falha.semParserSaida':
     'I read card and account statements from Nubank, Bradesco and Mercado Pago, plus account statements from Banco do Brasil, Sicredi and Sicoob. If your bank is one of those, this may be a new document layout — worth reporting.',

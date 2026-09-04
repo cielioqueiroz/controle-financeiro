@@ -465,6 +465,9 @@ export const es: Dicionario = {
   'falha.leitor': 'No pude cargar el lector de PDF.',
   'falha.leitorSaida':
     'Es la conexión, no tu archivo: faltó descargar una parte de la aplicación. Revisa la red y toca otra vez para elegir el archivo.',
+  'falha.navegador': 'El navegador de este dispositivo es demasiado antiguo para abrir PDF.',
+  'falha.navegadorSaida':
+    'No es tu extracto: al navegador le falta una función que usa el lector de PDF. Actualízalo desde la tienda de aplicaciones, o abre el sitio en otro (Chrome, Firefox o Safari al día).',
   'falha.semParser': 'Todavía no sé leer este documento.',
   'falha.semParserSaida':
     'Leo resúmenes y extractos de Nubank, Bradesco y Mercado Pago, y extractos de Banco do Brasil, Sicredi y Sicoob. Si tu banco es uno de esos, puede ser un formato nuevo: vale la pena avisar.',

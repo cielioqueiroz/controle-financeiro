@@ -366,6 +366,17 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
 - **Nada que exercite o pdf.js de verdade está na suíte.** Os fixtures são JSON já
   extraído e `domain/pdf/load.ts` é mockado em jsdom (que não tem `DOMMatrix`): a
   suíte passa verde com o parser quebrado. Upgrade de pdf.js exige prova à parte.
+- ⚠️ **O pdf.js adota API nova de navegador, e ela derruba SÓ a importação.** A v6
+  usa `Promise.withResolvers` (Chrome 119, Safari 17.4 — iOS 17.4). Num aparelho
+  anterior o app inteiro funciona, porque nada mais usa aquilo, e só o import de PDF
+  estoura um `TypeError`. Foi um defeito real em 2026-09-04, num celular, com o mesmo
+  arquivo abrindo sem um arranhão no desktop. Há polyfill em `load.ts`, e a lição
+  vale para o próximo upgrade: **o polyfill tem que ser aplicado DUAS vezes** — nesta
+  thread e dentro do WORKER, que tem outro `globalThis` e usa a mesma API. O worker
+  recebe um `blob:` que aplica o polyfill e importa o worker real; a CSP já permite
+  (`worker-src 'self' blob:`). Para conferir o piso depois de um upgrade:
+  `grep -oE "Promise\.[a-zA-Z]+|Object\.[a-zA-Z]+|structuredClone" frontend/dist/assets/pdf-*.js | sort -u`
+  e simule o aparelho no Playwright com `add_init_script("delete Promise.withResolvers")`.
 - **A suíte mocka o SDK do Neon inteiro.** Regressão de login não é pega por teste
   nenhum — ver [ADR-0008](./docs/adr/0008-o-login-nao-tem-rede-de-testes.md).
 - **`vi.mock('../x')` recebe STRING, não import.** Nem o `tsc` nem o build reclamam

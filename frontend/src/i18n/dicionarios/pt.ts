@@ -506,6 +506,9 @@ export const pt = {
   'falha.leitor': 'Não consegui carregar o leitor de PDF.',
   'falha.leitorSaida':
     'É a internet, não o seu arquivo: falta baixar uma parte do app. Confira a conexão e toque em escolher o arquivo de novo.',
+  'falha.navegador': 'O navegador deste aparelho é antigo demais para abrir PDF.',
+  'falha.navegadorSaida':
+    'Não é o seu extrato: falta ao navegador um recurso que o leitor de PDF usa. Atualize o navegador do aparelho pela loja de aplicativos, ou abra o site em outro navegador (Chrome, Firefox ou Safari atualizados).',
   'falha.semParser': 'Ainda não sei ler este documento.',
   'falha.semParserSaida':
     'Leio fatura e extrato do Nubank, do Bradesco e do Mercado Pago, e extrato do Banco do Brasil, do Sicredi e do Sicoob. Se o seu banco é um desses, pode ser um modelo de documento novo — vale avisar.',

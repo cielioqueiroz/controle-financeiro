@@ -5,6 +5,7 @@ import {
   ArquivoVazioError,
   LeitorIndisponivelError,
   NaoEhPdfError,
+  NavegadorSemSuporteError,
   PdfCorrompidoError,
   PdfDigitalizadoError,
   PdfGrandeError,
@@ -31,6 +32,7 @@ describe('classificarFalha', () => {
     ['corrompido', new PdfCorrompidoError()],
     ['digitalizado', new PdfDigitalizadoError()],
     ['leitor fora', new LeitorIndisponivelError()],
+    ['navegador antigo', new NavegadorSemSuporteError()],
     ['sem parser', new ParserNaoImplementadoError({ bank: 'desconhecido', docType: 'desconhecido' })],
     ['desconhecido', new Error('qualquer outra coisa')],
   ]

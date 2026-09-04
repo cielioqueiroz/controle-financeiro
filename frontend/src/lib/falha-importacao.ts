@@ -4,6 +4,7 @@ import {
   ArquivoVazioError,
   LeitorIndisponivelError,
   NaoEhPdfError,
+  NavegadorSemSuporteError,
   PdfCorrompidoError,
   PdfDigitalizadoError,
   PdfGrandeError,
@@ -68,6 +69,8 @@ export function classificarFalha(erro: unknown, arquivo: string): FalhaImportaca
   if (erro instanceof PdfDigitalizadoError)
     return par('falha.digitalizado', 'falha.digitalizadoSaida')
   if (erro instanceof LeitorIndisponivelError) return par('falha.leitor', 'falha.leitorSaida')
+  if (erro instanceof NavegadorSemSuporteError)
+    return par('falha.navegador', 'falha.navegadorSaida')
   // Banco fora do catálogo, ou tipo de documento ainda sem parser. Não é
   // defeito: é fronteira conhecida, e dizer isso evita que a pessoa tente o
   // mesmo arquivo dez vezes.
