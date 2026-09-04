@@ -76,9 +76,10 @@ vi.mock('./lib/recuperar-senha', () => ({
 // pdfjs-dist (via domain/pdf/load) espera um DOMMatrix que o jsdom não
 // fornece, e nada aqui exercita o fluxo de importar PDF — só a recuperação
 // de senha. Mockado para o módulo nem chegar a carregar o pdfjs.
-vi.mock('./domain/pdf/load', () => ({
+vi.mock('./domain/pdf/load', async (original) => ({
+  ...(await original<typeof import('./domain/pdf/load')>()),
+  lerBytes: vi.fn(),
   loadTextItems: vi.fn(),
-  PdfProtegidoError: class PdfProtegidoError extends Error {},
 }))
 
 // O Painel puxa dados reais (persist/puxar etc.) — fora do escopo deste

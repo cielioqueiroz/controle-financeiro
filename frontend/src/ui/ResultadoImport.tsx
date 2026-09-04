@@ -9,7 +9,7 @@ import { validar } from '../domain/validate/checksum'
 import { CarimboConferencia } from './CarimboConferencia'
 import { construirInsights, type TxView } from '../domain/insights'
 import type { Regra } from '../domain/categorize/regras'
-import { CATEGORIAS, nomeCategoria } from '../domain/categorize/categorias'
+import { CATEGORIAS, categoria, nomeCategoria } from '../domain/categorize/categorias'
 import { useT } from '../i18n/IdiomaProvider'
 import { interpolarNos } from '../i18n/interpolarNos'
 import { GraficoCategorias } from './graficos/GraficoCategorias'
@@ -75,7 +75,18 @@ export function ResultadoImport({
     >
       <div className="h-1.5 w-full" style={{ background: tema.accent }} />
 
-      <header className="flex flex-wrap items-start justify-between gap-6 border-b border-carvao-800 px-8 py-7">
+      {/* `sticky` no celular: as ações do documento — salvar, limpar —
+          moram aqui, e um extrato de 40 linhas empurrava esses botões para
+          fora da tela no primeiro deslize. Quem terminava de conferir tinha
+          de subir a lista inteira para decidir.
+
+          `sticky`, e não `fixed`: o cartão entra com a animação `surgir`,
+          que aplica `transform` nos primeiros 350ms, e `transform` num
+          ancestral faz `fixed` ancorar no ancestral em vez da viewport
+          (a armadilha que o projeto já registrou). `sticky` não passa por
+          isso, e ainda tem o comportamento certo — gruda enquanto o
+          documento está na tela, e vai embora com ele. */}
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 border-b border-carvao-800 bg-carvao-900 px-5 py-5 max-sm:sticky max-sm:top-0 max-sm:z-20 sm:px-8 sm:py-7">
         <div>
           <div className="flex items-center gap-3">
             <span
@@ -117,7 +128,7 @@ export function ResultadoImport({
             <button
               onClick={onSalvar}
               disabled={salvando}
-              className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 ${
+              className={`inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
                 conf.status === 'confere' && !salvando ? 'chamando' : ''
               }`}
               style={{ background: tema.accent, color: tema.tinta, '--halo': tema.accent } as CSSProperties}
@@ -127,7 +138,7 @@ export function ResultadoImport({
           )}
           <button
             onClick={onLimpar}
-            className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
+            className="tabular inline-flex min-h-11 items-center px-1 text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta sm:min-h-0 sm:px-0"
           >
             {t('import.limpar')} ✕
           </button>
@@ -136,7 +147,7 @@ export function ResultadoImport({
           {progresso && progresso.atual < progresso.total && onCancelarFila && (
             <button
               onClick={onCancelarFila}
-              className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-falha"
+              className="tabular inline-flex min-h-11 items-center px-1 text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-falha sm:min-h-0 sm:px-0"
             >
               {t('fila.cancelar')}
             </button>
@@ -153,7 +164,7 @@ export function ResultadoImport({
 
       {/* Gráfico de categorias + gasto real */}
       {baseInsights.porCategoria.length > 0 && (
-        <section className="border-y border-carvao-800 bg-carvao-950/40 px-8 py-7">
+        <section className="border-y border-carvao-800 bg-carvao-950/40 px-4 py-6 sm:px-8 sm:py-7">
           <GraficoCategorias
             categorias={baseInsights.porCategoria}
             totalCents={baseInsights.gastoRealCents}
@@ -185,7 +196,7 @@ export function ResultadoImport({
           barra dupla que esconde conteúdo atrás da própria barra. Aqui a
           lista flui e a pessoa confere a importação inteira com a rolagem
           normal da página. */}
-      <ul className="px-3 py-2">
+      <ul className="px-1 py-2 sm:px-3">
         {transacoes.map((t) => (
           <LinhaTransacao
             key={t.id}
@@ -222,7 +233,7 @@ function LinhaTransacao({
 
   return (
     <li
-      className={`surgir flex items-center gap-3 rounded-md px-4 py-2 transition-colors hover:bg-carvao-850 ${
+      className={`surgir flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-carvao-850 sm:gap-3 sm:px-4 sm:py-2 ${
         interno ? 'opacity-55' : ''
       }`}
     >
@@ -230,20 +241,7 @@ function LinhaTransacao({
         {diaMes(t.date)}
       </span>
 
-      {/* Seletor de categoria */}
-      <select
-        value={t.categoriaSlug}
-        onChange={(e) => onCategoria(e.target.value)}
-        disabled={interno}
-        title={tr('editar.categoria')}
-        className="shrink-0 cursor-pointer appearance-none rounded-md bg-carvao-800 px-1.5 py-1 text-base leading-none"
-      >
-        {CATEGORIAS.map((c) => (
-          <option key={c.slug} value={c.slug}>
-            {c.icone} {nomeCategoria(c)}
-          </option>
-        ))}
-      </select>
+      <SeletorCategoria slug={t.categoriaSlug} desabilitado={interno} onCategoria={onCategoria} />
 
       <div className="min-w-0 flex-1">
         {editando ? (
@@ -282,13 +280,67 @@ function LinhaTransacao({
       </div>
 
       <span
-        className={`tabular shrink-0 text-sm ${
+        className={`tabular shrink-0 text-right text-xs sm:text-sm ${
           t.amountCents < 0 ? 'text-confere' : 'text-tinta'
         }`}
       >
         {formatBRL(t.amountCents)}
       </span>
     </li>
+  )
+}
+
+/** O ícone da categoria, tocável, com o `<select>` nativo por cima.
+ *
+ *  ## O defeito que isto conserta (medido em 2026-09-04, tela de 390px)
+ *
+ *  O seletor era um `<select>` cru com `appearance-none`. O navegador
+ *  dimensiona um `<select>` pela option MAIS LARGA da lista, e a lista aqui
+ *  tem "⛽ Combustível & Carro": ele ficava com **185px** de uma linha de
+ *  332px. O que sobrava para a descrição da transação era **zero** — ela
+ *  sumia — e o valor era empurrado para 384px, além da borda do cartão em
+ *  361px, onde o `overflow-hidden` o cortava no meio ("R$ 200,0").
+ *
+ *  Ou seja: na tela em que a pessoa confere o documento antes de confiar,
+ *  no celular ela não via nem o que foi comprado nem quanto custou.
+ *
+ *  ## Por que o `<select>` continua aqui, invisível
+ *
+ *  Porque ele é o controle de verdade: abre a roda nativa do Android e do
+ *  iOS, funciona com teclado e é anunciado por leitor de tela. Trocá-lo por
+ *  um menu próprio custaria foco, teclas e rótulos para ganhar aparência.
+ *  Ele fica transparente por cima do ícone, ocupando os 44px inteiros do
+ *  alvo de toque; quem vê, vê o emoji; quem toca, toca no `<select>`. */
+function SeletorCategoria({
+  slug,
+  desabilitado,
+  onCategoria,
+}: {
+  slug: string
+  desabilitado: boolean
+  onCategoria: (slug: string) => void
+}) {
+  const { t: tr } = useT()
+  const cat = categoria(slug)
+
+  return (
+    <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-md bg-carvao-800 text-base">
+      <span aria-hidden>{cat.icone}</span>
+      <select
+        value={slug}
+        onChange={(e) => onCategoria(e.target.value)}
+        disabled={desabilitado}
+        aria-label={tr('editar.categoria')}
+        title={nomeCategoria(cat)}
+        className="absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0 disabled:cursor-default"
+      >
+        {CATEGORIAS.map((c) => (
+          <option key={c.slug} value={c.slug}>
+            {c.icone} {nomeCategoria(c)}
+          </option>
+        ))}
+      </select>
+    </span>
   )
 }
 
@@ -320,7 +372,7 @@ function Veredito({
         : t('import.naoFechouTitulo')
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 px-8 py-6">
+    <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-8">
       {/* O carimbo primeiro, a frase depois: o carimbo é o veredito e a
           frase é a explicação dele. Antes havia um distintivo redondo com
           ✓/~/! que dizia a mesma coisa em símbolo — o carimbo diz por

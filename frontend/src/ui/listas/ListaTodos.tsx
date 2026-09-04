@@ -79,13 +79,13 @@ export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props)
           placeholder={t('busca.placeholder')}
           aria-label={t('busca.rotulo')}
           aria-describedby={dicaId}
-          className="min-w-0 flex-1 rounded-lg border border-campo-borda bg-carvao-950/40 px-3 py-1.5 text-sm text-tinta placeholder:text-tinta-tenue"
+          className="min-h-11 min-w-0 flex-1 rounded-lg border border-campo-borda bg-carvao-950/40 px-3 py-1.5 text-base text-tinta placeholder:text-tinta-tenue sm:min-h-0 sm:text-sm"
         />
         <select
           value={catEfetiva ?? ''}
           onChange={(e) => onCat(e.target.value || null)}
           aria-label={t('busca.categoria')}
-          className="rounded-lg border border-campo-borda bg-carvao-950/40 px-2 py-1.5 text-sm text-tinta"
+          className="min-h-11 max-w-[10rem] rounded-lg border border-campo-borda bg-carvao-950/40 px-2 py-1.5 text-sm text-tinta sm:min-h-0 sm:max-w-none"
         >
           <option value="">{t('busca.todasCategorias')}</option>
           {categorias.map(({ slug, cat: c }) => (

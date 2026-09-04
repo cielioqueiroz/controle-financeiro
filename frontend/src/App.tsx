@@ -29,11 +29,12 @@ import { Tutorial } from './ui/Tutorial'
 import { Ajuda } from './ui/ajuda/Ajuda'
 import { EditarPerfil } from './ui/EditarPerfil'
 import { Notificacoes } from './ui/Notificacoes'
+import { AberturaTutorial } from './ui/AberturaTutorial'
 import { TelaAcesso } from './ui/acesso/TelaAcesso'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
 import { Rodape } from './ui/Rodape'
 import { Auth } from './ui/acesso/Auth'
-import { comoChamar, tutorialPendente, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
+import { comoChamar, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
 import { useT } from './i18n/IdiomaProvider'
 import { neon, neonConfigurado } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
@@ -65,13 +66,10 @@ export default function App() {
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [mostrarAjuda, setMostrarAjuda] = useState(false)
 
-  // Primeiro login da pessoa: o tutorial abre sozinho. A dependência é só o
-  // `logado` de propósito — é a TRANSIÇÃO para logado que justifica abrir.
-  // Reagir a cada recarga de sessão (salvar o perfil dispara uma) reabriria
-  // o tutorial no meio de outra tarefa.
-  useEffect(() => {
-    if (logado && tutorialPendente()) setMostrarTutorial(true)
-  }, [logado])
+  // Quem decide abrir o tutorial sozinho é o `<AberturaTutorial/>`, lá
+  // dentro do DadosProvider — a regra passou a depender de a conta ter ou
+  // não lançamento, e essa resposta só existe abaixo das rotas. Aqui ficou
+  // só o estado do modal, que dois lugares abrem (a calha e o cabeçalho).
   const { t } = useT()
   // Lido na montagem. Quem clica no link do e-mail quer redefinir, mesmo já
   // tendo sessão ativa — por isso o token vence o `logado` abaixo NA ENTRADA.
@@ -300,6 +298,7 @@ export default function App() {
               // histórico na montagem, e montá-lo deslogado (ou no modo "importa
               // e vê") seria uma ida ao banco sem sessão.
               <DadosProvider>
+                <AberturaTutorial onAbrir={() => setMostrarTutorial(true)} />
                 <Routes>
                   <Route path="/" element={<Painel onAprendeu={recarregarRegras} />} />
                   <Route

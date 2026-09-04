@@ -51,29 +51,47 @@ export function Cabecalho({
 
   return (
     <>
-      <header className="screen-only mb-8 flex items-start justify-between gap-4 sm:mb-10">
-        <div>
-          <motion.p
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            // Só posiciona: a tipografia do logotipo mora na Marca (mesma
-            // dupla que a TelaAcesso usa no topo dela).
-            // `lg:hidden`: dali para cima a marca mora na NavLateral.
-            className="flex items-center gap-2.5 lg:hidden"
-          >
-            <motion.span
-              className="inline-block h-2 w-2 rounded-full bg-marca"
-              animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <Marca />
-          </motion.p>
+      {/* ## Grade, e não duas caixas lado a lado
+          
+          No celular a linha era: [marca + título] à esquerda, quatro botões
+          de 44px à direita. Os botões levam 212px dos ~358px úteis de uma
+          tela de 390 — sobravam 146px para o título, e a saudação de
+          `text-3xl` descia em quatro linhas de duas palavras.
+
+          Com grade, os botões dividem a primeira faixa com a MARCA (que é
+          curta) e o título ocupa a segunda inteira. A partir de `lg` a marca
+          desaparece — ela mora na calha lateral —, o título sobe para a
+          primeira faixa e o arranjo volta a ser o de sempre: título à
+          esquerda, controles à direita, na mesma linha.
+
+          As posições são explícitas (`col-start`/`row-start`) porque o fluxo
+          automático do grid depende de quantos filhos existem, e aqui um
+          deles some por media query. */}
+      <header className="screen-only mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-4 sm:mb-10">
+        {/* Filho DIRETO da grade: dentro de uma caixa intermediária as
+            classes de posição não teriam efeito nenhum. */}
+        <motion.p
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          // Só posiciona: a tipografia do logotipo mora na Marca (mesma
+          // dupla que a TelaAcesso usa no topo dela).
+          // `lg:hidden`: dali para cima a marca mora na NavLateral.
+          className="col-start-1 row-start-1 flex min-w-0 items-center gap-2.5 lg:hidden"
+        >
+          <motion.span
+            className="inline-block h-2 w-2 shrink-0 rounded-full bg-marca"
+            animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <Marca />
+        </motion.p>
+        <div className="col-span-2 row-start-2 min-w-0 lg:col-span-1 lg:col-start-1 lg:row-start-1">
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="screen-only mt-4 font-display text-3xl leading-[1.1] text-tinta sm:text-4xl lg:mt-0"
+            className="screen-only font-display text-2xl leading-[1.15] text-tinta sm:text-4xl"
           >
             {logado && !noPainel ? (
               // Rota desconhecida não chega aqui (o `<Routes>` redireciona ao
@@ -103,7 +121,7 @@ export function Cabecalho({
             )}
           </motion.h1>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="col-start-2 row-start-1 flex shrink-0 items-center gap-2 sm:gap-3">
           {/* O "?" fica ANTES dos outros: quem está perdido procura ajuda,
               não o seletor de idioma. E aparece logado ou não — o modo
               "importa e vê" também tem o que explicar. */}

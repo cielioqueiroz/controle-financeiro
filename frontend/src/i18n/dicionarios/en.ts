@@ -419,11 +419,13 @@ export const en: Dicionario = {
   'tutorial.p6c': 'Documents keeps everything you imported, by month. Recurring shows what repeats, detected on its own. The dashboard button downloads the period report as a PDF. And the “?” at the top opens help: type what you are after and I show every topic that mentions it.',
 
   'drop.tituloLendo': 'Reading the document…',
-  'drop.titulo': 'Drop your statement here',
-  'drop.corpo': "The bank's PDF, just as it was sent to you. The file is read {navegador} and never leaves this computer.",
+  'drop.titulo': 'Bring your statement in',
+  'drop.corpo':
+    "The bank's PDF, just as it was sent to you. The file is read {navegador} and never leaves this device.",
   'drop.navegador': 'in your browser',
   'drop.processando': 'processing',
-  'drop.clique': 'or click to choose',
+  'drop.escolher': 'Choose the file',
+  'drop.ouArraste': 'or drag and drop it here',
 
   'importar.naoPdf': "This doesn't look like a PDF.",
   'importar.digitalizado': "Scanned PDF — I can't read images yet, only text.",
@@ -434,6 +436,41 @@ export const en: Dicionario = {
   'importar.grande': 'This PDF is larger than the 25 MB limit.',
   'importar.naoLi': "Couldn't read this file.",
   'importar.emBreve': '{msg}. Coming soon.',
+
+  'falha.tentarOutro': 'Choose another file',
+  'falha.proximo': 'Go to the next one',
+  'falha.verDetalhe': 'Show technical detail',
+  'falha.ocultarDetalhe': 'Hide detail',
+  'falha.ilegivel': "I couldn't open this file on your device.",
+  'falha.ilegivelSaida':
+    'This usually happens when the file still lives in the cloud (Drive, OneDrive) or inside another app. Download the PDF to the device first, then pick it again from your Downloads folder.',
+  'falha.vazio': 'This file arrived empty.',
+  'falha.vazioSaida':
+    'The device handed over zero bytes. Download the PDF again from your bank and try once more.',
+  'falha.naoEhPdf': 'This is not a PDF.',
+  'falha.naoEhPdfSaida':
+    "I only read the PDF your bank generates — not a photo, a screenshot, a spreadsheet or a saved web page. Look for the option to download the statement as PDF in your bank's app.",
+  'falha.protegido': 'This PDF is password-protected.',
+  'falha.protegidoSaida':
+    'Some banks lock the statement with your ID number. Open the file, type the password and save an unprotected copy — that copy is the one I can read.',
+  'falha.corrompido': 'This PDF came damaged or incomplete.',
+  'falha.corrompidoSaida':
+    'The download may have stopped halfway. Get the file again, check that it opens normally on your device, and bring it back.',
+  'falha.digitalizado': 'This PDF is an image, not text.',
+  'falha.digitalizadoSaida':
+    'That happens with scanned statements or screenshots saved as PDF. I need the original file from the bank — the one where you can select the text.',
+  'falha.grande': 'This PDF is over the 25 MB limit.',
+  'falha.grandeSaida':
+    'Statements rarely come close to that. Check whether you picked the wrong file — or ask your bank for a shorter period.',
+  'falha.leitor': "I couldn't load the PDF reader.",
+  'falha.leitorSaida':
+    "It's the connection, not your file: part of the app failed to download. Check your network and tap to choose the file again.",
+  'falha.semParser': "I can't read this document yet.",
+  'falha.semParserSaida':
+    'I read card and account statements from Nubank, Bradesco and Mercado Pago, plus account statements from Banco do Brasil, Sicredi and Sicoob. If your bank is one of those, this may be a new document layout — worth reporting.',
+  'falha.generica': 'Something went wrong reading this file.',
+  'falha.genericaSaida':
+    "I didn't recognise the cause. Try again; if it keeps happening, open the technical detail below and send that line to whoever maintains the app.",
   'salvar.okNovos': 'Saved: {n} new entries.',
   'salvar.okComExistentes': 'Saved: {n} new entries, {ja} already existed.',
   'salvar.duplicado': 'This document was already imported on {data}.',
@@ -462,7 +499,7 @@ export const en: Dicionario = {
   'fila.cancelada': '{n} queued document(s) discarded.',
   'fila.progresso': 'document {n} of {total}',
   'fila.cancelar': 'Discard the rest',
-  'drop.varios': 'Drop several at once — I read them one by one.',
+  'drop.varios': 'Bring several at once — I read them one by one.',
   'import.salvarHistorico': 'Save to history',
   'import.limpar': 'Clear',
   'import.final': 'ending {n}',

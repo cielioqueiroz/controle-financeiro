@@ -58,6 +58,11 @@ JORNADAS = [
      [("clicar", "Esconder os valores")], [("ver-botao", "Mostrar os valores")], 6),
     ("editor-compra", "/demo.html",
      [("clicar", "Abrir editor de compra")], [("ver-texto", "Editar compra")], 8),
+    # O bloco de falha da importacao. Entra aqui porque na tela real ele so
+    # existe depois de um PDF dar errado, e por isso nasceria sem medicao —
+    # o mesmo buraco das quatro pecas que motivaram as jornadas.
+    ("falha-importacao", "/demo.html",
+     [("clicar", "Ver detalhe técnico")], [("ver-secao", "falha-importacao")], 6),
 ]
 
 SONDA = """

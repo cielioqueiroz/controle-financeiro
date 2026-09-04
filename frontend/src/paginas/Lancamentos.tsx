@@ -52,7 +52,7 @@ export function Lancamentos({ onAprendeu }: Props) {
           </p>
         ) : (
           <>
-            <div className="flex items-center justify-between border-b border-carvao-800 px-5 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-carvao-800 px-4 py-2 sm:px-5 sm:py-3">
               <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
                 {t('dash.lancamentos')}
               </p>
@@ -117,7 +117,9 @@ function AbaVista({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-full px-3 py-1 text-xs transition-colors ${
+      // `min-h-11` no celular: a pílula tinha 26px de altura, metade do
+      // alvo de toque mínimo. No desktop ela volta a ser discreta.
+      className={`relative inline-flex min-h-11 items-center rounded-full px-3 text-xs transition-colors sm:min-h-0 sm:py-1 ${
         ativa ? 'text-carvao-950' : 'text-tinta-fraca hover:text-tinta'
       }`}
     >

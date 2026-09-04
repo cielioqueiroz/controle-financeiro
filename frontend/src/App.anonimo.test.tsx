@@ -14,9 +14,10 @@ vi.mock('./lib/neon', () => ({ neon: null, neonConfigurado: false }))
 
 // pdfjs-dist espera um DOMMatrix que o jsdom não fornece; nada aqui exercita
 // import de PDF, só a frase do header.
-vi.mock('./domain/pdf/load', () => ({
+vi.mock('./domain/pdf/load', async (original) => ({
+  ...(await original<typeof import('./domain/pdf/load')>()),
+  lerBytes: vi.fn(),
   loadTextItems: vi.fn(),
-  PdfProtegidoError: class PdfProtegidoError extends Error {},
 }))
 
 describe('App — visitante anônimo sem Neon configurado', () => {

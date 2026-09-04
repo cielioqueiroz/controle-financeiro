@@ -4,7 +4,11 @@
 
 /** `border-campo-borda` (e não `border-carvao-700`) porque a borda de um campo
  *  precisa de 3:1 para a WCAG — é ela que diz "aqui se digita". A dos cartões
- *  continua sutil; só os campos sobem. */
+ *  continua sutil; só os campos sobem.
+ *
+ *  O `text-sm` daqui vale do `sm` para cima: no celular uma regra em
+ *  `index.css` sobe todo campo para 16px, senão o Safari do iPhone amplia a
+ *  página ao focar. Ver o comentário lá. */
 export const CAMPO =
   'w-full rounded-xl border border-campo-borda bg-carvao-950 px-4 py-3 text-sm text-tinta outline-none transition-all placeholder:text-tinta-tenue hover:border-carvao-600 focus:-translate-y-px focus:border-marca'
 

@@ -4,15 +4,23 @@ import { useT } from '../i18n/IdiomaProvider'
 
 type Tema = 'dark' | 'light'
 
-/** Escolha salva > preferência do sistema > **claro**.
+/** Escolha salva > **escuro**. O sistema não opina.
  *
- *  O padrão é claro (era escuro): é o tema que o dono do produto quer que
- *  as pessoas vejam de primeira. Quem já escolheu um tema mantém o dele, e
- *  quem tem o sistema em escuro continua sendo respeitado. */
+ *  A regra tinha a preferência do sistema no meio, e o padrão era claro. Em
+ *  2026-09-04 apareceu o que isso significa na prática: um celular no modo
+ *  claro abriu o app branco para alguém que entrava pela primeira vez —
+ *  diferente de todo print, de toda captura de tela e do que o desktop de
+ *  quem indicou o app mostrava. Identidade escura que só aparece em metade
+ *  dos aparelhos não é identidade.
+ *
+ *  Quem prefere claro tem o botão ao lado, e a escolha fica salva.
+ *
+ *  ⚠️ A MESMA regra vive no script inline do `index.html`, que roda antes da
+ *  primeira pintura. Mudar uma sem a outra faz a página nascer com um tema e
+ *  trocar para o outro ao montar — o piscar que aquele bloco existe para
+ *  evitar. E o script inline tem hash na CSP: ver o aviso lá. */
 function temaInicial(): Tema {
-  const salvo = localStorage.getItem('tema')
-  if (salvo === 'light' || salvo === 'dark') return salvo
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return localStorage.getItem('tema') === 'light' ? 'light' : 'dark'
 }
 
 /** Alterna claro/escuro. Grava a escolha e estampa data-theme no <html>,

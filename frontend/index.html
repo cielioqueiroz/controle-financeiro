@@ -52,23 +52,27 @@
     <link rel="preload" href="/fonts/ibm-plex-mono-500-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>Capital Financeiro</title>
     <!-- Tema ANTES da primeira pintura. O React só estampa data-theme depois
-         de montar; sem isto a página nasce com o padrão do CSS (escuro) e
-         pisca para o claro. Mesma regra do ThemeToggle: escolha salva >
-         preferência do sistema > claro. Se duplicar a regra aqui incomodar,
-         o jeito é o CSS nascer claro — não tirar este bloco. -->
+         de montar; sem isto a página nasce com o padrão do CSS e pisca ao
+         montar. Mesma regra do ThemeToggle: escolha salva > **escuro**.
+
+         O sistema NÃO opina mais. A regra era "escolha salva > preferência do
+         sistema > claro", e o efeito prático dela apareceu em 2026-09-04, num
+         celular: aparelho no modo claro, e o app — que é escuro em toda
+         comunicação e em todo print — abrindo branco para quem nunca tinha
+         entrado. Herdar a preferência do sistema é bom para um site de texto;
+         para um produto com identidade escura, é abrir diferente do que se
+         mostrou. Quem quiser claro tem o botão, e a escolha fica salva.
+
+         ⚠️ Mexeu neste bloco? O hash da CSP em `vercel.json` muda junto —
+         ele é sha256 do texto ENTRE as tags, em LF. Sem isso o script é
+         bloqueado EM PRODUÇÃO e a página nasce sem tema. -->
     <script>
       (function () {
         try {
           var salvo = localStorage.getItem('tema')
-          var tema =
-            salvo === 'light' || salvo === 'dark'
-              ? salvo
-              : window.matchMedia('(prefers-color-scheme: dark)').matches
-                ? 'dark'
-                : 'light'
-          document.documentElement.dataset.theme = tema
+          document.documentElement.dataset.theme = salvo === 'light' ? 'light' : 'dark'
         } catch (e) {
-          document.documentElement.dataset.theme = 'light'
+          document.documentElement.dataset.theme = 'dark'
         }
       })()
     </script>

@@ -3,15 +3,11 @@ import { toast } from 'sonner'
 import { Celebracao } from '../ui/Celebracao'
 import { useT } from '../i18n/IdiomaProvider'
 import { chaveDeErro } from '../lib/erro-usuario'
-import {
-  loadTextItems,
-  PdfGrandeError,
-  PdfProtegidoError,
-  validarArquivoPdf,
-} from '../domain/pdf/load'
+import { classificarFalha, type FalhaImportacao } from '../lib/falha-importacao'
+import { lerBytes, loadTextItems, PdfDigitalizadoError } from '../domain/pdf/load'
 import { buildLines } from '../domain/pdf/lines'
 import { pareceDigitalizado } from '../domain/pdf/extract'
-import { parse, ParserNaoImplementadoError } from '../domain/parsers'
+import { parse } from '../domain/parsers'
 import { validar } from '../domain/validate/checksum'
 import { dataLongaDe } from '../domain/normalize/data'
 import { salvarDocumento } from '../aplicacao/comandos/importacao'
@@ -21,8 +17,14 @@ import type { ParseResult } from '../domain/parsers/types'
 
 export type EstadoImport =
   | { fase: 'vazio' }
-  | { fase: 'lendo' }
+  | { fase: 'lendo'; nome: string }
   | { fase: 'pronto'; kind: DocKind; result: ParseResult; bytes: ArrayBuffer; nome: string }
+  /** O documento não entrou, e a tela precisa dizer POR QUÊ.
+   *
+   *  É fase, e não toast, porque a pessoa precisa da explicação depois de
+   *  ela aparecer — para reler, para decidir o que fazer, para fotografar.
+   *  Ver `lib/falha-importacao.ts`. */
+  | { fase: 'falhou'; falha: FalhaImportacao }
 
 type FluxoImportacao = {
   estado: EstadoImport
@@ -55,6 +57,8 @@ type FluxoImportacao = {
   salvar: () => Promise<void>
   /** Descarta o documento na tela e passa ao próximo da fila. */
   limpar: () => void
+  /** Sai de uma falha de leitura sem sair da tela de importação. */
+  descartarFalha: () => void
   /** Abandona a leva inteira, incluindo o que está na tela. */
   cancelarFila: () => void
   consumirRecemSalvo: () => void
@@ -97,51 +101,56 @@ export function ImportacaoProvider({
   const [celebrando, setCelebrando] = useState(false)
   const { t } = useT()
 
-  /** Lê UM arquivo e para na prévia. Não mexe na fila. */
-  const ler = useCallback(
-    async (file: File) => {
-      try {
-        validarArquivoPdf(file)
-      } catch (err) {
-        if (err instanceof PdfGrandeError) toast.error(t('importar.grande'))
-        else toast.error(t('importar.naoLi'))
-        return
-      }
-      setEstado({ fase: 'lendo' })
-      try {
-        const bytes = await file.arrayBuffer()
-        const items = await loadTextItems(new File([bytes], file.name, { type: file.type }))
-        if (pareceDigitalizado(items)) {
-          toast.error(t('importar.digitalizado'))
-          setEstado({ fase: 'vazio' })
-          return
-        }
-        const lines = buildLines(items)
-        const { kind, result } = parse(lines)
-        const v = validar(result)
-        setEstado({ fase: 'pronto', kind, result, bytes, nome: file.name })
+  /** Lê UM arquivo e para na prévia. Não mexe na fila.
+   *
+   *  ⚠️ **Um `catch` só, e nenhum toast de erro.** Antes eram dois blocos
+   *  com seis ramos entre eles, e o ramo final — `toast.error('não consegui
+   *  ler')` — engolia todo erro que ninguém tinha previsto. Hoje qualquer
+   *  falha vai para o mesmo lugar: `classificarFalha`, que sabe distinguir
+   *  as causas, e a fase `falhou`, que fica na tela. */
+  const ler = useCallback(async (file: File) => {
+    setEstado({ fase: 'lendo', nome: file.name })
+    try {
+      const bytes = await lerBytes(file)
+      const items = await loadTextItems(bytes)
+      if (pareceDigitalizado(items)) throw new PdfDigitalizadoError()
 
-        if (v.status === 'confere') {
-          toast.success(t('importar.toastConfere', { n: v.contagem }))
-          setCelebrando(true) // bateu ao centavo: momento de confete
-        } else if (v.status === 'sem-gabarito') {
-          toast.warning(t('importar.toastSemGabarito', { n: v.contagem }))
-        } else {
-          toast.error(t('importar.toastNaoFechou'))
-        }
-      } catch (err) {
-        setEstado({ fase: 'vazio' })
-        if (err instanceof PdfGrandeError) toast.error(t('importar.grande'))
-        else if (err instanceof PdfProtegidoError) toast.error(t('importar.protegido'))
-        else if (err instanceof ParserNaoImplementadoError)
-          toast.warning(t('importar.emBreve', { msg: err.message }))
-        else toast.error(t('importar.naoLi'))
-      }
-    },
-    [t],
-  )
+      const lines = buildLines(items)
+      const { kind, result } = parse(lines)
+      const v = validar(result)
+      setEstado({ fase: 'pronto', kind, result, bytes, nome: file.name })
 
-  const ehPdf = (f: File) => /\.pdf$/i.test(f.name) || f.type === 'application/pdf'
+      if (v.status === 'confere') {
+        toast.success(t('importar.toastConfere', { n: v.contagem }))
+        setCelebrando(true) // bateu ao centavo: momento de confete
+      } else if (v.status === 'sem-gabarito') {
+        toast.warning(t('importar.toastSemGabarito', { n: v.contagem }))
+      } else {
+        toast.error(t('importar.toastNaoFechou'))
+      }
+    } catch (err) {
+      setEstado({ fase: 'falhou', falha: classificarFalha(err, file.name) })
+    }
+    // `t` fora das dependências de propósito: as frases de falha são
+    // resolvidas na TELA, a partir das chaves guardadas no estado, então
+    // trocar de idioma retraduz a falha que já está lá sem reler o PDF.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /** No celular, `type` chega vazio ou `application/octet-stream` com
+   *  frequência (arquivo vindo do WhatsApp, do Drive, de um gerenciador de
+   *  arquivos), e o nome nem sempre traz a extensão. Recusar por aí barrava
+   *  PDF legítimo com a frase errada — "isso não parece um PDF" sobre um
+   *  extrato que era, sim, um PDF.
+   *
+   *  Quem decide de verdade são os BYTES, em `lerBytes`. Aqui só se
+   *  descarta o que é declaradamente outra coisa (a foto que veio junto na
+   *  seleção múltipla). */
+  const ehPdf = (f: File) =>
+    /\.pdf$/i.test(f.name) ||
+    f.type === 'application/pdf' ||
+    f.type === '' ||
+    f.type === 'application/octet-stream'
 
   const importar = useCallback(
     async (entrada: File | File[]) => {
@@ -217,6 +226,24 @@ export function ImportacaoProvider({
     void avancar()
   }, [avancar])
 
+  /** Sair de uma falha. Puxa o próximo da fila se houver; senão volta à
+   *  tela de escolher arquivo.
+   *
+   *  ⚠️ Não é o `limpar`. Aquele passa pelo `avancar`, que com a fila vazia
+   *  liga o `recemSalvo` — e o `recemSalvo` NAVEGA para o Painel. Um botão
+   *  "tentar outro arquivo" que tira a pessoa da tela de importação seria a
+   *  segunda armadilha do mesmo fluxo. */
+  const descartarFalha = useCallback(() => {
+    const proximo = filaRef.current.shift()
+    if (proximo) {
+      setProgresso((p) => (p ? { ...p, atual: p.atual + 1 } : p))
+      void ler(proximo)
+      return
+    }
+    setProgresso(null)
+    setEstado({ fase: 'vazio' })
+  }, [ler])
+
   const cancelarFila = useCallback(() => {
     const restantes = filaRef.current.length
     filaRef.current = []
@@ -238,6 +265,7 @@ export function ImportacaoProvider({
       importar,
       salvar,
       limpar,
+      descartarFalha,
       cancelarFila,
       consumirRecemSalvo,
     }),
@@ -252,6 +280,7 @@ export function ImportacaoProvider({
       importar,
       salvar,
       limpar,
+      descartarFalha,
       cancelarFila,
       consumirRecemSalvo,
     ],

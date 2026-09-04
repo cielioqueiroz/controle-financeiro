@@ -11,6 +11,7 @@ import { GraficoEvolucao } from './ui/graficos/GraficoEvolucao'
 import { GraficoCompromissos } from './ui/graficos/GraficoCompromissos'
 import { CompromissosFuturos } from './ui/CompromissosFuturos'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
+import { FalhaImportacao } from './ui/FalhaImportacao'
 import { MaioresSaidas } from './ui/listas/MaioresSaidas'
 import { ListaTodos } from './ui/listas/ListaTodos'
 import { Diagnosticos } from './ui/Diagnosticos'
@@ -214,6 +215,36 @@ export function Folha() {
 
       <Secao titulo="aviso-email">
         <AvisoConfirmarEmail email="voce@exemplo.com" onConfirmado={() => {}} />
+      </Secao>
+
+      {/* O bloco de falha da importação. Está aqui porque na tela real ele
+          só existe depois de um PDF dar errado — e era justamente a peça sem
+          medição nenhuma quando a mensagem de erro era um toast que sumia.
+          Dois casos: um com saída do lado do usuário (o arquivo que o
+          celular não entregou) e um sem (banco que ainda não sei ler). */}
+      <Secao titulo="falha-importacao">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <FalhaImportacao
+            falha={{
+              titulo: 'falha.ilegivel',
+              saida: 'falha.ilegivelSaida',
+              arquivo: 'NU_742171571_01AGO2026_31AGO2026.pdf',
+              detalhe: 'ArquivoIlegivelError: O navegador não conseguiu ler os bytes do arquivo',
+            }}
+            restantes={0}
+            onTentarOutro={() => {}}
+          />
+          <FalhaImportacao
+            falha={{
+              titulo: 'falha.semParser',
+              saida: 'falha.semParserSaida',
+              arquivo: 'extrato-banco-novo.pdf',
+              detalhe: 'ParserNaoImplementadoError: Não reconheci este documento',
+            }}
+            restantes={2}
+            onTentarOutro={() => {}}
+          />
+        </div>
       </Secao>
 
       {/* Amostra propria, e nao TUDO: aquele e um documento so, e a linha

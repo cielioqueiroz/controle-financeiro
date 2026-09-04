@@ -426,6 +426,31 @@ body {
   animation: halo 1.6s ease-out 3;
 }
 
+/* ## 16px em campo de texto no celular, e por quê
+   
+   O Safari do iPhone AMPLIA a página inteira quando um campo com fonte
+   menor que 16px recebe foco. Não é preferência de desenho: é
+   comportamento do sistema, e o efeito é a tela pulando de escala no
+   momento em que a pessoa vai digitar o e-mail para entrar — depois é ela
+   quem tem de pinçar a página de volta. Os campos do app estavam quase
+   todos em `text-sm` (14px).
+
+   FORA de `@layer` de propósito. Em `@layer base` o utilitário `text-sm`
+   do Tailwind venceria — é a armadilha que este projeto já registrou —, e
+   a regra existiria sem fazer nada. Sem camada, ela ganha de utilitário, e
+   é isso que se quer aqui: nenhum campo escapa, nem os que ainda vão ser
+   escritos.
+
+   Só abaixo de `sm`: no desktop o `text-sm` continua valendo, porque lá
+   não existe o zoom e a densidade é parte do desenho. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .surgir,
   .carimbo,

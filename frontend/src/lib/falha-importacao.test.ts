@@ -1,0 +1,74 @@
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { classificarFalha } from './falha-importacao'
+import {
+  ArquivoIlegivelError,
+  ArquivoVazioError,
+  LeitorIndisponivelError,
+  NaoEhPdfError,
+  PdfCorrompidoError,
+  PdfDigitalizadoError,
+  PdfGrandeError,
+  PdfProtegidoError,
+} from '../domain/pdf/load'
+import { ParserNaoImplementadoError } from '../domain/parsers'
+import { pt } from '../i18n/dicionarios/pt'
+
+/** O defeito que originou este arquivo: nove causas diferentes dividiam a
+ *  mesma frase, "Não consegui ler este arquivo." — e ela não dizia nem o que
+ *  havia acontecido nem o que fazer. */
+describe('classificarFalha', () => {
+  beforeEach(() => {
+    // O erro cru vai para o console de propósito; aqui só se silencia o ruído.
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  const CASOS: Array<[string, unknown]> = [
+    ['grande', new PdfGrandeError()],
+    ['vazio', new ArquivoVazioError()],
+    ['ilegível', new ArquivoIlegivelError(new Error('NotReadableError'))],
+    ['não é PDF', new NaoEhPdfError()],
+    ['protegido', new PdfProtegidoError()],
+    ['corrompido', new PdfCorrompidoError()],
+    ['digitalizado', new PdfDigitalizadoError()],
+    ['leitor fora', new LeitorIndisponivelError()],
+    ['sem parser', new ParserNaoImplementadoError({ bank: 'desconhecido', docType: 'desconhecido' })],
+    ['desconhecido', new Error('qualquer outra coisa')],
+  ]
+
+  // Uma frase por causa. Se duas causas caíssem no mesmo par de chaves,
+  // estaríamos de volta ao problema original com mais código.
+  it('dá a cada causa um par título+saída próprio', () => {
+    const vistos = new Set<string>()
+    for (const [nome, erro] of CASOS) {
+      const f = classificarFalha(erro, 'extrato.pdf')
+      const par = `${f.titulo}|${f.saida}`
+      expect(vistos.has(par), `${nome} repetiu o par de outra causa`).toBe(false)
+      vistos.add(par)
+    }
+    expect(vistos.size).toBe(CASOS.length)
+  })
+
+  // Chave sem tradução vira a própria chave na tela — o defeito aparece
+  // como texto técnico no meio da explicação, e só em produção.
+  it('só usa chaves que existem no dicionário', () => {
+    for (const [, erro] of CASOS) {
+      const f = classificarFalha(erro, 'extrato.pdf')
+      expect(pt[f.titulo], String(f.titulo)).toBeTruthy()
+      expect(pt[f.saida], String(f.saida)).toBeTruthy()
+    }
+  })
+
+  it('carrega o nome do arquivo e uma linha técnica identificável', () => {
+    const f = classificarFalha(new ArquivoIlegivelError(), 'NU_2026-08.pdf')
+    expect(f.arquivo).toBe('NU_2026-08.pdf')
+    expect(f.detalhe).toContain('ArquivoIlegivelError')
+  })
+
+  // O que não é `Error` também precisa chegar à tela sem quebrar: uma
+  // promessa rejeitada com string é o caso comum.
+  it('não quebra com um erro que não é Error', () => {
+    const f = classificarFalha('deu ruim', 'x.pdf')
+    expect(f.titulo).toBe('falha.generica')
+    expect(f.detalhe).toBe('deu ruim')
+  })
+})

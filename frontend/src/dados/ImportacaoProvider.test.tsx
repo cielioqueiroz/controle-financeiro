@@ -18,11 +18,17 @@ import { DadosProvider, useDados } from './DadosProvider'
 
 // Todo o caminho do PDF é dublê: o que se testa aqui é a FIAÇÃO entre gravar
 // e reler, não a leitura do arquivo (essa tem os fixtures).
-vi.mock('../domain/pdf/load', () => ({
+//
+// ⚠️ `importOriginal` e não um objeto do zero. As classes de erro do
+// `load.ts` são usadas com `instanceof` pelo classificador de falhas, e um
+// dublê que esquece uma delas faz `instanceof undefined` LANÇAR — o teste
+// morre num TypeError que não tem relação nenhuma com o que ele mede. Só as
+// duas funções que tocam o pdf.js precisam de dublê; as classes são inertes.
+vi.mock('../domain/pdf/load', async (original) => ({
+  ...(await original<typeof import('../domain/pdf/load')>()),
+  lerBytes: vi.fn(() => Promise.resolve(new ArrayBuffer(8))),
   loadTextItems: vi.fn(() => Promise.resolve([])),
   validarArquivoPdf: vi.fn(),
-  PdfGrandeError: class PdfGrandeError extends Error {},
-  PdfProtegidoError: class PdfProtegidoError extends Error {},
 }))
 vi.mock('../domain/pdf/lines', () => ({ buildLines: vi.fn(() => []) }))
 vi.mock('../domain/pdf/extract', () => ({ pareceDigitalizado: vi.fn(() => false) }))

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Dropzone } from '../ui/Dropzone'
+import { FalhaImportacao } from '../ui/FalhaImportacao'
 import { ResultadoImport } from '../ui/ResultadoImport'
 import { useImportacao } from '../dados/ImportacaoProvider'
 import { useT } from '../i18n/IdiomaProvider'
@@ -22,6 +23,7 @@ export function Importacao() {
     importar,
     salvar,
     limpar,
+    descartarFalha,
     cancelarFila,
     consumirRecemSalvo,
   } = useImportacao()
@@ -40,6 +42,15 @@ export function Importacao() {
     consumirRecemSalvo()
     navigate('/', { replace: true })
   }, [recemSalvo, navigate, consumirRecemSalvo])
+
+  if (estado.fase === 'falhou') {
+    const restantes = progresso ? progresso.total - progresso.atual : 0
+    return (
+      <div className="mx-auto mt-6 max-w-2xl">
+        <FalhaImportacao falha={estado.falha} restantes={restantes} onTentarOutro={descartarFalha} />
+      </div>
+    )
+  }
 
   if (estado.fase === 'pronto') {
     return (

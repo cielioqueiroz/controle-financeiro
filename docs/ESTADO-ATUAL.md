@@ -1,12 +1,135 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-09-01** (parte 6).
+> Documento de continuidade. Última atualização: **2026-09-04** (o celular).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
 > **Atualização 2026-08-29:** a migração `0003_integridade_referencias_por_usuario.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A função e os dois gatilhos de integridade entre usuários estão ativos.
 
 > **Atualização 2026-09-01:** a migração `0005_deduplicacao_por_conteudo.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A importação agora calcula `content_hash` a partir do conteúdo financeiro normalizado, ignorando nome e metadados variáveis do PDF; Documentos anteriores à migração também são comparados pelos dados já persistidos.
+
+## Rodada 2026-09-04 — o app no celular de outra pessoa
+
+O sistema saiu da máquina do dono pela primeira vez: foi passado a uma parente, que
+tentou importar o extrato da conta dela **pelo celular** e recebeu um toast vermelho —
+*"Não consegui ler este arquivo."* — que sumiu em 4,5 segundos, por cima do cabeçalho,
+num app que abriu **branco** porque o aparelho dela estava no modo claro.
+
+Cada frase acima virou um defeito desta rodada.
+
+### 1. A mensagem de erro que não permitia diagnóstico
+
+`importar.naoLi` cobria **nove** causas sem nada em comum: o arquivo que o Android não
+entregou, o PDF de zero byte, o arquivo que só tem nome de PDF, o documento com senha,
+o PDF truncado, o extrato escaneado, o leitor de PDF que não baixou, o banco sem parser
+e o erro que ninguém previu. Três delas têm conserto do lado de quem lê, e nenhuma
+tinha como ser distinguida — nem por quem usa, nem por quem mantém.
+
+Agora `domain/pdf/load.ts` lança **erro tipado por causa**, `lib/falha-importacao.ts`
+traduz cada um num par **título + saída** ("o que houve" e "o que fazer"), e a falha
+deixou de ser toast: virou **fase da tela** (`estado.fase === 'falhou'`), com o nome do
+arquivo e uma linha técnica que se abre e se copia. Toast é bom para o que já
+aconteceu; péssimo para o que a pessoa ainda precisa resolver, porque some justamente
+enquanto ela lê.
+
+Dois defeitos reais apareceram enquanto isso era escrito:
+
+- **`ehPdf` recusava PDF legítimo.** Exigia extensão `.pdf` no nome **ou**
+  `type === 'application/pdf'`. No celular o `type` chega vazio ou
+  `application/octet-stream` a toda hora (WhatsApp, Drive, gerenciador de arquivos), e
+  o nome nem sempre traz extensão. Quem decide agora são os **bytes** (`%PDF-` nos
+  primeiros 1024), e um arquivo sem extensão nenhuma passou a ser lido — conferido no
+  navegador com um extrato real renomeado.
+- **Escolher o MESMO arquivo duas vezes não fazia nada.** O `<input type=file>` não
+  dispara `change` quando o valor não muda — ou seja, exatamente o gesto de quem
+  acabou de ver uma falha, baixou o arquivo de novo e tentou outra vez. O input agora
+  se zera a cada escolha.
+
+O PDF também passou a ser lido **uma vez só**: o provider lia o arquivo, montava um
+`File` novo com o resultado e mandava para o `load`, que lia de novo — três cópias do
+documento em memória, num aparelho que tem bem menos que um desktop.
+
+### 2. O celular estava lendo o documento sem ver o documento
+
+Medido, não achado (viewport de 390px, extrato do Bradesco de verdade):
+
+| Peça da linha da prévia | Antes | Depois |
+|---|---|---|
+| seletor de categoria | **185px** | 44px |
+| descrição da transação | **0px** (sumia) | 156px |
+| valor | terminava em 384px, **cortado** pela borda do cartão em 361 | dentro do cartão |
+
+A causa: o `<select>` de categoria era dimensionado pelo navegador segundo a option
+**mais larga** da lista ("⛽ Combustível & Carro"). Na tela em que a pessoa confere o
+documento antes de confiar, no celular ela não via nem o que foi comprado nem quanto
+custou. Hoje é um ícone de 44px com o `<select>` nativo transparente por cima — o
+controle continua sendo o nativo, com roda do sistema, teclado e leitor de tela.
+
+### 3. O que só existia no hover
+
+O lápis de editar uma transação era `opacity-0` + `group-hover` em **toda** largura. No
+celular não existe hover: o botão ficava clicável e invisível para sempre. Corrigir a
+categoria de uma compra — o gesto com que o app aprende — não tinha porta de entrada no
+telefone, e os 44px do botão invisível ainda empurravam o valor para fora da linha.
+
+### 4. Layout, toque e tipografia do celular
+
+- **Cabeçalho em grade.** Os quatro botões de 44px levavam 212px dos ~358 úteis; sobravam
+  146px para o título, e a saudação descia em quatro linhas de duas palavras. Agora os
+  botões dividem a primeira faixa com a marca (curta) e o título ocupa a segunda
+  inteira. De `lg` para cima nada muda.
+- **A barra de seções agora avisa que rola.** São seis seções em 390px: "Categorias" e
+  "Recorrências" ficavam fora da tela sem um pixel indicando que existiam. Faixa em
+  degradê em cada ponta, ligada só quando há mesmo conteúdo escondido daquele lado, e a
+  aba ativa entra no quadro sozinha.
+- **Alvos de toque.** Abas de vista (26px), botões da prévia, "limpar", filtro de
+  categoria: todos em 44px no celular, discretos de volta no desktop.
+- **16px em todo campo de texto abaixo de `sm`**, em `index.css` e **fora de `@layer`**
+  (dentro dele o utilitário `text-sm` venceria). O Safari do iPhone amplia a página
+  inteira quando um campo com fonte menor que 16px recebe foco — na tela de entrar,
+  isso é a página pulando de escala no momento de digitar o e-mail.
+- **O cabeçalho da prévia é `sticky` no celular** — e `sticky`, não `fixed`, porque o
+  cartão entra com a animação `surgir`, e `transform` num ancestral faz `fixed` ancorar
+  no ancestral. Sem isso, um extrato de 40 linhas empurrava "Salvar no histórico" para
+  fora da tela no primeiro deslize.
+- **O toast parou de pousar em cima do cabeçalho** no celular (`mobileOffset`).
+
+### 5. O tema escuro deixou de ser opcional
+
+A regra era "escolha salva > preferência do sistema > claro". O efeito prático apareceu
+naquele celular: aparelho no modo claro, e o app — que é escuro em todo print e em toda
+conversa — abrindo branco para quem entrava pela primeira vez. Agora é **escolha salva >
+escuro**, e o sistema não opina. Quem prefere claro tem o botão, e a escolha fica salva.
+
+⚠️ A regra vive em **dois** lugares: o `ThemeToggle` e o script inline do `index.html`,
+que roda antes da primeira pintura. E o script inline tem **hash na CSP** — o
+`vercel.json` foi atualizado junto (`sha256-3+xgQfvJwM1t5mBP6EZrGFH0fVxIOZq+fluyF/QieTQ=`).
+Mudar um sem o outro faz a página nascer sem tema **só em produção**.
+
+### 6. O tutorial media "já apareceu", não "já aprendeu"
+
+Ele abria uma vez, no minuto do cadastro — quando a pessoa ainda não tem extrato na mão
+e está só olhando. Ela lê, fecha, volta três dias depois com o PDF do banco, e a
+explicação já foi embora para sempre.
+
+Agora `ui/AberturaTutorial.tsx` decide com dois sinais: **nunca viu** (a regra antiga)
+**ou a conta está vazia**. Enquanto não houver um único lançamento gravado, o tutorial
+volta a cada entrada. Ele desliga sozinho no instante em que a pessoa começa de fato —
+importou, há transação, para de aparecer.
+
+O componente vive dentro do `DadosProvider` porque é ele que sabe se a conta tem dado, e
+espera o carregamento terminar: `todas === null` é "ainda não sei", não "conta vazia" —
+confundir os dois jogaria o tutorial na cara de quem tem três anos de histórico.
+
+### O que ficou de fora, e por quê
+
+**A causa exata da falha da parente continua desconhecida.** Não há o PDF dela nem o
+aparelho, e os quatro documentos de referência importam sem erro num Chrome móvel
+emulado (390px, verificado nesta rodada). O que esta rodada garante é que a próxima
+tentativa **diz qual das nove causas foi** — na tela, sem sumir, com uma linha técnica
+para fotografar. Se ainda falhar, o print agora vale um diagnóstico.
+
+---
 
 ## Rodada 2026-09-01 (parte 6) — reexportar o mesmo Documento não cria histórico duplicado
 

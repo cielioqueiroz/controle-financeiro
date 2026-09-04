@@ -455,11 +455,13 @@ export const pt = {
 
   // Importação — dropzone
   'drop.tituloLendo': 'Lendo o documento…',
-  'drop.titulo': 'Solte a fatura ou o extrato aqui',
-  'drop.corpo': 'PDF do banco, do jeito que ele te mandou. O arquivo é lido {navegador} e não sai deste computador.',
+  'drop.titulo': 'Traga a fatura ou o extrato',
+  'drop.corpo':
+    'PDF do banco, do jeito que ele te mandou. O arquivo é lido {navegador} e não sai deste aparelho.',
   'drop.navegador': 'no seu navegador',
   'drop.processando': 'processando',
-  'drop.clique': 'ou clique para escolher',
+  'drop.escolher': 'Escolher o arquivo',
+  'drop.ouArraste': 'ou arraste e solte aqui',
 
   // Importação — toasts do fluxo
   'importar.naoPdf': 'Isso não parece um PDF.',
@@ -471,6 +473,45 @@ export const pt = {
   'importar.grande': 'Esse PDF é maior que o limite de 25 MB.',
   'importar.naoLi': 'Não consegui ler este arquivo.',
   'importar.emBreve': '{msg}. Em breve.',
+
+  // Importação — o bloco de falha (ui/FalhaImportacao.tsx)
+  //
+  // Cada par é TÍTULO (o que houve) + SAÍDA (o que fazer). A saída não é
+  // enfeite: era a informação que faltava quando tudo isso era uma frase só.
+  'falha.tentarOutro': 'Escolher outro arquivo',
+  'falha.proximo': 'Seguir para o próximo',
+  'falha.verDetalhe': 'Ver detalhe técnico',
+  'falha.ocultarDetalhe': 'Ocultar detalhe',
+  'falha.ilegivel': 'Não consegui abrir este arquivo no seu aparelho.',
+  'falha.ilegivelSaida':
+    'Isso costuma acontecer quando o arquivo ainda está na nuvem (Drive, OneDrive) ou dentro de outro aplicativo. Baixe o PDF para o aparelho primeiro e escolha de novo, pela pasta Downloads.',
+  'falha.vazio': 'Este arquivo chegou vazio.',
+  'falha.vazioSaida':
+    'O aparelho entregou zero byte. Baixe o PDF de novo do site ou do aplicativo do banco e tente outra vez.',
+  'falha.naoEhPdf': 'Isso não é um PDF.',
+  'falha.naoEhPdfSaida':
+    'Só leio o PDF que o banco gera — não leio foto, print de tela, planilha nem página salva. Procure a opção de baixar o extrato em PDF no aplicativo do banco.',
+  'falha.protegido': 'Este PDF está protegido por senha.',
+  'falha.protegidoSaida':
+    'Alguns bancos mandam a fatura trancada com o CPF. Abra o arquivo, digite a senha e salve uma cópia sem proteção — é essa cópia que eu leio.',
+  'falha.corrompido': 'Este PDF veio danificado ou incompleto.',
+  'falha.corrompidoSaida':
+    'O download pode ter parado no meio. Baixe o arquivo outra vez, confira se ele abre normalmente no seu aparelho e traga de novo.',
+  'falha.digitalizado': 'Este PDF é uma imagem, não texto.',
+  'falha.digitalizadoSaida':
+    'É o que acontece com extrato escaneado ou com print de tela salvo como PDF. Preciso do arquivo original do banco, aquele em que dá para selecionar o texto.',
+  'falha.grande': 'Este PDF passa do limite de 25 MB.',
+  'falha.grandeSaida':
+    'Extrato de conta raramente chega perto disso. Confira se você não pegou o arquivo errado — ou peça ao banco um período mais curto.',
+  'falha.leitor': 'Não consegui carregar o leitor de PDF.',
+  'falha.leitorSaida':
+    'É a internet, não o seu arquivo: falta baixar uma parte do app. Confira a conexão e toque em escolher o arquivo de novo.',
+  'falha.semParser': 'Ainda não sei ler este documento.',
+  'falha.semParserSaida':
+    'Leio fatura e extrato do Nubank, do Bradesco e do Mercado Pago, e extrato do Banco do Brasil, do Sicredi e do Sicoob. Se o seu banco é um desses, pode ser um modelo de documento novo — vale avisar.',
+  'falha.generica': 'Algo deu errado ao ler este arquivo.',
+  'falha.genericaSaida':
+    'Não reconheci a causa. Tente outra vez; se continuar, abra o detalhe técnico abaixo e mande essa linha para quem cuida do app.',
   'salvar.okNovos': 'Salvo: {n} novos lançamentos.',
   'salvar.okComExistentes': 'Salvo: {n} novos lançamentos, {ja} já existiam.',
   'salvar.duplicado': 'Este documento já foi importado em {data}.',
@@ -500,7 +541,7 @@ export const pt = {
   'fila.cancelada': '{n} documento(s) da fila descartado(s).',
   'fila.progresso': 'documento {n} de {total}',
   'fila.cancelar': 'Descartar os restantes',
-  'drop.varios': 'Pode soltar vários de uma vez — leio um por um.',
+  'drop.varios': 'Pode trazer vários de uma vez — leio um por um.',
   'import.salvarHistorico': 'Salvar no histórico',
   'import.limpar': 'Limpar',
   'import.final': 'final {n}',

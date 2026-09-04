@@ -419,11 +419,13 @@ export const es: Dicionario = {
   'tutorial.p6c': 'Documentos guarda todo lo que importaste, por mes. Recurrentes muestra lo que se repite, detectado solo. El botón del panel descarga el informe del período en PDF. Y el “?” de arriba abre la ayuda: escribe lo que buscas y te muestro todos los temas que hablan de eso.',
 
   'drop.tituloLendo': 'Leyendo el documento…',
-  'drop.titulo': 'Suelta aquí tu factura o extracto',
-  'drop.corpo': 'El PDF del banco, tal como te lo enviaron. El archivo se lee {navegador} y no sale de este equipo.',
+  'drop.titulo': 'Trae tu factura o extracto',
+  'drop.corpo':
+    'El PDF del banco, tal como te lo enviaron. El archivo se lee {navegador} y no sale de este dispositivo.',
   'drop.navegador': 'en tu navegador',
   'drop.processando': 'procesando',
-  'drop.clique': 'o haz clic para elegir',
+  'drop.escolher': 'Elegir el archivo',
+  'drop.ouArraste': 'o arrástralo hasta aquí',
 
   'importar.naoPdf': 'Esto no parece un PDF.',
   'importar.digitalizado': 'PDF escaneado — aún no leo imágenes, solo texto.',
@@ -434,6 +436,41 @@ export const es: Dicionario = {
   'importar.grande': 'Este PDF supera el límite de 25 MB.',
   'importar.naoLi': 'No pude leer este archivo.',
   'importar.emBreve': '{msg}. Muy pronto.',
+
+  'falha.tentarOutro': 'Elegir otro archivo',
+  'falha.proximo': 'Seguir con el siguiente',
+  'falha.verDetalhe': 'Ver detalle técnico',
+  'falha.ocultarDetalhe': 'Ocultar detalle',
+  'falha.ilegivel': 'No pude abrir este archivo en tu dispositivo.',
+  'falha.ilegivelSaida':
+    'Suele pasar cuando el archivo todavía está en la nube (Drive, OneDrive) o dentro de otra aplicación. Descarga el PDF al dispositivo y elígelo de nuevo desde la carpeta de descargas.',
+  'falha.vazio': 'Este archivo llegó vacío.',
+  'falha.vazioSaida':
+    'El dispositivo entregó cero bytes. Descarga el PDF otra vez desde tu banco e inténtalo de nuevo.',
+  'falha.naoEhPdf': 'Esto no es un PDF.',
+  'falha.naoEhPdfSaida':
+    'Solo leo el PDF que genera el banco: no leo fotos, capturas de pantalla, planillas ni páginas guardadas. Busca la opción de descargar el extracto en PDF en la aplicación del banco.',
+  'falha.protegido': 'Este PDF está protegido con contraseña.',
+  'falha.protegidoSaida':
+    'Algunos bancos envían el resumen bloqueado con tu documento. Ábrelo, escribe la contraseña y guarda una copia sin protección: esa copia sí la puedo leer.',
+  'falha.corrompido': 'Este PDF llegó dañado o incompleto.',
+  'falha.corrompidoSaida':
+    'La descarga pudo cortarse a la mitad. Descarga el archivo otra vez, comprueba que abre bien en tu dispositivo y vuelve a traerlo.',
+  'falha.digitalizado': 'Este PDF es una imagen, no texto.',
+  'falha.digitalizadoSaida':
+    'Pasa con extractos escaneados o con capturas guardadas como PDF. Necesito el archivo original del banco, ese en el que se puede seleccionar el texto.',
+  'falha.grande': 'Este PDF supera el límite de 25 MB.',
+  'falha.grandeSaida':
+    'Un extracto rara vez se acerca a eso. Comprueba si no tomaste el archivo equivocado, o pide al banco un período más corto.',
+  'falha.leitor': 'No pude cargar el lector de PDF.',
+  'falha.leitorSaida':
+    'Es la conexión, no tu archivo: faltó descargar una parte de la aplicación. Revisa la red y toca otra vez para elegir el archivo.',
+  'falha.semParser': 'Todavía no sé leer este documento.',
+  'falha.semParserSaida':
+    'Leo resúmenes y extractos de Nubank, Bradesco y Mercado Pago, y extractos de Banco do Brasil, Sicredi y Sicoob. Si tu banco es uno de esos, puede ser un formato nuevo: vale la pena avisar.',
+  'falha.generica': 'Algo salió mal al leer este archivo.',
+  'falha.genericaSaida':
+    'No reconocí la causa. Inténtalo de nuevo; si sigue pasando, abre el detalle técnico de abajo y envía esa línea a quien mantiene la aplicación.',
   'salvar.okNovos': 'Guardado: {n} movimientos nuevos.',
   'salvar.okComExistentes': 'Guardado: {n} movimientos nuevos, {ja} ya existían.',
   'salvar.duplicado': 'Este documento ya se importó el {data}.',
@@ -462,7 +499,7 @@ export const es: Dicionario = {
   'fila.cancelada': '{n} documento(s) de la cola descartado(s).',
   'fila.progresso': 'documento {n} de {total}',
   'fila.cancelar': 'Descartar los restantes',
-  'drop.varios': 'Puedes soltar varios a la vez — los leo uno por uno.',
+  'drop.varios': 'Puedes traer varios a la vez — los leo uno por uno.',
   'import.salvarHistorico': 'Guardar en el historial',
   'import.limpar': 'Limpiar',
   'import.final': 'terminada en {n}',
