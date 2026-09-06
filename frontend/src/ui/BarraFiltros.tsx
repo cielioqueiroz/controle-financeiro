@@ -3,7 +3,7 @@ import { useT } from '../i18n/IdiomaProvider'
 import { useFiltros } from '../dados/useFiltros'
 import { useDados } from '../dados/DadosProvider'
 import { temaDoBanco } from '../domain/banks'
-import type { Periodo } from '../persist/agrupar'
+import type { Periodo } from '../domain/agrupar'
 import { mover, rotuloPeriodo } from '../dados/periodo'
 import type { Dicionario } from '../i18n/dicionarios/pt'
 

@@ -42,6 +42,11 @@ import { type Dicionario } from '../i18n/dicionarios/pt'
 
 /** Falhas com conserto do lado de quem lê. */
 const PADROES: ReadonlyArray<[RegExp, keyof Dicionario]> = [
+  // Primeiro de todos, e o único que não fala de acesso nem de rede: a
+  // leitura voltou incompleta, então os totais da tela estariam MENORES que
+  // o histórico real. É a falha que o app precisa gritar, porque é a única
+  // que, calada, vira número errado em vez de tela vazia.
+  [/recorte incompleto/i, 'erro.recorteIncompleto'],
   // Sessão antes de permissão: token vencido no Postgres chega como negativa
   // de permissão, e mandar "peça acesso" a quem só precisa entrar de novo é
   // mandar a pessoa para o lugar errado.

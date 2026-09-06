@@ -3,7 +3,7 @@ import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
 import { MarcaCategoria } from '../MarcaCategoria'
-import type { TransacaoSalva } from '../../persist/puxar'
+import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

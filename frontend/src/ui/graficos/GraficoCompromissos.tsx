@@ -6,7 +6,7 @@ import { BANCOS } from '../../domain/banks'
 import type { Bank } from '../../domain/pdf/detect'
 import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
-import type { MesFuturo } from '../../persist/agrupar'
+import type { MesFuturo } from '../../domain/agrupar'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

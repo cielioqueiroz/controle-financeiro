@@ -1,5 +1,5 @@
 import { mesAbrev } from '../domain/normalize/data'
-import type { Periodo } from '../persist/agrupar'
+import type { Periodo } from '../domain/agrupar'
 
 /** Move a data de referência um período para trás/frente.
  *

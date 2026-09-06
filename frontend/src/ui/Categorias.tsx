@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { chaveDeErro } from '../lib/erro-usuario'
-import {
-  puxarCategoriasUsuario,
-  editarCategoria,
-  apagarCategoria,
-  type CategoriaUsuario,
-} from '../persist/categoriasUsuario'
+import { puxarCategoriasUsuario, type CategoriaUsuario } from '../aplicacao/consultas/historico'
+import { editarCategoria, apagarCategoria } from '../aplicacao/comandos/categorias'
 import { puxarRegras } from '../aplicacao/consultas/regras'
 import { apagarRegra } from '../aplicacao/comandos/transacoes'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'

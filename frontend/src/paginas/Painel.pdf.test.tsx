@@ -29,7 +29,7 @@ vi.mock('../persist/puxar', () => {
 })
 vi.mock('../persist/categoriasUsuario', () => ({ puxarCategoriasUsuario: vi.fn().mockResolvedValue([]) }))
 vi.mock('../persist/documentos', () => ({ puxarSaldos: vi.fn().mockResolvedValue([]) }))
-vi.mock('../persist/saldos', () => ({ saldosPorConta: vi.fn().mockReturnValue([]) }))
+vi.mock('../domain/saldos', () => ({ saldosPorConta: vi.fn().mockReturnValue([]) }))
 
 const gerarRelatorioPdf = vi.fn().mockResolvedValue(new Blob(['%PDF-x'], { type: 'application/pdf' }))
 vi.mock('../lib/relatorio-pdf', () => ({

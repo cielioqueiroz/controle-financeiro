@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import { LinhaTransacao } from './LinhaTransacao'
 
 import { nomeCategoria } from '../../domain/categorize/categorias'
-import type { GrupoCategoria } from '../../persist/agrupar'
-import type { TransacaoSalva } from '../../persist/puxar'
+import type { GrupoCategoria } from '../../domain/agrupar'
+import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

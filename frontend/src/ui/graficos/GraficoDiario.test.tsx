@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GraficoDiario } from './GraficoDiario'
-import { porDia } from '../../persist/agrupar'
+import { porDia } from '../../domain/agrupar'
 import type { TransacaoSalva } from '../../persist/puxar'
 
 function tx(over: Partial<TransacaoSalva>): TransacaoSalva {

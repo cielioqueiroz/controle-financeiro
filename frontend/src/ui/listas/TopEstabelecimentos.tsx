@@ -1,7 +1,7 @@
 
 import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
-import type { GrupoEstabelecimento } from '../../persist/agrupar'
+import type { GrupoEstabelecimento } from '../../domain/agrupar'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

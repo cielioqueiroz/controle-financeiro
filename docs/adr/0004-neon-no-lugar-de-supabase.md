@@ -31,8 +31,10 @@ que estavam de pé. O Neon entrou porque tinha vaga.
 - **O SDK é beta e molda o código.** `@neondatabase/neon-js` não expõe `upsert`
   confiável, então `persist/salvar.ts` faz busca-ou-cria de conta e insere só os
   hashes inéditos, à mão.
-- Documentos do repositório ainda descrevem a stack antiga:
-  `docs/prompt-dashboard-financeiro.md` foi escrito para Next.js + Supabase +
-  Recharts e é **spec de produto**, não descrição da implementação.
+- Documentos do repositório descreviam a stack antiga:
+  `docs/prompt-dashboard-financeiro.md` e `docs/prompt-arquitetura-de-pastas.md`
+  foram escritos para Next.js + Supabase + Recharts. Eram **spec de produto**,
+  não descrição da implementação — e, por descreverem um projeto que este não é,
+  foram **removidos em 2026-09-06**. Continuam no histórico do git.
 - A branch de produção hiberna (scale-to-zero): a primeira query depois de ociosa
   leva ~0,5–2s. É o plano grátis, não regressão.

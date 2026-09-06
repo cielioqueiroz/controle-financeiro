@@ -48,10 +48,25 @@ export type FalhaImportacao = {
   detalhe: string
 }
 
+/** A extensão, ou `sem extensão`. É tudo o que o console precisa saber sobre
+ *  o arquivo. */
+function extensaoDe(nome: string): string {
+  const ponto = nome.lastIndexOf('.')
+  if (ponto <= 0 || ponto === nome.length - 1) return 'sem extensão'
+  return nome.slice(ponto).toLowerCase()
+}
+
 export function classificarFalha(erro: unknown, arquivo: string): FalhaImportacao {
   // O erro cru continua indo para o console — a tela mostra a versão curta,
   // e a pilha inteira segue disponível para quem abrir o inspetor.
-  console.error('[importação]', arquivo, erro)
+  //
+  // ⚠️ O NOME do arquivo não vai junto. Extrato de banco costuma trazer o
+  // titular no próprio nome ("extrato-JOAO-DA-SILVA-06-2026.pdf"), e o
+  // console é justamente a parte da tela que se fotografa e se manda para
+  // quem mantém o app. Na TELA o nome continua, porque ali ele serve para a
+  // pessoa saber qual dos cinco arquivos falhou — e ali quem lê é a dona do
+  // documento.
+  console.error('[importação]', `(${extensaoDe(arquivo)})`, erro)
 
   const detalhe = detalharErro(erro)
   const par = (titulo: keyof Dicionario, saida: keyof Dicionario): FalhaImportacao => ({

@@ -1,0 +1,92 @@
+# A rede que faltava entre um commit e a produção.
+#
+# `AGENTS.md` §5: "Push na `main` publica. Não existe ambiente de homologação:
+# verificar antes é a única rede." Até 2026-09-06 essa rede era a memória de
+# quem commitava — não havia CI nenhum no repositório, e `npm run verificar`
+# só rodava se alguém lembrasse.
+#
+# Aqui roda a MESMA verificação da máquina do dono (`scripts/verificar.py`),
+# na mesma ordem, para não existirem duas definições de "está pronto".
+
+name: verificar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # A auditoria de dependência precisa rodar sozinha: vulnerabilidade nova
+  # aparece sem ninguém commitar nada.
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+# Um push novo cancela a verificação do anterior: a `main` publica sozinha, e
+# medir um commit já superado não serve para nada.
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: uv (o verificar.py roda por ele)
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      # `medir-csp.py` sobe o `dist/` com os headers do vercel.json e mede a
+      # CSP num navegador de verdade — sem isto o passo de CSP não roda.
+      - name: navegador do Playwright
+        run: uv run --with playwright python -m playwright install --with-deps chromium
+
+      # typecheck · testes · lint · caminhos · build · CSP, nesta ordem.
+      # A ordem não é opcional: `npm test` não checa tipos, e `medir-csp.py`
+      # mede o dist/, então precisa do build antes.
+      - name: verificação completa
+        run: npm run verificar
+
+  seguranca:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # O gitleaks precisa do histórico para varrer commits, não só a
+          # árvore atual: segredo commitado e depois removido continua lá.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # O ADR-0011 já usou isto como critério de decisão: `@vercel/node` foi
+      # descartado, entre outros motivos, por trazer 5 vulnerabilidades.
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+      # O repositório tem regra explícita de nunca commitar PDF real (CPF,
+      # agência, conta, nomes de terceiros) e de manter `.env.*` fora do git.
+      # Regra que ninguém mede é regra que já foi quebrada.
+      - name: gitleaks
+        run: |
+          VERSAO=8.28.0
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSAO}/gitleaks_${VERSAO}_linux_x64.tar.gz" \
+            | tar -xz -C /tmp gitleaks
+          /tmp/gitleaks detect --source . --redact --verbose --exit-code 1

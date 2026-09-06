@@ -250,6 +250,8 @@ export const es: Dicionario = {
   'erro.duplicado': 'Eso ya existe aquí.',
   'erro.sair': 'No pude cerrar la sesión.',
   'erro.carregar': 'No se pudo cargar.',
+  'erro.recorteIncompleto':
+    'La base devolvió solo parte de tu historial, así que los totales de esta pantalla estarían mal. Prefiero no mostrar ningún número a mostrar uno menor. Recarga la página.',
 
   'perfil.subtitulo': 'Cómo quieres que te llamemos aquí.',
   'perfil.apelidoLabel': 'Apodo — cómo aparece en el saludo',

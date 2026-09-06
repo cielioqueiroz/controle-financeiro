@@ -1,7 +1,7 @@
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { useT } from '../i18n/IdiomaProvider'
-import type { TransacaoSalva } from '../persist/puxar'
+import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 
 type Props = {
   /** As transações do recorte na tela — as mesmas que somam os tiles. */

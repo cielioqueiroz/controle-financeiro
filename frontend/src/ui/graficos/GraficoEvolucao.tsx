@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { mesAbrev } from '../../domain/normalize/data'
 import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
-import type { PontoMes } from '../../persist/agrupar'
+import type { PontoMes } from '../../domain/agrupar'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

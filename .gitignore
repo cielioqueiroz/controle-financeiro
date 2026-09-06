@@ -46,7 +46,10 @@ desktop.ini
 # Nunca commitar: o histórico do git é permanente.
 # Fixtures de teste ficam em tests/fixtures/, anonimizados.
 *.pdf
-!tests/fixtures/**/*.pdf
+# A exceção precisa do caminho REAL: os fixtures moram em
+# `frontend/tests/fixtures/`, e `tests/fixtures/**` (com barra no meio) é
+# ancorado na raiz — nunca alcançou nada. Conferido com `git check-ignore -v`.
+!frontend/tests/fixtures/**/*.pdf
 documentos/
 extratos/
 

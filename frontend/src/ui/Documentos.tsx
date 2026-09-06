@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { chaveDeErro } from '../lib/erro-usuario'
-import { puxarDocumentos, type DocumentoSalvo } from '../persist/documentos'
+import { puxarDocumentos, type DocumentoSalvo } from '../aplicacao/consultas/documentos'
 import { apagarDocumento, apagarTudo } from '../aplicacao/comandos/documentos'
 
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'

@@ -250,6 +250,8 @@ export const en: Dicionario = {
   'erro.duplicado': 'That already exists here.',
   'erro.sair': "I couldn't sign you out.",
   'erro.carregar': 'Failed to load.',
+  'erro.recorteIncompleto':
+    'The database returned only part of your history, so the totals on this screen would be wrong. I would rather show no number than a smaller one. Please reload the page.',
 
   'perfil.subtitulo': 'How you want to be called here.',
   'perfil.apelidoLabel': 'Nickname — how the greeting shows',

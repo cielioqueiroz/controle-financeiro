@@ -4,7 +4,7 @@ import { buscar } from '../../domain/busca'
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 
 import { useT } from '../../i18n/IdiomaProvider'
-import type { TransacaoSalva } from '../../persist/puxar'
+import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

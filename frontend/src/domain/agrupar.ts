@@ -1,6 +1,6 @@
-import { categoria, type Categoria } from '../domain/categorize/categorias'
-import { normalizeMerchant } from '../domain/normalize/merchant'
-import type { CategoriaResumo } from '../domain/insights'
+import { categoria, type Categoria } from './categorize/categorias'
+import { normalizeMerchant } from './normalize/merchant'
+import type { CategoriaResumo } from './insights'
 
 export type Periodo = 'dia' | 'semana' | 'mes' | 'ano'
 

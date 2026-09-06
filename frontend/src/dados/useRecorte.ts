@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { filtrar, agregar, variacaoPct } from '../persist/agrupar'
+import { filtrar, agregar, variacaoPct } from '../domain/agrupar'
 import { mover } from './periodo'
 import { useDados } from './DadosProvider'
 import { useFiltros } from './useFiltros'

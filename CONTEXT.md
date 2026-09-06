@@ -159,6 +159,17 @@ O subconjunto do histórico que está na tela: as transações visíveis mais o 
 delas.
 _Evitar_: filtro, seleção, view, fatia
 
+**Integridade do recorte**:
+A garantia de que o recorte contém **tudo** o que o histórico tem para aquele
+filtro — nem uma transação a menos. É irmã da **Conferência** e responde a outra
+metade da mesma promessa: a Conferência garante que todo número na tela veio de
+um documento; a integridade do recorte garante que todo documento está no número.
+Conferência olha o PDF contra o gabarito; esta olha a resposta do banco contra a
+contagem que o próprio banco declara.
+_Em código_: `RecorteIncompletoError` (`persist/puxar.ts`)
+_Evitar_: completude, integridade (sozinho — o banco também usa a palavra para
+as relações entre usuários), paginação
+
 **Filtros**:
 A descrição do recorte, que vive na query string da URL — período, referência,
 banco, categoria e busca.

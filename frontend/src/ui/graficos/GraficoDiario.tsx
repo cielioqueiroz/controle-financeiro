@@ -4,8 +4,8 @@ import { motion, useReducedMotion } from 'motion/react'
 import { mesAbrev } from '../../domain/normalize/data'
 import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
-import type { GrupoDia } from '../../persist/agrupar'
-import type { TransacaoSalva } from '../../persist/puxar'
+import type { GrupoDia } from '../../domain/agrupar'
+import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
 type Props = {

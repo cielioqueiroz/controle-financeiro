@@ -281,6 +281,8 @@ export const pt = {
   'erro.duplicado': 'Isso já existe por aqui.',
   'erro.sair': 'Não consegui encerrar a sessão.',
   'erro.carregar': 'Falha ao carregar.',
+  'erro.recorteIncompleto':
+    'O banco devolveu só parte do seu histórico, então os totais desta tela estariam errados. Prefiro não mostrar número nenhum a mostrar um menor. Recarregue a página.',
 
   // Editar perfil
   'perfil.subtitulo': 'Como você quer ser chamado por aqui.',

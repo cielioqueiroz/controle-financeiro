@@ -1,4 +1,4 @@
-import type { Periodo } from '../persist/agrupar'
+import type { Periodo } from '../domain/agrupar'
 
 /** O estado da tela que vale a pena sobreviver a um F5 e caber num link.
  *  Fica na URL, não em useState: recarregar não perde o recorte, e mandar

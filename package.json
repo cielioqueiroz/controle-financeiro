@@ -17,6 +17,8 @@
     "verificar": "uv run --with playwright python scripts/verificar.py",
     "verificar:rapido": "uv run python scripts/verificar.py --rapido",
     "caminhos": "uv run python scripts/checar-caminhos.py",
+    "build:semlogin": "npm run build --workspace frontend -- --mode semlogin",
+    "medir:pdf": "uv run --with playwright python scripts/medir-pdf.py",
     "fixtures": "tsx scripts/gerar-fixtures.ts"
   },
   "devDependencies": {

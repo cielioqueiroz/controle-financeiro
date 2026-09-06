@@ -47,34 +47,7 @@ export async function salvarDocumento(
   const contentHash = await hashConteudoDocumento(result, kind)
 
   // 1. Documento já importado? (RLS já escopa ao usuário)
-  const camposDocumento =
-    'imported_at, content_hash, bank, doc_type, period_start, period_end, declared_total, declared_income, declared_expense, next_close_date, next_invoice_balance, total_open_balance, future_installments_total, accounts(bank, type, last4, agency, number), transactions(date, description, amount_cents, installment, fx)'
-  let consultaDuplicata = await neon
-    .from('documents')
-    .select(camposDocumento)
-    // Inclui os Documentos antigos (content_hash NULL) para a migração não
-    // deixar passar uma duplicata já existente no histórico.
-    .or(`file_hash.eq.${fileHash},content_hash.eq.${contentHash},content_hash.is.null`)
-  // Permite que o app continue funcionando enquanto a migração é aplicada;
-  // sem content_hash, ainda há a comparação de conteúdo dos Documentos antigos.
-  if (consultaDuplicata.error && /content_hash/i.test(consultaDuplicata.error.message)) {
-    consultaDuplicata = await neon.from('documents').select(camposDocumento.replace('content_hash, ', ''))
-  }
-  if (consultaDuplicata.error) throw new Error(consultaDuplicata.error.message)
-  const docsExistentes = (consultaDuplicata.data ?? []) as DocumentoExistente[]
-  let duplicado = docsExistentes.find(
-    (doc) => doc.content_hash === contentHash || doc.file_hash === fileHash,
-  )
-  // Documentos anteriores à 0005 não têm content_hash. Comparamos seus
-  // dados persistidos para que a correção também cubra o histórico existente.
-  if (!duplicado) {
-    for (const doc of docsExistentes) {
-      if (!doc.content_hash && (await hashPersistido(doc)) === contentHash) {
-        duplicado = doc
-        break
-      }
-    }
-  }
+  const duplicado = await acharDuplicata(fileHash, contentHash)
   if (duplicado) {
     return { status: 'documento-duplicado', importadoEm: duplicado.imported_at }
   }
@@ -156,7 +129,10 @@ export async function salvarDocumento(
         installment: t.installment,
         fx: t.fx,
         hash,
-        raw: t.raw,
+        // `raw` (a linha crua do PDF) NÃO é gravada. Era escrita em toda
+        // transação e não havia uma única leitura dela no app — texto livre
+        // do extrato guardado sem consumidor é risco sem contrapartida.
+        // Auditar contra o PDF se faz pela `description`, que é imutável.
       },
     })
   }
@@ -185,59 +161,49 @@ export async function salvarDocumento(
   }
 }
 
-type DocumentoExistente = {
-  imported_at: string
-  file_hash?: string
-  content_hash?: string | null
-  bank: string
-  doc_type: DocKind['docType']
-  period_start: string | null
-  period_end: string | null
-  declared_total: number | null
-  declared_income: number | null
-  declared_expense: number | null
-  next_close_date: string | null
-  next_invoice_balance: number | null
-  total_open_balance: number | null
-  future_installments_total: number | null
-  accounts: { bank?: string; type?: 'checking' | 'credit_card'; last4?: string | null; agency?: string | null; number?: string | null } | null
-  transactions: Array<{ date: string; description: string; amount_cents: number; installment: RawTransaction['installment']; fx: RawTransaction['fx'] }>
-}
+type DocumentoDuplicado = { imported_at: string }
 
-function hashPersistido(doc: DocumentoExistente): Promise<string> {
-  return hashConteudoDocumento(
-    {
-      transactions: doc.transactions.map((tx) => ({
-        date: new Date(tx.date),
-        description: tx.description,
-        amountCents: tx.amount_cents,
-        installment: tx.installment,
-        card: null,
-        fx: tx.fx,
-        kind: 'compra',
-        raw: tx.description,
-      })),
-      declaredTotal: doc.declared_total,
-      declaredIncome: doc.declared_income,
-      declaredExpense: doc.declared_expense,
-      period: doc.period_start && doc.period_end ? { start: new Date(doc.period_start), end: new Date(doc.period_end) } : null,
-      account: {
-        bank: (doc.accounts?.bank ?? doc.bank) as ParseResult['account']['bank'],
-        type: doc.accounts?.type ?? 'checking',
-        last4: doc.accounts?.last4 ?? null,
-        agency: doc.accounts?.agency ?? null,
-        number: doc.accounts?.number ?? null,
-        holderName: null,
-      },
-      forward: {
-        nextCloseDate: doc.next_close_date ? new Date(doc.next_close_date) : null,
-        nextInvoiceBalance: doc.next_invoice_balance,
-        totalOpenBalance: doc.total_open_balance,
-        futureInstallmentsTotal: doc.future_installments_total,
-      },
-    },
-    { bank: doc.bank as DocKind['bank'], docType: doc.doc_type },
-  )
+/** Documento já importado: mesmo ARQUIVO (`file_hash`) **ou** mesmo CONTEÚDO
+ *  (`content_hash`). São duas perguntas porque o PDF reexportado muda de
+ *  bytes sem mudar o que o banco declarou — ver `hashConteudoDocumento`.
+ *
+ *  ⚠️ **Duas consultas, e não um `.or()`.** O filtro do `.or()` do PostgREST
+ *  é uma STRING, então o valor ia interpolado dentro do predicado. Hoje os
+ *  dois valores são hashes que nós mesmos calculamos, mas o padrão é o
+ *  errado: no dia em que um dos lados vier do documento, quem escreve o PDF
+ *  escolhe quais linhas a consulta devolve. Pelo builder, valor é valor.
+ *
+ *  ⚠️ **A comparação por `file_hash` existiu só no papel até 2026-09-06:** o
+ *  `select` não trazia a coluna, então `doc.file_hash` era sempre `undefined`
+ *  e aquele lado do `||` nunca era verdadeiro. Ficou mascarado porque o mesmo
+ *  arquivo também produz o mesmo `content_hash` — no dia em que
+ *  `hashConteudoDocumento` mudasse de fórmula, o mesmo PDF entraria duas
+ *  vezes, que é a dupla contagem que o sistema inteiro existe para impedir.
+ *
+ *  Só `imported_at` volta. Até a mesma data esta consulta trazia todo
+ *  Documento de `content_hash` nulo **com as transações aninhadas de cada
+ *  um**, para re-hashear o histórico anterior à migração `0005`. Não existe
+ *  mais Documento assim, e o custo era pago em toda importação. */
+async function acharDuplicata(
+  fileHash: string,
+  contentHash: string,
+): Promise<DocumentoDuplicado | null> {
+  const perguntas = [
+    ['file_hash', fileHash],
+    ['content_hash', contentHash],
+  ] as const
+
+  for (const [coluna, valor] of perguntas) {
+    const { data, error } = await neon!
+      .from('documents')
+      .select('imported_at')
+      .eq(coluna, valor)
+      .limit(1)
+    if (error) throw new Error(error.message)
+    const achado = (data ?? [])[0] as DocumentoDuplicado | undefined
+    if (achado) return achado
+  }
+  return null
 }
 
 /** Busca a conta pelo banco+tipo+final; cria se não existir. Substitui o
@@ -266,7 +232,9 @@ async function acharOuCriarConta(result: ParseResult, kind: DocKind): Promise<st
       last4: account.last4,
       agency: account.agency,
       number: account.number,
-      holder_name: account.holderName,
+      // `holder_name` NÃO é gravado: nome completo do titular, escrito e
+      // nunca lido de volta. O vínculo usa `result.account.holderName`
+      // direto do parse, em memória — nunca a coluna.
     })
     .select('id')
     .single()

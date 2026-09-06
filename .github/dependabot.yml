@@ -1,0 +1,28 @@
+# Atualização de dependência sem depender de alguém lembrar.
+#
+# `npm audit` estava em zero em 2026-09-06, e o ADR-0011 mostra que a conta
+# já foi feita a mão uma vez (`@vercel/node` trouxe 5 falhas e foi removido).
+# O que faltava era o aviso chegar sem ninguém procurar.
+#
+# Agrupado de propósito: quinze PRs de patch por semana é o jeito mais
+# conhecido de fazer todo mundo parar de ler PR do Dependabot.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      producao:
+        dependency-type: production
+        update-types: [minor, patch]
+      desenvolvimento:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

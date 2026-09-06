@@ -9,11 +9,11 @@ import {
   porDia,
   doMesCalendario,
   isoLocal,
-} from '../persist/agrupar'
-import { saldosPorConta } from '../persist/saldos'
-import { faturasAbertas } from '../persist/aberto'
+} from '../domain/agrupar'
+import { saldosPorConta } from '../domain/saldos'
+import { faturasAbertas } from '../domain/aberto'
 import { nomeCategoria } from '../domain/categorize/categorias'
-import type { TransacaoSalva } from '../persist/puxar'
+import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
 import { escreverFiltros } from '../dados/filtros'

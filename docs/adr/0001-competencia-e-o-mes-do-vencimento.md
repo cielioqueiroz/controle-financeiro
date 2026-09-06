@@ -9,9 +9,11 @@ do período extraído.
 
 ## Considered Options
 
-- **Data real da compra**, como pede o spec original em
-  `docs/prompt-dashboard-financeiro.md` ("o gráfico por mês precisa usar a data da
-  compra, não a data da fatura"). Recusada: é correta para um contador e errada
+- **Data real da compra**, como pedia o spec original ("o gráfico por mês precisa
+  usar a data da compra, não a data da fatura"). Aquele spec
+  (`docs/prompt-dashboard-financeiro.md`) foi **removido do repositório em
+  2026-09-06** por descrever um produto em Next.js + Supabase que este projeto
+  não é; está no histórico do git para quem quiser a íntegra. Recusada: é correta para um contador e errada
   para o usuário, que pensa em "o que veio na fatura desse mês" e confere o número
   contra o boleto que pagou.
 - **As duas visões, alternáveis por um botão.** Recusada por escopo: dobra a

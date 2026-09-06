@@ -1,6 +1,6 @@
 import { neon } from '../lib/neon'
-import type { DocParaSaldo } from './saldos'
-import type { DocParaAberto } from './aberto'
+import type { DocParaSaldo } from '../domain/saldos'
+import type { DocParaAberto } from '../domain/aberto'
 
 export type DocumentoSalvo = {
   id: string

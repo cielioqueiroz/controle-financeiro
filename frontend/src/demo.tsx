@@ -31,8 +31,8 @@ import {
   maioresSaidas,
   porEstabelecimento,
   type PontoMes,
-} from './persist/agrupar'
-import type { TransacaoSalva } from './persist/puxar'
+} from './domain/agrupar'
+import type { TransacaoSalva } from './aplicacao/consultas/historico'
 
 /** Folha de provas: os componentes visuais com dados FICTÍCIOS.
  *

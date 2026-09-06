@@ -9,7 +9,7 @@ import { BarraFiltros } from '../ui/BarraFiltros'
 import { Recorrencias as ListaRecorrencias } from '../ui/Recorrencias'
 import { CompromissosFuturos } from '../ui/CompromissosFuturos'
 import { GraficoCompromissos } from '../ui/graficos/GraficoCompromissos'
-import { projecaoFutura } from '../persist/agrupar'
+import { projecaoFutura } from '../domain/agrupar'
 
 /** Séries que se repetem e os alertas sobre elas.
  *

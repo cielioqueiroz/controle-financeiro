@@ -39,8 +39,9 @@ sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature.
 
 | Pasta | O que entra |
 |---|---|
-| `domain/` | **Regras de dinheiro, puras.** Sem React, sem rede. Parser, normalização, categorização, vínculo, recorrência, validação de gabarito, busca, diagnósticos. |
-| `persist/` | Conversa com o Neon + a agregação de leitura (`agrupar.ts`). |
+| `domain/` | **Regras de dinheiro, puras.** Sem React, sem rede. Parser, normalização, categorização, vínculo, recorrência, validação de gabarito, busca, diagnósticos — e a agregação de leitura: `agrupar.ts` (o Recorte), `saldos.ts` e `aberto.ts`. |
+| `persist/` | **Só o adaptador do Neon.** Nada puro mora aqui: se tem nome no `CONTEXT.md`, é `domain/`. O `neon-falso.ts` é o dublê que os testes de escrita usam. |
+| `aplicacao/` | **A fronteira das telas**: `consultas/` (leitura) e `comandos/` (escrita). ⚠️ Importar `persist/` fora daqui **derruba o lint** — ver [ADR-0013](./docs/adr/0013-a-fronteira-das-telas-deixa-de-ser-promessa.md). |
 | `dados/` | Estado de tela compartilhado: os três providers, filtros da URL, recorte. |
 | `paginas/` | As seis telas **roteadas e autenticadas**. |
 | `ui/acesso/` | As telas de **anônimo** (entrar, criar conta, recuperar, confirmar) e o que só elas usam — inclusive o `FundoAcesso`, a atmosfera em camada `fixed`. |
@@ -339,7 +340,19 @@ python scripts/medir-contraste.py   # se mexeu em COR
 npm run dev                         # e então, noutro terminal:
 python scripts/medir-overflow.py    # se mexeu em LAYOUT (mede 5 jornadas)
 python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de provas
+
+npm run build:semlogin && npm run medir:pdf   # se mexeu no pdf.js ou em load.ts
 ```
+
+**`medir:pdf` é a única prova de que o motor de PDF abre um arquivo.** A suíte
+não prova: os 9 fixtures são JSON já extraído e `load.ts` é mockado no jsdom.
+Ele gera um PDF sintético (nada de PDF real — o `.gitignore` barra, e com razão),
+abre num Chromium e exige que a importação chegue em `falha.semParser` ("abri,
+não conheço este banco") e **não** em `falha.ilegivel` nem em `falha.navegador`.
+Roda duas vezes, e a segunda apaga `Promise.withResolvers` antes de qualquer
+script — é ela que cobre o polyfill dentro do WORKER. Fica fora do
+`npm run verificar` porque precisa de um build à parte (`--mode semlogin`, que
+liga o modo "importa e vê" e dispensa login).
 
 - Números de referência do diagnóstico (gasto real de junho = R$ 41.012,25 sobre os
   4 PDFs de `D:/extratos/junho2026`) estão em `docs/ESTADO-ATUAL.md`. Mudou sem
@@ -389,6 +402,11 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
 - **`tsconfig.test.json` precisa de `vite/client` em `types`**: um teste que
   renderiza o `App` puxa a cadeia até `domain/pdf/load.ts`, que importa o worker do
   pdf.js com sufixo `?url`. Sem isso o `tsc` reprova o que o app compila.
+- **`erasableSyntaxOnly` está ligado: parâmetro-propriedade não compila.**
+  `constructor(private readonly x: T) {}` é erro `TS1294` — declare o campo e
+  atribua no corpo. O `vitest` roda assim mesmo (esbuild não liga), então o
+  teste passa e **só o `tsc` reprova**: mais uma razão para `npm test` sozinho
+  não ser verde.
 
 ## 4.2 Estrutura e ambiente
 
@@ -406,6 +424,14 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
   para a porta velha mede um servidor morto ou, pior, o build anterior.
 - **Vite não recarrega bem quando arquivos nascem ou mudam de lugar.** Depois de
   criar arquivo ou refatorar pastas: reinicie `npm run dev` e dê `Ctrl+Shift+R`.
+- **`npm run build -- --mode X` NÃO repassa a flag** neste monorepo: o comando
+  final vira `vite build X` e o build morre. Use
+  `npm run build --workspace frontend -- --mode X` (é o que `build:semlogin`
+  faz).
+- **Padrão de `.gitignore` com barra no meio é ancorado na raiz.** A exceção
+  `!tests/fixtures/**/*.pdf` nunca alcançou nada, porque os fixtures moram em
+  `frontend/tests/fixtures/`. Depois de escrever exceção, **confira com
+  `git check-ignore -v <caminho>`** — o silêncio do git aqui parece acerto.
 - **Build verde ≠ runtime verde.** Já quebrou com React duplicado pelo sonner
   (resolvido com `resolve.dedupe`).
 - **Editar arquivo versionado com `io.open(..., 'w')` no Python, no Windows,
@@ -443,6 +469,34 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
 - **Mexeu no endpoint do Neon? A CSP tem os dois hosts no `connect-src`**, escritos
   à mão no `vercel.json`. Trocar de projeto no Neon sem trocá-los derruba login e
   consulta em produção — e só em produção.
+- **`style-src 'unsafe-inline'` fica, e não é desleixo.** Em 2026-09-06 foi
+  tentado `style-src-elem 'self'` — que tranca a metade perigosa (tag `<style>`
+  injetada) e deixa passar o atributo `style=`, sem quebrar navegador antigo.
+  O `medir-csp.py` reprovou: **o `sonner` injeta a própria `<style>` em
+  runtime**, e três estilos do app também entram por essa via. Revertido no
+  mesmo dia, sem chegar à produção. Quem tentar de novo precisa primeiro tirar
+  o sonner do caminho — e trazer a medição.
+- ⚠️ **O servidor do Neon Auth reflete QUALQUER `Origin` com
+  `Access-Control-Allow-Credentials: true`.** Medido em 2026-09-06: um `Origin`
+  inventado volta em `Access-Control-Allow-Origin`, na resposta real e no
+  preflight, e `trusted_origins` (que tem só o domínio da Vercel) **não governa
+  o CORS**. Como o app fala com o Auth por `credentials: 'include'` de outro
+  domínio (`lib/sessao-remota.ts`), o cookie é `SameSite=None` — que é
+  exatamente a condição que torna a reflexão explorável por uma página
+  qualquer. **Não é o nosso código e não há conserto no repositório**; é do
+  gateway do Neon. A Data API faz o certo (`ACAO: *` **sem** credenciais, e o
+  bearer vai em header). Não afrouxe nada por causa disso e não tente
+  "corrigir" no cliente.
+- **A referência do Neon documenta um `.range(coluna, ini, fim)` que NÃO
+  existe.** O `neon-js` estende o `@supabase/postgrest-js` verbatim, e ali
+  `range(de, ate)` é **paginação**, 0-based e inclusiva nas duas pontas.
+  Chamar com três argumentos vira `from='coluna', to=ini` — parâmetros lixo,
+  sem erro. A verdade é o pacote instalado, não a página de docs.
+- **`db_max_rows` da Data API está vazio** (conferido em 2026-09-06) e é um
+  campo de formulário no console do Neon. Ligá-lo trunca toda leitura **sem
+  erro**: o cliente decide sucesso por `res.ok`, que vale para 200 e 206. Por
+  isso `puxarTudo` pede `{ count: 'exact' }` e confere — ver
+  `RecorteIncompletoError` e o termo **Integridade do recorte** no `CONTEXT.md`.
 
 ## 4.4 Layout e efeitos
 
