@@ -1,11 +1,19 @@
-# Atualização de dependência sem depender de alguém lembrar.
+# ⚠️ LIGAR ISTO NUM REPOSITÓRIO COM MESES DE ATRASO ABRE UMA ENXURRADA.
 #
-# `npm audit` estava em zero em 2026-09-06, e o ADR-0011 mostra que a conta
-# já foi feita a mão uma vez (`@vercel/node` trouxe 5 falhas e foi removido).
-# O que faltava era o aviso chegar sem ninguém procurar.
+# Na primeira vez que este arquivo entrou na `main` (2026-09-06) o Dependabot
+# abriu **7 PRs em dois minutos**, cada um disparando um deploy de preview na
+# Vercel. A configuração de então tinha dois furos:
 #
-# Agrupado de propósito: quinze PRs de patch por semana é o jeito mais
-# conhecido de fazer todo mundo parar de ler PR do Dependabot.
+#   1. Os grupos listavam `update-types: [minor, patch]`. **Major fica de fora
+#      de grupo nenhum** e vem um PR por pacote — foi de onde saíram vitest
+#      4→5, jsdom 28→30, @types/node 24→26 e os dois majors de action.
+#   2. `open-pull-requests-limit` é **por ecossistema**, não do arquivo. Cinco
+#      no npm mais os do github-actions já passam de cinco.
+#
+# A correção não é afinar o limite: é o Dependabot não decidir major nenhum.
+# Subir major é escolha de quem mantém — vitest 5 e jsdom 30 mudam o
+# comportamento da suíte, e a suíte é o que sustenta este projeto.
+
 version: 2
 updates:
   - package-ecosystem: npm
@@ -13,16 +21,28 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    # UM PR por semana, no máximo. Segurança urgente entra por alerta do
+    # Dependabot Security, que não passa por aqui.
+    open-pull-requests-limit: 1
     groups:
-      producao:
-        dependency-type: production
+      dependencias:
+        patterns: ['*']
         update-types: [minor, patch]
-      desenvolvimento:
-        dependency-type: development
-        update-types: [minor, patch]
+    # Major nunca vira PR automático. Para subir um, rode:
+    #   npm outdated  →  npm i <pacote>@latest  →  npm run verificar
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ['*']
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
