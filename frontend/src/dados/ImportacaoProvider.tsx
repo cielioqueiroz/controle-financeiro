@@ -216,7 +216,7 @@ export function ImportacaoProvider({
         await avancar()
       }
     } catch (err) {
-      toast.error(t(chaveDeErro(err, 'salvar.falha')))
+      toast.error(t(chaveDeErro(err, 'salvar.falha', 'importacao')))
     } finally {
       setSalvando(false)
     }

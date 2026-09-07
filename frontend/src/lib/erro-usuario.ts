@@ -1,4 +1,5 @@
 import { type Dicionario } from '../i18n/dicionarios/pt'
+import { registrarFalha, type ContextoFalha } from '../aplicacao/comandos/falhas'
 
 /** Decide QUAL frase a pessoa lê quando algo falha.
  *
@@ -68,8 +69,18 @@ const PADROES: ReadonlyArray<[RegExp, keyof Dicionario]> = [
  *  **Registra o erro cru no console de propósito.** Ele deixou de aparecer na
  *  tela, mas continua sendo a única pista real quando alguém for investigar —
  *  some da interface, não do navegador. */
-export function chaveDeErro(erro: unknown, fallback: keyof Dicionario): keyof Dicionario {
+export function chaveDeErro(
+  erro: unknown,
+  fallback: keyof Dicionario,
+  /** Onde a falha aconteceu, para o registro. Ver `persist/falhas.ts`.
+   *  O padrão é `desconhecido` para o funil não obrigar cada chamador a
+   *  decidir antes de existir motivo — mas quem tem contexto passa. */
+  contexto: ContextoFalha = 'desconhecido',
+): keyof Dicionario {
   console.error(erro)
+  // Registra que ALGO falhou — nunca o quê. Não lança e não espera: ver o
+  // cabeçalho de `persist/falhas.ts`.
+  registrarFalha(erro, contexto)
   const msg = erro instanceof Error ? erro.message : String(erro ?? '')
   return PADROES.find(([padrao]) => padrao.test(msg))?.[1] ?? fallback
 }

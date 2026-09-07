@@ -87,7 +87,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
     try {
       setDocs(await puxarDocumentos())
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'docs.toastListaFalha')))
+      toast.error(t(chaveDeErro(e, 'docs.toastListaFalha', 'documentos')))
     }
   }
 
@@ -105,7 +105,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'docs.toastApagarFalha')))
+      toast.error(t(chaveDeErro(e, 'docs.toastApagarFalha', 'documentos')))
     } finally {
       setOcupado(false)
     }
@@ -123,7 +123,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'docs.toastApagarTudoFalha')))
+      toast.error(t(chaveDeErro(e, 'docs.toastApagarTudoFalha', 'documentos')))
     } finally {
       setOcupado(false)
     }

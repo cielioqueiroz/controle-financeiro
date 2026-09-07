@@ -159,6 +159,14 @@ O subconjunto do histórico que está na tela: as transações visíveis mais o 
 delas.
 _Evitar_: filtro, seleção, view, fatia
 
+**Falha registrada**:
+O rastro que fica quando algo quebra na tela de alguém: a **classe** do erro, o
+**contexto**, a rota, o build e o navegador — e nada do documento. Não é log, não
+é erro: é o mínimo que identifica o defeito sem carregar o dado que o causou.
+Ver [ADR-0015](./docs/adr/0015-registro-de-falhas-do-cliente.md).
+_Em código_: `registrarFalha`, `ContextoFalha` (`persist/falhas.ts`)
+_Evitar_: telemetria, log, evento, monitoramento, crash
+
 **Integridade do recorte**:
 A garantia de que o recorte contém **tudo** o que o histórico tem para aquele
 filtro — nem uma transação a menos. É irmã da **Conferência** e responde a outra

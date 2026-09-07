@@ -1,4 +1,5 @@
 import { type Dicionario } from '../i18n/dicionarios/pt'
+import { registrarFalha } from '../aplicacao/comandos/falhas'
 import {
   ArquivoIlegivelError,
   ArquivoVazioError,
@@ -67,6 +68,13 @@ export function classificarFalha(erro: unknown, arquivo: string): FalhaImportaca
   // pessoa saber qual dos cinco arquivos falhou — e ali quem lê é a dona do
   // documento.
   console.error('[importação]', `(${extensaoDe(arquivo)})`, erro)
+
+  // O outro funil do registro de falhas. `chaveDeErro` cobre a GRAVAÇÃO
+  // (`ImportacaoProvider`); este cobre a LEITURA do PDF, que é onde mora a
+  // classe de defeito que derrubou a importação num celular em 04/09 — e o
+  // erro tipado por causa (`PdfIlegivelError`, `PdfProtegidoError`…) já é o
+  // nome do defeito. O nome do arquivo não vai junto: ver acima.
+  registrarFalha(erro, 'importacao')
 
   const detalhe = detalharErro(erro)
   const par = (titulo: keyof Dicionario, saida: keyof Dicionario): FalhaImportacao => ({

@@ -491,6 +491,13 @@ liga o modo "importa e vê" e dispensa login).
   runtime**, e três estilos do app também entram por essa via. Revertido no
   mesmo dia, sem chegar à produção. Quem tentar de novo precisa primeiro tirar
   o sonner do caminho — e trazer a medição.
+- ⚠️ **Tabela nova nasce com privilégio que ninguém concedeu.** O banco tem
+  `DEFAULT PRIVILEGES` para o role `authenticated` no schema `public`: a
+  `client_errors` da migração `0007` apareceu com **UPDATE** mesmo o `grant`
+  dela listando só `select, insert, delete`. Conceder o que se quer **não
+  tira** o que veio de graça — em tabela nova, `revoke` explicitamente o que
+  não deve existir, e confira com
+  `select privilege_type from information_schema.role_table_grants where table_name='…' and grantee='authenticated'`.
 - ⚠️ **O servidor do Neon Auth reflete QUALQUER `Origin` com
   `Access-Control-Allow-Credentials: true`.** Medido em 2026-09-06: um `Origin`
   inventado volta em `Access-Control-Allow-Origin`, na resposta real e no

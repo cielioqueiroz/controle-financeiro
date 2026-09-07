@@ -105,7 +105,7 @@ export function DadosProvider({
       setTodas(dados)
       setDocsSaldo(saldoDocs)
     } catch (e) {
-      setErro(chaveDeErro(e, 'erro.carregar'))
+      setErro(chaveDeErro(e, 'erro.carregar', 'historico'))
     } finally {
       setCarregando(false)
     }

@@ -42,7 +42,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       setCats(c)
       setRegras(r)
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'cats.toastFalha')))
+      toast.error(t(chaveDeErro(e, 'cats.toastFalha', 'categorias')))
     }
   }
 
@@ -68,7 +68,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'cats.toastSalvarFalha')))
+      toast.error(t(chaveDeErro(e, 'cats.toastSalvarFalha', 'categorias')))
     } finally {
       setOcupado(false)
     }
@@ -83,7 +83,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'cats.toastApagarFalha')))
+      toast.error(t(chaveDeErro(e, 'cats.toastApagarFalha', 'categorias')))
     } finally {
       setOcupado(false)
     }
@@ -97,7 +97,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       await carregar()
       onMudou()
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'cats.toastRegraFalha')))
+      toast.error(t(chaveDeErro(e, 'cats.toastRegraFalha', 'categorias')))
     } finally {
       setOcupado(false)
     }

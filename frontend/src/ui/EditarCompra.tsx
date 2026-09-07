@@ -76,7 +76,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
       setNovoNome('')
       toast.success(t('editar.toastCatCriada', { nome: nova.nome }))
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'editar.toastCatFalha')))
+      toast.error(t(chaveDeErro(e, 'editar.toastCatFalha', 'edicao')))
     } finally {
       setSalvandoCat(false)
     }
@@ -131,7 +131,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
       }
       onFechar()
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'editar.toastFalha')))
+      toast.error(t(chaveDeErro(e, 'editar.toastFalha', 'edicao')))
     } finally {
       setSalvando(false)
     }
