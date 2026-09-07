@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom/vitest'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from '../Notificacoes'
 import { guardarEmailReset, lerEmailReset } from '../../lib/perfil'
@@ -31,6 +32,16 @@ function montar(token: string | null = null) {
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
+})
+
+/** A fila do sonner é de MÓDULO: ela não morre com o `cleanup()` que o
+ *  Testing Library roda entre os testes, que só desmonta a árvore. Sem
+ *  esvaziá-la, o toast de um teste continua na fila do seguinte — e como o
+ *  padrão do `<Toaster>` é mostrar 3, a partir do quarto toast do arquivo o
+ *  novo entra na fila e NUNCA é pintado. O `findByText` então estoura o
+ *  tempo procurando um texto que o componente produziu direitinho. */
+afterEach(() => {
+  toast.dismiss()
 })
 
 describe('RecuperarSenha — pedir o link', () => {
