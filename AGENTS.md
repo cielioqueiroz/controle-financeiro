@@ -4,7 +4,13 @@ App de finanças pessoais **retrospectivo**: o usuário importa PDF de fatura e
 extrato, e o app diz para onde o dinheiro foi. Nada é digitado à mão — todo número
 na tela veio de um documento do banco. React 19 + TS + Vite + Tailwind v4 + Neon.
 No ar em https://capital-financeiro.vercel.app — **todo push na `main` publica
-sozinho** em ~1 min. Trabalha-se direto na `main`, sem branch de feature.
+sozinho** em ~1 min, e não existe homologação.
+
+⚠️ **Trabalho vai para BRANCH.** A regra mudou em 2026-09-06 e esta linha dizia
+o contrário até 09-07. **Não commitar nem dar push sem pedido explícito na
+conversa em andamento**: autorização dada semanas atrás não cobre publicar
+trabalho que ninguém viu. E **rebobinar o git não reverte a Vercel** — desfazer
+um deploy exige *Instant Rollback* no painel.
 
 | Onde | O quê |
 |---|---|
