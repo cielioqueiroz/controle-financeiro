@@ -338,11 +338,26 @@ isso que ela virou script em vez de continuar sendo uma tabela num documento:
 ```bash
 python scripts/medir-contraste.py   # se mexeu em COR
 npm run dev                         # e então, noutro terminal:
-python scripts/medir-overflow.py    # se mexeu em LAYOUT (mede 5 jornadas)
+python scripts/medir-overflow.py    # se mexeu em LAYOUT (mede 6 jornadas)
+npm run medir:a11y                  # se mexeu em MARCAÇÃO (as mesmas jornadas)
 python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de provas
 
 npm run build:semlogin && npm run medir:pdf   # se mexeu no pdf.js ou em load.ts
 ```
+
+**`medir:a11y` roda o axe-core nas MESMAS jornadas do medidor de overflow** —
+ele importa `JORNADAS` de `medir-overflow.py`, então jornada nova entra nos dois
+de uma vez e as listas não têm como divergir. Reprova só `critical` e `serious`;
+`moderate`/`minor` são impressos e não derrubam (axe classifica como `moderate`
+coisas que dependem de intenção de design, e transformá-las em erro treinaria
+qualquer um a ignorar a saída).
+
+⚠️ **O contexto roda com `reduced_motion='reduce'` e as animações são
+finalizadas antes da medição.** Sem isso a legenda do donut entra em cascata
+(`delay: 0.2 + i*0.04`) e o axe pega as linhas a meio fade, reprovando
+`color-contrast` em seis elementos que no estado final passam. Contraste de
+elemento em transição não é defeito — e medidor que grita sobre o que está
+certo é medidor que se aprende a ignorar.
 
 **`medir:pdf` é a única prova de que o motor de PDF abre um arquivo.** A suíte
 não prova: os 9 fixtures são JSON já extraído e `load.ts` é mockado no jsdom.

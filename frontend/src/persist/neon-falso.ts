@@ -47,6 +47,9 @@ export type EstadoFalso = {
   hashes?: string[]
   /** Linhas completas devolvidas pela LEITURA do histórico (`puxarTudo`). */
   transacoes?: Record<string, unknown>[]
+  /** Linhas de QUALQUER outra tabela, por nome — `merchant_rules`,
+   *  `categories`. Evita um balde nomeado por tabela nova. */
+  linhas?: Record<string, Record<string, unknown>[]>
   /** Simula resposta truncada: o `count` diz a verdade, o array vem curto.
    *  É exatamente o que um `db_max_rows` faz — e sem nenhum erro. */
   truncarEm?: number
@@ -184,7 +187,8 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
         }
         return envelope(transacoes.filter((t) => casa(t, c.filtros)))
       }
-      return envelope([])
+      const outras = estado.linhas?.[c.tabela] ?? []
+      return envelope(outras.filter((l) => casa(l, c.filtros)))
     }
 
     if (c.op === 'insert') {
@@ -203,6 +207,11 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
         for (const l of linhas) hashes.add(l.hash as string)
         return { data: null, error: null }
       }
+      // Tabela sem balde próprio (`categories`, `merchant_rules`): o
+      // PostgREST devolve a linha gravada quando há `.select()` depois do
+      // insert, com as colunas que o banco preencheu — aqui, o `id`.
+      const gravadas = linhas.map((l, i) => ({ id: `${c.tabela}-${i + 1}`, ...l }))
+      return envelope(gravadas)
     }
 
     return { data: null, error: null }

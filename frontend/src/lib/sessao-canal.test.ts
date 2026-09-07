@@ -1,10 +1,23 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { avisarSaida, ouvirSaida } from './sessao-canal'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 
 /** Duas abas do app, mesma origem: sair numa tem que derrubar a outra.
  *
  *  A "outra aba" aqui é um `BroadcastChannel` de mesmo nome criado no
- *  teste — é exatamente o que o navegador faz entre documentos. */
+ *  teste — é exatamente o que o navegador faz entre documentos.
+ *
+ *  ## Por que o módulo é reimportado a cada teste (2026-09-06)
+ *
+ *  `sessao-canal.ts` guarda **um** canal em variável de módulo, e o
+ *  `BroadcastChannel` do Node é do PROCESSO, não do arquivo de teste. Com o
+ *  módulo carregado uma vez só, os oito testes compartilhavam o mesmo objeto
+ *  de canal: uma mensagem postada num teste e entregue tarde chegava ao
+ *  ouvinte do teste SEGUINTE.
+ *
+ *  Era isso que fazia a suíte falhar de vez em quando na execução completa
+ *  (sob disputa de CPU) e passar 3/3 rodando o arquivo sozinho — o sintoma
+ *  que o `AGENTS.md` §4.1 registra como "suíte verde não é suíte
+ *  determinística". `resetModules` dá a cada teste um canal próprio, então
+ *  mensagem atrasada não tem em quem cair. */
 
 const NOME = 'cf:sessao'
 const CHAVE_ECO = 'cf:sessao-saida'
@@ -12,12 +25,26 @@ const CHAVE_ECO = 'cf:sessao-saida'
 const abrir = () => new BroadcastChannel(NOME)
 const paraLimpar: Array<() => void> = []
 
+let avisarSaida: typeof import('./sessao-canal').avisarSaida
+let ouvirSaida: typeof import('./sessao-canal').ouvirSaida
+
+beforeEach(async () => {
+  vi.resetModules()
+  ;({ avisarSaida, ouvirSaida } = await import('./sessao-canal'))
+})
+
 afterEach(() => {
   for (const f of paraLimpar.splice(0)) f()
   localStorage.clear()
 })
 
-/** O canal entrega em microtarefa; sem a espera o teste lê antes. */
+/** ⚠️ NÃO use isto para esperar uma mensagem CHEGAR. O canal entrega em
+ *  tarefa própria, e `setTimeout(0)` só garante "um ciclo depois" — sob
+ *  carga a entrega vem depois dele, e o teste lê antes. Para o caso
+ *  positivo, use `vi.waitFor`, que espera o fato em vez de um relógio.
+ *
+ *  Aqui ele serve ao caso NEGATIVO: dar chance de a mensagem chegar, para
+ *  então afirmar que ela não chegou. */
 const proximoCiclo = () => new Promise((r) => setTimeout(r, 0))
 
 describe('sessao-canal', () => {
@@ -27,10 +54,11 @@ describe('sessao-canal', () => {
 
     const outraAba = abrir()
     outraAba.postMessage('saiu')
-    await proximoCiclo()
+    // Espera o FATO, não um tick: com `setTimeout(0)` este teste falha
+    // assim que a entrega do canal atrasa um ciclo — conferido em
+    // 2026-09-06 trocando a espera por `Promise.resolve()`.
+    await vi.waitFor(() => expect(aoSair).toHaveBeenCalledTimes(1))
     outraAba.close()
-
-    expect(aoSair).toHaveBeenCalledTimes(1)
   })
 
   // O erro clássico: postar num canal recém-criado em vez do que escuta.
