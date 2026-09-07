@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-09-06** (auditoria, CI e registro de falhas).
+> Documento de continuidade. Última atualização: **2026-09-07** (o PR #9 destravado, e o primeiro fluxo por PR).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,81 @@
 > **Atualização 2026-08-29:** a migração `0003_integridade_referencias_por_usuario.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A função e os dois gatilhos de integridade entre usuários estão ativos.
 
 > **Atualização 2026-09-01:** a migração `0005_deduplicacao_por_conteudo.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A importação agora calcula `content_hash` a partir do conteúdo financeiro normalizado, ignorando nome e metadados variáveis do PDF; Documentos anteriores à migração também são comparados pelos dados já persistidos.
+
+## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
+
+A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
+mergeados por **rebase**, para a `main` continuar linear. Ao fim: `main` em
+`b60dd75`, publicada, CI verde, **1.029 testes (119 arquivos)**.
+
+O alvo era o **PR #9** do Dependabot, vermelho por **dois** motivos que não têm
+nada a ver um com o outro. Os dois caíram.
+
+### 1. Os 6 avisos do `oxlint` 1.81 (PR #10)
+
+O 1.81 liga três regras novas do plugin `react`, e o lint roda com
+`--deny-warnings`: aviso é erro. Cada um pedia um conserto diferente.
+
+| Arquivo | Regra | O que era |
+|---|---|---|
+| `Auth.tsx` (2×) | `react/refs` | `refs` era um `Record` de três `useRef`, e ler `refs.email` para entregar ao `ref=` é acesso a ref **durante a pintura**. Viraram três refs soltas; o `Record` desceu para dentro de `submeter`, o único lugar onde o campo a focar é escolhido em tempo de execução |
+| `AvisoVersaoNova.tsx` | `react/refs` | `ocupadoRef.current` era escrito no corpo do componente. A escrita foi para um efeito |
+| `ThemeToggle.tsx` | `react/set-state-in-effect` | o efeito de montagem lia o `localStorage`, chamava `setState` e reestampava o `data-theme` |
+| `GraficoCategorias.tsx` | `react/immutability` | o acumulado do donut era somado dentro do `map` do JSX. Virou `geometriaDonut`, função pura que deriva arco e offset antes de desenhar |
+| `DadosProvider.tsx` | `react/set-state-in-effect` | **aqui a regra está errada**: buscar na montagem é sincronizar com um sistema externo, que é o caso de uso do efeito. Suprimido na linha, com o porquê escrito |
+
+⚠️ **O `ThemeToggle` mudou de comportamento** — deixou de estampar o `data-theme`
+ao montar. Quem faz isso é o script inline do `index.html` (e o do `demo.html`),
+pela MESMA regra, antes da primeira pintura: o efeito só reescrevia o que já
+estava lá, ao preço de uma renderização em cascata por montagem. Como a leitura
+do `localStorage` saiu de um efeito e foi para a pintura, `temaInicial` ganhou o
+mesmo `try/catch` que o script inline sempre teve — sem ele, armazenamento
+bloqueado deixaria de derrubar só o botão e passaria a derrubar a árvore.
+
+Era o único dos cinco arquivos **sem teste**, e é o único que mudou de
+comportamento: ganhou `ThemeToggle.test.tsx`, 5 casos, dois deles **provados nos
+dois sentidos** contra a fonte antiga.
+
+### 2. A fila do sonner vazava entre os testes (PR #12)
+
+Seis testes de `RecuperarSenha` reprovavam com o sonner 2.0.8. A causa não era o
+sonner nem o componente: **a fila de toasts do sonner é de MÓDULO**, e o
+`cleanup()` do Testing Library só desmonta a árvore. Do **quarto** toast do
+arquivo em diante, o `<Toaster>` — 3 visíveis por padrão — empilhava o novo atrás
+dos velhos e nunca o pintava. O `findByText` estourava o tempo procurando um
+texto que o componente produzia direitinho.
+
+Dava para ver no DOM que o próprio erro despeja: o `data-title` visível era o
+toast de **outro** teste, ainda montado.
+
+Um `afterEach` com `toast.dismiss()`. O 2.0.8 só mudou *quando* a fila é
+esvaziada — o buraco de higiene sempre esteve ali, e o conserto passa nas duas
+versões.
+
+### 3. As duas provas que o `verificar` não faz
+
+O #9 sobe o `pdfjs-dist` de 6.2.108 para 6.3.289, e o `AGENTS.md` §3 manda provar
+isso à parte. Feito com a árvore de dependências **exata** do #9 instalada:
+
+- **`npm run medir:pdf`** — OK nos dois cenários, inclusive o que apaga
+  `Promise.withResolvers` antes de qualquer script;
+- **o `grep` do piso de API** — o #9 **não sobe o piso do navegador**. A única
+  diferença é que a 6.3.289 deixou de usar `Object.values`.
+
+⚠️ **Achado anterior ao #9, ainda ABERTO.** A `Promise.try` já está no bundle de
+produção **hoje**, e o piso dela é mais alto que o da `Promise.withResolvers` —
+Chrome 128 / Safari 18.2, contra Chrome 119 / Safari 17.4. O `load.ts` só faz
+polyfill da segunda, e o `AGENTS.md` §4.1 descreve o piso por ela. Se a
+`Promise.try` for alcançável no caminho de importação, é o defeito de 04/09
+esperando outro aparelho. Falta medir — ver a fila de código.
+
+### 4. O `AGENTS.md` mandava commitar direto na `main`
+
+A regra mudou em 06/09, e a **linha 7** do `AGENTS.md` continuava dizendo
+*"Trabalha-se direto na `main`, sem branch de feature"*. O `ESTADO-ATUAL.md`
+tinha sido corrigido na mesma rodada; ele não — e é o primeiro arquivo que
+qualquer agente lê. É a armadilha que o próprio `CLAUDE.md` descreve sobre si
+mesmo: duas cópias da mesma regra divergem, e a errada é sempre a que se leu.
 
 ## Rodada 2026-09-06 — a auditoria, e o CI que mostrou que a suíte só passava aqui
 
@@ -387,22 +462,6 @@ o piso depois de cada upgrade do pdf.js.
 
 ---
 
-## Rodada 2026-09-01 (parte 6) — reexportar o mesmo Documento não cria histórico duplicado
-
-O hash anterior era do PDF bruto. Exportar de novo o mesmo Documento podia trocar
-metadados internos, IDs de objetos e a ordem dos objetos, fazendo o hash mudar e a
-importação passar como nova.
-
-Agora `domain/dedupe/hash.ts` produz uma impressão canônica do conteúdo financeiro:
-banco, tipo, período, conta, gabarito, projeção e transações normalizadas. O nome do
-PDF e seus metadados não entram. A ordem das transações também não entra, mas a
-multiplicidade entra — duas compras iguais no mesmo Documento continuam sendo duas.
-
-A migração 0005 adiciona `documents.content_hash` e um índice único por usuário. O
-fluxo ainda conserva `file_hash` para o PDF bruto e, enquanto houver Documentos antigos
-sem `content_hash`, reconstrói a impressão usando os dados salvos e as transações
-relacionadas.
-
 > **Três coisas saíram deste arquivo em 2026-08-17** e agora moram em lugar próprio.
 > Este documento continua sendo a porta de entrada, mas não é mais dono delas:
 >
@@ -415,7 +474,7 @@ relacionadas.
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**1.024 testes (118 arquivos)**, `npm run verificar` verde nos seis passos.
+**1.029 testes (119 arquivos)**, `npm run verificar` verde nos seis passos.
 
 ⚠️ **O fluxo mudou em 2026-09-06: trabalho vai para BRANCH, não direto na
 `main`.** Todo push na `main` publica em produção em ~1 min, e o dono pediu
@@ -461,8 +520,7 @@ PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
 | O que | Por que está parado |
 |---|---|
-| **Mergear a branch `testes-ui-restantes`** | Dois commits de teste, verificação verde. Só falta o seu aval |
-| **PR #9 do Dependabot** | Vermelho por dois motivos reais: o `oxlint` 1.81 traz regras novas que apontam 6 avisos em código antigo, e 6 testes de `RecuperarSenha` quebram. **Não é rubber stamp** |
+| **PR #9 do Dependabot** | Os dois motivos reais caíram em 07/09 (PRs #10 e #12). Falta o Dependabot rebasear na `main` nova e o CI reexecutar. **Continua não sendo rubber stamp**: são 8 pacotes, e o `pdfjs-dist` é um deles |
 | **`allow_localhost: true` em produção** | Desligar quebra o login no `npm run dev`. Decisão de produto |
 | **Cadastro sem verificação de e-mail** | `require_email_verification: false` + sem captcha: qualquer um cria conta com e-mail alheio |
 | **CORS do Neon Auth** | Reflete QUALQUER origem com credenciais. **Não tem conserto no repositório** — é chamado para o Neon |
@@ -477,13 +535,13 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
-| **Os 6 avisos do `oxlint` 1.81** — refs lidos durante render, `setState` em efeito | pequeno, e **destrava metade do PR #9** |
+| **Medir se a `Promise.try` é alcançável no pdf.js** — piso de Safari 18.2 num app que já quebrou por piso de navegador | pequeno: um terceiro cenário no `medir-pdf.py`, no molde do que já apaga a `withResolvers` |
 | **Testes de `Diagnosticos`, `BarraFiltros`, `CompromissosFuturos` e as três listas** | pequeno cada; o dublê e os padrões já existem |
 | **Tirar o `zod` da primeira pintura** — 23,4% do bundle, contra ~7% do SDK inteiro | médio: `sessao-remota.ts` já pergunta "há sessão?" com `fetch` puro, sem tocar no SDK |
 | **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
 
-> As três primeiras vêm da prancheta de 31/08. Duas propostas daquela lista
+> Os testes de UI e o `zod` vêm da prancheta de 31/08. Duas propostas daquela lista
 > morreram na reversão do desenho: a régua do banco (o argumento era gastar a
 > única exceção de raio zero, e não há mais raio zero) e a impressão de verdade
 > (era "a piada funcionando" num app que parecia impresso).

@@ -13,6 +13,24 @@ daqui que saíram os ADRs e metade das armadilhas do `AGENTS.md`.
 
 ---
 
+## Rodada 2026-09-01 (parte 6) — reexportar o mesmo Documento não cria histórico duplicado
+
+O hash anterior era do PDF bruto. Exportar de novo o mesmo Documento podia trocar
+metadados internos, IDs de objetos e a ordem dos objetos, fazendo o hash mudar e a
+importação passar como nova.
+
+Agora `domain/dedupe/hash.ts` produz uma impressão canônica do conteúdo financeiro:
+banco, tipo, período, conta, gabarito, projeção e transações normalizadas. O nome do
+PDF e seus metadados não entram. A ordem das transações também não entra, mas a
+multiplicidade entra — duas compras iguais no mesmo Documento continuam sendo duas.
+
+A migração 0005 adiciona `documents.content_hash` e um índice único por usuário. O
+fluxo ainda conserva `file_hash` para o PDF bruto e, enquanto houver Documentos antigos
+sem `content_hash`, reconstrói a impressão usando os dados salvos e as transações
+relacionadas.
+
+---
+
 ## Rodada 2026-08-31 (parte 5) — a procedência, e o AGENTS.md que descrevia outro repositório
 
 ### 1. `AGENTS.md`: a conta completa de adicionar um banco
