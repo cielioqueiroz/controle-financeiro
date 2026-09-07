@@ -1,6 +1,6 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-09-06** (a auditoria).
+> Documento de continuidade. Última atualização: **2026-09-06** (auditoria, CI e registro de falhas).
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -14,6 +14,121 @@
 > **Atualização 2026-08-29:** a migração `0003_integridade_referencias_por_usuario.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A função e os dois gatilhos de integridade entre usuários estão ativos.
 
 > **Atualização 2026-09-01:** a migração `0005_deduplicacao_por_conteudo.sql` foi aplicada e conferida na branch `production` do Neon (`neondb`). A importação agora calcula `content_hash` a partir do conteúdo financeiro normalizado, ignorando nome e metadados variáveis do PDF; Documentos anteriores à migração também são comparados pelos dados já persistidos.
+
+## Rodada 2026-09-06 — a auditoria, e o CI que mostrou que a suíte só passava aqui
+
+Começou como "me traga uma análise deste projeto" e virou a rodada mais longa até
+hoje: auditoria de segurança de 20 pontos, o caminho de escrita ganhando teste
+pela primeira vez, três medidores novos e o primeiro CI do repositório — que na
+primeira execução provou seu valor achando um defeito de anos.
+
+**Estado ao fim da rodada:** `main` em `6cde9b2`, publicada e com CI verde. Os dois
+últimos commits (testes de `CarrosselBancos` e `Dropzone`) estão na branch
+`testes-ui-restantes`, **ainda sem merge**.
+
+### 1. O caminho por onde o dinheiro entra não tinha um teste
+
+`persist/salvar.ts` — 286 linhas onde se encontram dedupe, vínculo, categorização
+e o discriminador `#2` — era o **único** ponto por onde dado entra no banco, e não
+tinha nenhum teste. Os três que existiam em `persist/` cobriam os arquivos puros,
+que já eram os fáceis.
+
+Hoje tem 21, com um dublê do cliente Neon (`persist/neon-falso.ts`). Dois defeitos
+reais caíram junto:
+
+- **`file_hash` era comparado e NUNCA selecionado.** `doc.file_hash` era sempre
+  `undefined`, então aquele lado do `||` jamais era verdadeiro. Ficava mascarado
+  porque o mesmo arquivo também produz o mesmo `content_hash` — mudaria de figura
+  no dia em que `hashConteudoDocumento` mudasse de fórmula, e o sintoma seria
+  **dupla contagem**.
+- **O `.or()` montava o filtro por interpolação de string.** Os valores são hashes
+  nossos, então não havia injeção; o padrão é que estava errado. Virou dois `.eq()`
+  pelo builder. De quebra, a consulta parou de puxar **todo documento legado com
+  as transações aninhadas** a cada importação (há zero documentos legados no banco
+  — a ramificação estava morta).
+
+### 2. A leitura ganhou a metade que faltava da promessa
+
+A **Conferência** cobre a extração. A leitura do banco não tinha equivalente, e era
+o único trecho do caminho do dinheiro sem um. `puxarTudo` passou a pedir
+`{ count: 'exact' }` e a recusar a resposta quando vêm menos linhas do que o banco
+declara (`RecorteIncompletoError`). O `as number` virou conferência de forma em
+runtime. Termo novo no `CONTEXT.md`: **Integridade do recorte**.
+
+⚠️ O `db_max_rows` da Data API está **vazio** hoje — conferido. É um campo de
+formulário no console do Neon, e ligá-lo trunca toda leitura **sem erro**.
+
+### 3. A fronteira das telas deixou de ser promessa
+
+`aplicacao/` eram 17 linhas de reexportação que ~30 arquivos contornavam, enquanto
+dois ADRs prometiam que ela era a fronteira. Virou regra de lint
+(`no-restricted-imports`), conferida com uma violação proposital. E `persist/`
+virou só o adaptador: 501 linhas puras de regra de dinheiro (`agrupar`, `saldos`,
+`aberto`) foram para `domain/`. Ver [ADR-0013](./adr/0013-a-fronteira-das-telas-deixa-de-ser-promessa.md).
+
+### 4. Minimizar em vez de criptografar
+
+Três colunas eram escritas e **nunca lidas**: `transactions.raw` (360 de 360),
+`accounts.holder_name` (6 de 7) e `transactions.counterparty_doc` (0 de 360). Dado
+sensível sem consumidor é risco puro. A migração `0006` apagou o que havia e trocou
+o GRANT de tabela por **GRANT de coluna** — `UPDATE` em `transactions` agora só
+alcança `label`, `category_slug` e `kind`, o que faz a frase de abertura do README
+virar regra do Postgres em vez de convenção do TypeScript.
+Ver [ADR-0014](./adr/0014-minimizar-em-vez-de-criptografar.md).
+
+### 5. O app passou a saber quando quebra
+
+Não havia telemetria nenhuma: em 04/09 o app quebrou no celular de uma parente e a
+única razão de alguém ter descoberto foi ela ter contado. A migração `0007` criou
+`client_errors`, escrita pelo cliente pela Data API com RLS — sem backend, sem
+credencial nova, sem SaaS. Guarda **classe do erro, contexto, rota (sem a query),
+build e navegador reduzido**; sem mensagem, sem pilha, sem nome de arquivo, sem
+valor. Há teste asseverando cada ausência.
+Ver [ADR-0015](./adr/0015-registro-de-falhas-do-cliente.md).
+
+⚠️ **Limite declarado:** sem sessão não há JWT, então falha em tela deslogada não é
+registrada.
+
+### 6. Três medidores novos
+
+| comando | o que prova |
+|---|---|
+| `npm run medir:pdf` | o motor de PDF abre um arquivo num Chromium de verdade, inclusive com `Promise.withResolvers` apagado |
+| `npm run medir:a11y` | axe-core (WCAG 2.1 A/AA) nas MESMAS jornadas do medidor de overflow |
+| `npm run medir:peso` | atribui os bytes do chunk principal por sourcemap |
+
+Os três foram **provados nos dois sentidos** — cada um reprova quando o defeito que
+ele vigia é reintroduzido de propósito.
+
+O `medir:peso` **corrigiu o ADR-0007**: "o SDK do Neon é 39%" nomeava o alvo errado.
+O SDK sozinho dá ~7%; o `zod` que ele arrasta dá **23,4%**. E a animação
+(`motion-dom` + `framer-motion`, 12,6%) pesa mais que o SDK inteiro.
+
+### 7. O CI nasceu e achou um defeito de anos no primeiro push
+
+Não havia CI nenhum — a única rede era alguém lembrar de rodar `npm run verificar`.
+Agora roda a cada push, mais `npm audit` e `gitleaks`.
+
+E ele ficou **vermelho no primeiro commit**, enquanto o mesmo comando estava verde
+na máquina do dono. A causa: **cinco testes de `lib/sessao-remota.test.ts` liam o
+`.env.local` REAL**, que é gitignored. Ou seja, **a suíte só passava aqui** — um
+clone limpo veria cinco vermelhos. Consertado com um `.env.test` versionado
+(valores `.invalid`, RFC 2606).
+
+⚠️ **Duas lições caras desta rodada, ambas já no `AGENTS.md` §4:**
+- **Ligar um bot é publicação, não configuração.** O `dependabot.yml` entrou na
+  `main` e abriu **7 PRs em dois minutos**. A config corrigida ignora major e
+  limita a 1 PR.
+- **Tabela nova nasce com privilégio que ninguém concedeu.** A `client_errors`
+  apareceu com `UPDATE` apesar do `grant` listar só três: o banco tem
+  `DEFAULT PRIVILEGES`. Conceder não tira o que veio de graça.
+
+### 8. Documentação
+
+`ESTADO-ATUAL.md` tinha 2.693 linhas e era o primeiro arquivo de uma retomada.
+Ganhou **regra de retenção**: as três rodadas mais recentes ficam, o resto vai para
+[`HISTORICO.md`](./HISTORICO.md) sem edição. Os dois prompts que descreviam um
+produto em Next.js + Supabase saíram.
 
 ## Rodada 2026-09-04 — o app no celular de outra pessoa
 
@@ -297,66 +412,29 @@ relacionadas.
 > | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
 > | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
 
-## Rodada 2026-08-31 (parte 5) — a procedência, e o AGENTS.md que descrevia outro repositório
-
-### 1. `AGENTS.md`: a conta completa de adicionar um banco
-
-⚠️ **A §2.3 dizia "nada a jusante muda"**, e isso era falso no ponto que custa
-caro: sem a migração que amplia o CHECK de `accounts.bank`, a primeira
-importação daquele banco **falha inteira**, com uma mensagem de Postgres que não
-diz ao usuário o que aconteceu. Foi o que quase aconteceu com o Mercado Pago.
-
-Agora são seis passos numerados, e o sexto (o carrossel) traz a condição: só
-depois de o parser existir, porque a faixa diz "já lê os extratos de". Entrou
-junto a lição do detector — **melhor que acertar a ordem é a assinatura que não
-depende dela**: `EXTRATO DE CONTA` sozinho casaria por prefixo com o `Extrato de
-Conta Corrente` do BB.
-
-E a **§2.10 é nova**: a direção de desenho. O app trocou de direção duas vezes em
-seis dias e o `AGENTS.md` não mencionava nenhuma — quem lesse só ele
-reintroduziria o "impresso e terminal" sem saber que foi revertido.
-
-### 2. A procedência
-
-Segunda proposta da prancheta, na parte que sobreviveu à reversão. O app é
-retrospectivo — **todo número veio de um documento do banco** —, e essa promessa
-não aparecia em lugar nenhum da tela: os totais simplesmente estavam lá, do
-mesmo jeito que estariam se tivessem sido digitados.
-
-Uma linha acima dos tiles: `jul 2026 · Nubank Bradesco Mercado Pago · 2 faturas
-e 2 extratos`.
-
-**Não é a barra de filtros de novo**, e a distinção entrou no `CONTEXT.md`
-porque é exatamente o par que o glossário existe para separar: filtro é o que foi
-**escolhido**, procedência é o que foi **encontrado**, e os dois divergem sempre
-que o recorte cai num mês cuja fatura ninguém importou.
-
-Conta documentos distintos, derivada das próprias transações da tela — nunca de
-uma segunda consulta, porque duas contagens que discordam é pior que uma só.
-
-⚠️ **Duas coisas que só a folha de provas pegou**, e nenhuma apareceria em teste:
-
-1. `capitalize` do Tailwind maiusculiza **toda** palavra ("Julho De 2026"). Hoje
-   `rotuloPeriodo` devolve uma palavra só e os dois dariam no mesmo — mas o
-   componente recebe o rótulo pronto de fora e não manda no formato dele.
-   `first-letter:uppercase`.
-2. A seção da folha passava `TUDO`, que é **um** documento só — e a linha existe
-   justamente para mostrar a mistura. **Folha que prova um caso que a tela não
-   produz não prova nada.**
-
-E uma armadilha de método, minha: procurei o componente com
-`secao.querySelector('p')` e li o `<p>` do TÍTULO da seção, concluindo que ele
-não renderizava. Renderizava. Antes de investigar o código, conferir que a sonda
-mede o que se pensa que ela mede.
-
-**761 testes (93 arquivos)**, `npm run verificar` verde nos seis passos, 10
-medições de overflow verdes.
-
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**754 testes (92 arquivos)**, `npm run verificar` verde nos seis passos.
-Trabalha-se direto na `main`; todo push publica sozinho em ~1 min.
+**1.024 testes (118 arquivos)**, `npm run verificar` verde nos seis passos.
+
+⚠️ **O fluxo mudou em 2026-09-06: trabalho vai para BRANCH, não direto na
+`main`.** Todo push na `main` publica em produção em ~1 min, e o dono pediu
+para ver antes. **Não commitar nem dar push sem pedido explícito na conversa em
+andamento** — uma autorização dada semanas atrás não cobre publicar trabalho que
+ninguém viu.
+
+⚠️ **Rebobinar o git NÃO reverte a Vercel.** Desfazer um deploy exige *Instant
+Rollback* ou *Promote* no painel. E enquanto um rollback estiver ativo, push na
+`main` **não promove sozinho**.
+
+**Há CI desde 2026-09-06** (`.github/workflows/verificar.yml`): `npm run
+verificar` + `npm audit` + `gitleaks` a cada push. Ele achou um defeito de anos
+no primeiro commit — ver a rodada de 09-06, item 7.
+
+**Quatro medidores fora do `verificar`**, cada um provado nos dois sentidos:
+`medir-contraste.py` (cor), `medir-overflow.py` (layout), `npm run medir:a11y`
+(marcação, mesmas jornadas do overflow) e `npm run medir:pdf` (o motor de PDF
+abre arquivo). Mais o `npm run medir:peso`, que atribui os bytes do bundle.
 
 **O desenho é o "livro-razão"** (IBM Plex, raio, cartão com sombra) desde a
 reversão de 31/08 — ver [ADR-0012](./adr/0012-o-livro-razao-volta-e-a-calha-lateral-nasce.md).
@@ -383,6 +461,12 @@ PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
 | O que | Por que está parado |
 |---|---|
+| **Mergear a branch `testes-ui-restantes`** | Dois commits de teste, verificação verde. Só falta o seu aval |
+| **PR #9 do Dependabot** | Vermelho por dois motivos reais: o `oxlint` 1.81 traz regras novas que apontam 6 avisos em código antigo, e 6 testes de `RecuperarSenha` quebram. **Não é rubber stamp** |
+| **`allow_localhost: true` em produção** | Desligar quebra o login no `npm run dev`. Decisão de produto |
+| **Cadastro sem verificação de e-mail** | `require_email_verification: false` + sem captcha: qualquer um cria conta com e-mail alheio |
+| **CORS do Neon Auth** | Reflete QUALQUER origem com credenciais. **Não tem conserto no repositório** — é chamado para o Neon |
+| **Pentest da Strix** | A CLI está instalada; falta Docker de pé + `STRIX_LLM`/`LLM_API_KEY` |
 | **Importar os PDFs do Mercado Pago pelo app** | Os parsers conferem contra fixture; ninguém ainda gravou no banco de verdade. É a prova que falta |
 | **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — substitui o teste de login que não existe |
 | **Amostra da Caixa / layout A do BB** | O extrato da Caixa veio como imagem, e o app lê texto |
@@ -393,6 +477,9 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
+| **Os 6 avisos do `oxlint` 1.81** — refs lidos durante render, `setState` em efeito | pequeno, e **destrava metade do PR #9** |
+| **Testes de `Diagnosticos`, `BarraFiltros`, `CompromissosFuturos` e as três listas** | pequeno cada; o dublê e os padrões já existem |
+| **Tirar o `zod` da primeira pintura** — 23,4% do bundle, contra ~7% do SDK inteiro | médio: `sessao-remota.ts` já pergunta "há sessão?" com `fetch` puro, sem tocar no SDK |
 | **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
 
