@@ -40,9 +40,16 @@ export function AvisoVersaoNova() {
   const importacao = useImportacaoOpcional()
   // Ref, e não dependência do efeito: a fase muda a cada leitura de PDF, e
   // reassinar os eventos do navegador a cada mudança dessas é ruído.
-  const ocupadoRef = useRef(false)
-  ocupadoRef.current =
+  //
+  // A escrita vai num efeito, e não na pintura: `conferir` só lê esta ref de
+  // dentro de um evento do navegador, que acontece bem depois de o efeito ter
+  // rodado. Escrever ref durante o render é o que o React não garante.
+  const ocupado =
     importacao?.estado.fase === 'lendo' || importacao?.estado.fase === 'pronto'
+  const ocupadoRef = useRef(ocupado)
+  useEffect(() => {
+    ocupadoRef.current = ocupado
+  }, [ocupado])
 
   const conferir = useCallback(async () => {
     if (document.visibilityState !== 'visible') return

@@ -21,6 +21,22 @@ const CIRC = 2 * Math.PI * R
  *  um bloco só — o vão é o que separa as fatias antes da cor. */
 const VAO = 2
 
+/** A geometria do donut: cada fatia começa onde a anterior terminou.
+ *
+ *  Mora aqui fora porque o acumulado precisa ser DERIVADO antes da pintura.
+ *  Somá-lo dentro do `map` do JSX reatribui uma variável do corpo do
+ *  componente enquanto o React monta a árvore — trabalho que ele pode
+ *  reexecutar pela metade, e o donut sairia com fatias sobrepostas. */
+function geometriaDonut(topo: CategoriaResumo[], totalCents: number) {
+  let acumulado = 0
+  return topo.map((c) => {
+    const fracao = c.totalCents / totalCents
+    const fatia = { arco: Math.max(fracao * CIRC - VAO, 1), offset: -acumulado * CIRC }
+    acumulado += fracao
+    return fatia
+  })
+}
+
 /** Gasto por categoria, em SVG próprio — sem biblioteca de gráfico.
  *
  *  **A cor é da CATEGORIA, não da posição no ranking.** A mesma categoria
@@ -63,7 +79,7 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
     navigate(`/lancamentos${escreverFiltros({ ...filtros, categoria: slug })}`)
   }
 
-  let acumulado = 0
+  const fatias = geometriaDonut(topo, totalCents)
 
   return (
     <div className="flex flex-wrap items-center gap-6">
@@ -75,10 +91,7 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
           aria-label={t('donut.rotulo', { total: formatBRL(totalCents) })}
         >
           {topo.map((c, i) => {
-            const fracao = c.totalCents / totalCents
-            const arco = Math.max(fracao * CIRC - VAO, 1)
-            const offset = -acumulado * CIRC
-            acumulado += fracao
+            const { arco, offset } = fatias[i]
             const destacada = ativa === i
             return (
               <motion.circle

@@ -43,11 +43,14 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
   const { t } = useT()
 
   // Uma ref por campo obrigatório, para focar o primeiro que estiver vazio.
-  const refs: Record<CampoAcesso, React.RefObject<HTMLInputElement | null>> = {
-    nome: useRef<HTMLInputElement>(null),
-    email: useRef<HTMLInputElement>(null),
-    senha: useRef<HTMLInputElement>(null),
-  }
+  //
+  // Três refs soltas, e não um `Record` delas: ler `refs.email` para entregar
+  // ao `ref=` é acesso a ref DURANTE a pintura, e o que se lê ali o React não
+  // garante. O `Record` não sumiu — desceu para dentro de `submeter`, o único
+  // lugar onde o campo a focar é escolhido em tempo de execução.
+  const refNome = useRef<HTMLInputElement>(null)
+  const refEmail = useRef<HTMLInputElement>(null)
+  const refSenha = useRef<HTMLInputElement>(null)
 
   async function submeter(e: React.FormEvent) {
     e.preventDefault()
@@ -72,12 +75,17 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
       toast.error(
         t(modo === 'criar' ? 'validacao.preenchaCriar' : 'validacao.preenchaEntrar', { campos }),
       )
+      const refs: Record<CampoAcesso, React.RefObject<HTMLInputElement | null>> = {
+        nome: refNome,
+        email: refEmail,
+        senha: refSenha,
+      }
       refs[faltando[0]].current?.focus()
       return
     }
     if (!emailValido(email)) {
       toast.error(t('validacao.emailInvalido'))
-      refs.email.current?.focus()
+      refEmail.current?.focus()
       return
     }
     if (senha.length < 8) {
@@ -86,7 +94,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
       // diferente para o mesmo texto no mesmo card sugere gravidade diferente
       // onde não há. Vermelho nos dois, porque nos dois o envio foi barrado.
       toast.error(t('validacao.senhaCurta'))
-      refs.senha.current?.focus()
+      refSenha.current?.focus()
       return
     }
 
@@ -218,7 +226,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                       inconsistente. */}
                   <input
                     type="text"
-                    ref={refs.nome}
+                    ref={refNome}
                     required
                     aria-label={t('campo.rotulo.nome')}
                     autoComplete="name"
@@ -245,7 +253,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
               )}
               <input
                 type="email"
-                ref={refs.email}
+                ref={refEmail}
                 required
                 aria-label={t('campo.rotulo.email')}
                 autoComplete="email"
@@ -255,7 +263,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
                 className={CAMPO}
               />
               <CampoSenha
-                refCampo={refs.senha}
+                refCampo={refSenha}
                 valor={senha}
                 aoMudar={setSenha}
                 visivel={verSenha}

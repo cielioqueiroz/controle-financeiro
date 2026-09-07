@@ -112,6 +112,11 @@ export function DadosProvider({
   }, [sementes])
 
   useEffect(() => {
+    // Buscar na montagem é sincronizar a tela com um sistema EXTERNO (o
+    // banco) — o caso de uso do efeito, não o abuso dele. A regra dispara
+    // porque `recarregar` acende o "carregando" na primeira linha, e isso
+    // não tem como ser derivado durante a pintura: quem busca é o efeito.
+    // oxlint-disable-next-line react/set-state-in-effect
     recarregar()
   }, [recarregar])
 

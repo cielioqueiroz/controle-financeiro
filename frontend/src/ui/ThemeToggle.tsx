@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'motion/react'
 import { useT } from '../i18n/IdiomaProvider'
 
@@ -18,22 +18,32 @@ type Tema = 'dark' | 'light'
  *  ⚠️ A MESMA regra vive no script inline do `index.html`, que roda antes da
  *  primeira pintura. Mudar uma sem a outra faz a página nascer com um tema e
  *  trocar para o outro ao montar — o piscar que aquele bloco existe para
- *  evitar. E o script inline tem hash na CSP: ver o aviso lá. */
+ *  evitar. E o script inline tem hash na CSP: ver o aviso lá.
+ *
+ *  Desde 2026-09-07 o `data-theme` inicial vem SÓ de lá: este componente
+ *  deixou de reestampá-lo ao montar. Era a mesma escrita duas vezes, e a
+ *  segunda custava uma renderização em cascata a cada montagem. As duas
+ *  cópias da regra ficaram mais acopladas, não menos. */
 function temaInicial(): Tema {
-  return localStorage.getItem('tema') === 'light' ? 'light' : 'dark'
+  try {
+    return localStorage.getItem('tema') === 'light' ? 'light' : 'dark'
+  } catch {
+    // O mesmo `catch` do script inline. Sem ele, navegador com armazenamento
+    // bloqueado derrubaria a PINTURA — antes este acesso morava num efeito,
+    // e é lê-lo durante o render que torna a guarda obrigatória.
+    return 'dark'
+  }
 }
 
 /** Alterna claro/escuro. Grava a escolha e estampa data-theme no <html>,
  *  que faz as variáveis de cor inverterem (ver index.css). */
 export function ThemeToggle() {
   const { t } = useT()
-  const [tema, setTema] = useState<Tema>('dark')
-
-  useEffect(() => {
-    const t = temaInicial()
-    setTema(t)
-    document.documentElement.dataset.theme = t
-  }, [])
+  // Estado inicial preguiçoso, e não um efeito de montagem: o `index.html`
+  // (e o `demo.html`) já estampou o `data-theme` pela MESMA regra antes da
+  // primeira pintura, então o efeito só reescrevia o que já estava lá — ao
+  // preço de uma segunda renderização toda vez que o botão monta.
+  const [tema, setTema] = useState<Tema>(temaInicial)
 
   function alternar() {
     const novo: Tema = tema === 'dark' ? 'light' : 'dark'
