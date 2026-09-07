@@ -15,6 +15,9 @@ out/
 .env
 .env.*
 !.env.example
+# Valores de teste, sem segredo e sem destino real. Versionado de propósito:
+# sem ele, cinco testes só passam na máquina de quem tem o `.env.local`.
+!.env.test
 
 # Logs
 logs/

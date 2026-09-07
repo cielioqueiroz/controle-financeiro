@@ -383,6 +383,15 @@ liga o modo "importa e vê" e dispensa login).
   teste que tente fixar `VITE_*` falha em silêncio, lendo o valor real do
   `.env.local`. Por isso `recuperar-senha.test.ts` assevera a **forma** da URL, não
   o valor da base. `neon.ts` tem o mesmo padrão e baterá na mesma parede.
+- ⚠️ **Os valores de teste vêm do `.env.test`, que é VERSIONADO.** Como o
+  `stubEnv` não alcança `import.meta.env`, a única saída é o arquivo. Sem ele,
+  cinco testes de `lib/sessao-remota.test.ts` liam o `.env.local` real —
+  `sessaoAindaVale()` devolve `null` na primeira linha quando a URL falta, e
+  nunca chega ao `fetch`. Como `.env.local` é gitignored, **a suíte só passava
+  na máquina do dono**; o CI mostrou isso no primeiro push (2026-09-06), e um
+  clone limpo veria os mesmos cinco vermelhos. Teste que lê `VITE_*` deve ser
+  conferido com o `.env.local` escondido:
+  `mv .env.local /tmp/ && npm test` — e devolvido depois.
 - **Suíte verde não é suíte determinística.** Três execuções do mesmo commit já
   deram 4 → 1 → 0 falhas: os testes que sobem o `<App/>` com `userEvent` estouravam
   o `testTimeout` sob disputa de CPU (hoje 15000ms). **Se um teste falhar sem você
