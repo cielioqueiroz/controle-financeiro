@@ -21,7 +21,9 @@
     "medir:pdf": "uv run --with playwright python scripts/medir-pdf.py",
     "medir:a11y": "uv run --with playwright python scripts/medir-a11y.py",
     "medir:peso": "uv run python scripts/medir-peso.py",
-    "fixtures": "tsx scripts/gerar-fixtures.ts"
+    "fixtures": "tsx scripts/gerar-fixtures.ts",
+    "build:login": "npm run build --workspace frontend -- --mode login",
+    "medir:login": "uv run --with playwright python scripts/medir-login.py"
   },
   "devDependencies": {
     "axe-core": "^4.13.0",

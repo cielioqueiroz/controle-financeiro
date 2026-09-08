@@ -5,6 +5,28 @@ exercita autenticação de verdade: uma regressão de login passa verde do come�
 ao fim, e só o usuário, entrando com conta real, descobre. Essa é a restrição
 durável — o resto deste documento é a consequência dela.
 
+> **Atualização 2026-09-08 — parte da rede passou a existir.** O
+> `scripts/medir-login.py` sobe um **Auth de mentira** em `127.0.0.1:4599`,
+> serve o `dist` no mesmo endereço e dirige a tela num Chromium. O SDK de
+> verdade roda — com o `better-auth` e o `zod` que ele arrasta —, e são cinco
+> cenários: sem sessão, login aceito, login recusado, sessão já existente e
+> sair. Cada um foi provado nos dois sentidos por mutação no app.
+>
+> **A frase de abertura desta ADR deixou de ser verdade inteira**: uma
+> regressão de login não passa mais verde do começo ao fim. Mas o que ela
+> decide **continua valendo**, porque o que o medidor cobre é o app fazendo a
+> sua parte, e não o servidor fazendo a dele. Ficam de fora, e ainda pedem o
+> roteiro manual: o Neon de verdade (formato de resposta que mude do lado
+> deles), a entrega de e-mail, o OAuth do Google e o RLS. O desbloqueio
+> completo continua sendo o que está escrito abaixo — conta de teste
+> versionável ou integração real.
+>
+> ⚠️ **O medidor mede o `dist`, não o código.** Descoberto medindo: uma
+> mutação que não compilava deixou o build falhar, e os cinco cenários
+> passaram verdes contra o `dist` anterior. É a mesma armadilha do
+> `medir-csp.py`. Rode `npm run build:login` **e confira que ele passou**
+> antes de acreditar no verde.
+
 > **Histórico.** Até 2026-08-28 esta ADR se chamava *"O SDK do Neon não é
 > atualizado, apesar das falhas abertas"* e recusava o salto de
 > `0.6.2-beta` → `0.7.0-beta`, porque trocar a biblioteca de autenticação de um
