@@ -3,19 +3,25 @@ import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
 import type { GrupoDia } from '../../domain/agrupar'
 import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
+import { useT } from '../../i18n/IdiomaProvider'
+import { diaSemanaAbrev, mesAbrev } from '../../domain/normalize/data'
 
 type Props = {
   grupos: GrupoDia<TransacaoSalva>[]
   onEditar: (t: TransacaoSalva) => void
 }
 
-const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-
+/** ⚠️ `new Date(y, m - 1, d)`, e não `new Date(iso)`: a segunda forma lê a
+ *  string como UTC e, a oeste de Greenwich, mostra o DIA ANTERIOR no
+ *  cabeçalho — a compra de sexta apareceria como quinta.
+ *
+ *  Os nomes saem do `Intl`, na locale ativa. Eram dois arrays em português
+ *  cravados aqui, e por isso o cabeçalho continuava dizendo "sex, 5 jun" com
+ *  o app em inglês. */
 function cabecalhoDia(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   const dt = new Date(y, m - 1, d)
-  return `${DIAS[dt.getDay()]}, ${d} ${MESES[m - 1]}`
+  return `${diaSemanaAbrev(dt)}, ${d} ${mesAbrev(dt)}`
 }
 
 /** Lançamentos agrupados por dia: cada dia tem um cabeçalho com a data e o
@@ -23,8 +29,14 @@ function cabecalhoDia(iso: string): string {
  *  compras, débitos, créditos, estornos. */
 export function ListaPorDia({ grupos, onEditar }: Props) {
   const formatBRL = useDinheiro()
+  // O `useT` não é só pelas frases: `cabecalhoDia` lê a locale de um estado de
+  // MÓDULO, e estado de módulo não repinta ninguém. É o hook que inscreve este
+  // componente na troca de idioma — a mesma armadilha do `formatBRL` direto.
+  const { t } = useT()
   if (grupos.length === 0) {
-    return <p className="px-6 py-10 text-center text-sm text-tinta-fraca">Sem lançamentos neste período.</p>
+    return (
+      <p className="px-6 py-10 text-center text-sm text-tinta-fraca">{t('lista.semLancamentos')}</p>
+    )
   }
 
   return (
