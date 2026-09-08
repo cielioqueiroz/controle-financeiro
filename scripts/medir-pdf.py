@@ -21,11 +21,41 @@ foi o MOTOR, e qualquer PDF do mundo teria pego. Os 9 fixtures continuam sendo
 o que prova os parsers; este script prova a unica coisa que eles nao podem
 provar, que e que o arquivo abre.
 
-DUAS PASSADAS. A segunda apaga `Promise.withResolvers` antes de qualquer script
-rodar, simulando o aparelho antigo. Sem ela o polyfill de `load.ts` poderia
-sumir num refactor e ninguem notaria ate outro celular reclamar. O polyfill
-precisa valer em DOIS lugares — nesta thread e dentro do WORKER, que tem outro
-`globalThis` —, e so a segunda passada cobre o worker.
+QUATRO PASSADAS, uma por piso de navegador. O pdf.js usa DUAS APIs recentes, e
+elas nao entraram no mesmo ano — apagar so uma mede so metade do problema:
+
+  | passada             | simula                       | piso da API          |
+  |---------------------|------------------------------|----------------------|
+  | motor atual         | o navegador desta maquina    | -                    |
+  | sem `withResolvers` | isola o polyfill de 04/09    | Chrome 119 / SF 17.4 |
+  | sem `Promise.try`   | Chrome 119-127, SF 17.4-18.1 | Chrome 128 / SF 18.2 |
+  | sem as duas         | o aparelho REAL de antes de  | -                    |
+  |                     | tudo: Chrome 118 nao tem     |                      |
+  |                     | nenhuma das duas             |                      |
+
+A terceira nasceu de uma medicao de 2026-09-08: a `Promise.try` estava no bundle
+de producao ha semanas, com piso MAIS ALTO que o da `withResolvers`, e o
+polyfill cobria so a segunda. Era o defeito de 04/09 esperando outro aparelho.
+
+A quarta e a unica fiel a um aparelho de verdade — nenhum navegador tem a
+`Promise.try` sem ter a `withResolvers` —, e e ela que prova que os dois
+polyfills convivem. As duas do meio existem para que a falha diga QUAL das duas
+APIs faltou; sem elas, restaria um vermelho que nao aponta nada.
+
+APAGAR NA PAGINA NAO ALCANCA O WORKER, e foi o que a medicao de 08/09 mostrou
+da pior maneira: o cenario da `Promise.try` passava verde com o defeito
+presente. O `add_init_script` do Playwright roda em pagina e frame, e o worker
+e outra thread com outro `globalThis` — a API continuava nativa la dentro, que
+e justamente o unico lugar onde o pdf.js a chama. Por isso cada cenario apaga
+nos DOIS contextos: o init script cuida da pagina, e o servidor prepende um
+prelude ao arquivo do worker.
+
+O prelude apaga **so o que for NATIVO** (`Function.prototype.toString` do que e
+nativo contem `[native code]`). E a diferenca entre simular um navegador que
+nunca teve a API e sabotar o proprio polyfill: o `import` do Blob e icado,
+entao o modulo do worker — e o nosso prelude com ele — roda ANTES do corpo do
+Blob que instala o polyfill. Um `delete` cego apagaria depois o que o polyfill
+acabou de por, e o cenario nunca poderia passar.
 
 NADA DE PDF REAL AQUI. O arquivo e gerado neste script, tem quatro linhas de
 texto inventado e morre no fim. PDF de banco tem CPF, agencia, conta e nomes de
@@ -36,6 +66,7 @@ contra um documento seu, use `medir-csp.py --pdf caminho.pdf`, que e local.
 from __future__ import annotations
 
 import http.server
+import re
 import socket
 import sys
 import tempfile
@@ -92,6 +123,38 @@ def pdf_sintetico() -> bytes:
     return bytes(saida)
 
 
+# Cada cenario apaga um conjunto de APIs ANTES de qualquer script da pagina.
+# Ver o cabecalho para o porque de serem quatro e nao duas.
+CENARIOS: list[tuple[str, tuple[str, ...]]] = [
+    ('motor atual', ()),
+    ('sem Promise.withResolvers', ('withResolvers',)),
+    ('sem Promise.try', ('try',)),
+    ('sem as duas (Chrome 118)', ('withResolvers', 'try')),
+]
+
+
+# Apaga do global corrente so o que for NATIVO — um polyfill ja instalado
+# sobrevive. Ver o cabecalho: e o que separa "navegador sem a API" de
+# "sabotagem do polyfill".
+APAGA_NATIVO = """(function () {
+  var alvos = %s;
+  for (var i = 0; i < alvos.length; i++) {
+    var f = Promise[alvos[i]];
+    if (typeof f === 'function' &&
+        Function.prototype.toString.call(f).indexOf('[native code]') !== -1) {
+      delete Promise[alvos[i]];
+    }
+  }
+})();
+"""
+
+# O cenario em curso, lido pelo servidor para montar o prelude do worker.
+# Global porque os cenarios rodam em sequencia e o handler nao recebe estado.
+apagar_no_worker: tuple[str, ...] = ()
+
+WORKER = re.compile(r'^pdf\.worker\.min-.*\.mjs$')
+
+
 def porta_livre() -> int:
     with socket.socket() as s:
         s.bind(('127.0.0.1', 0))
@@ -106,6 +169,19 @@ def servidor(raiz: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
             super().__init__(*a, directory=str(raiz), **kw)
 
         def do_GET(self):  # noqa: N802 (nome da stdlib)
+            # O worker sai daqui com o prelude do cenario na frente. E a unica
+            # forma de apagar a API DENTRO dele: init script nao chega la.
+            nome = Path(self.path.split('?')[0]).name
+            if WORKER.match(nome) and apagar_no_worker:
+                corpo = (APAGA_NATIVO % list(apagar_no_worker)).encode('utf-8')
+                corpo += (raiz / 'assets' / nome).read_bytes()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/javascript')
+                self.send_header('Content-Length', str(len(corpo)))
+                self.end_headers()
+                self.wfile.write(corpo)
+                return
+
             # SPA: rota sem arquivo cai no index.html, como a Vercel faz.
             alvo = raiz / self.path.lstrip('/').split('?')[0]
             if not alvo.is_file() and '.' not in Path(self.path).name:
@@ -158,6 +234,8 @@ def medir(page, base: str, arquivo: Path, rotulo: str) -> tuple[bool, str]:
 
 
 def main() -> int:
+    global apagar_no_worker
+
     if not (DIST / 'index.html').is_file():
         print('dist/ ausente. Rode:  npm run build -- --mode semlogin')
         return 1
@@ -174,17 +252,13 @@ def main() -> int:
             with sync_playwright() as p:
                 nav = p.chromium.launch()
 
-                ctx = nav.new_context()
-                resultados.append(medir(ctx.new_page(), base, arquivo, 'motor atual'))
-                ctx.close()
-
-                # Aparelho anterior ao Chrome 119 / Safari 17.4.
-                ctx = nav.new_context()
-                ctx.add_init_script('delete Promise.withResolvers')
-                resultados.append(
-                    medir(ctx.new_page(), base, arquivo, 'sem Promise.withResolvers')
-                )
-                ctx.close()
+                for rotulo, apagar in CENARIOS:
+                    apagar_no_worker = apagar
+                    ctx = nav.new_context()
+                    if apagar:
+                        ctx.add_init_script(APAGA_NATIVO % list(apagar))
+                    resultados.append(medir(ctx.new_page(), base, arquivo, rotulo))
+                    ctx.close()
 
                 nav.close()
         finally:
@@ -194,7 +268,7 @@ def main() -> int:
         print('  [%s] %s' % ('  OK  ' if ok else 'FALHOU', msg))
 
     if all(ok for ok, _ in resultados):
-        print('\nRESULTADO: OK - o motor abre PDF nos dois cenarios.')
+        print('\nRESULTADO: OK - o motor abre PDF nos %d cenarios.' % len(CENARIOS))
         return 0
     print('\nRESULTADO: FALHOU.')
     return 1

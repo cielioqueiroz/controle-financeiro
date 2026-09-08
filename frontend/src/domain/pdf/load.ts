@@ -178,29 +178,49 @@ export async function lerBytes(file: File): Promise<ArrayBuffer> {
   return bytes
 }
 
-/** ## `Promise.withResolvers`, o defeito que derrubou a importação num celular
+/** ## As duas APIs recentes do pdf.js, e o piso de navegador que elas impõem
  *
  *  Em 2026-09-04 um extrato do Bradesco não importava num telefone. O mesmo
  *  arquivo abria sem um arranhão no desktop — e abria também na versão do
  *  app de antes de qualquer correção. O documento não era o problema: o
  *  navegador era.
  *
- *  O `pdfjs-dist` 6 usa **`Promise.withResolvers`**, que só existe em
- *  **Chrome 119** (out/2023), **Safari 17.4** (mar/2024, ou seja iOS 17.4) e
- *  **Firefox 121**. Num aparelho anterior a isso o app inteiro funciona —
- *  React, telas, gráficos, nada usa essa API — e **só a importação quebra**,
- *  com um `TypeError` que virava "Não consegui ler este arquivo". Aparelho
- *  de entrada com Chrome velho e iPhone parado no iOS 16 são comuns, e são
- *  exatamente as pessoas a quem se manda um app dizendo "é só arrastar o
- *  PDF".
+ *  O `pdfjs-dist` 6 usa **duas** APIs de `Promise` que não entraram no mesmo
+ *  ano, e é por isso que consertar uma não fechou o buraco:
  *
- *  A cura são seis linhas de polyfill. O que não é óbvio é que ele precisa
- *  ser aplicado **DUAS vezes**:
+ *  | API | Chrome | Safari (iOS) | Firefox | onde é chamada |
+ *  |---|---|---|---|---|
+ *  | `Promise.withResolvers` | 119 (out/23) | 17.4 (mar/24) | 121 | thread principal **e** worker |
+ *  | `Promise.try` | **128** (ago/24) | **18.2** (dez/24) | 134 | **só dentro do worker** |
+ *
+ *  Num aparelho abaixo desse piso o app inteiro funciona — React, telas,
+ *  gráficos, nada usa isso — e **só a importação quebra**. Aparelho de entrada
+ *  com Chrome velho e iPhone parado no iOS 17 são comuns, e são exatamente as
+ *  pessoas a quem se manda um app dizendo "é só arrastar o PDF".
+ *
+ *  ⚠️ **A `Promise.try` foi medida em 2026-09-08, e falha PIOR que a outra.**
+ *  Ela é chamada 4 vezes por importação, todas dentro do worker (o
+ *  `MessageHandler` a usa para despachar ação e stream), e nenhuma na thread
+ *  principal. Sem ela o `TypeError` estoura numa thread que ninguém escuta:
+ *  não vira toast, não vira erro, não vira nada — a tela fica em "Lendo o
+ *  documento…" **para sempre**. O defeito de 04/09 ao menos dizia alguma
+ *  coisa. Por isso o gate abaixo é "falta QUALQUER uma das duas": um Chrome
+ *  entre 119 e 127 tem a `withResolvers` e não tem a `try`, e o gate antigo,
+ *  que só perguntava pela primeira, mandava esse aparelho seguir sem polyfill
+ *  nenhum.
+ *
+ *  A cura são poucas linhas, aplicadas **DUAS vezes**:
  *
  *  1. na thread principal, onde vive a API do pdf.js;
  *  2. **dentro do worker**, que é outra thread com outro `globalThis` — o
- *     `pdf.worker.min.mjs` usa a mesma API, e nada do que se declara aqui
+ *     `pdf.worker.min.mjs` usa as mesmas APIs, e nada do que se declara aqui
  *     chega lá.
+ *
+ *  ⚠️ **O passo 2 existia desde 04/09 e NUNCA rodou** — ver o `urlDoWorker`.
+ *  Ninguém percebeu porque o medidor apagava a API só na página, e worker não
+ *  enxerga o global da página: a única thread que precisava do desvio era a
+ *  única que a medição não alcançava. Os dois defeitos se cancelavam num
+ *  verde. Desde 08/09 o `medir-pdf.py` apaga também dentro do worker.
  *
  *  Para o worker, o `workerSrc` passa a apontar para um Blob que aplica o
  *  polyfill e então importa o worker de verdade. A CSP já permite
@@ -208,46 +228,94 @@ export async function lerBytes(file: File): Promise<ArrayBuffer> {
  *  dentro dele continua same-origin —, e o pdf.js segue criando e destruindo
  *  workers como sempre, porque continua sendo uma URL e não um port.
  *
+ *  ⚠️ **O `import` do Blob é ESTÁTICO de propósito, e isso inverte a ordem.**
+ *  Num módulo, o `import` é içado: o worker de verdade é avaliado ANTES do
+ *  polyfill, que só roda quando o corpo do Blob executa. Está certo assim, e
+ *  foi medido: o `pdf.worker.min.mjs` não toca nessas APIs na avaliação, só
+ *  ao tratar mensagem — e mensagem chega em tarefa posterior, com o polyfill
+ *  já no lugar. Trocar por `import()` dinâmico para "garantir a ordem" **é
+ *  pior**: o corpo do Blob terminaria antes de o worker registrar o
+ *  `onmessage`, e as mensagens que o pdf.js despacha logo após criar o worker
+ *  seriam entregues a um global sem ouvinte, e perdidas. Quem garante que a
+ *  premissa continua valendo é `scripts/medir-pdf.py`, que apaga as APIs
+ *  DENTRO do worker.
+ *
  *  ⚠️ **Só quando falta.** Num navegador atual nada disso acontece e o
  *  caminho é byte a byte o de antes: um desvio que só a minoria paga, e que
  *  não pode introduzir risco para a maioria. */
-export const POLYFILL_WITH_RESOLVERS = `if (typeof Promise.withResolvers !== "function") {
+export const POLYFILL_PROMISE = `if (typeof Promise.withResolvers !== "function") {
   Promise.withResolvers = function () {
     let resolve, reject
     const promise = new Promise(function (res, rej) { resolve = res; reject = rej })
     return { promise: promise, resolve: resolve, reject: reject }
   }
 }
+if (typeof Promise.try !== "function") {
+  Promise.try = function (fn) {
+    const args = Array.prototype.slice.call(arguments, 1)
+    return new Promise(function (res) { res(fn.apply(undefined, args)) })
+  }
+}
 `
 
-type PromiseComWithResolvers = PromiseConstructor & { withResolvers?: unknown }
-
-export function faltaWithResolvers(): boolean {
-  return typeof (Promise as PromiseComWithResolvers).withResolvers !== 'function'
+type PromiseComExtras = PromiseConstructor & {
+  withResolvers?: unknown
+  try?: unknown
 }
 
-/** Aplica o polyfill nesta thread. Idempotente. */
+export function faltaWithResolvers(): boolean {
+  return typeof (Promise as PromiseComExtras).withResolvers !== 'function'
+}
+
+export function faltaPromiseTry(): boolean {
+  return typeof (Promise as PromiseComExtras).try !== 'function'
+}
+
+/** O gate do polyfill. Pergunta pelas DUAS: faltando uma, o aparelho precisa
+ *  do desvio inteiro — inclusive do Blob que embrulha o worker, que é onde a
+ *  `Promise.try` é usada. */
+export function faltaApiDePromise(): boolean {
+  return faltaWithResolvers() || faltaPromiseTry()
+}
+
+/** Aplica o polyfill nesta thread. Idempotente, e cada API por si: um Chrome
+ *  126 tem a `withResolvers` nativa e precisa só da `try`. */
 function polyfillAqui(): void {
-  if (!faltaWithResolvers()) return
-  ;(Promise as PromiseComWithResolvers).withResolvers = function <T>() {
-    let resolve!: (value: T | PromiseLike<T>) => void
-    let reject!: (reason?: unknown) => void
-    const promise = new Promise<T>((res, rej) => {
-      resolve = res
-      reject = rej
-    })
-    return { promise, resolve, reject }
+  const P = Promise as PromiseComExtras
+  if (faltaWithResolvers()) {
+    P.withResolvers = function <T>() {
+      let resolve!: (value: T | PromiseLike<T>) => void
+      let reject!: (reason?: unknown) => void
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res
+        reject = rej
+      })
+      return { promise, resolve, reject }
+    }
+  }
+  if (faltaPromiseTry()) {
+    P.try = function <T>(fn: (...args: never[]) => T, ...args: never[]) {
+      return new Promise<Awaited<T>>((resolve) => {
+        resolve(fn(...args) as Awaited<T>)
+      })
+    }
   }
 }
 
 /** A URL do worker, embrulhada num Blob que aplica o polyfill antes de
  *  importá-lo — porque o worker é outra thread e não enxerga o polyfill
- *  desta. Devolve a URL original quando o navegador não precisa de ajuda. */
-function urlDoWorker(urlOriginal: string): string {
-  if (!faltaWithResolvers()) return urlOriginal
+ *  desta. Devolve a URL original quando o navegador não precisa de ajuda.
+ *
+ *  ⚠️ **O `precisa` é PARÂMETRO, e não uma pergunta feita aqui.** Perguntar
+ *  aqui foi o defeito que atravessou de 04/09 a 08/09: quem chama já rodou o
+ *  `polyfillAqui()`, então `faltaApiDePromise()` responde "não falta" — porque
+ *  fomos NÓS que acabamos de pôr. O worker recebia a URL crua e ficava sem
+ *  polyfill nenhum, no único aparelho em que ele importa. */
+function urlDoWorker(urlOriginal: string, precisa: boolean): string {
+  if (!precisa) return urlOriginal
   // Absoluta: dentro de um `blob:` não há caminho relativo que resolva.
   const absoluta = new URL(urlOriginal, window.location.href).href
-  const fonte = `${POLYFILL_WITH_RESOLVERS}import ${JSON.stringify(absoluta)}
+  const fonte = `${POLYFILL_PROMISE}import ${JSON.stringify(absoluta)}
 `
   return URL.createObjectURL(new Blob([fonte], { type: 'text/javascript' }))
 }
@@ -259,6 +327,9 @@ let pdfjsPronto: Promise<typeof import('pdfjs-dist')> | null = null
 
 function carregarPdfjs() {
   if (!pdfjsPronto) {
+    // A pergunta vem ANTES do polyfill, e a resposta viaja até o worker: uma
+    // vez remendada esta thread, "falta?" passa a responder não.
+    const precisaDeDesvio = faltaApiDePromise()
     // ANTES do import: o módulo do pdf.js pode usar a API já na avaliação.
     polyfillAqui()
     pdfjsPronto = Promise.all([
@@ -268,7 +339,7 @@ function carregarPdfjs() {
       .then(([pdfjs, worker]) => {
         // O pdf.js roda o parsing numa worker thread — sem isso a UI congela
         // enquanto lê uma fatura de 8 páginas.
-        pdfjs.GlobalWorkerOptions.workerSrc = urlDoWorker(worker.default)
+        pdfjs.GlobalWorkerOptions.workerSrc = urlDoWorker(worker.default, precisaDeDesvio)
         return pdfjs
       })
       .catch((err) => {
