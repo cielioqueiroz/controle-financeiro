@@ -7,6 +7,12 @@
 #
 # Aqui roda a MESMA verificação da máquina do dono (`scripts/verificar.py`),
 # na mesma ordem, para não existirem duas definições de "está pronto".
+#
+# Desde 2026-09-08 rodam também os dois medidores que o `verificar` não faz — o
+# do motor de PDF e o do login. Eles ficam fora do `verificar` porque cada um
+# precisa de um build com `VITE_*` próprias, mas ficar fora do `verificar` não
+# é motivo para ficar fora do CI: medidor que só roda quando alguém lembra é
+# medidor que não vigia nada.
 
 name: verificar
 
@@ -58,6 +64,50 @@ jobs:
       # mede o dist/, então precisa do build antes.
       - name: verificação completa
         run: npm run verificar
+
+  # Os dois medidores que o `verificar` NAO faz, e que por isso so rodavam se
+  # alguem lembrasse. Cada um precisa de um build proprio, com `VITE_*`
+  # diferentes — e e por isso que ficam fora do `verificar` e num job aparte,
+  # em paralelo com ele.
+  #
+  # Eles cobrem exatamente o que a suite nao alcanca: os 9 fixtures sao JSON ja
+  # extraido e `load.ts` e mockado no jsdom, entao a suite fica verde com o
+  # motor de PDF quebrado; e o `@neondatabase/neon-js` e mockado inteiro, entao
+  # ela fica verde com o login quebrado.
+  medidores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: navegador do Playwright
+        run: uv run --with playwright python -m playwright install --with-deps chromium
+
+      # ⚠️ Os dois medem o `dist/`, e um build que falha deixa o `dist`
+      # ANTERIOR no lugar — verde contra o build errado. Por isso cada build e
+      # um passo proprio: falhando, o job para antes de medir.
+      - name: build do modo "importa e ve"
+        run: npm run build:semlogin
+
+      - name: o motor de PDF abre arquivo (4 pisos de navegador)
+        run: npm run medir:pdf
+
+      - name: build do modo de login
+        run: npm run build:login
+
+      - name: o login funciona (5 cenarios, contra um Auth de mentira)
+        run: npm run medir:login
 
   seguranca:
     runs-on: ubuntu-latest

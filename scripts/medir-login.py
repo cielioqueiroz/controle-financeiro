@@ -223,7 +223,14 @@ def cenario(nome, auth, roteiro) -> tuple[bool, str]:
     try:
         with sync_playwright() as p:
             nav = p.chromium.launch()
-            ctx = nav.new_context()
+            # ⚠️ `locale` FIXO, e nao o do ambiente. O app detecta o idioma
+            # por `navigator.language`, e o cenario de recusa exige a FRASE
+            # ("E-mail ou senha incorretos"): num Chromium que se apresente
+            # como en-US — o caso do runner do CI — a frase seria outra, e o
+            # medidor reprovaria no CI depois de passar na maquina de quem o
+            # escreveu. E a mesma armadilha que os casos do polyfill deram em
+            # 08/09: nao presumir o ambiente, estabelece-lo.
+            ctx = nav.new_context(locale='pt-BR')
             ctx.add_init_script(TUTORIAL_VISTO)
             page = ctx.new_page()
             erros: list[str] = []
