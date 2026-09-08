@@ -1,4 +1,4 @@
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import type { ParseResult, RawTransaction } from '../domain/parsers/types'
 import type { DocKind } from '../domain/pdf/detect'
 import { hashConteudoDocumento, hashDocumento, chaveTransacao, sha256 } from '../domain/dedupe/hash'
@@ -36,6 +36,7 @@ export async function salvarDocumento(
    *  de fato não houver regras. */
   regrasUsuario: Regra[],
 ): Promise<ResultadoSalvar> {
+  const neon = await obterNeon()
   if (!neon) return { status: 'sem-persistencia' }
 
   const regras = mesclarRegras(regrasUsuario, REGRAS_GLOBAIS)
@@ -188,6 +189,7 @@ async function acharDuplicata(
   fileHash: string,
   contentHash: string,
 ): Promise<DocumentoDuplicado | null> {
+  const neon = await obterNeon()
   const perguntas = [
     ['file_hash', fileHash],
     ['content_hash', contentHash],
@@ -209,6 +211,7 @@ async function acharDuplicata(
 /** Busca a conta pelo banco+tipo+final; cria se não existir. Substitui o
  *  upsert com índice de expressão (que o PostgREST não expõe bem). */
 async function acharOuCriarConta(result: ParseResult, kind: DocKind): Promise<string> {
+  const neon = await obterNeon()
   const { account } = result
   const { data: contas, error } = await neon!
     .from('accounts')

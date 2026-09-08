@@ -7,7 +7,15 @@ import { Auth } from './Auth'
 import { Notificacoes } from '../Notificacoes'
 
 // O componente importa o cliente do Neon no topo; no teste ele não existe.
-vi.mock('../../lib/neon', () => ({ neon: null, neonConfigurado: false }))
+vi.mock('../../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = { neon: null, neonConfigurado: false }
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 
 // O <Toaster /> normalmente é montado em App.tsx, fora do Auth. Para os
 // toasts do sonner aparecerem no DOM do teste, montamos os dois juntos.

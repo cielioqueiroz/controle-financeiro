@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { chaveDeErro } from '../lib/erro-usuario'
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import { salvarApelido, primeiroNome } from '../lib/perfil'
 import { useT } from '../i18n/IdiomaProvider'
 import { Portal, useTravarRolagem } from './Portal'
@@ -48,7 +48,8 @@ export function EditarPerfil({ nomeAtual, apelidoAtual, onFechar, onSalvo }: Pro
       // Nome completo só vai ao servidor se mudou e não está vazio — não
       // apagamos o nome do cadastro com um campo em branco.
       if (nomeLimpo && nomeLimpo !== nomeAtual.trim()) {
-        if (!neon) throw new Error(t('auth.toast.semBanco'))
+        const neon = await obterNeon()
+      if (!neon) throw new Error(t('auth.toast.semBanco'))
         const { error } = await neon.auth.updateUser({ name: nomeLimpo })
         if (error) throw new Error(error.message)
       }

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import { neon } from '../../lib/neon'
+import { obterNeon } from '../../lib/neon'
 import { salvarApelido } from '../../lib/perfil'
 import { enviarCodigo } from '../../lib/confirmar-email'
 import { chaveDeErro } from '../../lib/erro-usuario'
@@ -100,6 +100,13 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
 
     // Só agora o Neon importa. Antes ficava no topo da função e engolia a
     // validação em silêncio quando o banco não estava configurado.
+    //
+    // ⚠️ A espera fica DEPOIS da validação de campo, e isso não é ordem
+    // acidental: e-mail inválido ou senha curta devem reclamar na hora, sem
+    // pagar o download de um SDK que não vai ser usado. Na prática o chunk já
+    // chegou — o `aquecerNeon()` do App o pediu logo depois da primeira
+    // pintura, enquanto a pessoa digitava.
+    const neon = await obterNeon()
     if (!neon) {
       toast.error(t('auth.toast.semBanco'))
       return
@@ -165,6 +172,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
   }
 
   async function comGoogle() {
+    const neon = await obterNeon()
     if (!neon) return
     const { error } = await neon.auth.signIn.social({
       provider: 'google',

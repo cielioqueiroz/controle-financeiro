@@ -1,4 +1,4 @@
-import { neon } from '../lib/neon'
+import { neonConfigurado, obterNeon } from '../lib/neon'
 import { moduloDaAba } from '../lib/versao'
 
 /** De onde a falha foi registrada. Fechado de propósito: funil novo é
@@ -82,7 +82,13 @@ function classeDe(erro: unknown): string {
  *  **Não registra nada do documento.** Ver o cabeçalho da migração `0007`:
  *  sem mensagem, sem pilha, sem nome de arquivo, sem valor, sem descrição. */
 export function registrarFalha(erro: unknown, contexto: ContextoFalha): void {
-  if (!neon) return
+  // ⚠️ **Continua SÍNCRONA**, e é por isso que o guard é o `neonConfigurado` e
+  // não o cliente. Desde que o SDK passou a entrar por import dinâmico, obter
+  // o cliente é uma promessa — e transformar esta função em `async` mudaria o
+  // contrato descrito acima: quem chama não dá `await`, porque a tela de erro
+  // tem de aparecer na hora. O envio espera o SDK lá embaixo; o resto (teto,
+  // deduplicação) decide antes e sem rede, como sempre.
+  if (!neonConfigurado) return
   if (registradas >= TETO_POR_ABA) return
 
   const classe = classeDe(erro)
@@ -93,15 +99,19 @@ export function registrarFalha(erro: unknown, contexto: ContextoFalha): void {
   vistas.add(chave)
   registradas += 1
 
-  void neon
-    .from('client_errors')
-    .insert({
-      classe,
-      contexto,
-      rota,
-      versao: moduloDaAba(),
-      navegador: navegadorReduzido(navigator.userAgent),
-    })
+  void obterNeon()
+    .then((neon) =>
+      neon
+        ?.from('client_errors')
+        .insert({
+          classe,
+          contexto,
+          rota,
+          versao: moduloDaAba(),
+          navegador: navegadorReduzido(navigator.userAgent),
+        })
+        .then(() => {}),
+    )
     .then(
       // Falha ao registrar a falha morre aqui, calada. Avisar sobre isso
       // seria contar à pessoa um problema que não é dela e que ela não tem

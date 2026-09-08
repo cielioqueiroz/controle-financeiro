@@ -11,10 +11,18 @@ import { pt } from './../i18n/dicionarios/pt'
 // O SDK inteiro, como o resto da suíte faz. O ContaMenu do rodapé da calha
 // pede a sessão na montagem; sem o dublê isso seria uma ida à rede dentro
 // de um teste de navegação.
-vi.mock('../lib/neon', () => ({
+vi.mock('../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = {
   neon: { auth: { getSession: () => Promise.resolve({ data: null }) } },
   neonConfigurado: true,
-}))
+}
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 
 const USUARIO = { nome: 'Célio Queiroz', email: 'celio@exemplo.com' }
 

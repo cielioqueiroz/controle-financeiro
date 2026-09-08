@@ -7,7 +7,15 @@ import { RecuperarSenha } from './RecuperarSenha'
 import { Notificacoes } from '../Notificacoes'
 import { guardarEmailReset, lerEmailReset } from '../../lib/perfil'
 
-vi.mock('../../lib/neon', () => ({ neon: null, neonConfigurado: false }))
+vi.mock('../../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = { neon: null, neonConfigurado: false }
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 vi.mock('../../lib/recuperar-senha', () => ({
   pedirLink: vi.fn(),
   redefinirSenha: vi.fn(),

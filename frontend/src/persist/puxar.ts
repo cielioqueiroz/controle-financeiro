@@ -1,4 +1,4 @@
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import { competenciaDe } from '../domain/agrupar'
 
 export type { Periodo } from '../domain/agrupar'
@@ -63,6 +63,7 @@ export class RecorteIncompletoError extends Error {
  *
  *  Por isso o pedido do `count` faz parte do guarda, não é diagnóstico. */
 export async function puxarTudo(): Promise<TransacaoSalva[]> {
+  const neon = await obterNeon()
   if (!neon) return []
   const { data, error, count } = await neon
     .from('transactions')

@@ -53,7 +53,10 @@ const authMocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('./lib/neon', () => ({
+vi.mock('./lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = {
   neon: {
     auth: {
       getSession: authMocks.getSession,
@@ -66,7 +69,17 @@ vi.mock('./lib/neon', () => ({
     from: () => ({ select: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }),
   },
   neonConfigurado: true,
-}))
+}
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, {
+    obterNeon: () => Promise.resolve(mod.neon),
+    // O aquecimento é adiantamento de download: no teste não há nada a
+    // adiantar, e o `obterNeon` acima já entrega o dublê na hora.
+    aquecerNeon: () => {},
+  })
+})
 
 vi.mock('./lib/recuperar-senha', () => ({
   pedirLink: vi.fn(),

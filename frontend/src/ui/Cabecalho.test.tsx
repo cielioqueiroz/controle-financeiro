@@ -6,10 +6,18 @@ import { Cabecalho } from './Cabecalho'
 
 // O SDK inteiro, como o resto da suíte. O ContaMenu pede a sessão na
 // montagem, e isto é um teste sobre o TÍTULO da página.
-vi.mock('../lib/neon', () => ({
+vi.mock('../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = {
   neon: { auth: { getSession: () => Promise.resolve({ data: null }) } },
   neonConfigurado: true,
-}))
+}
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 
 const usuario = { nome: 'Ciélio Queiroz', email: 'celio@exemplo.com' }
 

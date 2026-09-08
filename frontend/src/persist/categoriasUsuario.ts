@@ -1,10 +1,11 @@
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import type { Categoria } from '../domain/categorize/categorias'
 
 export type CategoriaUsuario = Categoria & { id: string }
 
 /** Lê as categorias personalizadas do usuário (RLS escopa às dele). */
 export async function puxarCategoriasUsuario(): Promise<CategoriaUsuario[]> {
+  const neon = await obterNeon()
   if (!neon) return []
   const { data, error } = await neon
     .from('categories')
@@ -36,6 +37,7 @@ export async function criarCategoria(c: {
   icone: string
   cor: string
 }): Promise<CategoriaUsuario> {
+  const neon = await obterNeon()
   if (!neon) throw new Error('Sem conexão.')
   const slug = gerarSlug(c.nome)
   const { data, error } = await neon
@@ -60,6 +62,7 @@ export async function editarCategoria(
   id: string,
   campos: { nome: string; icone: string; cor: string },
 ): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) throw new Error('Sem conexão.')
   const { error } = await neon
     .from('categories')
@@ -69,6 +72,7 @@ export async function editarCategoria(
 }
 
 export async function apagarCategoria(id: string): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) return
   const { error } = await neon.from('categories').delete().eq('id', id)
   if (error) throw error

@@ -1,4 +1,4 @@
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 
 /** Campos que o usuário pode editar numa transação. A `description`
  *  (texto original do banco) é imutável — o apelido vive em `label`.
@@ -16,6 +16,7 @@ export type EdicaoTransacao = {
 /** Atualiza uma transação do usuário (RLS garante que só a dele).
  *  Usado para renomear o estabelecimento e/ou trocar a categoria. */
 export async function editarTransacao(id: string, campos: EdicaoTransacao): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) return
   const { error } = await neon.from('transactions').update(campos).eq('id', id)
   if (error) throw error
@@ -42,6 +43,7 @@ export async function recategorizarEmLote(
   ids: string[],
   categoria: string,
 ): Promise<number> {
+  const neon = await obterNeon()
   if (!neon || ids.length === 0) return 0
 
   let atualizadas = 0

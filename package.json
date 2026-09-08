@@ -23,7 +23,8 @@
     "medir:peso": "uv run python scripts/medir-peso.py",
     "fixtures": "tsx scripts/gerar-fixtures.ts",
     "build:login": "npm run build --workspace frontend -- --mode login",
-    "medir:login": "uv run --with playwright python scripts/medir-login.py"
+    "medir:login": "uv run --with playwright python scripts/medir-login.py",
+    "medir:piscada": "uv run --with playwright python scripts/medir-piscada.py"
   },
   "devDependencies": {
     "axe-core": "^4.13.0",

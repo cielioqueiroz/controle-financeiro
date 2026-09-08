@@ -8,12 +8,20 @@ import type { Regra } from '../domain/categorize/regras'
 /** O dublê precisa existir antes de `salvar.ts` ler `neon` no módulo. */
 const dublê = vi.hoisted(() => ({ cliente: null as unknown }))
 
-vi.mock('../lib/neon', () => ({
+vi.mock('../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = {
   get neon() {
     return dublê.cliente
   },
   neonConfigurado: true,
-}))
+}
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 
 const { salvarDocumento } = await import('./salvar')
 
