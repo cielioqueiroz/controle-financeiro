@@ -419,6 +419,15 @@ Fica fora do `npm run verificar` porque precisa de um build à parte
   reconhecível, que ainda serve melhor que a nativa porque dá para afirmar
   identidade sobre ela. Para conferir: apague a API no topo do arquivo de teste
   e rode; se algum caso reprovar, ele estava medindo o runtime.
+- ⚠️ **A fila de toasts do `sonner` é de MÓDULO, e o `cleanup()` não a esvazia.**
+  Todo arquivo de teste que pinta toast precisa de `afterEach(() => toast.dismiss())`
+  — hoje são os três de `ui/acesso/`. Sem isso o toast de um caso segue montado
+  no seguinte, e o sintoma varia: `getByText` acha DOIS, ou, a partir do quarto
+  toast do arquivo (o `<Toaster>` mostra 3), o novo entra na fila e nunca é
+  pintado, e o `findByText` estoura o tempo procurando um texto que o componente
+  produziu direitinho. Apareceu duas vezes, em 07/09 e 08/09, sempre num arquivo
+  diferente e sempre na atualização do sonner — **conserte o padrão, não o
+  arquivo que reclamou**.
 - **Suíte verde não é suíte determinística.** Três execuções do mesmo commit já
   deram 4 → 1 → 0 falhas: os testes que sobem o `<App/>` com `userEvent` estouravam
   o `testTimeout` sob disputa de CPU (hoje 15000ms). **Se um teste falhar sem você

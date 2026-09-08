@@ -144,6 +144,31 @@ E no navegador, cada defeito foi reintroduzido de propósito:
 A segunda linha é o que justifica quatro cenários em vez de um: o vermelho diz
 **qual** das duas APIs faltou.
 
+### 7. O PR #9 caiu, e a fila de PRs zerou
+
+O último motivo do #9 estar vermelho era o mesmo buraco de higiene do sonner que
+o PR #12 tratou em 07/09 — só que noutro arquivo. O #12 consertou
+`RecuperarSenha.test.tsx` porque foi lá que o sonner 2.0.8 reclamou; **o buraco
+nunca foi daquele arquivo**. A fila de toasts é de MÓDULO, e o `cleanup()` da
+Testing Library só desmonta a árvore.
+
+Com a árvore de dependências exata do #9 instalada, `Auth.confirmacao.test.tsx`
+reprovava com *"Found multiple elements with the text: /código de 6 dígitos
+para …/"* — o toast do caso anterior seguia montado. `Auth.test.tsx` ainda não
+reclamava e entrou pelo mesmo motivo. São os três arquivos que importam
+`sonner`; agora os três limpam a fila (PR #15).
+
+O #9 então passou, e as **duas provas que o `verificar` não faz** foram
+refeitas — desta vez com o medidor que enxerga o worker, o que as torna bem mais
+fortes que as de 07/09:
+
+- `npm run medir:pdf`: **OK nos quatro cenários** com o `pdfjs-dist` 6.3.289;
+- o grep do piso: as mesmas duas APIs de `Promise` (ambas com polyfill agora) e
+  nada acima de `structuredClone` (Chrome 98). **O #9 não sobe o piso.**
+
+Mergeado por rebase. **Zero PRs abertos**, `main` linear, CI verde, produção no
+ar com o pdf.js novo.
+
 ## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
 
 A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
@@ -336,7 +361,9 @@ produto em Next.js + Supabase saíram.
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**1.035 testes (119 arquivos)**, `npm run verificar` verde nos seis passos.
+**1.035 testes (119 arquivos)**, `npm run verificar` verde nos seis passos e
+**zero PRs abertos** (o #9 do Dependabot caiu em 08/09, com o `pdfjs-dist` em
+6.3.289 e as duas provas à parte refeitas).
 
 ⚠️ **O fluxo mudou em 2026-09-06: trabalho vai para BRANCH, não direto na
 `main`.** Todo push na `main` publica em produção em ~1 min, e o dono pediu
@@ -384,7 +411,6 @@ PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 
 | O que | Por que está parado |
 |---|---|
-| **PR #9 do Dependabot** | Os dois motivos reais caíram em 07/09 (PRs #10 e #12). Falta o Dependabot rebasear na `main` nova e o CI reexecutar. **Continua não sendo rubber stamp**: são 8 pacotes, e o `pdfjs-dist` é um deles |
 | **`allow_localhost: true` em produção** | Desligar quebra o login no `npm run dev`. Decisão de produto |
 | **Cadastro sem verificação de e-mail** | `require_email_verification: false` + sem captcha: qualquer um cria conta com e-mail alheio |
 | **CORS do Neon Auth** | Reflete QUALQUER origem com credenciais. **Não tem conserto no repositório** — é chamado para o Neon |
