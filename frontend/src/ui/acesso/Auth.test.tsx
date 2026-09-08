@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom/vitest'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 import { Auth } from './Auth'
 import { Notificacoes } from '../Notificacoes'
 
@@ -18,6 +19,15 @@ function renderComToaster() {
     </>,
   )
 }
+
+/** A fila de toasts do `sonner` é de MÓDULO, e o `cleanup()` da Testing
+ *  Library só desmonta a árvore: sem esvaziá-la, o toast de um caso continua
+ *  vivo no seguinte, e o `getByText` encontra DOIS. O PR #12 pôs isto em
+ *  `RecuperarSenha.test.tsx` porque foi lá que o sonner 2.0.8 reclamou; o
+ *  buraco nunca foi daquele arquivo, e sim de todo teste que pinta toast. */
+afterEach(() => {
+  toast.dismiss()
+})
 
 describe('Auth — revelar senha', () => {
   it('começa oculta e alterna para texto ao clicar no olho', async () => {
