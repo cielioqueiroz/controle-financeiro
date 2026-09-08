@@ -152,7 +152,12 @@ def main() -> int:
                 # Flag POR JORNADA. Se usassemos so a global, uma jornada
                 # limpa depois de uma suja nao imprimiria nada — nem ESTOURO
                 # nem OK — e pareceria que ela nem foi medida.
-                pagina = navegador.new_page(viewport={"width": largura, "height": altura})
+                # `locale` FIXO: as PROVAS das jornadas sao textos em
+                # portugues ("Procurar lancamento", "Esconder os valores"), e o
+                # app escolhe o idioma por `navigator.language`. Ver AGENTS 4.2.
+                pagina = navegador.new_page(
+                    viewport={"width": largura, "height": altura}, locale="pt-BR"
+                )
                 pagina.goto(BASE + rota)
                 pagina.wait_for_load_state("networkidle")
                 try:

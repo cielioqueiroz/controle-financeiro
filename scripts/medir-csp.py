@@ -496,7 +496,8 @@ def main() -> int:
 
     with sync_playwright() as p:
         navegador = p.chromium.launch()
-        ctx = navegador.new_context(viewport={'width': 1280, 'height': 800})
+        # `locale` fixo: as jornadas daqui tambem procuram texto em portugues.
+        ctx = navegador.new_context(viewport={'width': 1280, 'height': 800}, locale='pt-BR')
         ctx.add_init_script(SONDA_INICIAL)
         page = ctx.new_page()
         page.on(

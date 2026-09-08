@@ -112,8 +112,12 @@ def main() -> int:
             # ja consultam `prefers-reduced-motion`), o que torna a medicao
             # deterministica — e e o estado em que quem usa leitor de tela
             # costuma navegar, entao nao e so conveniencia de teste.
+            # `locale` fixo pelo mesmo motivo do medidor de overflow, de quem
+            # ele importa as JORNADAS: as provas sao texto em portugues.
             ctx = nav.new_context(
-                viewport={'width': largura, 'height': altura}, reduced_motion='reduce'
+                viewport={'width': largura, 'height': altura},
+                reduced_motion='reduce',
+                locale='pt-BR',
             )
             pagina = ctx.new_page()
             print('  %dx%d' % (largura, altura))

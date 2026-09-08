@@ -254,7 +254,13 @@ def main() -> int:
 
                 for rotulo, apagar in CENARIOS:
                     apagar_no_worker = apagar
-                    ctx = nav.new_context()
+                    # ⚠️ `locale` FIXO, e nao o da maquina. Os desfechos abaixo
+                    # sao procurados por TEXTO em portugues, e o app escolhe o
+                    # idioma por `navigator.language`: no runner do CI, que se
+                    # apresenta como en-US, o app dizia "I can't read this
+                    # document yet" — a frase CERTA — e os quatro cenarios
+                    # reprovaram com o app sao. Ver o AGENTS.md 4.2.
+                    ctx = nav.new_context(locale='pt-BR')
                     if apagar:
                         ctx.add_init_script(APAGA_NATIVO % list(apagar))
                     resultados.append(medir(ctx.new_page(), base, arquivo, rotulo))
