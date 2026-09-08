@@ -370,10 +370,20 @@ não prova: os 9 fixtures são JSON já extraído e `load.ts` é mockado no jsdo
 Ele gera um PDF sintético (nada de PDF real — o `.gitignore` barra, e com razão),
 abre num Chromium e exige que a importação chegue em `falha.semParser` ("abri,
 não conheço este banco") e **não** em `falha.ilegivel` nem em `falha.navegador`.
-Roda duas vezes, e a segunda apaga `Promise.withResolvers` antes de qualquer
-script — é ela que cobre o polyfill dentro do WORKER. Fica fora do
-`npm run verificar` porque precisa de um build à parte (`--mode semlogin`, que
-liga o modo "importa e vê" e dispensa login).
+Roda **quatro** vezes, uma por piso de navegador: motor atual, sem
+`Promise.withResolvers`, sem `Promise.try` e sem as duas (o Chrome 118, que é o
+único aparelho fiel — nenhum navegador tem a segunda sem a primeira).
+
+⚠️ **Cada passada apaga a API na página E dentro do worker**, e essa segunda
+metade nasceu em 08/09. Até ali o medidor apagava só na página — e worker não
+enxerga o global da página. Como a `Promise.try` é chamada **só** dentro do
+worker, o cenário dela passava verde com o defeito presente. Quem for mexer
+aqui: o prelude do worker apaga **só o que for nativo** (`[native code]` no
+`toString`), senão apagaria o polyfill que o próprio app acabou de instalar e
+o cenário nunca poderia passar.
+
+Fica fora do `npm run verificar` porque precisa de um build à parte
+(`--mode semlogin`, que liga o modo "importa e vê" e dispensa login).
 
 - Números de referência do diagnóstico (gasto real de junho = R$ 41.012,25 sobre os
   4 PDFs de `D:/extratos/junho2026`) estão em `docs/ESTADO-ATUAL.md`. Mudou sem
@@ -410,16 +420,27 @@ liga o modo "importa e vê" e dispensa login).
   extraído e `domain/pdf/load.ts` é mockado em jsdom (que não tem `DOMMatrix`): a
   suíte passa verde com o parser quebrado. Upgrade de pdf.js exige prova à parte.
 - ⚠️ **O pdf.js adota API nova de navegador, e ela derruba SÓ a importação.** A v6
-  usa `Promise.withResolvers` (Chrome 119, Safari 17.4 — iOS 17.4). Num aparelho
-  anterior o app inteiro funciona, porque nada mais usa aquilo, e só o import de PDF
-  estoura um `TypeError`. Foi um defeito real em 2026-09-04, num celular, com o mesmo
-  arquivo abrindo sem um arranhão no desktop. Há polyfill em `load.ts`, e a lição
-  vale para o próximo upgrade: **o polyfill tem que ser aplicado DUAS vezes** — nesta
-  thread e dentro do WORKER, que tem outro `globalThis` e usa a mesma API. O worker
-  recebe um `blob:` que aplica o polyfill e importa o worker real; a CSP já permite
-  (`worker-src 'self' blob:`). Para conferir o piso depois de um upgrade:
+  usa **duas**: `Promise.withResolvers` (Chrome 119 / Safari 17.4 — iOS 17.4), na
+  thread principal e no worker, e `Promise.try` (Chrome **128** / Safari **18.2**),
+  **só dentro do worker**. Num aparelho abaixo do piso o app inteiro funciona,
+  porque nada mais usa aquilo, e só o import de PDF quebra. A primeira foi defeito
+  real em 2026-09-04, num celular, com o mesmo arquivo abrindo sem um arranhão no
+  desktop; a segunda foi medida em 08/09, e **falha pior**: o `TypeError` estoura
+  numa thread que ninguém escuta, então não vira toast nem erro — a tela fica em
+  "Lendo o documento…" para sempre.
+- ⚠️ **O polyfill tem que ser aplicado DUAS vezes** — nesta thread e dentro do
+  WORKER, que tem outro `globalThis`. O worker recebe um `blob:` que aplica o
+  polyfill e importa o worker real; a CSP já permite (`worker-src 'self' blob:`).
+  **Essa segunda metade existia desde 04/09 e nunca rodou**: o gate perguntava
+  `faltaWithResolvers()` DEPOIS de a thread principal já ter sido remendada, e a
+  resposta era sempre "não falta" — porque tinha acabado de ser posta ali. A
+  pergunta agora é feita antes do polyfill e viaja como parâmetro. Dois defeitos
+  se cancelavam num verde: o medidor não alcançava o worker, e o worker não
+  recebia o desvio. Para conferir o piso depois de um upgrade:
   `grep -oE "Promise\.[a-zA-Z]+|Object\.[a-zA-Z]+|structuredClone" frontend/dist/assets/pdf-*.js | sort -u`
-  e simule o aparelho no Playwright com `add_init_script("delete Promise.withResolvers")`.
+  — e lembre que `add_init_script` **não alcança o worker**: para simular o
+  aparelho lá dentro é preciso servir o arquivo do worker com um prelude, como
+  o `medir-pdf.py` faz.
 - **A suíte mocka o SDK do Neon inteiro.** Regressão de login não é pega por teste
   nenhum — ver [ADR-0008](./docs/adr/0008-o-login-nao-tem-rede-de-testes.md).
 - **`vi.mock('../x')` recebe STRING, não import.** Nem o `tsc` nem o build reclamam
