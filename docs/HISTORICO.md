@@ -13,6 +13,273 @@ daqui que saíram os ADRs e metade das armadilhas do `AGENTS.md`.
 
 ---
 
+## Rodada 2026-09-04 — o app no celular de outra pessoa
+
+O sistema saiu da máquina do dono pela primeira vez: foi passado a uma parente, que
+tentou importar o extrato da conta dela **pelo celular** e recebeu um toast vermelho —
+*"Não consegui ler este arquivo."* — que sumiu em 4,5 segundos, por cima do cabeçalho,
+num app que abriu **branco** porque o aparelho dela estava no modo claro.
+
+Cada frase acima virou um defeito desta rodada.
+
+### 1. A mensagem de erro que não permitia diagnóstico
+
+`importar.naoLi` cobria **nove** causas sem nada em comum: o arquivo que o Android não
+entregou, o PDF de zero byte, o arquivo que só tem nome de PDF, o documento com senha,
+o PDF truncado, o extrato escaneado, o leitor de PDF que não baixou, o banco sem parser
+e o erro que ninguém previu. Três delas têm conserto do lado de quem lê, e nenhuma
+tinha como ser distinguida — nem por quem usa, nem por quem mantém.
+
+Agora `domain/pdf/load.ts` lança **erro tipado por causa**, `lib/falha-importacao.ts`
+traduz cada um num par **título + saída** ("o que houve" e "o que fazer"), e a falha
+deixou de ser toast: virou **fase da tela** (`estado.fase === 'falhou'`), com o nome do
+arquivo e uma linha técnica que se abre e se copia. Toast é bom para o que já
+aconteceu; péssimo para o que a pessoa ainda precisa resolver, porque some justamente
+enquanto ela lê.
+
+Dois defeitos reais apareceram enquanto isso era escrito:
+
+- **`ehPdf` recusava PDF legítimo.** Exigia extensão `.pdf` no nome **ou**
+  `type === 'application/pdf'`. No celular o `type` chega vazio ou
+  `application/octet-stream` a toda hora (WhatsApp, Drive, gerenciador de arquivos), e
+  o nome nem sempre traz extensão. Quem decide agora são os **bytes** (`%PDF-` nos
+  primeiros 1024), e um arquivo sem extensão nenhuma passou a ser lido — conferido no
+  navegador com um extrato real renomeado.
+- **Escolher o MESMO arquivo duas vezes não fazia nada.** O `<input type=file>` não
+  dispara `change` quando o valor não muda — ou seja, exatamente o gesto de quem
+  acabou de ver uma falha, baixou o arquivo de novo e tentou outra vez. O input agora
+  se zera a cada escolha.
+
+O PDF também passou a ser lido **uma vez só**: o provider lia o arquivo, montava um
+`File` novo com o resultado e mandava para o `load`, que lia de novo — três cópias do
+documento em memória, num aparelho que tem bem menos que um desktop.
+
+### 2. O celular estava lendo o documento sem ver o documento
+
+Medido, não achado (viewport de 390px, extrato do Bradesco de verdade):
+
+| Peça da linha da prévia | Antes | Depois |
+|---|---|---|
+| seletor de categoria | **185px** | 44px |
+| descrição da transação | **0px** (sumia) | 156px |
+| valor | terminava em 384px, **cortado** pela borda do cartão em 361 | dentro do cartão |
+
+A causa: o `<select>` de categoria era dimensionado pelo navegador segundo a option
+**mais larga** da lista ("⛽ Combustível & Carro"). Na tela em que a pessoa confere o
+documento antes de confiar, no celular ela não via nem o que foi comprado nem quanto
+custou. Hoje é um ícone de 44px com o `<select>` nativo transparente por cima — o
+controle continua sendo o nativo, com roda do sistema, teclado e leitor de tela.
+
+### 3. O que só existia no hover
+
+O lápis de editar uma transação era `opacity-0` + `group-hover` em **toda** largura. No
+celular não existe hover: o botão ficava clicável e invisível para sempre. Corrigir a
+categoria de uma compra — o gesto com que o app aprende — não tinha porta de entrada no
+telefone, e os 44px do botão invisível ainda empurravam o valor para fora da linha.
+
+### 4. Layout, toque e tipografia do celular
+
+- **Cabeçalho em grade.** Os quatro botões de 44px levavam 212px dos ~358 úteis; sobravam
+  146px para o título, e a saudação descia em quatro linhas de duas palavras. Agora os
+  botões dividem a primeira faixa com a marca (curta) e o título ocupa a segunda
+  inteira. De `lg` para cima nada muda.
+- **A barra de seções agora avisa que rola.** São seis seções em 390px: "Categorias" e
+  "Recorrências" ficavam fora da tela sem um pixel indicando que existiam. Faixa em
+  degradê em cada ponta, ligada só quando há mesmo conteúdo escondido daquele lado, e a
+  aba ativa entra no quadro sozinha.
+- **Alvos de toque.** Abas de vista (26px), botões da prévia, "limpar", filtro de
+  categoria: todos em 44px no celular, discretos de volta no desktop.
+- **16px em todo campo de texto abaixo de `sm`**, em `index.css` e **fora de `@layer`**
+  (dentro dele o utilitário `text-sm` venceria). O Safari do iPhone amplia a página
+  inteira quando um campo com fonte menor que 16px recebe foco — na tela de entrar,
+  isso é a página pulando de escala no momento de digitar o e-mail.
+- **O cabeçalho da prévia é `sticky` no celular** — e `sticky`, não `fixed`, porque o
+  cartão entra com a animação `surgir`, e `transform` num ancestral faz `fixed` ancorar
+  no ancestral. Sem isso, um extrato de 40 linhas empurrava "Salvar no histórico" para
+  fora da tela no primeiro deslize.
+- **O toast parou de pousar em cima do cabeçalho** no celular (`mobileOffset`).
+
+### 5. O tema escuro deixou de ser opcional
+
+A regra era "escolha salva > preferência do sistema > claro". O efeito prático apareceu
+naquele celular: aparelho no modo claro, e o app — que é escuro em todo print e em toda
+conversa — abrindo branco para quem entrava pela primeira vez. Agora é **escolha salva >
+escuro**, e o sistema não opina. Quem prefere claro tem o botão, e a escolha fica salva.
+
+⚠️ A regra vive em **dois** lugares: o `ThemeToggle` e o script inline do `index.html`,
+que roda antes da primeira pintura. E o script inline tem **hash na CSP** — o
+`vercel.json` foi atualizado junto (`sha256-3+xgQfvJwM1t5mBP6EZrGFH0fVxIOZq+fluyF/QieTQ=`).
+Mudar um sem o outro faz a página nascer sem tema **só em produção**.
+
+### 6. O tutorial media "já apareceu", não "já aprendeu"
+
+Ele abria uma vez, no minuto do cadastro — quando a pessoa ainda não tem extrato na mão
+e está só olhando. Ela lê, fecha, volta três dias depois com o PDF do banco, e a
+explicação já foi embora para sempre.
+
+Agora `ui/AberturaTutorial.tsx` decide com dois sinais: **nunca viu** (a regra antiga)
+**ou a conta está vazia**. Enquanto não houver um único lançamento gravado, o tutorial
+volta a cada entrada. Ele desliga sozinho no instante em que a pessoa começa de fato —
+importou, há transação, para de aparecer.
+
+O componente vive dentro do `DadosProvider` porque é ele que sabe se a conta tem dado, e
+espera o carregamento terminar: `todas === null` é "ainda não sei", não "conta vazia" —
+confundir os dois jogaria o tutorial na cara de quem tem três anos de histórico.
+
+### 9. O card do WhatsApp: o HTML estava certo, e era esse o problema
+
+O preview do link parou de aparecer. A imagem estava impecável — 1200×630, RGB **sem
+canal alfa**, 61 kB, servida com `image/png` e 200 —, as onze metas estavam todas no
+`index.html`, e mesmo assim nada subia. O defeito era a **forma** do HTML, e ele passa
+despercebido justamente porque o HTML estava **correto**:
+
+1. **`og:description` e `twitter:description` quebradas em três linhas.** O formatador
+   fez isso, e é HTML válido para qualquer navegador. O robô do WhatsApp não é um
+   navegador: ele varre o texto com expressão regular, e meta partida em várias linhas
+   some da varredura. Provado com um parser ingênuo contra a produção: a regex que
+   exige a tag numa linha só **não achava** a descrição.
+2. **O comentário ACIMA do bloco escrevia `og:image` por extenso**, para explicar que
+   a URL precisa ser absoluta. Um robô que pega a PRIMEIRA ocorrência do nome achava o
+   comentário — na posição 425 do arquivo, contra 1489 da tag verdadeira.
+
+Corrigido: cada meta em uma linha, o comentário desceu para depois do bloco e passou a
+falar de "a imagem" sem escrever o nome da propriedade. Entraram também
+`og:image:secure_url` e `og:image:type`.
+
+**`src/lib/compartilhamento.test.ts` guarda as duas regras de forma** — mais a URL
+absoluta, as dimensões declaradas conferidas contra os bytes do PNG, a ausência de
+canal alfa (transparência vira mancha preta em parte dos clientes) e o teto de 300 kB.
+Nenhum desses defeitos quebra typecheck, lint, teste ou build, e nenhum aparece no
+navegador: só aparece quando alguém manda o link e o card vem vazio, que é tarde.
+O teste foi conferido **reintroduzindo os dois defeitos**: 3 falhas, com a frase que
+explica cada uma.
+
+⚠️ **O `?v=` da imagem NÃO limpa o cache do LINK.** WhatsApp e Facebook guardam o
+preview pelo ENDEREÇO DA PÁGINA, por semanas. Depois de corrigir metas, forçar a
+rebusca no Sharing Debugger do Facebook (`developers.facebook.com/tools/debug` — o
+WhatsApp usa a mesma infraestrutura), ou conferir compartilhando com uma query nova
+(`/?x=1`): endereço diferente, cache diferente.
+
+**A arte foi para o tema escuro** (`?v=escuro`), com os valores lidos do bloco
+`:root[data-theme="dark"]` do `index.css` — nenhuma cor escolhida a olho. Card claro
+levando a um app que agora abre escuro é o link parecendo de outro produto.
+
+### 8. "Desloga todo mundo para pegarem a versão nova" — o que isso não faz
+
+Publicada a correção acima, veio o pedido natural: derrubar a sessão de todos, para
+entrarem de novo e o sistema atualizar. **Não funciona, e o motivo importa.**
+
+O que fica velho numa aba é o **código**, não a sessão. Derrubar a sessão leva a aba à
+tela de entrar DENTRO do bundle que já está em memória; a pessoa entra de novo, no
+mesmo JavaScript de antes, com o mesmo defeito que o deploy corrigiu. O que troca o
+código é recarregar a página — e só.
+
+O que foi feito no lugar, e vale para todo deploy futuro:
+
+- **`lib/versao.ts`** compara o módulo de entrada que ESTA aba carregou com o que o
+  servidor publica agora, buscando o `index.html` com `cache: 'no-store'`. O
+  `index.html` é o único arquivo sem hash no nome, então ele é a fonte da verdade —
+  sem endpoint próprio, sem service worker, sem número de versão para manter.
+- **`ui/AvisoVersaoNova.tsx`** confere ao voltar o foco à aba (com o mesmo intervalo
+  mínimo de 10s da recheca de sessão, senão cada alt-tab vira uma requisição). Sem
+  nada em andamento, **recarrega sozinho**; com um documento na tela, mostra um aviso
+  que não some, com botão — recarregar no meio de uma importação jogaria fora o PDF
+  já lido e conferido, que é o estado que o `ImportacaoProvider` existe para proteger.
+  Trava de laço: uma recarga automática por aba (`sessionStorage`).
+- **"Não sei" nunca vira "há versão nova".** Offline, 500, HTML de captive portal,
+  página sem módulo de entrada: tudo devolve `false`. Recarregar por engano é perder
+  o que a pessoa estava fazendo, e num celular o caso mais comum de tudo isso rodar é
+  justamente a rede oscilando. Há um teste por caminho.
+
+E um defeito que apareceu junto: **falha de chunk estava sendo chamada de rede fora**.
+Duas causas muito diferentes chegavam como "não consegui carregar o leitor de PDF" —
+
+| causa | saída |
+|---|---|
+| rede caiu | esperar e tentar de novo |
+| aba de antes do deploy (chunk com hash que não existe mais) | **recarregar**, e só isso |
+
+— e a mensagem mandava conferir a conexão nos dois casos. O `lib/chunk.ts` já
+reconhecia isso desde o relatório em PDF; a importação não usava. Agora
+`classificarFalha` separa os dois pela causa guardada no `LeitorIndisponivelError`.
+
+⚠️ A separação vive em `lib/`, **não em `domain/`**: a primeira versão punha o
+`ehFalhaDeChunk` dentro do `domain/pdf/load.ts` e inverteu a seta de dependência do
+projeto — `domain/` é o núcleo puro e não conhece `lib/`. Quem traduz erro em frase já
+morava do lado certo.
+
+### 7. A causa raiz: `Promise.withResolvers`
+
+Com o PDF dela em mãos, no fim do dia, a causa apareceu — e **não era o documento**.
+
+O extrato importa sem um arranhão: 22 lançamentos, confere ao centavo. Importa também
+na versão do app **de antes de qualquer correção desta rodada** (conferido num worktree
+em `e300fba`). Duas leituras verdes com o mesmo arquivo que falhava no celular dela
+significam uma coisa só: o problema estava no **navegador**, não no PDF.
+
+O `pdfjs-dist` 6 usa **`Promise.withResolvers`**, que existe a partir de:
+
+| navegador | versão | quando |
+|---|---|---|
+| Chrome / Edge | 119 | out/2023 |
+| Safari (iOS) | 17.4 | mar/2024 |
+| Firefox | 121 | dez/2023 |
+
+Num aparelho anterior a isso o app inteiro funciona — React, telas, gráficos, login,
+nada mais usa aquela API — e **só a importação quebra**, com um `TypeError` que o
+`catch` genérico transformava em *"Não consegui ler este arquivo."*
+
+Reproduzido em laboratório, e o resultado é o print dela, palavra por palavra:
+
+```
+ctx.add_init_script("delete Promise.withResolvers")   # simula o aparelho
+```
+
+| | código de antes | código de hoje |
+|---|---|---|
+| aparelho sem a API | toast **"Não consegui ler este arquivo."** | `TypeError: Promise.withResolvers is not a function`, na tela |
+
+**A cura são seis linhas de polyfill — e a parte que não é óbvia é que ele precisa ser
+aplicado DUAS vezes.** O `pdf.worker.min.mjs` usa a mesma API e roda em **outra
+thread**, com outro `globalThis`: nada declarado na página chega lá. O `workerSrc`
+passa a apontar para um `blob:` que aplica o polyfill e então importa o worker de
+verdade. A CSP já permitia (`worker-src 'self' blob:`), e o Blob herda a origem, então
+o `import` de dentro dele continua same-origin.
+
+Só quando falta: num navegador atual o caminho é byte a byte o de antes.
+
+**Verificado com o build de produção servido com os headers reais do `vercel.json`**,
+nos dois casos e sem uma única violação de CSP:
+
+```
+[navegador ATUAL]  LEU ✓   violacoes CSP: []
+[navegador ANTIGO] LEU ✓   violacoes CSP: []
+```
+
+Depois do polyfill, o piso da importação passa a ser o mesmo do app: removendo também
+`structuredClone`, `Array.findLast` e `.at()` o extrato continua sendo lido. **Quem
+consegue abrir o app consegue importar.**
+
+Fica também a classe `NavegadorSemSuporteError` para a PRÓXIMA API que o pdf.js adotar:
+`TypeError`/`ReferenceError` de método ausente deixa de cair no genérico e vira "o
+navegador deste aparelho é antigo demais — atualize, ou abra em outro". Documento ruim
+nunca produz "is not a function".
+
+⚠️ A armadilha inteira está registrada no `AGENTS.md` §4.1, com o comando para conferir
+o piso depois de cada upgrade do pdf.js.
+
+---
+
+> **Três coisas saíram deste arquivo em 2026-08-17** e agora moram em lugar próprio.
+> Este documento continua sendo a porta de entrada, mas não é mais dono delas:
+>
+> | Onde | O quê |
+> |---|---|
+> | [`CONTEXT.md`](../CONTEXT.md) | **O vocabulário.** O que é competência, vínculo, recorte, encargo — e o que não se deve escrever no lugar de cada um. |
+> | [`docs/adr/`](./adr/) | **As decisões duras**, com o porquê e as alternativas recusadas. A primeira é a competência. |
+> | [`CLAUDE.md`](../CLAUDE.md) | **As armadilhas de ferramenta e ambiente**, que antes viviam aqui na seção "Notas de armadilha". Lá elas entram em contexto sozinhas. |
+
+
 ## Rodada 2026-09-01 (parte 6) — reexportar o mesmo Documento não cria histórico duplicado
 
 O hash anterior era do PDF bruto. Exportar de novo o mesmo Documento podia trocar
