@@ -63,3 +63,8 @@ scripts/_*.ts
 # Config local de ferramenta (o .claude/ ja fica de fora pelo ignore global).
 # Nao e do projeto: cada maquina tem a sua.
 .codex/
+
+# Bytecode do Python. Nasce sozinho quando um medidor importa outro como
+# modulo (o medir-a11y faz isso com o medir-overflow), e um .pyc chegou a ser
+# commitado assim em 2026-09-06. Conferido com `git check-ignore -v`.
+__pycache__/
