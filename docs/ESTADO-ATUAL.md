@@ -361,7 +361,7 @@ produto em Next.js + Supabase saíram.
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**1.035 testes (119 arquivos)**, `npm run verificar` verde nos seis passos e
+**1.082 testes (125 arquivos)**, `npm run verificar` verde nos seis passos e
 **zero PRs abertos** (o #9 do Dependabot caiu em 08/09, com o `pdfjs-dist` em
 6.3.289 e as duas provas à parte refeitas).
 
@@ -425,10 +425,24 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
-| **Testes de `Diagnosticos`, `BarraFiltros`, `CompromissosFuturos` e as três listas** | pequeno cada; o dublê e os padrões já existem |
-| **Tirar o `zod` da primeira pintura** — 23,4% do bundle, contra ~7% do SDK inteiro | médio: `sessao-remota.ts` já pergunta "há sessão?" com `fetch` puro, sem tocar no SDK |
+| **Tirar o `zod` da primeira pintura** — 23,3% do chunk principal (242 kB), mais que o `react-dom` | médio, mas **BLOQUEADO**: ver abaixo |
 | **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
+
+⚠️ **O `zod` foi investigado em 08/09 e NÃO é só técnico.** Medido: são 242 kB
+(23,3%) do chunk principal, vindos do `better-auth` por dentro do SDK do Neon. O
+caminho existe — a tela de acesso é a PRIMEIRA pintura (`logado` começa
+`false`), então o SDK poderia carregar depois dela. Só que:
+
+1. **Piora o piscar.** Quem já está logado veria a tela de entrar por mais
+   tempo, porque `checarSessao()` passaria a esperar um download. É decisão de
+   produto, do mesmo naipe da reversão do desenho: não se resolve por medição.
+2. **É mexer em autenticação**, e a [ADR-0008](./adr/0008-o-login-nao-tem-rede-de-testes.md)
+   manda isso para o roteiro manual, com o dono presente — a suíte mocka o SDK
+   inteiro, então uma regressão de login passa verde do começo ao fim.
+
+O desbloqueio é o que a própria ADR-0008 aponta: **um teste que exercite o login
+de verdade**. Enquanto ele não existir, o `zod` fica onde está.
 
 > Os testes de UI e o `zod` vêm da prancheta de 31/08. Duas propostas daquela lista
 > morreram na reversão do desenho: a régua do banco (o argumento era gastar a
