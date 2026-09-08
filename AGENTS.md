@@ -395,8 +395,7 @@ mocka o `@neondatabase/neon-js` inteiro.
 
 ⚠️ **A porta é fixa (4599) porque as `VITE_*` são assadas no build**, e por isso
 existe o `.env.login`, **versionado** (dois endereços de localhost, nenhum
-segredo). O `.env.semlogin.local` é o contraexemplo: gitignored, e por isso o
-`build:semlogin` depende da máquina do dono.
+segredo). O mesmo vale para o `.env.semlogin` — ver a armadilha em §4.2.
 
 ⚠️ **Ele mede o `dist`, como o `medir-csp.py`.** Uma mutação que não compilava
 deixou o build falhar, e os cinco cenários passaram verdes contra o build
@@ -508,6 +507,15 @@ calar o modal.
 
 ## 4.2 Estrutura e ambiente
 
+- ⚠️ **`.env.semlogin` e `.env.login` são VERSIONADOS, e isso é a correção de um
+  defeito.** Até 2026-09-08 só existia o `.env.semlogin.local`, **gitignored**:
+  numa máquina com `.env.local` de valores reais, um `build:semlogin` sem esse
+  arquivo caía nos **valores reais** e não era semlogin nenhum — medido, os dois
+  valores vazaram para o bundle. O `medir-pdf.py` então mediria um app pedindo
+  login, e diria "nenhum desfecho conhecido em 25s", que não é a mesma frase que
+  "o app está na tela de acesso". Num clone limpo passava por acaso, porque a
+  ausência das `VITE_*` leva ao mesmo modo. Mesma armadilha do `.env.test`
+  (§4.1): **o que decide o modo de um medidor não pode morar só na sua máquina.**
 - **`vite.config.ts` tem `envDir: '..'`** — o `.env.local` fica na RAIZ, não em
   `frontend/`. Sem isso as `VITE_*` viram `undefined` **em silêncio**, o app cai no
   modo "importa e vê" e nenhum build reclama.

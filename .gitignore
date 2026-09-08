@@ -18,10 +18,11 @@ out/
 # Valores de teste, sem segredo e sem destino real. Versionado de propósito:
 # sem ele, cinco testes só passam na máquina de quem tem o `.env.local`.
 !.env.test
-# Os dois endereços de localhost do `medir-login.py`. Mesmo motivo, e o
-# contraexemplo está ao lado: o `.env.semlogin.local` NÃO está aqui, e por isso
-# o `build:semlogin` depende da máquina do dono.
+# Os dois endereços de localhost do `medir-login.py` e o modo "importa e vê",
+# que é vazio por definição. Mesmo motivo: sem segredo e sem destino real, e
+# versionar é o que faz o medidor medir a mesma coisa em toda máquina.
 !.env.login
+!.env.semlogin
 
 # Logs
 logs/
