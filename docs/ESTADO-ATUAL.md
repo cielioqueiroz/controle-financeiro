@@ -237,6 +237,63 @@ Achado de lambuja: o `.env.semlogin.local` é **gitignored**, então o
 acaso, porque a ausência das `VITE_*` leva ao mesmo modo). O `.env.login` não
 repete o erro — é versionado, com dois endereços de localhost e nenhum segredo.
 
+### 10. O modo "importa e vê" também dependia da máquina
+
+O achado de lambuja virou conserto. Numa máquina com `.env.local` de valores
+reais — a do dono —, um `build:semlogin` **sem** o `.env.semlogin.local` caía nos
+valores reais e não era semlogin nenhum. Medido: os **dois** valores vazaram para
+o bundle.
+
+A consequência era pior que o desperdício: o `medir-pdf.py` mediria um app
+**pedindo login**, e diria *"nenhum desfecho conhecido em 25s"* — que não é a
+mesma frase que "o app está na tela de acesso". O medidor do motor de PDF
+passaria a medir a tela de entrar sem ninguém notar.
+
+`.env.semlogin` agora é versionado e vazio por definição. Provado nos dois
+sentidos, com o `.local` escondido: com o arquivo novo, 0 de 2 valores no bundle
+e `medir:pdf` OK; sem ele, 2 de 2.
+
+### 11. Os medidores entraram no CI, e o CI achou o defeito deles
+
+`medir:pdf` e `medir:login` ficam fora do `verificar` porque cada um precisa de
+um build com `VITE_*` próprias — mas **ficar fora do `verificar` não é motivo
+para ficar fora do CI**. Job `medidores`, em paralelo, 1m31s.
+
+E o job novo reprovou de primeira, com o melhor tipo de vermelho:
+
+```
+[FALHOU] motor atual: nenhum desfecho conhecido em 25s.
+   Tela: Your statement becomes a chart | ... | I can't read this document yet.
+```
+
+O app **funcionou nos quatro cenários** e disse a frase certa. Quem estava errado
+era o medidor: ele procura os desfechos por **texto em português**, e o app
+escolhe o idioma por `navigator.language` — no runner, `en-US`.
+
+⚠️ **Cinco scripts tinham a mesma exposição, e nenhum fixava o locale:**
+`medir-pdf`, `medir-overflow` (as provas das jornadas são frases em português),
+`medir-a11y` (importa as `JORNADAS` do overflow, então herda), `medir-csp` e
+`gerar-prints` — este último geraria a folha de provas do README **em inglês**.
+Todos ganharam `locale='pt-BR'`.
+
+**Medidor cujo veredito depende do idioma da máquina não mede o app: mede a
+máquina.**
+
+### 12. A mesma armadilha, quatro vezes num dia
+
+Vale registrar junto, porque o padrão é mais útil que os quatro casos:
+
+| onde | o que presumia | quem pegou |
+|---|---|---|
+| casos do polyfill | que o runtime tem `Promise.try` | o CI |
+| listas | que o `IdiomaProvider` começa em `pt` | eu, escrevendo o teste |
+| `medir-login` | que o Chromium fala português | eu, antes de subir o CI |
+| cinco medidores | que o Chromium fala português | o CI |
+
+**Teste e medidor não presumem o ambiente: estabelecem o que vão medir.** Nas
+duas vezes em que essa regra foi seguida antes de subir, o vermelho não chegou ao
+CI; nas duas em que não foi, o CI cobrou.
+
 ## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
 
 A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
@@ -443,9 +500,12 @@ ninguém viu.
 Rollback* ou *Promote* no painel. E enquanto um rollback estiver ativo, push na
 `main` **não promove sozinho**.
 
-**Há CI desde 2026-09-06** (`.github/workflows/verificar.yml`): `npm run
-verificar` + `npm audit` + `gitleaks` a cada push. Ele achou um defeito de anos
-no primeiro commit — ver a rodada de 09-06, item 7.
+**Há CI desde 2026-09-06** (`.github/workflows/verificar.yml`), em **três
+jobs**: `verificar` (os seis passos), `seguranca` (`npm audit` + `gitleaks`) e,
+desde 08/09, `medidores` — o `medir:pdf` e o `medir:login`, que precisam de
+builds próprios e por isso ficam fora do `verificar`. Ele achou um defeito de
+anos no primeiro commit (rodada de 09-06, item 7) e, no primeiro dia dos
+medidores, achou que **eles** dependiam do idioma da máquina.
 
 **Cinco medidores fora do `verificar`**, cada um provado nos dois sentidos:
 `medir-contraste.py` (cor), `medir-overflow.py` (layout), `npm run medir:a11y`
