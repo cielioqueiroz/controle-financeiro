@@ -55,6 +55,9 @@ with sync_playwright() as p:
             viewport={"width": largura, "height": 900},
             device_scale_factor=2,
             color_scheme="dark" if nome in ESQUEMA_ESCURO else "light",
+            # A folha de provas do README e em portugues. Sem `locale`, ela sai
+            # no idioma da maquina de quem rodou o script.
+            locale="pt-BR",
         )
         pag.goto(BASE + rota)
         pag.wait_for_load_state("networkidle")

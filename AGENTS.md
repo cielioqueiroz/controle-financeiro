@@ -507,6 +507,16 @@ calar o modal.
 
 ## 4.2 Estrutura e ambiente
 
+- ⚠️ **Todo medidor de navegador fixa `locale='pt-BR'`, e isso não é detalhe.**
+  Eles procuram **texto em português** — as provas das jornadas, os desfechos da
+  importação, a frase de credencial recusada — e o app escolhe o idioma por
+  `navigator.language`. Sem fixar, o resultado depende da máquina: em 08/09 o
+  `medir-pdf.py` reprovou os **quatro** cenários no runner do CI mostrando na
+  tela *"I can't read this document yet"*, que é exatamente a frase certa. O
+  medidor estava errado, o app não. Cinco scripts tinham a mesma exposição
+  (`medir-pdf`, `medir-overflow`, `medir-a11y`, `medir-csp` e `gerar-prints` —
+  este último geraria a folha de provas do README em inglês). **Medidor cujo
+  veredito depende do idioma da máquina não mede o app: mede a máquina.**
 - ⚠️ **`.env.semlogin` e `.env.login` são VERSIONADOS, e isso é a correção de um
   defeito.** Até 2026-09-08 só existia o `.env.semlogin.local`, **gitignored**:
   numa máquina com `.env.local` de valores reais, um `build:semlogin` sem esse
