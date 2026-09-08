@@ -349,6 +349,7 @@ npm run medir:a11y                  # se mexeu em MARCAÇÃO (as mesmas jornadas
 python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de provas
 
 npm run build:semlogin && npm run medir:pdf   # se mexeu no pdf.js ou em load.ts
+npm run build:login && npm run medir:login    # se mexeu em AUTENTICACAO
 ```
 
 **`medir:a11y` roda o axe-core nas MESMAS jornadas do medidor de overflow** —
@@ -384,6 +385,32 @@ o cenário nunca poderia passar.
 
 Fica fora do `npm run verificar` porque precisa de um build à parte
 (`--mode semlogin`, que liga o modo "importa e vê" e dispensa login).
+
+**`medir:login` é a rede que a [ADR-0008](./docs/adr/0008-o-login-nao-tem-rede-de-testes.md)
+dizia não existir**, e ela existe desde 08/09. Sobe um **Auth de mentira** em
+`127.0.0.1:4599`, serve o `dist` no mesmo endereço e dirige a tela num Chromium:
+o SDK de verdade roda, e são cinco cenários — sem sessão, login aceito, login
+recusado, sessão já existente e sair. A suíte não substitui isso, porque ela
+mocka o `@neondatabase/neon-js` inteiro.
+
+⚠️ **A porta é fixa (4599) porque as `VITE_*` são assadas no build**, e por isso
+existe o `.env.login`, **versionado** (dois endereços de localhost, nenhum
+segredo). O `.env.semlogin.local` é o contraexemplo: gitignored, e por isso o
+`build:semlogin` depende da máquina do dono.
+
+⚠️ **Ele mede o `dist`, como o `medir-csp.py`.** Uma mutação que não compilava
+deixou o build falhar, e os cinco cenários passaram verdes contra o build
+anterior. Confira que o `build:login` passou antes de acreditar no verde.
+
+⚠️ **O que ele NÃO cobre continua no roteiro manual**: o Neon de verdade, a
+entrega de e-mail, o OAuth do Google e o RLS. Ele prova que o app faz a sua
+parte, não que o servidor faz a dele.
+
+⚠️ **A conta do cenário NÃO pode estar vazia.** O `AberturaTutorial` abre
+sozinho quando `todas.length === 0`, e o modal cobre a tela: todo clique depois
+do login estoura o tempo contra o overlay. A Data API de mentira devolve uma
+transação por isso — é o estado fiel de quem já usa o app, não um atalho para
+calar o modal.
 
 - Números de referência do diagnóstico (gasto real de junho = R$ 41.012,25 sobre os
   4 PDFs de `D:/extratos/junho2026`) estão em `docs/ESTADO-ATUAL.md`. Mudou sem

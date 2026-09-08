@@ -169,6 +169,74 @@ fortes que as de 07/09:
 Mergeado por rebase. **Zero PRs abertos**, `main` linear, CI verde, produção no
 ar com o pdf.js novo.
 
+### 8. Os testes de UI que faltavam, e a dívida de i18n que apareceu debaixo
+
+As cinco peças que nenhum teste cobria ganharam rede: `Diagnosticos`,
+`BarraFiltros`, `CompromissosFuturos` e as duas listas que faltavam (por dia e
+por categoria). São 42 casos, cada um mirando uma **regra** — a faixa de
+diagnósticos que some vazia, o filtro de banco que não aparece com um banco só,
+o `NaN` que não pode chegar à tela, o subtotal que separa gasto de entrada.
+Provados por cinco mutações, uma por componente.
+
+Duas armadilhas de teste saíram daí, e ficaram escritas no próprio arquivo:
+
+- o **`AnimatePresence` mantém o nó no DOM enquanto ele sai**, então fechar
+  exige `waitForElementToBeRemoved` — um `queryByText` logo após o clique ainda
+  o encontra, e o teste passaria igual se o fechamento não existisse;
+- **valor de fixture igual ao total da seção** faz o teste passar mesmo se a
+  soma sumir da tela.
+
+⚠️ **E apareceu que "i18n 100%" era falso desde 13/08.** Ver o parágrafo da
+retomada: a conferência daquele dia procurou chave faltando, e o que restava não
+era chave faltando — eram textos que nunca passaram por `t()`, invisíveis a um
+`grep` por `t('`. Estava todo em `ui/listas/`, e traduzir não bastava: faltava
+**repintar**, porque a locale mora num estado de módulo.
+
+### 9. A rede de testes do login passou a existir
+
+A [ADR-0008](./adr/0008-o-login-nao-tem-rede-de-testes.md) abria dizendo que
+"uma regressão de login passa verde do começo ao fim, e só o usuário, entrando
+com conta real, descobre". **Isso deixou de ser verdade inteira em 08/09.**
+
+`scripts/medir-login.py` sobe um **Auth de mentira** em `127.0.0.1:4599`, serve
+o `dist` no mesmo endereço e dirige a tela num Chromium. O SDK de verdade roda —
+com o `better-auth` e o `zod` que ele arrasta —, e o que está sendo medido é o
+diálogo dele, endpoint por endpoint. O protocolo foi descoberto **espiando**, não
+lendo documentação: `GET /get-session` na montagem, `POST /sign-in/email` com o
+que foi digitado, e `get-session` de novo.
+
+Cinco cenários: sem sessão, login aceito, login recusado, sessão já existente e
+sair. Provados nos dois sentidos por mutação no app:
+
+| mutação | o que reprovou |
+|---|---|
+| `sair` deixa de avisar o servidor | só o cenário "sair" |
+| o app para de perguntar se há sessão | 4 dos 5 |
+| o `Auth` para de avisar a recusa | só "login recusado" |
+
+⚠️ **Três coisas que a construção ensinou, e que estão no cabeçalho do script:**
+
+1. **A conta do cenário não pode estar vazia.** O `AberturaTutorial` abre
+   sozinho quando `todas.length === 0`, e o modal cobre a tela: todo clique
+   depois do login estourava o tempo contra o overlay. A Data API de mentira
+   devolve uma transação — é o estado fiel de quem já usa o app.
+2. **O medidor mede o `dist`, não o código.** Uma mutação que não compilava
+   deixou o build falhar, e os cinco cenários passaram verdes contra o build
+   anterior. Mesma armadilha do `medir-csp.py`.
+3. **"Algum toast" não é asserção.** O cenário de recusa exigia apenas que
+   houvesse um toast, e passava verde com o app engolindo a recusa do servidor
+   (havia outro toast na tela). Agora exige a **frase**.
+
+⚠️ **O que ele NÃO cobre continua no roteiro manual**: o Neon de verdade, a
+entrega de e-mail, o OAuth do Google e o RLS. Ele prova que o app faz a sua
+parte, não que o servidor faz a dele — e por isso a ADR-0008 foi **atualizada,
+não revogada**.
+
+Achado de lambuja: o `.env.semlogin.local` é **gitignored**, então o
+`build:semlogin` depende da máquina do dono (num clone limpo ele passa por
+acaso, porque a ausência das `VITE_*` leva ao mesmo modo). O `.env.login` não
+repete o erro — é versionado, com dois endereços de localhost e nenhum segredo.
+
 ## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
 
 A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
@@ -379,12 +447,13 @@ Rollback* ou *Promote* no painel. E enquanto um rollback estiver ativo, push na
 verificar` + `npm audit` + `gitleaks` a cada push. Ele achou um defeito de anos
 no primeiro commit — ver a rodada de 09-06, item 7.
 
-**Quatro medidores fora do `verificar`**, cada um provado nos dois sentidos:
+**Cinco medidores fora do `verificar`**, cada um provado nos dois sentidos:
 `medir-contraste.py` (cor), `medir-overflow.py` (layout), `npm run medir:a11y`
 (marcação, mesmas jornadas do overflow) e `npm run medir:pdf` (o motor de PDF
 abre arquivo, em **quatro** pisos de navegador — e desde 08/09 apagando a API
-também DENTRO do worker, que é onde ela é usada). Mais o `npm run medir:peso`,
-que atribui os bytes do bundle.
+também DENTRO do worker, que é onde ela é usada) e `npm run medir:login` (o
+login, contra um Auth de mentira, em cinco cenários — a rede que a ADR-0008
+dizia não existir). Mais o `npm run medir:peso`, que atribui os bytes do bundle.
 
 **O desenho é o "livro-razão"** (IBM Plex, raio, cartão com sombra) desde a
 reversão de 31/08 — ver [ADR-0012](./adr/0012-o-livro-razao-volta-e-a-calha-lateral-nasce.md).
@@ -438,11 +507,14 @@ caminho existe — a tela de acesso é a PRIMEIRA pintura (`logado` começa
    tempo, porque `checarSessao()` passaria a esperar um download. É decisão de
    produto, do mesmo naipe da reversão do desenho: não se resolve por medição.
 2. **É mexer em autenticação**, e a [ADR-0008](./adr/0008-o-login-nao-tem-rede-de-testes.md)
-   manda isso para o roteiro manual, com o dono presente — a suíte mocka o SDK
-   inteiro, então uma regressão de login passa verde do começo ao fim.
+   manda isso para o roteiro manual, com o dono presente.
 
-O desbloqueio é o que a própria ADR-0008 aponta: **um teste que exercite o login
-de verdade**. Enquanto ele não existir, o `zod` fica onde está.
+✅ **A metade técnica do impedimento caiu no mesmo dia**: o
+`npm run medir:login` existe, e mexer no carregamento do SDK agora tem rede — os
+cinco cenários reprovam se o login parar de funcionar. **Falta só a decisão de
+produto do item 1**, que é do dono: aceitar (ou não) que quem já está logado veja
+a tela de entrar por mais tempo. Medido o ganho, ele decide; sem isso, o `zod`
+fica onde está.
 
 > Os testes de UI e o `zod` vêm da prancheta de 31/08. Duas propostas daquela lista
 > morreram na reversão do desenho: a régua do banco (o argumento era gastar a
