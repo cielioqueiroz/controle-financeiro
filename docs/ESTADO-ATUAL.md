@@ -373,6 +373,56 @@ O que continua valendo, e é o que sustenta o item da fila:
 `bank` e `doc_type`, que é tudo o que os dois caminhos precisam. Falta o `holderName`,
 que a migração `0006` minimizou — mas ele só serve ao caminho que já funciona.
 
+### 15. A primeira auditoria do banco em produção
+
+Com o MCP do Neon, o banco foi conferido **contra o que as migrações prometem**
+— e não contra o que está escrito em `backend/db/migrations/`, que é a diferença
+que o `AGENTS.md` insiste em separar. Projeto `controle-financeiro`
+(`round-mountain-04690211`), branch `production`, São Paulo, Postgres 18.
+
+**As sete migrações estão aplicadas, e cada uma foi verificada pelo efeito:**
+
+| migração | o que se conferiu | resultado |
+|---|---|---|
+| `0003` integridade | função + gatilhos entre usuários | 2 gatilhos, em `documents` e `transactions` |
+| `0004` Mercado Pago | o CHECK de `accounts.bank` | os 6 bancos + `desconhecido` |
+| `0005` dedup por conteúdo | a coluna `content_hash` | existe |
+| `0006` grants por coluna | UPDATE em `transactions` | **só** `category_slug`, `kind` e `label` |
+| `0007` registro de falhas | o privilégio que "vem de graça" | `client_errors` **sem UPDATE** — o `revoke` pegou |
+
+**RLS ligado nas seis tabelas**, todas com política (`client_errors` tem três).
+
+**O app está em uso de verdade**, e isso muda o peso de algumas pendências:
+
+| | |
+|---|---|
+| documentos | **14** (3 meses de Nubank e Bradesco, jun–ago) |
+| transações | **360** |
+| regras aprendidas | **69** |
+| falhas registradas | **0** |
+| usuários | 6, sendo **5 com e-mail confirmado** |
+
+✅ **Duas pendências da lista já estavam cumpridas, e ninguém tinha marcado:**
+
+1. **"Importar os PDFs do Mercado Pago pelo app"** — está feito: 1 extrato (21
+   transações) e 1 fatura (9). Era "a prova que falta" desde 31/08.
+2. **"Criar uma conta de verdade e ver o e-mail de confirmação chegar"** — cinco
+   e-mails foram confirmados. A entrega do remetente do Neon funciona.
+
+⚠️ **Um achado novo: o login com Google usa credenciais COMPARTILHADAS.** O
+provider está como `type: "shared"`, ou seja, as credenciais de demonstração do
+Neon, e não um Client ID do Google Cloud Console do dono — que é o que o
+[`SETUP-NEON.md`](./SETUP-NEON.md) descreve. O documento diz, sobre não ter as
+credenciais próprias: *"o botão 'Continuar com o Google' aparece mas não
+completa"*. O botão **está no ar**. Ou ele não completa, ou completa mostrando o
+nome do Neon na tela de consentimento em vez de "Capital Financeiro" — e as duas
+saídas são ruins na mesma medida.
+
+**O resto da configuração está como o documentado:** a Data API ativa com
+`db_max_rows` **vazio** (é o que o `puxarTudo` protege pedindo `count: 'exact'`),
+o Auth com o nome **"Capital Financeiro"** e o `trusted_domains` com só o domínio
+da Vercel.
+
 ## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
 
 A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
@@ -625,7 +675,7 @@ PDF real" mudou de peso. Ver a rodada de 31/08, item 5.
 | **Cadastro sem verificação de e-mail** | `require_email_verification: false` + sem captcha: qualquer um cria conta com e-mail alheio |
 | **CORS do Neon Auth** | Reflete QUALQUER origem com credenciais. **Não tem conserto no repositório** — é chamado para o Neon |
 | **Pentest da Strix** | A CLI está instalada; falta Docker de pé + `STRIX_LLM`/`LLM_API_KEY` |
-| **Importar os PDFs do Mercado Pago pelo app** | Os parsers conferem contra fixture; ninguém ainda gravou no banco de verdade. É a prova que falta |
+| **Login com Google usa credenciais COMPARTILHADAS** | Conferido em 08/09: o provider está como `shared`, e não com um Client ID do Google Cloud Console. Ou o botão não completa, ou completa mostrando o nome do Neon na tela de consentimento |
 | **Rodar o [`VALIDACAO-MANUAL.md`](./VALIDACAO-MANUAL.md)** | Precisa de conta real e caixa de entrada real — substitui o teste de login que não existe |
 | **Amostra da Caixa / layout A do BB** | O extrato da Caixa veio como imagem, e o app lê texto |
 | **Revisão de en/es** | As traduções são minhas; falta olho de nativo |
@@ -655,9 +705,9 @@ por medição: o app aparece 4 s antes em 3G e a piscada não mudou.
 
 **O que o usuário precisa conferir na próxima vez que abrir** (nesta ordem):
 
-1. **Criar uma conta de verdade e ver o e-mail de confirmação chegar.** O fluxo
-   está pinado por teste e os endpoints foram sondados, mas a **entrega**
-   depende do remetente da Neon e não dá para verificar sem uma caixa real.
+1. ~~**Criar uma conta de verdade e ver o e-mail de confirmação chegar.**~~
+   ✅ **Aconteceu** — a auditoria de 08/09 achou 5 e-mails confirmados de 6
+   contas. A entrega do remetente do Neon funciona.
 2. **O card "Próximas faturas" do Bradesco** — a fileira de saldos agora mostra
    um card por banco com o número que cada um declara (ver a rodada de 12/08).
 3. **O gráfico de saídas por dia**, que ocupou a metade vazia do painel.
