@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { ROTAS } from './rotas'
 import { Marca } from '../ui/Marca'
 import { ContaMenu } from '../ui/ContaMenu'
-import { neon } from '../lib/neon'
+import { neonConfigurado } from '../lib/neon'
 import { useT } from '../i18n/IdiomaProvider'
 
 /** Um ícone por seção, casado pelo CAMINHO e não pela posição na lista.
@@ -124,7 +124,7 @@ export function NavLateral({ usuario, onSair, onVerTutorial, onEditarPerfil }: P
       {/* O menu de conta desce para cá — no desenho antigo ele ficava no
           canto superior direito, junto dos toggles. Só aparece com o Neon
           configurado: no modo "importa e vê" não há conta para gerenciar. */}
-      {neon && (
+      {neonConfigurado && (
         <div className="border-t border-carvao-700 p-3">
           <ContaMenu
             variante="lateral"

@@ -64,3 +64,74 @@ export async function sessaoAindaVale(): Promise<boolean | null> {
     return null
   }
 }
+
+/** Quem está logado, segundo o SERVIDOR, sem carregar o SDK.
+ *
+ *  ## Por que isto existe: para a tela de acesso não piscar
+ *
+ *  O SDK entra por import dinâmico desde 2026-09-08 — são 242 kB, quase todos
+ *  do `zod`, que a primeira pintura não precisa (ver `lib/neon.ts`). Só que
+ *  quem decide se a tela é a de entrar ou a do Painel é justamente a resposta
+ *  de "há sessão?", e fazer essa pergunta AO SDK significaria esperar o
+ *  download para saber — quem já está logado veria a tela de entrar por mais
+ *  tempo do que antes. Seria trocar bytes por piscada, e piscada é o que o
+ *  script inline do `index.html` já existe para evitar no tema.
+ *
+ *  A saída é que a pergunta não precisa do SDK: é um `GET /get-session` com o
+ *  cookie da sessão, e o `sessaoAindaVale()` acima já a faz por `fetch` puro.
+ *  Esta função devolve, do MESMO endpoint, o que a tela precisa para se
+ *  desenhar inteira — nome, e-mail e se o e-mail foi confirmado.
+ *
+ *  ⚠️ **Não substitui o `getSession()` do SDK**, e não é isso que ela faz. O
+ *  SDK ainda é quem assina as consultas com o JWT; esta função só adianta a
+ *  DECISÃO de qual tela mostrar. O `checarSessao()` continua rodando, e o que
+ *  ele trouxer vale — se as duas respostas divergirem, a do SDK é a que fica.
+ *
+ *  **`null` continua sendo "não sei"**, pelo mesmo motivo da função acima:
+ *  rede fora não é veredito sobre a sessão, e derrubar quem está sem internet
+ *  trocaria um defeito por um pior. */
+export type UsuarioRemoto = {
+  nome: string | null
+  email: string | null
+  emailVerificado?: boolean
+}
+
+export async function usuarioDaSessao(): Promise<UsuarioRemoto | false | null> {
+  if (!authUrl) return null
+  try {
+    const r = await fetch(`${authUrl.replace(/\/$/, '')}/get-session`, {
+      credentials: 'include',
+      headers: { accept: 'application/json' },
+    })
+    if (r.status === 401) return false
+    if (!r.ok) return null
+
+    // Mesma leitura por TEXTO do `sessaoAindaVale`, e pelo mesmo motivo: um
+    // corpo ilegível (HTML de erro, resposta cortada no meio de um deploy)
+    // não pode virar "sem sessão", que desloga.
+    const texto = (await r.text().catch(() => null))?.trim()
+    if (texto === null || texto === undefined) return null
+    if (texto === '' || texto === 'null') return false
+
+    let corpo: unknown
+    try {
+      corpo = JSON.parse(texto)
+    } catch {
+      return null
+    }
+    if (corpo === null) return false
+
+    const s = corpo as {
+      session?: unknown
+      user?: { name?: string; email?: string; emailVerified?: boolean }
+    }
+    if (!(s.session ?? s.user)) return false
+    return {
+      nome: s.user?.name ?? null,
+      email: s.user?.email ?? null,
+      emailVerificado: s.user?.emailVerified,
+    }
+  } catch {
+    return null
+  }
+}

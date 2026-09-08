@@ -37,10 +37,10 @@ import { Rodape } from './ui/Rodape'
 import { Auth } from './ui/acesso/Auth'
 import { comoChamar, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
 import { useT } from './i18n/IdiomaProvider'
-import { neon, neonConfigurado } from './lib/neon'
+import { aquecerNeon, neonConfigurado, obterNeon } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
 import { avisarSaida, ouvirSaida } from './lib/sessao-canal'
-import { sessaoAindaVale } from './lib/sessao-remota'
+import { sessaoAindaVale, usuarioDaSessao } from './lib/sessao-remota'
 import { puxarRegras } from './aplicacao/consultas/regras'
 import type { Regra } from './domain/categorize/regras'
 
@@ -80,6 +80,7 @@ export default function App() {
   const [tokenReset, setTokenReset] = useState(() => lerTokenDaUrl(window.location.search))
 
   async function checarSessao() {
+    const neon = await obterNeon()
     if (!neon) return
     const { data } = await neon.auth.getSession()
     const logou = Boolean(data?.session)
@@ -105,7 +106,7 @@ export default function App() {
     // como continuação da conversa.
     const quem = comoChamar(usuario?.nome, usuario?.email)
     try {
-      await neon?.auth.signOut()
+      await (await obterNeon())?.auth.signOut()
       setLogado(false)
       setUsuario(null)
       // Derruba as OUTRAS abas. Depois do signOut de propósito: avisar antes
@@ -119,8 +120,54 @@ export default function App() {
     }
   }
 
+  /** ## Duas perguntas na montagem, e a mais rápida decide a tela
+   *
+   *  O SDK entra por import dinâmico (242 kB, quase todos `zod` — ver
+   *  `lib/neon.ts`), e a primeira pintura não o espera. Mas quem já está
+   *  logado não pode ver a tela de entrar enquanto o chunk baixa: seria
+   *  trocar bytes por piscada, e piscada é justamente o que o script inline
+   *  do `index.html` existe para evitar no tema.
+   *
+   *  Então saem DUAS perguntas ao mesmo tempo:
+   *
+   *  1. `usuarioDaSessao()` — `GET /get-session` por `fetch` puro, sem SDK.
+   *     É uma requisição contra 242 kB de download, então ela chega primeiro
+   *     e já dá para trocar de tela. **O piscar fica menor do que era antes
+   *     desta mudança**, não maior.
+   *  2. `checarSessao()` — o SDK de verdade, que é quem assina as consultas.
+   *     Ela sobrescreve o que a primeira disse.
+   *
+   *  ⚠️ **A ordem entre elas não é garantida, e é por isso que a segunda
+   *  vence por construção**: `checarSessao` chama `setLogado` com o que o SDK
+   *  respondeu, sem consultar o que já estava na tela. Se as duas
+   *  discordarem — sessão que morreu entre uma e outra —, quem fica é o SDK,
+   *  que é quem vai emitir o JWT das consultas.
+   *
+   *  ⚠️ **`null` não decide nada.** Rede fora devolve `null` de "não sei", e
+   *  aí a tela continua no que estava até o SDK falar. */
   useEffect(() => {
+    if (!neonConfigurado) return
+
+    // Começa o download agora, sem ninguém esperando: quem vai digitar
+    // e-mail e senha leva alguns segundos, e nesse tempo o chunk chega.
+    aquecerNeon()
+
+    let vivo = true
+    void usuarioDaSessao().then((quem) => {
+      if (!vivo || quem === null) return
+      if (quem === false) {
+        setLogado(false)
+        setUsuario(null)
+        return
+      }
+      setLogado(true)
+      setUsuario(quem)
+    })
+
     checarSessao()
+    return () => {
+      vivo = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -139,7 +186,9 @@ export default function App() {
     return ouvirSaida(() => {
       setLogado(false)
       setUsuario(null)
-      neon?.auth.signOut().catch(() => {})
+      void obterNeon()
+        .then((neon) => neon?.auth.signOut())
+        .catch(() => {})
       toast.info(t('header.saiuNoutraAba'))
     })
   }, [t])
@@ -170,7 +219,9 @@ export default function App() {
       if ((await sessaoAindaVale()) === false) {
         setLogado(false)
         setUsuario(null)
-        neon?.auth.signOut().catch(() => {})
+        void obterNeon()
+          .then((neon) => neon?.auth.signOut())
+          .catch(() => {})
         toast.info(t('header.sessaoTerminou'))
       }
     }

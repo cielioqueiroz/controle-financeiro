@@ -1,4 +1,4 @@
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import type { Regra } from '../domain/categorize/regras'
 
 /** Regras de categorização aprendidas com as correções do usuário.
@@ -22,6 +22,7 @@ type LinhaRegra = {
  *  Nunca lança: sem banco ou com falha de rede, devolve vazio e o app
  *  segue com as regras globais. */
 export async function puxarRegras(): Promise<Regra[]> {
+  const neon = await obterNeon()
   if (!neon) return []
   const { data, error } = await neon
     .from('merchant_rules')
@@ -42,6 +43,7 @@ export async function puxarRegras(): Promise<Regra[]> {
  *  Feito na camada de persistência (e não por índice único) para não exigir
  *  uma migração nova — a limpeza é escopada pelo RLS ao próprio usuário. */
 export async function salvarRegra(regra: Regra): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) return
   const tipo = regra.tipo === 'cnpj' ? 'cnpj' : 'contains'
   await neon.from('merchant_rules').delete().eq('padrao', regra.padrao).eq('match_type', tipo)
@@ -61,6 +63,7 @@ export async function salvarRegra(regra: Regra): Promise<void> {
  *  Existe porque, até agora, o aprendizado era irreversível e invisível: o
  *  app decorava a correção e o usuário não tinha como ver nem desfazer. */
 export async function apagarRegra(regra: Pick<Regra, 'padrao' | 'tipo'>): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) return
   const tipo = regra.tipo === 'cnpj' ? 'cnpj' : 'contains'
   const { error } = await neon

@@ -8,7 +8,7 @@ import { ContaMenu } from './ContaMenu'
 import { FraseDeslogado } from './acesso/TelaAcesso'
 import { comoChamar } from '../lib/perfil'
 import { useT } from '../i18n/IdiomaProvider'
-import { neon } from '../lib/neon'
+import { neonConfigurado } from '../lib/neon'
 
 type Props = {
   logado: boolean
@@ -135,7 +135,7 @@ export function Cabecalho({
           </button>
           <DiscretoToggle />
           <ThemeToggle />
-          {logado && neon && (
+          {logado && neonConfigurado && (
             <span className="lg:hidden">
               <ContaMenu
                 onEditarPerfil={onEditarPerfil}

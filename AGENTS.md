@@ -252,6 +252,27 @@ confiança do sistema — não o contorne.
   isso que o `ImportacaoProvider` existe: um PDF já lido não pode se perder porque
   a pessoa foi ao Painel conferir uma coisa.
 
+## 2.55 O cliente do Neon é assíncrono
+
+**`obterNeon()`, nunca um `neon` importado.** O SDK entra por import dinâmico
+desde 2026-09-08 — são 242 kB (quase todos `zod`) que a primeira pintura não
+paga, ver [ADR-0014](./docs/adr/0014-o-sdk-do-neon-sai-da-primeira-pintura.md).
+O padrão em `persist/` é abrir a função com:
+
+```ts
+const neon = await obterNeon()
+if (!neon) return []          // modo "importa e vê": sem persistência
+```
+
+⚠️ **`neonConfigurado` continua síncrono, e é ele que a TELA usa.** Perguntas de
+renderização — desenhar ou não o menu de conta — são respondidas por duas
+variáveis de ambiente e não esperam download. Um `{neon && ...}` no JSX seria
+uma promessa, que é sempre verdadeira.
+
+⚠️ **Função que promete não fazer ninguém esperar não pode virar `async`.** É o
+caso de `registrarFalha`: quem a chama está no meio de um tratador de erro. O
+guard dela é o `neonConfigurado`, e só o envio espera o cliente.
+
 ## 2.6 Provider + hook no mesmo arquivo
 
 É o padrão daqui: `IdiomaProvider`/`useT`, `DadosProvider`/`useDados`,
@@ -350,6 +371,7 @@ python scripts/gerar-prints.py http://localhost:5173   # regerar a folha de prov
 
 npm run build:semlogin && npm run medir:pdf   # se mexeu no pdf.js ou em load.ts
 npm run build:login && npm run medir:login    # se mexeu em AUTENTICACAO
+npm run build:login && npm run medir:piscada   # se mexeu no que a montagem espera
 ```
 
 **`medir:a11y` roda o axe-core nas MESMAS jornadas do medidor de overflow** —
@@ -410,6 +432,14 @@ sozinho quando `todas.length === 0`, e o modal cobre a tela: todo clique depois
 do login estoura o tempo contra o overlay. A Data API de mentira devolve uma
 transação por isso — é o estado fiel de quem já usa o app, não um atalho para
 calar o modal.
+
+**`medir:piscada` mede o tempo em que quem JÁ ESTÁ LOGADO vê a tela de entrar**,
+com a rede estrangulada a 3G. Ele nasceu para responder à objeção contra tirar o
+SDK da primeira pintura ([ADR-0014](./docs/adr/0014-o-sdk-do-neon-sai-da-primeira-pintura.md)),
+e serve para qualquer mudança no que a montagem do `App` espera. ⚠️ **Rode com
+a rede estrangulada** — numa rede de escritório os dois cenários empatam e a
+medição não diz nada. Os números absolutos não são comparáveis entre máquinas:
+o que vale é a diferença entre dois builds medidos na mesma.
 
 - Números de referência do diagnóstico (gasto real de junho = R$ 41.012,25 sobre os
   4 PDFs de `D:/extratos/junho2026`) estão em `docs/ESTADO-ATUAL.md`. Mudou sem

@@ -9,10 +9,18 @@ import { Notificacoes } from '../Notificacoes'
 
 // O cadastro precisa de um Neon de mentira: o de verdade criaria conta.
 const signUp = vi.fn(async () => ({ error: null }))
-vi.mock('../../lib/neon', () => ({
+vi.mock('../../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = {
   neonConfigurado: true,
   neon: { auth: { signUp: { email: (...a: unknown[]) => signUp(...(a as [])) } } },
-}))
+}
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 
 // Tipado pelo retorno REAL (Resultado), não por `ok: true as const`: com o
 // literal, `mockResolvedValue({ ok: false, motivo: 'falha' })` não compila — e

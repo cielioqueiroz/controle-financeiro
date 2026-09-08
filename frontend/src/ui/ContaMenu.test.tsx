@@ -4,7 +4,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ContaMenu } from './ContaMenu'
 
-vi.mock('../lib/neon', () => ({
+vi.mock('../lib/neon', () => {
+  // `obterNeon` devolve o MESMO cliente que `neon`: o SDK passou a
+  // entrar por import dinamico, e quem consome espera uma promessa.
+  const mod = {
   neon: {
     auth: {
       getSession: vi.fn(() =>
@@ -13,7 +16,12 @@ vi.mock('../lib/neon', () => ({
     },
   },
   neonConfigurado: true,
-}))
+}
+  // `Object.assign`, e não spread: o spread LÊ o getter na hora, e vários
+  // destes mocks usam getter justamente para ser preguiçosos — ler cedo
+  // estoura em "Cannot access X before initialization".
+  return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
+})
 
 beforeEach(() => {
   vi.clearAllMocks()

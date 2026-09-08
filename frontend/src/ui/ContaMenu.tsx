@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import { Confirmacao } from './acesso/Confirmacao'
 import { useT } from '../i18n/IdiomaProvider'
 
@@ -27,14 +27,22 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
   const ref = useRef<HTMLDivElement>(null)
   const { t } = useT()
 
+  // O e-mail é enfeite do menu: chega quando chegar. Por isso o SDK é
+  // esperado aqui dentro em vez de bloquear a montagem — o menu abre e
+  // funciona sem ele, e o endereço aparece quando o chunk termina de baixar.
   useEffect(() => {
-    neon?.auth
-      .getSession()
-      .then(({ data }) => {
-        const e = (data as { user?: { email?: string } } | null)?.user?.email
+    let vivo = true
+    void obterNeon()
+      .then((neon) => neon?.auth.getSession())
+      .then((res) => {
+        if (!vivo) return
+        const e = (res?.data as { user?: { email?: string } } | null)?.user?.email
         if (e) setEmail(e)
       })
       .catch(() => {})
+    return () => {
+      vivo = false
+    }
   }, [])
 
   useEffect(() => {

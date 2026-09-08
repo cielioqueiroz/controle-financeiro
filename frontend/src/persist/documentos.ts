@@ -1,4 +1,4 @@
-import { neon } from '../lib/neon'
+import { obterNeon } from '../lib/neon'
 import type { DocParaSaldo } from '../domain/saldos'
 import type { DocParaAberto } from '../domain/aberto'
 
@@ -15,6 +15,7 @@ export type DocumentoSalvo = {
 
 /** Lista os documentos importados do usuário (RLS escopa aos dele). */
 export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
+  const neon = await obterNeon()
   if (!neon) return []
   const { data, error } = await neon
     .from('documents')
@@ -38,6 +39,7 @@ export type DocDoPainel = DocParaSaldo & DocParaAberto
  *  O nome continua `puxarSaldos` de propósito: `Dashboard.pdf.test.tsx`
  *  mocka este módulo por nome, e renomear quebraria o mock sem ganho. */
 export async function puxarSaldos(): Promise<DocDoPainel[]> {
+  const neon = await obterNeon()
   if (!neon) return []
   try {
     const { data, error } = await neon
@@ -55,6 +57,7 @@ export async function puxarSaldos(): Promise<DocDoPainel[]> {
 /** Apaga um documento. As transações caem junto por ON DELETE CASCADE
  *  (ver schema) — então some da fatura inteira de uma vez. */
 export async function apagarDocumento(id: string): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) return
   const { error } = await neon.from('documents').delete().eq('id', id)
   if (error) throw error
@@ -63,6 +66,7 @@ export async function apagarDocumento(id: string): Promise<void> {
 /** Apaga TUDO do usuário: documentos (cascateia transações) e contas.
  *  Irreversível — a UI confirma antes. RLS garante que só apaga o dele. */
 export async function apagarTudo(): Promise<void> {
+  const neon = await obterNeon()
   if (!neon) return
   // Filtro "id não é nulo" = todas as linhas visíveis (o RLS já limita ao
   // usuário); o PostgREST exige um filtro para não apagar sem querer.
