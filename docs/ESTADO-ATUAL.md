@@ -294,6 +294,45 @@ Vale registrar junto, porque o padrão é mais útil que os quatro casos:
 duas vezes em que essa regra foi seguida antes de subir, o vermelho não chegou ao
 CI; nas duas em que não foi, o CI cobrou.
 
+### 13. O `zod` saiu da primeira pintura, e a piscada ENCOLHEU
+
+O item estava na fila desde 31/08 e ficou parado por uma objeção que **não era
+técnica** — está em [ADR-0014](./adr/0014-o-sdk-do-neon-sai-da-primeira-pintura.md).
+
+| | antes | depois | em produção |
+|---|---|---|---|
+| chunk principal | 1.037 kB | 694 kB | **720 kB** |
+| gzip | ~304 kB | 218 kB | **220 kB** |
+
+Quem decidia se a tela era a de entrar ou a do Painel era o **SDK**, e adiá-lo
+adiaria a decisão: quem já está logado veria a tela de entrar por **mais** tempo.
+Piscada é o que o script inline do `index.html` já existe para evitar no tema.
+
+**A saída foi que a pergunta não precisa do SDK.** `GET /get-session` é uma
+requisição com o cookie da sessão, e o `sessao-remota.ts` já a fazia por `fetch`
+puro desde 09-04 — ele ganhou o `usuarioDaSessao()`, que devolve do mesmo
+endpoint o que a tela precisa. Na montagem saem duas perguntas em paralelo, e a
+do SDK sobrescreve a outra por construção.
+
+Medido com `npm run medir:piscada` (novo), 3G emulado, mediana de 5:
+
+| medida | antes | depois | ganho |
+|---|---|---|---|
+| a tela aparece | 13.840 ms | 9.867 ms | **−3.973 ms** |
+| o Painel aparece | 14.214 ms | 10.234 ms | **−3.980 ms** |
+| **a piscada** | 382 ms | 366 ms | −16 ms |
+
+**Quatro segundos antes, com a piscada igual.** A objeção caiu por medição.
+
+⚠️ Isto é mexer em autenticação, e a ADR-0008 manda para o roteiro manual. Foi
+feito com a rede que nasceu no mesmo dia — `medir:login` verde nos cinco
+cenários, antes e depois. **A ADR-0014 não revoga a ADR-0008**: o que o medidor
+não cobre (o Neon de verdade, o OAuth, o RLS) continua pedindo o roteiro.
+
+Uma armadilha de teste ficou registrada: os 17 mocks de `lib/neon` ganharam
+`obterNeon` por **`Object.assign`, e não spread** — o spread **lê o getter na
+hora**, e vários mocks usam getter justamente para ser preguiçosos.
+
 ## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
 
 A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
@@ -507,13 +546,15 @@ builds próprios e por isso ficam fora do `verificar`. Ele achou um defeito de
 anos no primeiro commit (rodada de 09-06, item 7) e, no primeiro dia dos
 medidores, achou que **eles** dependiam do idioma da máquina.
 
-**Cinco medidores fora do `verificar`**, cada um provado nos dois sentidos:
+**Seis medidores fora do `verificar`**, cada um provado nos dois sentidos:
 `medir-contraste.py` (cor), `medir-overflow.py` (layout), `npm run medir:a11y`
 (marcação, mesmas jornadas do overflow) e `npm run medir:pdf` (o motor de PDF
 abre arquivo, em **quatro** pisos de navegador — e desde 08/09 apagando a API
 também DENTRO do worker, que é onde ela é usada) e `npm run medir:login` (o
 login, contra um Auth de mentira, em cinco cenários — a rede que a ADR-0008
-dizia não existir). Mais o `npm run medir:peso`, que atribui os bytes do bundle.
+dizia não existir). Mais dois de peso e tempo: `npm run medir:peso`, que atribui
+os bytes do bundle, e `npm run medir:piscada`, que mede em 3G quanto tempo quem
+já está logado vê a tela de entrar.
 
 **O desenho é o "livro-razão"** (IBM Plex, raio, cartão com sombra) desde a
 reversão de 31/08 — ver [ADR-0012](./adr/0012-o-livro-razao-volta-e-a-calha-lateral-nasce.md).
@@ -554,27 +595,13 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
-| **Tirar o `zod` da primeira pintura** — 23,3% do chunk principal (242 kB), mais que o `react-dom` | médio, mas **BLOQUEADO**: ver abaixo |
 | **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
 
-⚠️ **O `zod` foi investigado em 08/09 e NÃO é só técnico.** Medido: são 242 kB
-(23,3%) do chunk principal, vindos do `better-auth` por dentro do SDK do Neon. O
-caminho existe — a tela de acesso é a PRIMEIRA pintura (`logado` começa
-`false`), então o SDK poderia carregar depois dela. Só que:
-
-1. **Piora o piscar.** Quem já está logado veria a tela de entrar por mais
-   tempo, porque `checarSessao()` passaria a esperar um download. É decisão de
-   produto, do mesmo naipe da reversão do desenho: não se resolve por medição.
-2. **É mexer em autenticação**, e a [ADR-0008](./adr/0008-o-login-nao-tem-rede-de-testes.md)
-   manda isso para o roteiro manual, com o dono presente.
-
-✅ **A metade técnica do impedimento caiu no mesmo dia**: o
-`npm run medir:login` existe, e mexer no carregamento do SDK agora tem rede — os
-cinco cenários reprovam se o login parar de funcionar. **Falta só a decisão de
-produto do item 1**, que é do dono: aceitar (ou não) que quem já está logado veja
-a tela de entrar por mais tempo. Medido o ganho, ele decide; sem isso, o `zod`
-fica onde está.
+✅ **O `zod` saiu em 08/09** — ver o item 13 da rodada e a
+[ADR-0014](./adr/0014-o-sdk-do-neon-sai-da-primeira-pintura.md). O chunk
+principal caiu de 1.037 kB para 694 kB, e a objeção de produto (a piscada) caiu
+por medição: o app aparece 4 s antes em 3G e a piscada não mudou.
 
 > Os testes de UI e o `zod` vêm da prancheta de 31/08. Duas propostas daquela lista
 > morreram na reversão do desenho: a régua do banco (o argumento era gastar a
