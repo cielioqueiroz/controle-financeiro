@@ -6,6 +6,7 @@ import { nomeCategoria } from '../../domain/categorize/categorias'
 import type { GrupoCategoria } from '../../domain/agrupar'
 import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
+import { useT } from '../../i18n/IdiomaProvider'
 
 type Props = {
   grupos: GrupoCategoria<TransacaoSalva>[]
@@ -18,6 +19,7 @@ type Props = {
  *  valor). Abre a maior categoria por padrão. */
 export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
   const formatBRL = useDinheiro()
+  const { t } = useT()
   const [abertas, setAbertas] = useState<Set<string>>(() =>
     grupos[0] ? new Set([grupos[0].slug]) : new Set(),
   )
@@ -32,7 +34,9 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
   }
 
   if (grupos.length === 0) {
-    return <p className="px-6 py-10 text-center text-sm text-tinta-fraca">Sem despesas neste período.</p>
+    return (
+      <p className="px-6 py-10 text-center text-sm text-tinta-fraca">{t('lista.semDespesas')}</p>
+    )
   }
 
   return (

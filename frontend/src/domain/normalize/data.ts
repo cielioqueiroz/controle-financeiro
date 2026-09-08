@@ -6,6 +6,12 @@ export function mesAbrev(d: Date): string {
   return new Intl.DateTimeFormat(localeAtual(), { month: 'short' }).format(d).replace('.', '')
 }
 
+/** Dia da semana abreviado na locale ativa (ex.: pt "sex", en "Fri"). Mesmo
+ *  tratamento do ponto que o `mesAbrev` — es abrevia como "vie." */
+export function diaSemanaAbrev(d: Date): string {
+  return new Intl.DateTimeFormat(localeAtual(), { weekday: 'short' }).format(d).replace('.', '')
+}
+
 /** Data curta numérica (dd/mm/aaaa conforme a locale) de um Date. */
 export function dataLongaDe(d: Date): string {
   return new Intl.DateTimeFormat(localeAtual(), {

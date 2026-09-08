@@ -454,11 +454,28 @@ ordem certa e falhando alto. Cor e layout continuam à mão (`medir-contraste.py
 `medir-overflow.py`) porque um precisa de escolha e o outro do `dev` de pé.
 **`npm test` NÃO checa tipos** — essa armadilha já mordeu quatro vezes.
 
-**A dívida de i18n acabou** (13/08): os dois `aria-label` do donut em
-`GraficoCategorias` eram o último resto e viraram `donut.rotulo` /
-`donut.rotuloFatia`. `GraficoEvolucao` já havia sido traduzido antes. O
-documento pode voltar a dizer **i18n 100%** — e desta vez a afirmação foi
-conferida arquivo a arquivo, não presumida.
+⚠️ **A dívida de i18n NÃO tinha acabado**, e este parágrafo dizia que sim
+desde 13/08 — "conferida arquivo a arquivo, não presumida". A conferência
+daquele dia procurou **chave faltando**, e o que restava não era chave faltando:
+eram textos que nunca tinham passado por `t()`. Ficaram invisíveis porque
+`grep` por `t('` não acha o que nunca foi escrito assim.
+
+O resto era todo em `ui/listas/`, achado em 08/09 ao escrever os testes das
+listas: dois arrays de dias e meses cravados em português no `cabecalhoDia`, as
+quatro colunas do `CabecalhoLancamentos` (Data, Descrição, Categoria, Valor) e
+as duas frases de estado vazio. Os nomes de data agora saem do `Intl` na locale
+ativa, como o `mesAbrev` já fazia, e as frases viraram seis chaves `lista.*` nos
+três dicionários.
+
+⚠️ **Traduzir não bastava: faltava repintar.** `cabecalhoDia` lê a locale de um
+estado de MÓDULO, e estado de módulo não inscreve componente nenhum — é a mesma
+armadilha do `formatBRL` direto, que deixou 74 valores sem o modo discreto em
+31/08. Quem inscreve é o `useT()`, e é por isso que ele entrou na `ListaPorDia`
+mesmo onde a frase já viria certa.
+
+Agora a afirmação tem prova em vez de conferência: `listas.i18n.test.tsx` troca
+o idioma **com a tela montada** e exige que o texto acompanhe — cinco casos, e
+devolver o array de dias derruba o do cabeçalho.
 
 ## ⚠️ A REFORMA (leia antes de tudo)
 
