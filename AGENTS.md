@@ -408,6 +408,17 @@ Fica fora do `npm run verificar` porque precisa de um build à parte
   clone limpo veria os mesmos cinco vermelhos. Teste que lê `VITE_*` deve ser
   conferido com o `.env.local` escondido:
   `mv .env.local /tmp/ && npm test` — e devolvido depois.
+- ⚠️ **Teste que MEDE uma API não pode PRESUMIR que o runtime a tem.** Em
+  2026-09-08 os casos do polyfill abriam com `expect(faltaPromiseTry()).toBe(false)`
+  — uma linha que mede o ambiente, não o código. O ambiente de teste do CI não
+  tinha `Promise.try` (ela é recente; aqui existe, lá não), e dois casos
+  reprovaram no CI depois de passarem verdes na máquina. É a armadilha do
+  `.env.test` de 06/09 com outra roupa: **o que difere entre a sua máquina e o
+  CI vira teste que só passa aqui**. A cura é o caso ESTABELECER o estado que
+  vai medir — e, quando precisa de "a API já existe", instalar uma sentinela
+  reconhecível, que ainda serve melhor que a nativa porque dá para afirmar
+  identidade sobre ela. Para conferir: apague a API no topo do arquivo de teste
+  e rode; se algum caso reprovar, ele estava medindo o runtime.
 - **Suíte verde não é suíte determinística.** Três execuções do mesmo commit já
   deram 4 → 1 → 0 falhas: os testes que sobem o `<App/>` com `userEvent` estouravam
   o `testTimeout` sob disputa de CPU (hoje 15000ms). **Se um teste falhar sem você

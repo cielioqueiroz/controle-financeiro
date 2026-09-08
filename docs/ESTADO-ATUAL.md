@@ -109,7 +109,24 @@ polyfillAqui()
   registrar o `onmessage`, e as primeiras mensagens do pdf.js seriam entregues
   a um global sem ouvinte.
 
-### 5. As provas, nos dois sentidos
+### 5. O CI achou o de sempre: teste que media o ambiente
+
+O PR subiu verde aqui e **reprovou no CI**, em dois casos. Não era instabilidade:
+os testes do polyfill abriam com `expect(faltaPromiseTry()).toBe(false)` — uma
+linha que mede o **ambiente**, não o código. O ambiente de teste do CI não tem
+`Promise.try`; o daqui tem.
+
+É a armadilha do `.env.test` de 06/09 com outra roupa, e a mesma frase serve
+para as duas: **o que difere entre a máquina do dono e o CI vira teste que só
+passa aqui**. Agora cada caso estabelece o estado que vai medir, e quando
+precisa de "a API já existe" instala uma **sentinela** — que serve melhor que a
+nativa, porque dá para afirmar identidade sobre ela ("não sobrescreveu"
+vira `toBe(sentinela)`).
+
+Conferido nos dois runtimes: com as APIs nativas e com as duas apagadas no topo
+do arquivo, os 17 casos passam.
+
+### 6. As provas, nos dois sentidos
 
 `load.test.ts` foi de 5 para 12 casos no bloco do polyfill — a `Promise.try` tem
 os três que o `MessageHandler` exige (repassa argumentos, transforma exceção

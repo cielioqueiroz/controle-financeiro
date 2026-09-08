@@ -74,32 +74,57 @@ describe('arquivo vazio é recusado antes de chegar ao pdf.js', () => {
  *  (Chrome 128 / Safari 18.2). Medido em 2026-09-08: a segunda é chamada 4
  *  vezes por importação, TODAS dentro do worker, e sem ela a tela fica em
  *  "Lendo o documento…" para sempre — o TypeError estoura numa thread que
- *  ninguém escuta. */
+ *  ninguém escuta.
+ *
+ *  ⚠️ **Nenhum caso aqui presume o que o runtime tem.** A primeira versão
+ *  destes testes abria com `expect(faltaPromiseTry()).toBe(false)`, e isso é
+ *  medir o ambiente, não o código: o ambiente de teste do CI **não tinha**
+ *  `Promise.try`, e dois casos reprovaram lá depois de passarem aqui — a
+ *  mesma armadilha do `.env.test` de 06/09, com outra roupa. Cada caso
+ *  ESTABELECE o estado que vai medir; quando precisa de "a API já existe",
+ *  instala uma sentinela reconhecível, que serve melhor que a nativa porque
+ *  dá para afirmar identidade sobre ela. */
 describe('navegador antigo: o polyfill do leitor de PDF', () => {
-  const naPromise = (nome: 'withResolvers' | 'try') =>
-    Object.getOwnPropertyDescriptor(Promise, nome)
+  type Api = 'withResolvers' | 'try'
 
-  const originais = { withResolvers: naPromise('withResolvers'), try: naPromise('try') }
+  type PromiseMutavel = Record<Api, unknown>
+  const promise = () => Promise as unknown as PromiseMutavel
 
-  const apagar = (nome: 'withResolvers' | 'try') => {
-    // @ts-expect-error — simulando o motor antigo
-    delete Promise[nome]
+  const originais: [Api, PropertyDescriptor | undefined][] = [
+    ['withResolvers', Object.getOwnPropertyDescriptor(Promise, 'withResolvers')],
+    ['try', Object.getOwnPropertyDescriptor(Promise, 'try')],
+  ]
+
+  const apagar = (nome: Api) => {
+    delete promise()[nome]
+  }
+
+  /** Uma implementação qualquer, só para o estado ser "existe". */
+  const instalar = (nome: Api, fn: unknown) => {
+    promise()[nome] = fn
   }
 
   afterEach(() => {
-    for (const [nome, d] of Object.entries(originais)) {
+    // Restaura o que havia — e APAGA o que não havia. Sem o segundo ramo, um
+    // ambiente sem a API nativa herdaria o polyfill de um caso para o outro.
+    for (const [nome, d] of originais) {
       if (d) Object.defineProperty(Promise, nome, d)
+      else apagar(nome)
     }
   })
 
-  it('reconhece o navegador que não tem a API', () => {
+  it('reconhece o navegador que não tem a withResolvers', () => {
+    instalar('withResolvers', () => {})
     expect(faltaWithResolvers()).toBe(false)
+
     apagar('withResolvers')
     expect(faltaWithResolvers()).toBe(true)
   })
 
   it('reconhece o navegador que não tem a Promise.try', () => {
+    instalar('try', () => {})
     expect(faltaPromiseTry()).toBe(false)
+
     apagar('try')
     expect(faltaPromiseTry()).toBe(true)
   })
@@ -108,8 +133,10 @@ describe('navegador antigo: o polyfill do leitor de PDF', () => {
    *  é o único lugar onde a `Promise.try` é chamada. Um Chrome entre 119 e
    *  127 TEM a `withResolvers` e NÃO tem a `try`: perguntar só pela primeira
    *  mandava esse aparelho seguir sem polyfill nenhum, e a importação
-   *  travava sem mensagem. */
+   *  travava sem mensagem nenhuma na tela. */
   it('falta uma das duas já obriga o desvio', () => {
+    instalar('withResolvers', () => {})
+    instalar('try', () => {})
     expect(faltaApiDePromise()).toBe(false)
 
     apagar('try')
@@ -193,30 +220,31 @@ describe('navegador antigo: o polyfill do leitor de PDF', () => {
   })
 
   // O texto é injetado num Blob e roda dentro do worker, que é outra thread
-  // com outro globalThis. Se ele sobrescrevesse uma implementação nativa,
+  // com outro globalThis. Se ele sobrescrevesse uma implementação existente,
   // trocaria a do navegador por esta em todo aparelho moderno.
-  it('não sobrescreve as implementações nativas quando elas existem', () => {
-    const nativas = {
-      withResolvers: (Promise as unknown as { withResolvers: unknown }).withResolvers,
-      try: (Promise as unknown as { try: unknown }).try,
-    }
+  it('não sobrescreve as implementações que já existem', () => {
+    const sentinelas = { withResolvers: () => {}, try: () => {} }
+    instalar('withResolvers', sentinelas.withResolvers)
+    instalar('try', sentinelas.try)
+
     new Function(POLYFILL_PROMISE)()
-    expect((Promise as unknown as { withResolvers: unknown }).withResolvers).toBe(
-      nativas.withResolvers,
-    )
-    expect((Promise as unknown as { try: unknown }).try).toBe(nativas.try)
+
+    expect(promise().withResolvers).toBe(sentinelas.withResolvers)
+    expect(promise().try).toBe(sentinelas.try)
   })
 
-  /** Um Chrome 126 tem a `withResolvers` nativa e não tem a `try`. O polyfill
+  /** Um Chrome 126 tem a `withResolvers` e não tem a `try`. O polyfill
    *  precisa acrescentar só o que falta — cobrir "as duas ou nenhuma" trocaria
    *  a implementação do navegador pela nossa em milhões de aparelhos que não
    *  pediram nada. */
   it('acrescenta só a que falta', () => {
-    const nativa = (Promise as unknown as { withResolvers: unknown }).withResolvers
+    const sentinela = () => {}
+    instalar('withResolvers', sentinela)
     apagar('try')
+
     new Function(POLYFILL_PROMISE)()
 
-    expect((Promise as unknown as { withResolvers: unknown }).withResolvers).toBe(nativa)
-    expect(typeof (Promise as unknown as { try: unknown }).try).toBe('function')
+    expect(promise().withResolvers).toBe(sentinela)
+    expect(typeof promise().try).toBe('function')
   })
 })
