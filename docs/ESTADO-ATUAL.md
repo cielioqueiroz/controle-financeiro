@@ -333,6 +333,46 @@ Uma armadilha de teste ficou registrada: os 17 mocks de `lib/neon` ganharam
 `obterNeon` por **`Object.assign`, e não spread** — o spread **lê o getter na
 hora**, e vários mocks usam getter justamente para ser preguiçosos.
 
+### 14. O vínculo recebe um documento por vez — e a primeira medição do impacto errou
+
+Investigando a **conciliação em duas colunas**, o que apareceu foi outra coisa:
+`vinculos.test.ts` chama `vincular(docs)` com os quatro fixtures na **mesma
+lista**, e o app nunca faz isso. Tanto a gravação (`persist/salvar.ts`) quanto a
+prévia (`domain/insights.ts`) chamam `vincular([umDocumentoSó])`.
+
+Dois dos quatro caminhos dependem de cruzar documentos e não disparam: a
+**quitação de fatura** (a lista de faturas está vazia quando o que entra é o
+extrato) e os **pares entre contas** (exige `accountKey` diferente). São **6
+vínculos com os documentos juntos contra 4 um a um**.
+
+⚠️ **O primeiro commit disse que isso custava R$ 8.324,24 ao gasto real, e
+estava ERRADO.** O erro foi medir `gastoReal()`, que filtra por `link`, quando
+quem decide o que é gasto na leitura é o **`kind` gravado** — `agrupar.ts` faz
+`t.kind !== 'expense'`, e o `kindParaBanco` já devolve `card_payment` quando o
+parser marcou a transação como `pagamento`, **independentemente do link**.
+
+Medido pelo critério da leitura: **R$ 41.012,25 dos dois jeitos, diferença
+zero** — e esse é o número de referência do `AGENTS.md` para os quatro
+documentos, o que confirma que a segunda medição está no lugar certo.
+
+**Afirmação sobre o dinheiro do usuário tem que ser medida do jeito que o app
+mede.** A primeira não foi, e a correção está em `61e4ae8`.
+
+O que continua valendo, e é o que sustenta o item da fila:
+
+1. **O `linkNote` se perde.** "Quitação da fatura nubank" é a explicação que a
+   tela mostra, e ela não é produzida.
+2. **A rede de segurança sumiu.** Os dois caminhos que não disparam são
+   justamente os que **não dependem de o parser ter acertado o `kind`**. O
+   número está certo hoje porque uma segunda via o segura; o dia em que um
+   parser novo não marcar `pagamento`, ou em que a transferência entre contas
+   próprias não for reconhecida pelo nome do titular, a dupla contagem aparece —
+   e não haverá nada atrás.
+
+✅ **E o conserto não exige migração**: `documents` já guarda `declared_total`,
+`bank` e `doc_type`, que é tudo o que os dois caminhos precisam. Falta o `holderName`,
+que a migração `0006` minimizou — mas ele só serve ao caminho que já funciona.
+
 ## Rodada 2026-09-07 — o PR #9 destravado pelas duas pontas, e o primeiro fluxo por PR
 
 A primeira rodada inteira em branch: três PRs abertos, conferidos pelo CI e
@@ -525,7 +565,7 @@ produto em Next.js + Supabase saíram.
 ## 🚀 Retomada em 30 segundos
 
 **O app está no ar e saudável** em https://capital-financeiro.vercel.app —
-**1.082 testes (125 arquivos)**, `npm run verificar` verde nos seis passos e
+**1.087 testes (126 arquivos)**, `npm run verificar` verde nos seis passos e
 **zero PRs abertos** (o #9 do Dependabot caiu em 08/09, com o `pdfjs-dist` em
 6.3.289 e as duas provas à parte refeitas).
 
@@ -595,7 +635,8 @@ de ter acabado em 13/08):
 
 | O que | Tamanho |
 |---|---|
-| **Conciliação em duas colunas** — a dupla contagem, que hoje é um número que pede fé | rodada inteira: exige o vínculo registrar COM QUEM casou |
+| **Vincular contra o HISTÓRICO, não só contra o documento que entra** — hoje dois dos quatro caminhos nunca disparam (item 14 da rodada de 08/09) | médio, e **sem migração**: `documents` já tem `declared_total`, `bank` e `doc_type`. Mexe na gravação, que é o caminho do dinheiro |
+| **Conciliação em duas colunas** — depende do item acima: sem registrar com quem casou, não há o que pôr na segunda coluna | rodada inteira |
 | **Regra de categorização com operadores** | exige migração de `merchant_rules`; o avaliador (`consulta.ts`) já está pronto |
 
 ✅ **O `zod` saiu em 08/09** — ver o item 13 da rodada e a
