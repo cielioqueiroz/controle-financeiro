@@ -75,17 +75,17 @@ describe('Painel — o ritmo diário no período Dia', () => {
   // Sem o destaque, quem abre o dia 10 vê o mês inteiro e perde de vista
   // onde está — e a faixa de leitura mostraria o pico (21/jun) como se
   // fosse o número do dia aberto.
-  it('marca o dia aberto com a cor da marca', async () => {
+  it('marca o dia aberto com a cor de destaque do gráfico', async () => {
     abrir(JUNHO, '/?ref=2026-06-10&p=dia')
     const barra = await screen.findByRole('button', { name: /10\/jun/ })
-    expect(barra.querySelector('span')).toHaveClass('bg-marca')
+    expect(barra.querySelector('span')).toHaveClass('bg-grafico-acumulado')
   })
 
   it('no período Mês nada é ampliado — a janela já era o mês', async () => {
     abrir(JUNHO, '/?ref=2026-06-15&p=mes')
     expect(await screen.findByRole('button', { name: /3\/jun/ })).toBeInTheDocument()
     // Nenhuma barra destacada: no Mês não existe "o dia aberto".
-    const marcadas = document.querySelectorAll('button > span.bg-marca')
+    const marcadas = document.querySelectorAll('button > span.bg-grafico-acumulado')
     expect(marcadas).toHaveLength(0)
   })
 })

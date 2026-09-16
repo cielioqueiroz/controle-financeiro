@@ -17,6 +17,7 @@ type Props = {
   onVerTutorial: () => void
   onEditarPerfil: () => void
   onAbrirAjuda: () => void
+  onAbrirComandos?: () => void
 }
 
 /** O topo da tela logada: marca, saudação e os controles do canto.
@@ -38,6 +39,7 @@ export function Cabecalho({
   onVerTutorial,
   onEditarPerfil,
   onAbrirAjuda,
+  onAbrirComandos,
 }: Props) {
   const { t } = useT()
   const { pathname } = useLocation()
@@ -160,6 +162,20 @@ export function Cabecalho({
           >
             ?
           </button>
+          {onAbrirComandos && (
+            <button
+              onClick={onAbrirComandos}
+              aria-label={t('comandos.abrir')}
+              title={t('comandos.abrir')}
+              className="hidden h-11 items-center gap-1.5 rounded-full border border-carvao-700 px-3 text-xs font-medium text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta sm:inline-flex"
+            >
+              <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <circle cx="10.8" cy="10.8" r="6.2" />
+                <path strokeLinecap="round" d="m16 16 4.2 4.2" />
+              </svg>
+              <span>{t('comandos.atalho')}</span>
+            </button>
+          )}
           <DiscretoToggle />
           <ThemeToggle />
           {logado && neonConfigurado && (

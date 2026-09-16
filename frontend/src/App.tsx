@@ -25,7 +25,9 @@ import { Lancamentos } from './paginas/Lancamentos'
 import { Recorrencias } from './paginas/Recorrencias'
 import { Importacao } from './paginas/Importacao'
 import { SituacaoFinanceira } from './paginas/SituacaoFinanceira'
+import { Relatorios } from './paginas/Relatorios'
 import { Cabecalho } from './ui/Cabecalho'
+import { PaletaComandos } from './ui/PaletaComandos'
 import { Tutorial } from './ui/Tutorial'
 import { Ajuda } from './ui/ajuda/Ajuda'
 import { EditarPerfil } from './ui/EditarPerfil'
@@ -67,6 +69,7 @@ export default function App() {
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [mostrarAjuda, setMostrarAjuda] = useState(false)
+  const [mostrarComandos, setMostrarComandos] = useState(false)
 
   // Quem decide abrir o tutorial sozinho é o `<AberturaTutorial/>`, lá
   // dentro do DadosProvider — a regra passou a depender de a conta ter ou
@@ -239,6 +242,18 @@ export default function App() {
   // na URL também leva ao card, mesmo com sessão ativa.
   const precisaLogin = neonConfigurado && (!logado || Boolean(tokenReset))
 
+  useEffect(() => {
+    function abrirComAtalho(event: KeyboardEvent) {
+      if (!logado || tokenReset) return
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setMostrarComandos(true)
+      }
+    }
+    window.addEventListener('keydown', abrirComAtalho)
+    return () => window.removeEventListener('keydown', abrirComAtalho)
+  }, [logado, tokenReset])
+
   // Saída antecipada: a tela de acesso não compartilha nada com a tela
   // logada além do fundo e dos toasts. Todos os hooks já rodaram acima —
   // este return não pode subir daqui, sob pena de quebrar a ordem deles.
@@ -313,7 +328,16 @@ export default function App() {
               }}
               onEditarPerfil={() => setMostrarPerfil(true)}
               onAbrirAjuda={() => setMostrarAjuda(true)}
+              onAbrirComandos={() => setMostrarComandos(true)}
             />
+
+            {logado && (
+              <PaletaComandos
+                key={mostrarComandos ? 'aberta' : 'fechada'}
+                aberto={mostrarComandos}
+                onFechar={() => setMostrarComandos(false)}
+              />
+            )}
 
             {/* Só com o servidor dizendo explicitamente `false`: quando o campo
                 não vem (SDK antigo, sessão de outro provedor), a ausência de
@@ -367,6 +391,7 @@ export default function App() {
                   />
                   <Route path="/recorrencias" element={<Recorrencias />} />
                   <Route path="/minha-situacao-financeira" element={<SituacaoFinanceira />} />
+                  <Route path="/relatorios" element={<Relatorios />} />
                   <Route path="/importar" element={<Importacao />} />
                   {/* URL desconhecida volta ao Painel em vez de tela branca. */}
                   <Route path="*" element={<Navigate to="/" replace />} />

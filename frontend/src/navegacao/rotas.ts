@@ -25,6 +25,7 @@ export const ROTAS = [
   { caminho: '/categorias', chave: 'rota.categorias' },
   { caminho: '/recorrencias', chave: 'rota.recorrencias' },
   { caminho: '/minha-situacao-financeira', chave: 'rota.situacao' },
+  { caminho: '/relatorios', chave: 'rota.relatorios' },
 ] as const satisfies ReadonlyArray<{ caminho: string; chave: keyof Dicionario }>
 
 /* "Datas" (calendário do mês, derivado do `diaTipico` das recorrências) saiu

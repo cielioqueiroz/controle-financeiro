@@ -48,6 +48,11 @@ const ICONES: Record<string, ReactNode> = {
       <path strokeLinecap="round" d="M3.5 20.5h17" />
     </>
   ),
+  '/relatorios': (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 19.5h14M7 16V9m5 7V5m5 11v-4" />
+    </>
+  ),
 }
 
 const GENERICO = <circle cx="12" cy="12" r="3.2" />

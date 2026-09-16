@@ -10,6 +10,7 @@ guarda só as transações.
   <a href="https://capital-financeiro.vercel.app"><strong>🔗 Abrir o app</strong></a> ·
   <a href="docs/ESTADO-ATUAL.md">Estado do projeto</a> ·
   <a href="#-minha-situação-financeira">Minha situação financeira</a> ·
+  <a href="#-relatórios">Relatórios</a> ·
   <a href="#-arquitetura">Arquitetura</a> ·
   <a href="#-as-quatro-regras-que-fazem-a-conta-fechar">As regras que fazem a conta fechar</a>
 </p>
@@ -74,6 +75,13 @@ investimentos e metas digitadas não são inventados pelo app.
 O cabeçalho das seções internas também oferece **Voltar**, preservando o recorte
 da URL e evitando depender do botão do navegador.
 
+### 📊 Relatórios
+
+Uma leitura aprofundada do histórico importado, com receitas, despesas, resultado,
+taxa de economia, evolução por competência, categorias, maiores saídas e os
+estabelecimentos que mais concentraram gastos. A janela pode ser alternada entre
+3, 6 e 12 meses, e a navegação rápida abre com `Ctrl+K`/`⌘K`.
+
 > ### ⚠️ Nenhum número aqui é real
 >
 > Todas as imagens saem de `frontend/demo.html`, uma folha de provas com dados
@@ -96,6 +104,7 @@ da URL e evitando depender do botão do navegador.
 | 📅 **Dia / Semana / Mês / Ano** | Mês e Ano agrupam por **competência da fatura**; Dia e Semana, pela data da compra |
 | 📊 **Gráficos próprios em SVG** | donut por categoria, saídas por dia, entradas × saídas, parcelas por mês |
 | 📈 **Minha situação financeira** | histórico de 3/6/12 meses, melhor e pior mês, fluxo acumulado e categorias do mês mais caro |
+| 📊 **Relatórios financeiros** | receitas, despesas, resultado, economia, categorias, maiores saídas e comparações por janela |
 | 💡 **Leituras do período** | maior categoria, maior estabelecimento, pico diário e taxa de economia, com links para o detalhe |
 | 🏪 **Onde mais saiu dinheiro** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra |
 | 📈 **Compara com o período anterior** | "12% acima do mês passado" nos tiles; some quando não há base de comparação, em vez de inventar um "+100%" |
@@ -123,7 +132,7 @@ flowchart LR
     end
 
     DB[("🐘 Neon Postgres<br/>RLS por usuário")]
-    UI["📊 Painel · Lançamentos<br/>Faturas · Recorrências · Situação financeira"]
+    UI["📊 Painel · Lançamentos · Relatórios<br/>Faturas · Recorrências · Situação financeira"]
 
     PDF --> W --> P --> V
     V -->|"bate ao centavo ✅"| C
@@ -150,7 +159,7 @@ banco.
 
 ```mermaid
 graph TD
-    PG["<b>paginas/</b> · as 7 telas<br/>Painel · Lançamentos · Faturas · Importação<br/>Categorias · Recorrências · Situação financeira"]
+    PG["<b>paginas/</b> · as 8 telas<br/>Painel · Lançamentos · Faturas · Importação · Relatórios<br/>Categorias · Recorrências · Situação financeira"]
     CP["<b>ui/</b> · componentes<br/><i>gráficos em SVG próprio, sem biblioteca</i>"]
     RC["<b>dados/</b> · o recorte da tela<br/><i>useRecorte + filtros na URL</i>"]
     DOM["<b>domain/</b> · puro, sem React e sem I/O<br/>parsers · validate · categorize · link<br/>dedupe · recorrencias · normalize"]
@@ -197,7 +206,7 @@ capital-financeiro/
 │       │   ├── acesso/          # as telas de anônimo (entrar, criar, recuperar)
 │       │   ├── graficos/        # gráficos em SVG próprio + comparativos + escala robusta
 │       │   └── listas/          # rankings e listas de lançamentos
-│       ├── paginas/             # as 7 telas roteadas e autenticadas
+│       ├── paginas/             # as 8 telas roteadas e autenticadas
 │       ├── i18n/                # pt / en / es
 │       └── lib/                 # cliente Neon, auth por HTTP, perfil local
 ├── backend/
@@ -458,7 +467,7 @@ nome acessível e o aviso "escala até R$ 816 · 1 dia acima" embaixo. A distor�
 
 Funcionando ponta a ponta contra o Neon real: importação, conferência ao centavo,
 categorização com aprendizado, vínculos, persistência, login, recuperação de senha,
-confirmação de e-mail por código, as sete páginas, filtros na URL, gráficos, recorrências,
+confirmação de e-mail por código, as oito páginas, filtros na URL, gráficos, recorrências,
 compromissos futuros, tutorial e relatório em PDF.
 
 Aberto hoje:
