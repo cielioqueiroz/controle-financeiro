@@ -392,9 +392,10 @@ export function Painel({ onAprendeu }: Props) {
           <Vazio />
         ) : (
           <>
-            {/* Tiles de resumo: o espaço entre eles faz cada leitura respirar
-                e deixa o tratamento de cartão consistente com os gráficos. */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-4">
+              {/* Tiles de resumo: o espaço entre eles faz cada leitura respirar
+                  e deixa o tratamento de cartão consistente com os gráficos. */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <motion.div {...entra(0.05)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
                 <Tile rotulo={t('dash.gasto')} destaque variacao={variacao.gasto} subirEhRuim>
                   <ValorAnimado valor={resumo.gastoCents} />
@@ -425,78 +426,79 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.contagem} moeda={false} />
                 </Tile>
               </motion.div>
+              </div>
+
+              <Diagnosticos itens={diagnosticos} onVerSemCategoria={irParaSemCategoria} />
+
+              <motion.div {...entra(0.27)} className="screen-only">
+                <ComparativoFinanceiro
+                  gastoCents={resumo.gastoCents}
+                  entradasCents={resumo.entradasCents}
+                  saldoCents={resumo.saldoCents}
+                />
+              </motion.div>
+
+              <LeiturasFinanceiras itens={leituras} />
+
+              {/* Cada visual tem seu próprio cartão: a estrutura fica mais
+                  próxima de uma leitura analítica, e um gráfico não parece
+                  continuação acidental do outro. O conteúdo continua sendo
+                  alimentado pelos mesmos agregadores puros do domínio. */}
+              <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
+                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                  {resumo.porCategoria.length > 0 && (
+                    <GraficoCategorias
+                      categorias={resumo.porCategoria}
+                      totalCents={resumo.gastoCents}
+                    />
+                  )}
+                </section>
+
+                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                  {temRitmo ? (
+                    <GraficoDiario
+                      dias={dias}
+                      onSelecionar={irParaDia}
+                      destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
+                      contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
+                    />
+                  ) : (
+                    <SemGrafico />
+                  )}
+                </section>
+              </motion.div>
+
+              {serie.length >= 2 && (
+                <motion.section
+                  {...entra(0.32)}
+                  className="screen-only min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante"
+                >
+                  <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+                </motion.section>
+              )}
+
+              <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
+                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                  <MaioresSaidas itens={maiores} onEditar={setEditando} />
+                  <Link
+                    to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                    className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                  >
+                    {t('dash.lancamentos')} →
+                  </Link>
+                </section>
+                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                  <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+                  <Link
+                    to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                    className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                  >
+                    {t('dash.lancamentos')} →
+                  </Link>
+                </section>
+              </motion.div>
+
             </div>
-
-            <Diagnosticos itens={diagnosticos} onVerSemCategoria={irParaSemCategoria} />
-
-            <motion.div {...entra(0.27)} className="screen-only mt-4">
-              <ComparativoFinanceiro
-                gastoCents={resumo.gastoCents}
-                entradasCents={resumo.entradasCents}
-                saldoCents={resumo.saldoCents}
-              />
-            </motion.div>
-
-            <LeiturasFinanceiras itens={leituras} />
-
-            {/* Cada visual tem seu próprio cartão: a estrutura fica mais
-                próxima de uma leitura analítica, e um gráfico não parece
-                continuação acidental do outro. O conteúdo continua sendo
-                alimentado pelos mesmos agregadores puros do domínio. */}
-            <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
-              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
-                {resumo.porCategoria.length > 0 && (
-                  <GraficoCategorias
-                    categorias={resumo.porCategoria}
-                    totalCents={resumo.gastoCents}
-                  />
-                )}
-              </section>
-
-              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
-                {temRitmo ? (
-                  <GraficoDiario
-                    dias={dias}
-                    onSelecionar={irParaDia}
-                    destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
-                    contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
-                  />
-                ) : (
-                  <SemGrafico />
-                )}
-              </section>
-            </motion.div>
-
-            {serie.length >= 2 && (
-              <motion.section
-                {...entra(0.32)}
-                className="screen-only min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante"
-              >
-                <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
-              </motion.section>
-            )}
-
-            <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
-              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
-                <MaioresSaidas itens={maiores} onEditar={setEditando} />
-                <Link
-                  to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
-                  className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
-                >
-                  {t('dash.lancamentos')} →
-                </Link>
-              </section>
-              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
-                <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
-                <Link
-                  to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
-                  className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
-                >
-                  {t('dash.lancamentos')} →
-                </Link>
-              </section>
-            </motion.div>
-
           </>
         )}
       </>

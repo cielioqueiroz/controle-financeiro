@@ -103,6 +103,7 @@ describe('Painel — os tiles respiram como cartões separados', () => {
     await screen.findByRole('button', { name: /3\/jun/ })
     const grid = document.querySelector('.grid.grid-cols-1.gap-3')
     expect(grid).not.toBeNull()
+    expect(grid?.parentElement).toHaveClass('space-y-4')
     const itens = [...grid!.children]
     expect(itens).toHaveLength(4)
     for (const item of itens) {

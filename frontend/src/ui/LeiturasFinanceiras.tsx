@@ -33,7 +33,7 @@ export function LeiturasFinanceiras({ itens }: Props) {
   } as const
 
   return (
-    <section className="screen-only mt-4">
+    <section className="screen-only">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <p className="rotulo">{t('leituras.titulo')}</p>
         <p className="text-[11px] text-tinta-tenue">{t('leituras.descricao')}</p>
