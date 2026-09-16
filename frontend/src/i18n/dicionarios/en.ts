@@ -240,6 +240,11 @@ export const en: Dicionario = {
   'comp.aVencerSing': '{n} installment due',
   'comp.aVencerPlur': '{n} installments due',
   'comp.somaVencer': 'total due',
+  'proximos.titulo': 'Upcoming commitments',
+  'proximos.descricao': 'Installments already found in your history',
+  'proximos.mesLabel': 'projected period',
+  'proximos.totalResumo': '{meses} months · {parcelas} projected installments',
+  'proximos.verTodos': 'View recurring items',
 
   'header.ola': 'Hi, {nome}!',
   'header.sub': 'Import the statement, we handle the rest.',

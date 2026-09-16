@@ -6,6 +6,7 @@ import {
   maioresSaidas,
   porEstabelecimento,
   evolucaoMensal,
+  projecaoFutura,
   porDia,
   doMesCalendario,
   isoLocal,
@@ -25,6 +26,7 @@ import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
 import { GraficoFluxo } from '../ui/graficos/GraficoFluxo'
 import { ComparativoFinanceiro } from '../ui/graficos/ComparativoFinanceiro'
 import { LeiturasFinanceiras, type LeituraFinanceira } from '../ui/LeiturasFinanceiras'
+import { ProximosCompromissos } from '../ui/ProximosCompromissos'
 import { GraficoDiario } from '../ui/graficos/GraficoDiario'
 import { MaioresSaidas } from '../ui/listas/MaioresSaidas'
 import { TopEstabelecimentos } from '../ui/listas/TopEstabelecimentos'
@@ -57,8 +59,9 @@ function agrupamentoDe(periodo: string): keyof Dicionario {
 
 /** A visão geral do mês: números, gráficos e as maiores saídas.
  *
- *  As listas longas, as recorrências e os compromissos futuros saíram daqui
- *  para páginas próprias em 2026-08-07. Foi isso que permitiu remover o
+ *  As listas longas, as recorrências e o detalhe dos compromissos futuros
+ *  continuam em páginas próprias em 2026-08-07. O painel traz apenas um
+ *  resumo curto da projeção, para dar contexto sem reintroduzir o
  *  `max-h`+`overflow-y-auto` da coluna lateral: ela acumulava donut, maiores
  *  saídas, evolução, recorrências e compromissos, passava da altura da
  *  janela, e um `sticky` mais alto que a viewport gruda deixando o que sobra
@@ -85,6 +88,7 @@ export function Painel({ onAprendeu }: Props) {
   const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
   const diagnosticos = useMemo(() => diagnosticar(txs), [txs])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
+  const futuros = useMemo(() => (visiveis ? projecaoFutura(visiveis) : []), [visiveis])
 
   /** O ritmo diário desenha o MÊS quando o recorte é Dia ou Semana.
    *
@@ -439,6 +443,8 @@ export function Painel({ onAprendeu }: Props) {
               </motion.div>
 
               <LeiturasFinanceiras itens={leituras} />
+
+              <ProximosCompromissos meses={futuros} href={`/recorrencias${escreverFiltros(filtros)}`} />
 
               {/* Cada visual tem seu próprio cartão: a estrutura fica mais
                   próxima de uma leitura analítica, e um gráfico não parece

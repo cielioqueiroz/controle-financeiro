@@ -99,7 +99,7 @@ da URL e evitando depender do botão do navegador.
 | 💡 **Leituras do período** | maior categoria, maior estabelecimento, pico diário e taxa de economia, com links para o detalhe |
 | 🏪 **Onde mais saiu dinheiro** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra |
 | 📈 **Compara com o período anterior** | "12% acima do mês passado" nos tiles; some quando não há base de comparação, em vez de inventar um "+100%" |
-| 🔮 **Compromissos futuros** | projeta as parcelas que ainda vão cair, sem duplicar quando a fatura chegar |
+| 🔮 **Compromissos futuros** | resume os próximos meses no Painel e projeta todas as parcelas por mês e cartão em Recorrências, sem duplicar quando a fatura chegar |
 | 🔁 **Recorrências e alertas** | detecta assinaturas pelo histórico e avisa quando o valor muda ou a cobrança some |
 | 💵 **Saldo por conta e próximas faturas** | lidos do documento mais recente de cada banco |
 | 📤 **Relatório em PDF** | gera o período em jsPDF e compartilha (celular) ou baixa (desktop) |

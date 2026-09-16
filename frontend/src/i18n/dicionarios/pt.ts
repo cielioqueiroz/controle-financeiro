@@ -264,6 +264,11 @@ export const pt = {
   'comp.aVencerSing': '{n} parcela a vencer',
   'comp.aVencerPlur': '{n} parcelas a vencer',
   'comp.somaVencer': 'soma a vencer',
+  'proximos.titulo': 'Próximos compromissos',
+  'proximos.descricao': 'Parcelas já reconhecidas no histórico',
+  'proximos.mesLabel': 'competência prevista',
+  'proximos.totalResumo': '{meses} meses · {parcelas} parcelas projetadas',
+  'proximos.verTodos': 'Ver recorrências',
 
   // Cabeçalho logado
   'header.ola': 'Olá, {nome}!',

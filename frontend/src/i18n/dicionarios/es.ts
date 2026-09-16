@@ -240,6 +240,11 @@ export const es: Dicionario = {
   'comp.aVencerSing': '{n} cuota por vencer',
   'comp.aVencerPlur': '{n} cuotas por vencer',
   'comp.somaVencer': 'suma por vencer',
+  'proximos.titulo': 'Próximos compromisos',
+  'proximos.descricao': 'Cuotas ya reconocidas en tu historial',
+  'proximos.mesLabel': 'período proyectado',
+  'proximos.totalResumo': '{meses} meses · {parcelas} cuotas proyectadas',
+  'proximos.verTodos': 'Ver recurrencias',
 
   'header.ola': '¡Hola, {nome}!',
   'header.sub': 'Importa la factura, del resto nos encargamos.',
