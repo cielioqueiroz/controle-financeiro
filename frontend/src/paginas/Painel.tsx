@@ -13,6 +13,7 @@ import {
 import { saldosPorConta } from '../domain/saldos'
 import { faturasAbertas } from '../domain/aberto'
 import { nomeCategoria } from '../domain/categorize/categorias'
+import { dataLongaDe } from '../domain/normalize/data'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
@@ -21,7 +22,9 @@ import { BarraFiltros } from '../ui/BarraFiltros'
 import { rotuloPeriodo } from '../dados/periodo'
 import { Procedencia } from '../ui/Procedencia'
 import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
-import { GraficoEvolucao } from '../ui/graficos/GraficoEvolucao'
+import { GraficoFluxo } from '../ui/graficos/GraficoFluxo'
+import { ComparativoFinanceiro } from '../ui/graficos/ComparativoFinanceiro'
+import { LeiturasFinanceiras, type LeituraFinanceira } from '../ui/LeiturasFinanceiras'
 import { GraficoDiario } from '../ui/graficos/GraficoDiario'
 import { MaioresSaidas } from '../ui/listas/MaioresSaidas'
 import { TopEstabelecimentos } from '../ui/listas/TopEstabelecimentos'
@@ -41,6 +44,7 @@ import { EditarCompra } from '../ui/EditarCompra'
 import { podeCompartilharArquivo, baixarArquivo, compartilharArquivo } from '../lib/compartilhar'
 import { ehFalhaDeChunk } from '../lib/chunk'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
 import type { Dicionario } from '../i18n/dicionarios/pt'
 
 type Props = {
@@ -63,6 +67,7 @@ function agrupamentoDe(periodo: string): keyof Dicionario {
  *  consertava. */
 export function Painel({ onAprendeu }: Props) {
   const { t } = useT()
+  const dinheiro = useDinheiro()
   const navigate = useNavigate()
   const { docsSaldo, recarregar, aplicarEdicao } = useDados()
   const { txs, resumo, variacao, visiveis, filtros, setFiltros, compAtiva, carregando, erro, vazio } =
@@ -99,6 +104,80 @@ export function Painel({ onAprendeu }: Props) {
     [ampliado, visiveis, filtros.ref, txs],
   )
   const temRitmo = dias.some((d) => d.gastoCents > 0)
+  const pico = useMemo(
+    () =>
+      dias.reduce<(typeof dias)[number] | null>(
+        (maior, dia) => (maior === null || dia.gastoCents > maior.gastoCents ? dia : maior),
+        null,
+      ),
+    [dias],
+  )
+
+  const leituras: LeituraFinanceira[] = (() => {
+    const maiorCategoria = resumo.porCategoria[0]
+    const maiorEstabelecimento = estabelecimentos[0]
+    const itens: LeituraFinanceira[] = []
+
+    if (maiorCategoria && resumo.gastoCents > 0) {
+      itens.push({
+        id: 'maior-categoria',
+        titulo: t('leituras.maiorCategoria'),
+        texto: t('leituras.maiorCategoriaTexto', {
+          categoria: nomeCategoria(maiorCategoria.cat),
+          valor: dinheiro(maiorCategoria.totalCents),
+          pct: Math.round((maiorCategoria.totalCents / resumo.gastoCents) * 100),
+        }),
+        tom: 'alerta',
+        rotuloAcao: t('leituras.verLancamentos'),
+        onAbrir: () => irParaCategoria(maiorCategoria.cat.slug),
+      })
+    }
+
+    if (maiorEstabelecimento) {
+      itens.push({
+        id: 'maior-estabelecimento',
+        titulo: t('leituras.maiorEstabelecimento'),
+        texto: t('leituras.maiorEstabelecimentoTexto', {
+          estabelecimento: maiorEstabelecimento.rotulo,
+          valor: dinheiro(maiorEstabelecimento.totalCents),
+          n: maiorEstabelecimento.contagem,
+        }),
+        tom: 'neutro',
+        rotuloAcao: t('leituras.verLancamentos'),
+        onAbrir: () => irParaEstabelecimento(maiorEstabelecimento.merchant),
+      })
+    }
+
+    if (pico && pico.gastoCents > 0) {
+      const [ano, mes, dia] = pico.dia.split('-').map(Number)
+      itens.push({
+        id: 'pico-gasto',
+        titulo: t('leituras.picoGasto'),
+        texto: t('leituras.picoGastoTexto', {
+          data: dataLongaDe(new Date(ano, mes - 1, dia)),
+          valor: dinheiro(pico.gastoCents),
+        }),
+        tom: 'alerta',
+        rotuloAcao: t('leituras.verDia'),
+        onAbrir: () => irParaDia(pico.dia),
+      })
+    }
+
+    if (resumo.entradasCents > 0) {
+      const pct = (resumo.saldoCents / resumo.entradasCents) * 100
+      itens.push({
+        id: 'taxa-economia',
+        titulo: t('leituras.economia'),
+        texto: t('leituras.economiaTexto', {
+          pct: pct.toFixed(1).replace('.', ','),
+          valor: dinheiro(resumo.saldoCents),
+        }),
+        tom: pct >= 0 ? 'positivo' : 'alerta',
+      })
+    }
+
+    return itens
+  })()
 
   // Entrada escalonada e discreta — o painel "se monta" de cima para baixo
   // em vez de piscar inteiro. Restrição de propósito: app de dinheiro pede
@@ -126,6 +205,10 @@ export function Painel({ onAprendeu }: Props) {
    *  junto para a lista abrir no mesmo período do painel. */
   function irParaEstabelecimento(merchant: string) {
     navigate(`/lancamentos${escreverFiltros({ ...filtros, busca: merchant })}`)
+  }
+
+  function irParaCategoria(categoria: string) {
+    navigate(`/lancamentos${escreverFiltros({ ...filtros, categoria })}`)
   }
 
   /** O diagnóstico "X% está sem categoria" vira o gesto de resolvê-lo: abre
@@ -300,7 +383,7 @@ export function Painel({ onAprendeu }: Props) {
         <Procedencia txs={txs} periodo={rotuloPeriodo(filtros.periodo, filtros.ref)} />
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900">
+      <>
         {carregando ? (
           <Esqueleto />
         ) : erro ? (
@@ -309,22 +392,15 @@ export function Painel({ onAprendeu }: Props) {
           <Vazio />
         ) : (
           <>
-            {/* Tiles de resumo */}
-            {/* ⚠️ O `bg-carvao-900` vai no ITEM DO GRID, não só no `Tile`.
-                A régua entre os tiles é o fundo do grid aparecendo por um
-                `gap-px` — e o `Tile` tem altura natural. Os dois primeiros
-                ganham a linha de variação ("122% acima"), os outros dois não:
-                sobrava espaço dentro das células 3 e 4, e a sobra mostrava o
-                fundo do grid. Era uma barra escura atravessando metade do
-                painel, que parecia um bloco quebrado porque era exatamente
-                isso — o gap vazando onde devia haver painel. */}
-            <div className="grid grid-cols-1 gap-px bg-carvao-800 sm:grid-cols-2 lg:grid-cols-4">
-              <motion.div {...entra(0.05)} className="bg-carvao-900">
+            {/* Tiles de resumo: o espaço entre eles faz cada leitura respirar
+                e deixa o tratamento de cartão consistente com os gráficos. */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <motion.div {...entra(0.05)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
                 <Tile rotulo={t('dash.gasto')} destaque variacao={variacao.gasto} subirEhRuim>
                   <ValorAnimado valor={resumo.gastoCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.12)} className="bg-carvao-900">
+              <motion.div {...entra(0.12)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
                 <Tile
                   rotulo={t('dash.entradas')}
                   cor="var(--color-confere)"
@@ -333,7 +409,7 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.entradasCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.19)} className="bg-carvao-900">
+              <motion.div {...entra(0.19)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
                 {/* Saldo negativo em --color-falha; positivo fica na tinta
                     normal. Verde é de --color-confere ("o total bate") e
                     usar aqui diluiria essa semântica. */}
@@ -344,7 +420,7 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.saldoCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.26)} className="bg-carvao-900">
+              <motion.div {...entra(0.26)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
                 <Tile rotulo={t('dash.lancamentos')}>
                   <ValorAnimado valor={resumo.contagem} moeda={false} />
                 </Tile>
@@ -353,79 +429,77 @@ export function Painel({ onAprendeu }: Props) {
 
             <Diagnosticos itens={diagnosticos} onVerSemCategoria={irParaSemCategoria} />
 
-            {/* Gráficos lado a lado. Sem sticky e sem rolagem interna: o que
-                exigia aquilo (a pilha de cinco cards) foi para outras
-                páginas. */}
-            <motion.div
-              {...entra(0.28)}
-              className="grid gap-px border-t border-carvao-800 bg-carvao-800 lg:grid-cols-2"
-            >
-              <div className="bg-carvao-900 p-5">
+            <motion.div {...entra(0.27)} className="screen-only mt-4">
+              <ComparativoFinanceiro
+                gastoCents={resumo.gastoCents}
+                entradasCents={resumo.entradasCents}
+                saldoCents={resumo.saldoCents}
+              />
+            </motion.div>
+
+            <LeiturasFinanceiras itens={leituras} />
+
+            {/* Cada visual tem seu próprio cartão: a estrutura fica mais
+                próxima de uma leitura analítica, e um gráfico não parece
+                continuação acidental do outro. O conteúdo continua sendo
+                alimentado pelos mesmos agregadores puros do domínio. */}
+            <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
+              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
                 {resumo.porCategoria.length > 0 && (
                   <GraficoCategorias
                     categorias={resumo.porCategoria}
                     totalCents={resumo.gastoCents}
                   />
                 )}
-              </div>
-              {/* A metade direita ficava LITERALMENTE vazia com menos de dois
-                  meses de competência importados — o gráfico de evolução se
-                  apaga sozinho, e quem acabou de importar as primeiras
-                  faturas via um buraco branco ao lado do donut. O ritmo
-                  diário responde com um mês só, e as duas perguntas se
-                  empilham quando há histórico: "quando gastei" e "como este
-                  mês se compara". */}
-              <div className="screen-only space-y-6 bg-carvao-900 p-5">
-                <GraficoDiario
-                  dias={dias}
-                  onSelecionar={irParaDia}
-                  destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
-                  contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
-                />
-                {serie.length >= 2 && (
-                  <GraficoEvolucao serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+              </section>
+
+              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                {temRitmo ? (
+                  <GraficoDiario
+                    dias={dias}
+                    onSelecionar={irParaDia}
+                    destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
+                    contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
+                  />
+                ) : (
+                  <SemGrafico />
                 )}
-                {/* Os dois gráficos podem faltar ao mesmo tempo (nada gasto
-                    no mês e uma competência só importada). Sem isto a coluna
-                    fica um retângulo vazio — o defeito que o ritmo diário
-                    veio consertar, reaparecendo por outro caminho. */}
-                {!temRitmo && serie.length < 2 && <SemGrafico />}
-              </div>
+              </section>
             </motion.div>
 
-            <motion.div {...entra(0.34)} className="border-t border-carvao-800 p-5">
-              {/* Os dois lado a lado, e não um no lugar do outro: respondem
-                  perguntas diferentes sobre o mesmo período. "Maiores saídas"
-                  acha a compra única e grande (o empréstimo, a geladeira);
-                  "onde mais saiu" acha o ralo que só existe somado — três
-                  pedidos de R$ 80 que nenhum ranking de maior compra mostra.
-                  Empilham no celular. */}
-              <div className="grid gap-8 lg:grid-cols-2 lg:gap-0">
-                <div className="lg:pr-8">
-                  <MaioresSaidas itens={maiores} onEditar={setEditando} />
-                </div>
-                {/* A régua que faltava. As duas listas dividiam um `gap-6` e
-                    nada mais: no desktop liam como um texto só, em duas
-                    colunas, e a segunda parecia continuação da primeira. A
-                    linha é a mesma do resto do painel — o gap dos tiles e a
-                    borda dos gráficos são todos `carvao-800`. */}
-                <div className="lg:border-l lg:border-carvao-800 lg:pl-8">
-                  <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
-                </div>
-              </div>
-              {/* Leva o recorte junto, como a barra de navegação: sem a
-                  query, "Lançamentos →" saltaria para outro mês e para todos
-                  os bancos, logo abaixo de uma lista que fala do mês atual. */}
-              <Link
-                to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
-                className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+            {serie.length >= 2 && (
+              <motion.section
+                {...entra(0.32)}
+                className="screen-only min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante"
               >
-                {t('dash.lancamentos')} →
-              </Link>
+                <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+              </motion.section>
+            )}
+
+            <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
+              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                <MaioresSaidas itens={maiores} onEditar={setEditando} />
+                <Link
+                  to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                  className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                >
+                  {t('dash.lancamentos')} →
+                </Link>
+              </section>
+              <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+                <Link
+                  to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                  className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                >
+                  {t('dash.lancamentos')} →
+                </Link>
+              </section>
             </motion.div>
+
           </>
         )}
-      </div>
+      </>
 
       {editando && (
         <EditarCompra

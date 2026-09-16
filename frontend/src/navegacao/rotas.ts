@@ -14,7 +14,7 @@ import type { Dicionario } from '../i18n/dicionarios/pt'
  *
  *  Ele era texto fixo em português aqui dentro, e passou despercebido
  *  enquanto vivia só na barra de navegação. Em 2026-08-31 ele virou também o
- *  TÍTULO da página — a maior frase de cinco das seis telas —, e uma frase
+ *  TÍTULO da página — a maior frase das telas —, e uma frase
  *  desse tamanho fora do dicionário quebra a regra do §2.7 em três idiomas
  *  de uma vez. */
 export const ROTAS = [
@@ -24,6 +24,7 @@ export const ROTAS = [
   { caminho: '/importar', chave: 'rota.importacao' },
   { caminho: '/categorias', chave: 'rota.categorias' },
   { caminho: '/recorrencias', chave: 'rota.recorrencias' },
+  { caminho: '/minha-situacao-financeira', chave: 'rota.situacao' },
 ] as const satisfies ReadonlyArray<{ caminho: string; chave: keyof Dicionario }>
 
 /* "Datas" (calendário do mês, derivado do `diaTipico` das recorrências) saiu

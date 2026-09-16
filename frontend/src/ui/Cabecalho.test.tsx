@@ -55,6 +55,7 @@ describe('Cabecalho — o título é da seção, a saudação é do Painel', () 
   it('fora do Painel, o título é o nome da seção', () => {
     montar('/faturas')
     expect(screen.getByRole('heading', { name: 'Faturas' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument()
   })
 
   it('cada rota traz o próprio nome', () => {
@@ -63,6 +64,7 @@ describe('Cabecalho — o título é da seção, a saudação é do Painel', () 
       ['/importar', 'Importação'],
       ['/categorias', 'Categorias'],
       ['/recorrencias', 'Recorrências'],
+      ['/minha-situacao-financeira', 'Minha situação financeira'],
     ] as const) {
       const { unmount } = montar(rota)
       expect(screen.getByRole('heading', { name: nome })).toBeInTheDocument()

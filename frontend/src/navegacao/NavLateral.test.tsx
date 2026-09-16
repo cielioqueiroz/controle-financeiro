@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { NavLateral } from './NavLateral'
 import { ROTAS } from './rotas'
 // O rótulo saiu de `rotas.ts` e virou chave de dicionário: o teste lê a
-// mesma fonte da verdade que a tela, em vez de repetir as seis palavras.
+// mesma fonte da verdade que a tela, em vez de repetir as sete palavras.
 import { pt } from './../i18n/dicionarios/pt'
 
 // O SDK inteiro, como o resto da suíte faz. O ContaMenu do rodapé da calha

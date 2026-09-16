@@ -55,7 +55,10 @@ export function GraficoEvolucao({ serie, ativo, onSelecionar }: Props) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <p className="rotulo">{t('evolucao.titulo')}</p>
+        <div>
+          <p className="rotulo">{t('evolucao.titulo')}</p>
+          <p className="mt-1 text-xs text-tinta-fraca">{t('grafico.evolucaoDescricao')}</p>
+        </div>
         {/* Legenda: duas séries pedem legenda sempre, senão a identidade
             fica só na cor. */}
         <div className="flex items-center gap-3 text-[11px] text-tinta-tenue">

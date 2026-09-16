@@ -73,23 +73,136 @@ SESSAO = {
 # ⚠️ A conta NAO pode estar vazia. O `AberturaTutorial` abre sozinho quando
 # `todas.length === 0` — e nao so quando o tutorial nunca foi visto —, e o
 # modal cobre a tela: todo clique depois do login estoura o tempo contra o
-# overlay. Foi assim que o cenario de "sair" reprovou duas vezes. Quem sai da
-# conta e alguem que ja usou o app, entao uma transacao aqui e o estado FIEL
-# do cenario, e nao um atalho para calar o modal.
-UMA_TRANSACAO = [
-    {
-        'id': 'tx-de-mentira',
-        'date': '2026-06-05',
-        'description': 'PADARIA INVENTADA',
-        'label': None,
-        'amount_cents': 1250,
-        'kind': 'expense',
-        'category_slug': 'alimentacao',
-        'installment': None,
-        'document_id': 'doc-de-mentira',
-        'accounts': {'bank': 'nubank'},
-        'documents': {'doc_type': 'extrato', 'period_end': '2026-06-30'},
+# overlay. Este histórico é explicitamente fictício e só existe no servidor
+# local de teste. Ele cobre um ano inteiro para que todas as páginas e todos
+# os gráficos possam ser avaliados sem usar o extrato de ninguém.
+def tx(
+    id_, competencia, dia, description, amount, kind, category,
+    bank='nubank', doc_type='fatura', installment=None, label=None,
+):
+    return {
+        'id': id_,
+        'date': '%s-%02d' % (competencia, dia),
+        'description': description,
+        'label': label,
+        'amount_cents': amount,
+        'kind': kind,
+        'category_slug': category,
+        'installment': installment,
+        'document_id': 'doc-%s-%s-%s' % (bank, doc_type, competencia),
+        'accounts': {'bank': bank},
+        'documents': {'doc_type': doc_type, 'period_end': competencia + '-28'},
     }
+
+
+COMPETENCIAS = [
+    '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03',
+    '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09',
+]
+
+LUZ = [16840, 17520, 19280, 22140, 20760, 18490, 17920, 17100, 18830, 19640, 21350, 20580]
+MERCADO = [36900, 40500, 38700, 42100, 39600, 43800, 41200, 44700, 42900, 46100, 45200, 47800]
+TRANSACOES = []
+
+for i, comp in enumerate(COMPETENCIAS):
+    salario = 510000 + i * 5000
+    aluguel = 165000 if comp == '2026-09' else 145000
+    TRANSACOES.extend([
+        tx('%s-salario' % comp, comp, 5, 'SALARIO EMPRESA EXEMPLO', -salario, 'income', 'rendimentos', 'sicoob', 'extrato'),
+        tx('%s-aluguel' % comp, comp, 6, 'ALUGUEL RESIDENCIAL', aluguel, 'expense', 'aluguel', 'sicoob', 'extrato'),
+        tx('%s-internet' % comp, comp, 8, 'INTERNET FIBRA CASA', 10990, 'expense', 'telecom', 'sicoob', 'extrato'),
+        tx('%s-luz' % comp, comp, 11, 'COMPANHIA DE ENERGIA', LUZ[i], 'expense', 'luz', 'sicoob', 'extrato'),
+        tx('%s-academia' % comp, comp, 12, 'ACADEMIA MOVIMENTO', 8990, 'expense', 'academia'),
+        tx('%s-seguro' % comp, comp, 14, 'SEGURO RESIDENCIAL', 4990, 'expense', 'servicos', 'bradesco'),
+        tx('%s-mercado-a' % comp, comp, 3, 'MERCADO MODELO', MERCADO[i], 'expense', 'supermercado'),
+        tx('%s-mercado-b' % comp, comp, 16, 'MERCADO MODELO', MERCADO[i] - 4700, 'expense', 'supermercado'),
+        tx('%s-mercado-c' % comp, comp, 25, 'MERCADO MODELO', MERCADO[i] + 6300, 'expense', 'supermercado'),
+        tx('%s-restaurante-a' % comp, comp, 9, 'RESTAURANTE JARDIM', 12800 + i * 250, 'expense', 'restaurante'),
+        tx('%s-restaurante-b' % comp, comp, 22, 'RESTAURANTE JARDIM', 15600 + i * 190, 'expense', 'restaurante'),
+        tx('%s-combustivel' % comp, comp, 18, 'POSTO CENTRAL', 23900 + i * 530, 'expense', 'combustivel'),
+        tx('%s-cafe' % comp, comp, 20, 'CAFETERIA AURORA', 4850 + i * 80, 'expense', 'u-cafe-especial', label='Café do mês'),
+    ])
+
+    # Uma assinatura que some no último mês produz um alerta útil na tela de
+    # recorrências; a conta de luz oscila e aparece como recorrência variável.
+    if comp != '2026-09':
+        TRANSACOES.append(
+            tx('%s-streaming' % comp, comp, 15, 'STREAMING CINEPLAY', 3990, 'expense', 'assinaturas')
+        )
+    if i % 3 == 0:
+        TRANSACOES.append(
+            tx('%s-farmacia' % comp, comp, 17, 'FARMACIA VIDA', 17800 + i * 310, 'expense', 'farmacia')
+        )
+    if i % 4 == 1:
+        TRANSACOES.append(
+            tx('%s-livros' % comp, comp, 23, 'LIVRARIA HORIZONTE', 21500 + i * 240, 'expense', 'educacao')
+        )
+
+# Compras parceladas ficam fora das recorrências e alimentam a projeção de
+# compromissos futuros, inclusive dividida por banco.
+for parcela, comp in enumerate(COMPETENCIAS[-4:], start=1):
+    TRANSACOES.append(
+        tx(
+            '%s-notebook' % comp, comp, 13, 'NOTEBOOK CRIATIVO', 45900,
+            'expense', 'marketplace', installment={'current': parcela, 'total': 10},
+        )
+    )
+for parcela, comp in enumerate(COMPETENCIAS[-2:], start=1):
+    TRANSACOES.append(
+        tx(
+            '%s-curso' % comp, comp, 21, 'CURSO DE DESIGN', 18900,
+            'expense', 'educacao', bank='bradesco',
+            installment={'current': parcela, 'total': 6},
+        )
+    )
+
+TRANSACOES.sort(key=lambda item: item['date'], reverse=True)
+
+
+def total_documento(comp, bank, doc_type):
+    return sum(
+        item['amount_cents'] for item in TRANSACOES
+        if item['documents']['period_end'].startswith(comp)
+        and item['accounts']['bank'] == bank
+        and item['documents']['doc_type'] == doc_type
+        and item['kind'] == 'expense'
+    )
+
+
+DOCUMENTOS = []
+for i, comp in enumerate(COMPETENCIAS):
+    for bank, doc_type in [('sicoob', 'extrato'), ('nubank', 'fatura'), ('bradesco', 'fatura')]:
+        total = total_documento(comp, bank, doc_type)
+        DOCUMENTOS.append({
+            'id': 'doc-%s-%s-%s' % (bank, doc_type, comp),
+            'bank': bank,
+            'doc_type': doc_type,
+            'period_start': comp + '-01',
+            'period_end': comp + '-28',
+            'filename': '%s-%s-%s-demo.pdf' % (bank, doc_type, comp),
+            'imported_at': comp + '-28T12:00:00.000Z',
+            'declared_total': total if doc_type == 'fatura' else None,
+            'account_id': 'conta-' + bank,
+            'end_balance_cents': 780000 + i * 28000 if doc_type == 'extrato' else None,
+            'total_open_balance': total if comp == '2026-09' and doc_type == 'fatura' else None,
+            'next_invoice_balance': 124900 if comp == '2026-09' and bank == 'nubank' else None,
+            'next_close_date': '2026-10-18' if comp == '2026-09' and doc_type == 'fatura' else None,
+            'future_installments_total': 351000 if comp == '2026-09' and bank == 'nubank' else None,
+        })
+
+DOCUMENTOS.sort(key=lambda item: item['imported_at'], reverse=True)
+
+CATEGORIAS_USUARIO = [
+    {'id': 'cat-cafe', 'slug': 'u-cafe-especial', 'nome': 'Cafés especiais', 'icone': '☕', 'cor': '#b7794b'},
+    {'id': 'cat-familia', 'slug': 'u-familia', 'nome': 'Família', 'icone': '👨‍👩‍👧', 'cor': '#5b8def'},
+    {'id': 'cat-hobbies', 'slug': 'u-hobbies', 'nome': 'Hobbies', 'icone': '🎨', 'cor': '#a05bd6'},
+]
+
+REGRAS = [
+    {'padrao': 'CAFETERIA AURORA', 'match_type': 'contains', 'categoria': 'u-cafe-especial', 'prioridade': 100},
+    {'padrao': 'MERCADO MODELO', 'match_type': 'contains', 'categoria': 'supermercado', 'prioridade': 90},
+    {'padrao': 'POSTO CENTRAL', 'match_type': 'contains', 'categoria': 'combustivel', 'prioridade': 80},
+    {'padrao': 'RESTAURANTE JARDIM', 'match_type': 'contains', 'categoria': 'restaurante', 'prioridade': 70},
 ]
 
 
@@ -170,7 +283,16 @@ def servidor(auth: Auth) -> http.server.ThreadingHTTPServer:
                 # `{ count: 'exact' }` e CONFERE o total contra o que veio
                 # (ver `RecorteIncompletoError`). Numero errado aqui faria o
                 # app avisar que o recorte esta incompleto.
-                linhas = UMA_TRANSACAO if '/data/transactions' in self.path else []
+                if '/data/transactions' in self.path:
+                    linhas = TRANSACOES
+                elif '/data/documents' in self.path:
+                    linhas = DOCUMENTOS
+                elif '/data/categories' in self.path:
+                    linhas = CATEGORIAS_USUARIO
+                elif '/data/merchant_rules' in self.path:
+                    linhas = REGRAS
+                else:
+                    linhas = []
                 self._responder(
                     linhas, 200, extra={'Content-Range': '0-%d/%d' % (
                         max(len(linhas) - 1, 0), len(linhas))}

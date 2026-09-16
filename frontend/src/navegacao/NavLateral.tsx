@@ -42,6 +42,12 @@ const ICONES: Record<string, ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.3V12l3.2 1.9" />
     </>
   ),
+  '/minha-situacao-financeira': (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 18.5V14m5.3 4.5V10m5.4 8.5V6m5.3 12.5V3.5" />
+      <path strokeLinecap="round" d="M3.5 20.5h17" />
+    </>
+  ),
 }
 
 const GENERICO = <circle cx="12" cy="12" r="3.2" />

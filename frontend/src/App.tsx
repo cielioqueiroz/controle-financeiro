@@ -24,6 +24,7 @@ import { Painel } from './paginas/Painel'
 import { Lancamentos } from './paginas/Lancamentos'
 import { Recorrencias } from './paginas/Recorrencias'
 import { Importacao } from './paginas/Importacao'
+import { SituacaoFinanceira } from './paginas/SituacaoFinanceira'
 import { Cabecalho } from './ui/Cabecalho'
 import { Tutorial } from './ui/Tutorial'
 import { Ajuda } from './ui/ajuda/Ajuda'
@@ -365,6 +366,7 @@ export default function App() {
                     element={<Categorias onAprendeu={recarregarRegras} />}
                   />
                   <Route path="/recorrencias" element={<Recorrencias />} />
+                  <Route path="/minha-situacao-financeira" element={<SituacaoFinanceira />} />
                   <Route path="/importar" element={<Importacao />} />
                   {/* URL desconhecida volta ao Painel em vez de tela branca. */}
                   <Route path="*" element={<Navigate to="/" replace />} />

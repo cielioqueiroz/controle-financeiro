@@ -135,6 +135,14 @@
      folga mais. */
   --color-barra: #7f8c9d;
 
+  /* Linha tracejada de leitura: azul-ardósia suave no papel claro e clara no
+     painel escuro. Uma variável própria evita que a opacidade da marca ou da
+     tinta fique ilegível quando o tema muda. */
+  --color-linha-grafico: #6f8394;
+  /* Régua tracejada do gráfico: menos contrastada que a série, mas ainda
+     perceptível contra o cartão. */
+  --color-grade-grafico: #c5ced8;
+
   /* Compatibilidade: nomes antigos usados por componentes ainda não
      migrados. Apontam para os tokens novos para nada nascer sem cor
      durante a transição. */
@@ -178,6 +186,8 @@
   --color-ressalva: #d9a441;
   --color-confere: #5fbf8f;
   --color-falha: #f0817a;
+  --color-linha-grafico: #c8d8e4;
+  --color-grade-grafico: #536879;
 
   /* As mesmas oito matizes, RE-ESCALONADAS para a superfície escura — não
      um flip automático da paleta clara. Revalidadas contra #161d25: todas

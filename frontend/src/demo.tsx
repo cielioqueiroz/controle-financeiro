@@ -7,7 +7,7 @@ import { SaldoConta } from './ui/SaldoConta'
 import { SaldoAberto } from './ui/SaldoAberto'
 import { GraficoCategorias } from './ui/graficos/GraficoCategorias'
 import { GraficoDiario } from './ui/graficos/GraficoDiario'
-import { GraficoEvolucao } from './ui/graficos/GraficoEvolucao'
+import { GraficoFluxo } from './ui/graficos/GraficoFluxo'
 import { GraficoCompromissos } from './ui/graficos/GraficoCompromissos'
 import { CompromissosFuturos } from './ui/CompromissosFuturos'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
@@ -283,17 +283,19 @@ export function Folha() {
       </Secao>
 
       <Secao titulo="graficos-painel">
-        <div className="grid gap-px overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-800 lg:grid-cols-2">
-          <div className="bg-carvao-900 p-5">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
             <GraficoCategorias
               categorias={resumo.porCategoria}
               totalCents={resumo.gastoCents}
             />
           </div>
-          <div className="space-y-6 bg-carvao-900 p-5">
+          <div className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
             <GraficoDiario dias={dias} onSelecionar={() => {}} />
-            <GraficoEvolucao serie={SERIE} ativo="2026-07" onSelecionar={() => {}} />
           </div>
+        </div>
+        <div className="mt-4 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+          <GraficoFluxo serie={SERIE} ativo="2026-07" onSelecionar={() => {}} />
         </div>
       </Secao>
 

@@ -82,7 +82,13 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
   const fatias = geometriaDonut(topo, totalCents)
 
   return (
-    <div className="flex flex-wrap items-center gap-6">
+    <div>
+      <div className="mb-5">
+        <p className="rotulo">{t('dash.porCategoria')}</p>
+        <p className="mt-1 text-xs text-tinta-fraca">{t('grafico.categoriasDescricao')}</p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-6">
       <div className="relative shrink-0">
         <svg
           viewBox="0 0 130 130"
@@ -158,9 +164,19 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
                 {Math.round((c.totalCents / totalCents) * 100)}%
               </span>
             </button>
+            <div aria-hidden className="ml-9 mr-12 h-1 overflow-hidden rounded-full bg-afundado">
+              <motion.span
+                className="block h-full rounded-full"
+                style={{ backgroundColor: c.cat.cor }}
+                initial={semMovimento ? false : { width: 0 }}
+                animate={{ width: `${Math.min((c.totalCents / totalCents) * 100, 100)}%` }}
+                transition={{ duration: 0.55, delay: 0.1 + i * 0.04, ease: suave }}
+              />
+            </div>
           </motion.li>
         ))}
       </ul>
+    </div>
     </div>
   )
 }

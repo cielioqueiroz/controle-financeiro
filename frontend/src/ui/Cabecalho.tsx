@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ROTAS } from '../navegacao/rotas'
 import { Marca } from './Marca'
 import { ThemeToggle } from './ThemeToggle'
@@ -41,6 +41,7 @@ export function Cabecalho({
 }: Props) {
   const { t } = useT()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
   // A saudação é boas-vindas, e boas-vindas se dá UMA vez: repetida em cada
   // seção ela vira moldura, e o "Importe a fatura, o resto a gente calcula"
@@ -48,6 +49,18 @@ export function Cabecalho({
   // Painel o título é a seção — que, até 2026-08-31, nenhuma página tinha.
   const rota = ROTAS.find((r) => r.caminho === pathname)
   const noPainel = pathname === '/'
+
+  function voltar() {
+    // O estado `idx` é mantido pelo histórico do React Router. Em uma rota
+    // aberta diretamente não há uma tela interna anterior; nesse caso o
+    // Painel é um retorno seguro, em vez de sair do aplicativo.
+    const indice = window.history.state?.idx
+    if (typeof indice === 'number' && indice > 0) {
+      navigate(-1)
+      return
+    }
+    navigate('/')
+  }
 
   return (
     <>
@@ -86,12 +99,26 @@ export function Cabecalho({
           />
           <Marca />
         </motion.p>
-        <div className="col-span-2 row-start-2 min-w-0 lg:col-span-1 lg:col-start-1 lg:row-start-1">
+        <div className="col-span-2 row-start-2 flex min-w-0 items-center gap-3 lg:col-span-1 lg:col-start-1 lg:row-start-1">
+          {!noPainel && (
+            <button
+              type="button"
+              onClick={voltar}
+              aria-label={t('header.voltarSecao')}
+              title={t('header.voltarSecao')}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-carvao-700 px-2.5 py-2 text-xs font-medium text-tinta-fraca transition-colors hover:border-carvao-600 hover:bg-carvao-850 hover:text-tinta"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6-6-6 6 6 6" />
+              </svg>
+              {t('header.voltarSecao')}
+            </button>
+          )}
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="screen-only font-display text-2xl leading-[1.15] text-tinta sm:text-4xl"
+            className="screen-only min-w-0 font-display text-2xl leading-[1.15] text-tinta sm:text-4xl"
           >
             {logado && !noPainel ? (
               // Rota desconhecida não chega aqui (o `<Routes>` redireciona ao

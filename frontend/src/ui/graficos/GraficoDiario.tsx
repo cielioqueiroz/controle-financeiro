@@ -89,10 +89,13 @@ export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props)
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="rotulo">
-          {t('diario.titulo')}
-          {contexto && <span className="ml-1.5 normal-case text-tinta-fraca">· {contexto}</span>}
-        </p>
+        <div>
+          <p className="rotulo">
+            {t('diario.titulo')}
+            {contexto && <span className="ml-1.5 normal-case text-tinta-fraca">· {contexto}</span>}
+          </p>
+          <p className="mt-1 text-xs text-tinta-fraca">{t('grafico.diarioDescricao')}</p>
+        </div>
         <p className="text-[11px] text-tinta-tenue">
           {t('diario.resumo', { dias: String(comGasto.length), media: formatBRL(media) })}
         </p>
@@ -167,8 +170,12 @@ export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props)
         {mediaPct !== null && (
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 flex justify-end border-t border-dashed border-tinta-tenue/40"
-            style={{ bottom: `${mediaPct}%` }}
+            className="pointer-events-none absolute inset-x-0 flex justify-end border-t border-dashed"
+            style={{
+              bottom: `${mediaPct}%`,
+              borderTopColor: 'var(--color-linha-grafico)',
+              opacity: 0.78,
+            }}
           >
             <span className="tabular -mt-2 bg-carvao-900 pl-1 text-[9px] text-tinta-tenue">
               {t('diario.media')}

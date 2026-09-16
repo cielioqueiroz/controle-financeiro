@@ -3,11 +3,11 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { ROTAS } from './rotas'
 import { useT } from '../i18n/IdiomaProvider'
 
-/** A navegação do celular: as seis seções numa barra que rola de lado.
+/** A navegação do celular: as sete seções numa barra que rola de lado.
  *
  *  ## Por que a borda que some existe
  *
- *  São seis seções e ~390px de tela: duas ficam fora do quadro, sempre. A
+   *  São sete seções e ~390px de tela: várias ficam fora do quadro, sempre. A
  *  barra rolava desde o começo, mas nada na tela dizia isso — e seção que
  *  ninguém descobre é seção que não existe. No celular de quem recebeu o app
  *  em 2026-09-04, "Categorias" e "Recorrências" estavam do lado de fora, sem
@@ -17,7 +17,7 @@ import { useT } from '../i18n/IdiomaProvider'
  *  conteúdo escondido daquele lado. Uma faixa fixa mentiria no fim da
  *  rolagem, e mentir sobre o que existe é o defeito que ela veio consertar.
  *
- *  A calha lateral (`lg`+) não tem nada disso: lá cabem as seis. */
+   *  A calha lateral (`lg`+) não tem nada disso: lá cabem as sete. */
 export function NavPrincipal() {
   const { t } = useT()
   // O recorte (período, mês, banco, busca) vive na query, e as páginas são

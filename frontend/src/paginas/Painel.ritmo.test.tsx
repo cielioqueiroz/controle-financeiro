@@ -90,11 +90,9 @@ describe('Painel — o ritmo diário no período Dia', () => {
   })
 })
 
-/** A régua do grid vazando por baixo dos tiles curtos era a "barra escura
- *  atravessando o painel" do print. Os dois primeiros tiles ganham a linha de
- *  variação e ficam mais altos; sem fundo no item do grid, a sobra das
- *  células 3 e 4 mostrava o `gap-px`. */
-describe('Painel — os tiles preenchem a própria célula', () => {
+/** Os tiles têm espaço próprio entre si e um cartão completo, para não
+ *  parecerem uma faixa única quando as alturas variam. */
+describe('Painel — os tiles respiram como cartões separados', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('todo item do grid de tiles tem fundo próprio', async () => {
@@ -103,10 +101,14 @@ describe('Painel — os tiles preenchem a própria célula', () => {
     // é inequívoco. "Lançamentos" nomeia um tile E o link do rodapé; "629,00"
     // aparece no tile de gasto E no de saldo.
     await screen.findByRole('button', { name: /3\/jun/ })
-    const grid = document.querySelector('.grid.gap-px.bg-carvao-800')
+    const grid = document.querySelector('.grid.grid-cols-1.gap-3')
     expect(grid).not.toBeNull()
     const itens = [...grid!.children]
     expect(itens).toHaveLength(4)
-    for (const item of itens) expect(item).toHaveClass('bg-carvao-900')
+    for (const item of itens) {
+      expect(item).toHaveClass('bg-carvao-900')
+      expect(item).toHaveClass('rounded-xl')
+      expect(item).toHaveClass('sombra-flutuante')
+    }
   })
 })
