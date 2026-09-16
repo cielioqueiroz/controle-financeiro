@@ -135,6 +135,28 @@ export function SituacaoFinanceira() {
                   <p className="mt-2 text-sm text-tinta-fraca">
                     {t('situacao.melhorMesTexto', { valor: dinheiro(resultado(melhorMes)) })}
                   </p>
+                  <div className="mt-5 grid grid-cols-2 gap-3 border-t border-carvao-700 pt-4 sm:grid-cols-4">
+                    <div>
+                      <p className="rotulo !text-[9px]">{t('situacao.receitas')}</p>
+                      <p className="tabular mt-1 text-sm text-tinta">{dinheiro(melhorMes.entradasCents)}</p>
+                    </div>
+                    <div>
+                      <p className="rotulo !text-[9px]">{t('situacao.despesas')}</p>
+                      <p className="tabular mt-1 text-sm text-tinta">{dinheiro(melhorMes.gastoCents)}</p>
+                    </div>
+                    <div>
+                      <p className="rotulo !text-[9px]">{t('situacao.economia')}</p>
+                      <p className="tabular mt-1 text-sm text-credito">{dinheiro(resultado(melhorMes))}</p>
+                    </div>
+                    <div>
+                      <p className="rotulo !text-[9px]">{t('situacao.taxaEconomia')}</p>
+                      <p className="tabular mt-1 text-sm text-credito">
+                        {melhorMes.entradasCents > 0
+                          ? `${((resultado(melhorMes) / melhorMes.entradasCents) * 100).toFixed(1).replace('.', ',')}%`
+                          : '—'}
+                      </p>
+                    </div>
+                  </div>
                 </article>
               )}
               {piorMes && (
