@@ -9,6 +9,7 @@ guarda só as transações.
 <p align="center">
   <a href="https://capital-financeiro.vercel.app"><strong>🔗 Abrir o app</strong></a> ·
   <a href="docs/ESTADO-ATUAL.md">Estado do projeto</a> ·
+  <a href="#-minha-situação-financeira">Minha situação financeira</a> ·
   <a href="#-arquitetura">Arquitetura</a> ·
   <a href="#-as-quatro-regras-que-fazem-a-conta-fechar">As regras que fazem a conta fechar</a>
 </p>
@@ -16,9 +17,9 @@ guarda só as transações.
 <p align="center">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-1b5e8f">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-1b5e8f">
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-7-1b5e8f">
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-1b5e8f">
   <img alt="Postgres/Neon" src="https://img.shields.io/badge/Neon-Postgres%20%2B%20RLS-1b5e8f">
-  <img alt="Testes" src="https://img.shields.io/badge/testes-604%20verdes-2e7d5b">
+  <img alt="Testes" src="https://img.shields.io/badge/testes-1095%20verdes-2e7d5b">
   <img alt="CSP" src="https://img.shields.io/badge/CSP-completa%20e%20medida-2e7d5b">
 </p>
 
@@ -61,6 +62,18 @@ Bradesco — as cores institucionais, as mesmas em toda a tela):
 > lista da esquerda acha a compra única e grande; a da direita acha o ralo que só
 > existe somado — e é justamente esse que passa despercebido.
 
+### 📈 Minha situação financeira
+
+Uma visão histórica inspirada na seção “Minha Vida Financeira” do projeto de
+referência. Ela permite alternar entre 3, 6 e 12 meses e mostra saldo atual,
+receitas contra despesas, melhor mês, mês mais caro, categorias que puxaram o
+mês mais caro, fluxo acumulado ou resultado por competência e distribuição por
+categoria. Tudo é calculado a partir dos documentos importados; patrimônio,
+investimentos e metas digitadas não são inventados pelo app.
+
+O cabeçalho das seções internas também oferece **Voltar**, preservando o recorte
+da URL e evitando depender do botão do navegador.
+
 > ### ⚠️ Nenhum número aqui é real
 >
 > Todas as imagens saem de `frontend/demo.html`, uma folha de provas com dados
@@ -82,6 +95,8 @@ Bradesco — as cores institucionais, as mesmas em toda a tela):
 | 🔗 **Não conta o mesmo dinheiro duas vezes** | cruza fatura × extrato e marca quitação e transferência entre contas próprias |
 | 📅 **Dia / Semana / Mês / Ano** | Mês e Ano agrupam por **competência da fatura**; Dia e Semana, pela data da compra |
 | 📊 **Gráficos próprios em SVG** | donut por categoria, saídas por dia, entradas × saídas, parcelas por mês |
+| 📈 **Minha situação financeira** | histórico de 3/6/12 meses, melhor e pior mês, fluxo acumulado e categorias do mês mais caro |
+| 💡 **Leituras do período** | maior categoria, maior estabelecimento, pico diário e taxa de economia, com links para o detalhe |
 | 🏪 **Onde mais saiu dinheiro** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra |
 | 📈 **Compara com o período anterior** | "12% acima do mês passado" nos tiles; some quando não há base de comparação, em vez de inventar um "+100%" |
 | 🔮 **Compromissos futuros** | projeta as parcelas que ainda vão cair, sem duplicar quando a fatura chegar |
@@ -108,7 +123,7 @@ flowchart LR
     end
 
     DB[("🐘 Neon Postgres<br/>RLS por usuário")]
-    UI["📊 Painel · Lançamentos<br/>Faturas · Recorrências"]
+    UI["📊 Painel · Lançamentos<br/>Faturas · Recorrências · Situação financeira"]
 
     PDF --> W --> P --> V
     V -->|"bate ao centavo ✅"| C
@@ -135,7 +150,7 @@ banco.
 
 ```mermaid
 graph TD
-    PG["<b>paginas/</b> · as 7 telas<br/>Painel · Lançamentos · Faturas · Importação<br/>Categorias · Recorrências"]
+    PG["<b>paginas/</b> · as 7 telas<br/>Painel · Lançamentos · Faturas · Importação<br/>Categorias · Recorrências · Situação financeira"]
     CP["<b>ui/</b> · componentes<br/><i>gráficos em SVG próprio, sem biblioteca</i>"]
     RC["<b>dados/</b> · o recorte da tela<br/><i>useRecorte + filtros na URL</i>"]
     DOM["<b>domain/</b> · puro, sem React e sem I/O<br/>parsers · validate · categorize · link<br/>dedupe · recorrencias · normalize"]
@@ -180,9 +195,9 @@ capital-financeiro/
 │       ├── dados/               # filtros na URL, recorte, provider do histórico
 │       ├── ui/                  # primitivos, marca e o que é usado por 2+ grupos
 │       │   ├── acesso/          # as telas de anônimo (entrar, criar, recuperar)
-│       │   ├── graficos/        # os 4 gráficos em SVG próprio + escala robusta
+│       │   ├── graficos/        # gráficos em SVG próprio + comparativos + escala robusta
 │       │   └── listas/          # rankings e listas de lançamentos
-│       ├── paginas/             # as 6 telas roteadas e autenticadas
+│       ├── paginas/             # as 7 telas roteadas e autenticadas
 │       ├── i18n/                # pt / en / es
 │       └── lib/                 # cliente Neon, auth por HTTP, perfil local
 ├── backend/
@@ -191,7 +206,7 @@ capital-financeiro/
 └── docs/                        # ESTADO-ATUAL.md, specs, planos, imagens
 ```
 
-**Stack:** React 19 · TypeScript (strict) · Vite 7 · Tailwind v4 · Motion · sonner ·
+**Stack:** React 19 · TypeScript (strict) · Vite 8 · Tailwind v4 · Motion · sonner ·
 pdf.js · jsPDF · Vitest · oxlint · Neon (Postgres + Data API + Auth) · Vercel.
 
 ---
@@ -350,7 +365,7 @@ python scripts/medir-overflow.py             # rolagem lateral, 1280×800 e 390�
 
 | Ferramenta | O que ela reprova |
 |---|---|
-| **604 testes** (78 arquivos) | regra de negócio, componente e contrato de HTTP |
+| **1.095 testes** (129 arquivos) | regra de negócio, componente e contrato de HTTP |
 | `medir-csp.py` | política que quebra o app **ou** que não bloqueia o que promete |
 | `medir-contraste.py` | par de cores abaixo de AA — já achou 6, corrigidos por busca preservando matiz |
 | `medir-overflow.py` | rolagem lateral no desktop e no celular |
@@ -370,6 +385,20 @@ asserção era fraca demais para notar a diferença. Correções importantes sã
 npm install
 npm run dev            # http://localhost:5173
 ```
+
+### Demonstração local com login
+
+Para visualizar o app já autenticado, com dados fictícios e sem usar a conta
+real do Neon:
+
+```bash
+npm run build:login
+python scripts/medir-login.py
+```
+
+Abra `http://127.0.0.1:4599`. A demonstração usa a conta fictícia `Ana`; as
+credenciais de teste ficam no próprio script do servidor local e não dão acesso
+a nenhum ambiente de produção.
 
 Sem variáveis de ambiente o app roda em **modo "importa e vê"**: lê o PDF e mostra os
 gráficos, sem login e sem salvar nada. Para persistir, crie um `.env.local` **na raiz**
