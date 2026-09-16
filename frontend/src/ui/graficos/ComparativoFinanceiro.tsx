@@ -25,8 +25,8 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }:
   const economia = entradasCents > 0 ? (saldoCents / entradasCents) * 100 : null
 
   const linhas = [
-    { chave: 'comparativo.entradas' as const, valor: entradasCents, cor: 'bg-credito' },
-    { chave: 'comparativo.gastos' as const, valor: gastoCents, cor: 'bg-debito' },
+    { chave: 'comparativo.entradas' as const, valor: entradasCents, cor: 'bg-grafico-entrada' },
+    { chave: 'comparativo.gastos' as const, valor: gastoCents, cor: 'bg-grafico-saida' },
   ]
 
   return (
@@ -73,13 +73,13 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }:
           </div>
           <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-carvao-800">
             <motion.span
-              className="h-full bg-debito"
+              className="h-full bg-grafico-saida"
               initial={semMovimento ? false : { width: 0 }}
               animate={{ width: `${Math.min(Math.max(consumo ?? 0, 0), 100)}%` }}
               transition={{ duration: 0.85 }}
             />
             <motion.span
-              className="h-full bg-credito"
+              className="h-full bg-grafico-entrada"
               initial={semMovimento ? false : { width: 0 }}
               animate={{ width: `${Math.max(100 - Math.min(Math.max(consumo ?? 0, 0), 100), 0)}%` }}
               transition={{ duration: 0.85, delay: 0.12 }}

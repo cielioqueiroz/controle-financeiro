@@ -103,9 +103,9 @@ describe('GraficoDiario — quando a janela é maior que o recorte', () => {
       <GraficoDiario dias={DIAS} onSelecionar={() => {}} destaque="2026-07-03" />,
     )
     const barras = [...container.querySelectorAll('button > span')]
-    expect(barras[0]).toHaveClass('bg-marca') // 3/jul, o dia aberto
-    expect(barras[1]).toHaveClass('bg-debito') // 14/jul, o pico
-    expect(barras[2]).toHaveClass('bg-barra') // 21/jul, campo em repouso
+    expect(barras[0]).toHaveClass('bg-grafico-acumulado') // 3/jul, o dia aberto
+    expect(barras[1]).toHaveClass('bg-grafico-saida') // 14/jul, o pico
+    expect(barras[2]).toHaveClass('bg-grafico-neutro') // 21/jul, campo em repouso
   })
 
   // Sem o destaque, a faixa de leitura mostraria o pico e quem abriu o dia 3

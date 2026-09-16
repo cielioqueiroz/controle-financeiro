@@ -49,11 +49,9 @@ function rotuloDia(iso: string): string {
  *  no cabeçalho — a distorção é local e declarada, em vez de global e muda,
  *  que é o que uma escala logarítmica faria.
  *
- *  **As cores dizem três coisas, e só três.** O campo em repouso é
- *  `--color-barra`, neutro; o pico é `--color-debito`; o dia aberto é
- *  `--color-marca`. Antes, TODAS as barras eram débito e o pico era tinta —
- *  um muro vermelho no qual o vermelho não distinguia nada, e o destaque
- *  gastava a cor mais forte da interface no lugar mais repetido dela.
+ *  **As cores dizem três coisas, e só três.** O campo em repouso é a
+ *  ardósia da paleta do Ambit; o pico é coral; o dia aberto é azul-petróleo.
+ *  Ao passar o mouse, as outras barras recuam para a leitura ficar focada.
  *
  *  Clicar num dia leva a tela para ele, como clicar num mês na evolução. */
 export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props) {
@@ -124,7 +122,12 @@ export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props)
             const ehAtivo = d.dia === destaque
             // Ativo vence pico: "onde eu estou" é mais urgente que "onde foi
             // o maior", e a faixa de leitura acima já nomeia os dois.
-            const tomDaBarra = ehAtivo ? 'bg-marca' : ehPico ? 'bg-debito' : 'bg-barra'
+            const tomDaBarra = ehAtivo
+              ? 'bg-grafico-acumulado'
+              : ehPico
+                ? 'bg-grafico-saida'
+                : 'bg-grafico-neutro'
+            const destacada = emFoco === null || emFoco === d.dia
             return (
               <button
                 key={d.dia}
@@ -133,7 +136,7 @@ export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props)
                 onMouseLeave={() => setEmFoco(null)}
                 onFocus={() => setEmFoco(d.dia)}
                 onBlur={() => setEmFoco(null)}
-                className="flex h-full min-w-[3px] flex-1 flex-col justify-end rounded-sm px-[1px] pt-1 transition-colors hover:bg-afundado"
+                className="group flex h-full min-w-[3px] flex-1 flex-col justify-end rounded-sm px-[1px] pt-1 transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-afundado"
                 aria-label={t(cortada ? 'diario.rotuloBarraCortada' : 'diario.rotuloBarra', {
                   dia: rotuloDia(d.dia),
                   valor: formatBRL(d.gastoCents),
@@ -147,6 +150,7 @@ export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props)
                   initial={semMovimento ? false : { height: 0 }}
                   animate={{ height: `${alturaPct(d.gastoCents, escala)}%` }}
                   transition={{ type: 'spring', stiffness: 140, damping: 22 }}
+                  style={{ opacity: destacada ? 1 : 0.32, transition: 'opacity .2s ease' }}
                 >
                   {cortada && (
                     // Serrilha no topo: a convenção do eixo quebrado. Diz

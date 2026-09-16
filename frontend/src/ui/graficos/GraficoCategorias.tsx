@@ -21,6 +21,24 @@ const CIRC = 2 * Math.PI * R
  *  um bloco só — o vão é o que separa as fatias antes da cor. */
 const VAO = 2
 
+/** Ordem visual inspirada na paleta de gráficos do Ambit. A cor acompanha a
+ * posição do ranking, como no painel de referência, e a lista repete a mesma
+ * cor para que fatia, marcador e barra sejam uma única leitura. */
+const PALETA = [
+  'var(--color-grafico-entrada)',
+  'var(--color-grafico-acumulado)',
+  'var(--color-grafico-alerta)',
+  'var(--color-grafico-neutro)',
+  'var(--color-grafico-saida)',
+  'color-mix(in srgb, var(--color-grafico-entrada) 65%, var(--color-tinta-tenue))',
+  'color-mix(in srgb, var(--color-grafico-acumulado) 65%, var(--color-tinta-tenue))',
+  'var(--color-tinta-tenue)',
+] as const
+
+function corGrafico(index: number): string {
+  return PALETA[index % PALETA.length]
+}
+
 /** A geometria do donut: cada fatia começa onde a anterior terminou.
  *
  *  Mora aqui fora porque o acumulado precisa ser DERIVADO antes da pintura.
@@ -39,15 +57,9 @@ function geometriaDonut(topo: CategoriaResumo[], totalCents: number) {
 
 /** Gasto por categoria, em SVG próprio — sem biblioteca de gráfico.
  *
- *  **A cor é da CATEGORIA, não da posição no ranking.** A mesma categoria
- *  tem a mesma cor no donut, na lista e no seletor, e trocar o mês não
- *  repinta o que sobrou. Por isso a paleta aqui não é a lista fixa de oito
- *  matizes validadas: a identidade vence.
- *
- *  O preço disso é que duas cores de categoria podem ficar próximas para
- *  quem tem daltonismo — então **o rótulo direto ao lado não é enfeite, é a
- *  condição que torna o gráfico legível**: cada fatia aparece na lista com
- *  ícone, nome, valor e percentual. Identidade nunca depende só da cor.
+ *  A paleta curta segue o painel do Ambit e a lista repete cada cor do donut.
+ *  **O rótulo direto ao lado não é enfeite, é a condição que torna o gráfico
+ *  legível**: cada fatia aparece com ícone, nome, valor e percentual.
  *
  *  Interativo: passar o mouse (ou focar pelo teclado) destaca a fatia e
  *  mostra o valor dela no centro; clicar abre os lançamentos da categoria. */
@@ -99,6 +111,7 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
           {topo.map((c, i) => {
             const { arco, offset } = fatias[i]
             const destacada = ativa === i
+            const cor = corGrafico(i)
             return (
               <motion.circle
                 key={c.cat.slug}
@@ -106,14 +119,16 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
                 cy="65"
                 r={R}
                 fill="none"
-                stroke={c.cat.cor}
+                stroke={cor}
                 strokeWidth={destacada ? 20 : 15}
                 strokeDashoffset={offset}
-                opacity={ativa === null || destacada ? 1 : 0.35}
+                opacity={ativa === null || destacada ? 1 : 0.28}
                 initial={semMovimento ? false : { strokeDasharray: `0 ${CIRC}` }}
                 animate={{ strokeDasharray: `${arco} ${CIRC - arco}` }}
                 transition={{ duration: 0.6, delay: i * 0.06, ease: suave }}
-                style={{ transition: 'stroke-width .12s, opacity .12s' }}
+                onMouseEnter={() => setAtiva(i)}
+                onMouseLeave={() => setAtiva(null)}
+                style={{ transition: 'stroke-width .16s ease, opacity .26s ease' }}
               />
             )
           })}
@@ -147,14 +162,16 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
               onMouseLeave={() => setAtiva(null)}
               onFocus={() => setAtiva(i)}
               onBlur={() => setAtiva(null)}
-              className="flex w-full items-center gap-2.5 rounded-sm px-2 py-1 text-left text-sm transition-colors hover:bg-afundado"
+              className={`flex w-full items-center gap-2.5 rounded-sm px-2 py-1 text-left text-sm transition-[background-color,opacity] hover:bg-afundado ${
+                ativa !== null && ativa !== i ? 'opacity-35' : ''
+              }`}
               aria-label={t('donut.rotuloFatia', {
                 categoria: nomeCategoria(c.cat),
                 valor: formatBRL(c.totalCents),
                 pct: Math.round((c.totalCents / totalCents) * 100),
               })}
             >
-              <MarcaCategoria cor={c.cat.cor} />
+              <MarcaCategoria cor={corGrafico(i)} />
               <span aria-hidden className="text-sm">
                 {c.cat.icone}
               </span>
@@ -167,7 +184,7 @@ export function GraficoCategorias({ categorias, totalCents }: Props) {
             <div aria-hidden className="ml-9 mr-12 h-1 overflow-hidden rounded-full bg-afundado">
               <motion.span
                 className="block h-full rounded-full"
-                style={{ backgroundColor: c.cat.cor }}
+                style={{ backgroundColor: corGrafico(i) }}
                 initial={semMovimento ? false : { width: 0 }}
                 animate={{ width: `${Math.min((c.totalCents / totalCents) * 100, 100)}%` }}
                 transition={{ duration: 0.55, delay: 0.1 + i * 0.04, ease: suave }}

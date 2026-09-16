@@ -63,11 +63,11 @@ export function GraficoEvolucao({ serie, ativo, onSelecionar }: Props) {
             fica só na cor. */}
         <div className="flex items-center gap-3 text-[11px] text-tinta-tenue">
           <span className="flex items-center gap-1.5">
-            <span aria-hidden className="h-2 w-2 rounded-[1px] bg-credito" />
+            <span aria-hidden className="h-2 w-2 rounded-[1px] bg-grafico-entrada" />
             {t('evolucao.entradas')}
           </span>
           <span className="flex items-center gap-1.5">
-            <span aria-hidden className="h-2 w-2 rounded-[1px] bg-debito" />
+            <span aria-hidden className="h-2 w-2 rounded-[1px] bg-grafico-saida" />
             {t('evolucao.saidas')}
           </span>
         </div>
@@ -110,7 +110,7 @@ export function GraficoEvolucao({ serie, ativo, onSelecionar }: Props) {
               onMouseLeave={() => setEmFoco(null)}
               onFocus={() => setEmFoco(p.competencia)}
               onBlur={() => setEmFoco(null)}
-              className="group flex h-full flex-1 flex-col justify-end gap-1 rounded-sm px-0.5 pt-1 transition-colors hover:bg-afundado"
+              className="group flex h-full flex-1 flex-col justify-end gap-1 rounded-sm px-0.5 pt-1 transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-afundado"
               aria-label={t(cortada ? 'evolucao.rotuloBarraCortada' : 'evolucao.rotuloBarra', {
                 mes: rotulo(p.competencia),
                 entradas: formatBRL(p.entradasCents),
@@ -124,14 +124,16 @@ export function GraficoEvolucao({ serie, ativo, onSelecionar }: Props) {
                   valorCents={p.entradasCents}
                   altura={alturaPct(p.entradasCents, escala)}
                   cortada={p.entradasCents > escala.teto}
-                  cor="bg-credito"
+                  cor="bg-grafico-entrada"
+                  destacada={emFoco === null || emFoco === p.competencia}
                   semMovimento={semMovimento}
                 />
                 <Barra
                   valorCents={p.gastoCents}
                   altura={alturaPct(p.gastoCents, escala)}
                   cortada={p.gastoCents > escala.teto}
-                  cor="bg-debito"
+                  cor="bg-grafico-saida"
+                  destacada={emFoco === null || emFoco === p.competencia}
                   semMovimento={semMovimento}
                 />
               </span>
@@ -164,12 +166,14 @@ function Barra({
   altura,
   cortada,
   cor,
+  destacada,
   semMovimento,
 }: {
   valorCents: number
   altura: number
   cortada: boolean
   cor: string
+  destacada: boolean
   semMovimento: boolean | null
 }) {
   return (
@@ -178,6 +182,7 @@ function Barra({
       initial={semMovimento ? false : { height: 0 }}
       animate={{ height: `${valorCents > 0 ? altura : 1}%` }}
       transition={{ type: 'spring', stiffness: 140, damping: 22 }}
+      style={{ opacity: destacada ? 1 : 0.32, transition: 'opacity .2s ease' }}
     >
       {cortada && (
         // Serrilha do eixo quebrado: diz "continua fora do desenho".

@@ -103,7 +103,7 @@ export function GraficoCompromissos({ meses, onSelecionar }: Props) {
             onMouseLeave={() => setEmFoco(null)}
             onFocus={() => setEmFoco(m.competencia)}
             onBlur={() => setEmFoco(null)}
-            className="flex h-full flex-1 flex-col justify-end gap-1 rounded-sm px-0.5 pt-1 transition-colors hover:bg-afundado"
+            className="flex h-full flex-1 flex-col justify-end gap-1 rounded-sm px-0.5 pt-1 transition-[background-color,opacity,transform] hover:-translate-y-0.5 hover:bg-afundado"
             aria-label={t('compGrafico.rotuloBarra', {
               mes: `${rotuloMes(m.competencia)} ${m.competencia.slice(0, 4)}`,
               total: formatBRL(m.totalCents),
@@ -118,6 +118,10 @@ export function GraficoCompromissos({ meses, onSelecionar }: Props) {
               initial={semMovimento ? false : { height: 0 }}
               animate={{ height: `${alturaPct(m.totalCents, escala)}%` }}
               transition={{ type: 'spring', stiffness: 140, damping: 22 }}
+              style={{
+                opacity: emFoco === null || emFoco === m.competencia ? 1 : 0.3,
+                transition: 'opacity .2s ease',
+              }}
             >
               {m.porBanco.map((f) => (
                 <span

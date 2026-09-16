@@ -121,6 +121,17 @@
   --color-serie-7: #4a3aa7;
   --color-serie-8: #e34948;
 
+  /* ---------- Paleta dos gráficos ----------
+     A paleta curta vem do painel do Ambit: teal para entradas, azul-petróleo
+     para saldo, ardósia para base, amarelo para alerta e coral para saídas.
+     Ela é exclusiva dos gráficos; os tokens crédito/débito continuam
+     carregando a semântica contábil fora deles. */
+  --color-grafico-entrada: #156a4f;
+  --color-grafico-acumulado: #5d9193;
+  --color-grafico-neutro: #424e5e;
+  --color-grafico-alerta: #b3a56e;
+  --color-grafico-saida: #a9645f;
+
   /* Barra de gráfico EM REPOUSO — o pano de fundo contra o qual a exceção
      aparece. Fica deliberadamente fora da paleta de séries: a série colore
      categorias diferentes, esta colore a MESMA grandeza repetida no tempo, e
@@ -200,6 +211,12 @@
   --color-serie-6: #008300;
   --color-serie-7: #9085e9;
   --color-serie-8: #e66767;
+
+  --color-grafico-entrada: #67c5a0;
+  --color-grafico-acumulado: #71a9b3;
+  --color-grafico-neutro: #79818c;
+  --color-grafico-alerta: #cabb7f;
+  --color-grafico-saida: #d07973;
 
   /* Reescalonada para a superfície escura, como as séries: #6b7887 sobre
      #161d25 dá 3.8:1. O tom claro (#7f8c9d) daria 2.6:1 aqui. */

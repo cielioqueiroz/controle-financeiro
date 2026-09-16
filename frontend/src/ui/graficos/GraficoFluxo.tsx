@@ -114,18 +114,18 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
 
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-tinta-tenue">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="h-2 w-2 rounded-[1px] bg-credito" />
+          <span aria-hidden className="h-2 w-2 rounded-[1px] bg-grafico-entrada" />
           {t('evolucao.entradas')}
         </span>
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="h-2 w-2 rounded-[1px] bg-debito" />
+          <span aria-hidden className="h-2 w-2 rounded-[1px] bg-grafico-saida" />
           {t('evolucao.saidas')}
         </span>
         <span className="flex items-center gap-1.5">
           <span
             aria-hidden
             className="h-px w-3 border-t border-dashed"
-            style={{ borderTopColor: 'var(--color-linha-grafico)' }}
+            style={{ borderTopColor: 'var(--color-grafico-acumulado)' }}
           />
           {modo === 'acumulado' ? t('fluxo.modoAcumulado') : t('fluxo.modoPeriodo')}
         </span>
@@ -188,7 +188,7 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
           )}
           <motion.path
             d={caminhoArea(entradas, minimo, maximo)}
-            fill="var(--color-credito)"
+            fill="var(--color-grafico-entrada)"
             fillOpacity="0.08"
             stroke="none"
             initial={semMovimento ? false : { opacity: 0 }}
@@ -197,7 +197,7 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
           />
           <motion.path
             d={caminhoArea(saidas, minimo, maximo)}
-            fill="var(--color-debito)"
+            fill="var(--color-grafico-saida)"
             fillOpacity="0.07"
             stroke="none"
             initial={semMovimento ? false : { opacity: 0 }}
@@ -207,7 +207,7 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
           <motion.path
             d={caminhoLinha(entradas, minimo, maximo)}
             fill="none"
-            stroke="var(--color-credito)"
+            stroke="var(--color-grafico-entrada)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -218,7 +218,7 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
           <motion.path
             d={caminhoLinha(saidas, minimo, maximo)}
             fill="none"
-            stroke="var(--color-debito)"
+            stroke="var(--color-grafico-saida)"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -229,7 +229,7 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
           <motion.path
             d={caminhoLinha(linhaSecundaria, minimo, maximo)}
             fill="none"
-            stroke="var(--color-linha-grafico)"
+            stroke="var(--color-grafico-acumulado)"
             strokeWidth="1.8"
             strokeDasharray="5 4"
             strokeLinecap="round"
@@ -260,7 +260,7 @@ export function GraficoFluxo({ serie, ativo, onSelecionar }: Props) {
             >
               <span
                 aria-hidden
-                className={`absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-marca/35 transition-opacity ${
+                className={`absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-grafico-acumulado/45 transition-opacity ${
                   emLeitura.competencia === p.competencia ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 }`}
               />
