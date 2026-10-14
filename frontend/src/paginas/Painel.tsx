@@ -35,6 +35,9 @@ import { diagnosticar } from '../domain/diagnosticos'
 import { SaldoConta } from '../ui/SaldoConta'
 import { SaldoAberto } from '../ui/SaldoAberto'
 import { ErroCarregar } from '../ui/ErroCarregar'
+import { Cartao } from '../ui/Cartao'
+import { CarregandoPainel } from '../ui/CarregandoPainel'
+import { EstadoVazio } from '../ui/EstadoVazio'
 import { ValorAnimado } from '../ui/ValorAnimado'
 import { EditarCompra } from '../ui/EditarCompra'
 // Estático, e os três juntos. Havia `await import('../lib/compartilhar')`
@@ -389,23 +392,23 @@ export function Painel({ onAprendeu }: Props) {
 
       <>
         {carregando ? (
-          <Esqueleto />
+          <CarregandoPainel />
         ) : erro ? (
           <ErroCarregar mensagem={t(erro)} onTentar={recarregar} />
         ) : vazio ? (
           <Vazio />
         ) : (
           <>
-            <div className="space-y-4">
+            <div className="pilha-paineis">
               {/* Tiles de resumo: o espaço entre eles faz cada leitura respirar
                   e deixa o tratamento de cartão consistente com os gráficos. */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <motion.div {...entra(0.05)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
+              <div role="group" aria-label={t('relatorios.resumoAria')} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <motion.div {...entra(0.05)} className="cartao overflow-hidden">
                 <Tile rotulo={t('dash.gasto')} destaque variacao={variacao.gasto} subirEhRuim>
                   <ValorAnimado valor={resumo.gastoCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.12)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
+              <motion.div {...entra(0.12)} className="cartao overflow-hidden">
                 <Tile
                   rotulo={t('dash.entradas')}
                   cor="var(--color-confere)"
@@ -414,7 +417,7 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.entradasCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.19)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
+              <motion.div {...entra(0.19)} className="cartao overflow-hidden">
                 {/* Saldo negativo em --color-falha; positivo fica na tinta
                     normal. Verde é de --color-confere ("o total bate") e
                     usar aqui diluiria essa semântica. */}
@@ -425,7 +428,7 @@ export function Painel({ onAprendeu }: Props) {
                   <ValorAnimado valor={resumo.saldoCents} />
                 </Tile>
               </motion.div>
-              <motion.div {...entra(0.26)} className="overflow-hidden rounded-xl border border-carvao-700 bg-carvao-900 sombra-flutuante">
+              <motion.div {...entra(0.26)} className="cartao overflow-hidden">
                 <Tile rotulo={t('dash.lancamentos')}>
                   <ValorAnimado valor={resumo.contagem} moeda={false} />
                 </Tile>
@@ -451,16 +454,16 @@ export function Painel({ onAprendeu }: Props) {
                   continuação acidental do outro. O conteúdo continua sendo
                   alimentado pelos mesmos agregadores puros do domínio. */}
               <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
-                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                <Cartao>
                   {resumo.porCategoria.length > 0 && (
                     <GraficoCategorias
                       categorias={resumo.porCategoria}
                       totalCents={resumo.gastoCents}
                     />
                   )}
-                </section>
+                </Cartao>
 
-                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                <Cartao>
                   {temRitmo ? (
                     <GraficoDiario
                       dias={dias}
@@ -471,20 +474,20 @@ export function Painel({ onAprendeu }: Props) {
                   ) : (
                     <SemGrafico />
                   )}
-                </section>
+                </Cartao>
               </motion.div>
 
               {serie.length >= 2 && (
                 <motion.section
                   {...entra(0.32)}
-                  className="screen-only min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante"
+                  className="cartao screen-only p-5 sm:p-6"
                 >
                   <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
                 </motion.section>
               )}
 
               <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
-                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                <Cartao>
                   <MaioresSaidas itens={maiores} onEditar={setEditando} />
                   <Link
                     to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
@@ -492,8 +495,8 @@ export function Painel({ onAprendeu }: Props) {
                   >
                     {t('dash.lancamentos')} →
                   </Link>
-                </section>
-                <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+                </Cartao>
+                <Cartao>
                   <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
                   <Link
                     to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
@@ -501,7 +504,7 @@ export function Painel({ onAprendeu }: Props) {
                   >
                     {t('dash.lancamentos')} →
                   </Link>
-                </section>
+                </Cartao>
               </motion.div>
 
             </div>
@@ -625,33 +628,10 @@ function SemGrafico() {
 function Vazio() {
   const { t } = useT()
   return (
-    <div className="px-8 py-20 text-center">
-      <p className="font-display text-xl text-tinta">{t('estado.vazioTitulo')}</p>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-fraca">{t('estado.vazioCorpo')}</p>
-      <Link
-        to="/importar"
-        className="mt-6 inline-block rounded-sm bg-tinta px-5 py-2 text-sm font-medium text-carvao-950 transition-opacity hover:opacity-90"
-      >
-        {t('dash.importar')}
-      </Link>
-    </div>
-  )
-}
-
-function Esqueleto() {
-  return (
-    <div className="animate-pulse space-y-px">
-      <div className="grid grid-cols-3 gap-px bg-carvao-800">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 bg-carvao-900" />
-        ))}
-      </div>
-      <div className="h-40 bg-carvao-900" />
-      <div className="space-y-2 p-4">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-8 rounded-sm bg-carvao-850" />
-        ))}
-      </div>
-    </div>
+    <EstadoVazio
+      titulo={t('estado.vazioTitulo')}
+      descricao={t('estado.vazioCorpo')}
+      acao={<Link to="/importar" className="acao-painel">{t('dash.importar')}</Link>}
+    />
   )
 }

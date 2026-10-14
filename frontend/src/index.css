@@ -127,10 +127,10 @@
      Ela é exclusiva dos gráficos; os tokens crédito/débito continuam
      carregando a semântica contábil fora deles. */
   --color-grafico-entrada: #156a4f;
-  --color-grafico-acumulado: #5d9193;
+  --color-grafico-acumulado: #356cb0;
   --color-grafico-neutro: #424e5e;
-  --color-grafico-alerta: #b3a56e;
-  --color-grafico-saida: #a9645f;
+  --color-grafico-alerta: #94721e;
+  --color-grafico-saida: #bb594d;
 
   /* Barra de gráfico EM REPOUSO — o pano de fundo contra o qual a exceção
      aparece. Fica deliberadamente fora da paleta de séries: a série colore
@@ -163,6 +163,21 @@
   --color-carvao-800: #e4e9ef;
   --color-carvao-700: #d7dde5;
   --color-carvao-600: #b9c3ce;
+}
+
+/* A cor é resolvida pelo slug em runtime. Fora de @theme para que o Tailwind
+   não elimine tokens que não aparecem literalmente em classes utilitárias. */
+:root {
+  --color-categoria-verde: #237852;
+  --color-categoria-ambar: #94721e;
+  --color-categoria-coral: #bb594d;
+  --color-categoria-laranja: #ae651f;
+  --color-categoria-violeta: #7960a7;
+  --color-categoria-rosa: #a74c7c;
+  --color-categoria-azul: #356cb0;
+  --color-categoria-petroleo: #247c86;
+  --color-categoria-oliva: #657a30;
+  --color-categoria-neutro: #657184;
 }
 
 /* ---------- Tema ESCURO ----------
@@ -213,10 +228,20 @@
   --color-serie-8: #e66767;
 
   --color-grafico-entrada: #67c5a0;
-  --color-grafico-acumulado: #71a9b3;
+  --color-grafico-acumulado: #82b1ef;
   --color-grafico-neutro: #79818c;
   --color-grafico-alerta: #cabb7f;
-  --color-grafico-saida: #d07973;
+  --color-grafico-saida: #eb9385;
+  --color-categoria-verde: #67c5a0;
+  --color-categoria-ambar: #d5ba72;
+  --color-categoria-coral: #eb9385;
+  --color-categoria-laranja: #dda16a;
+  --color-categoria-violeta: #b29bdc;
+  --color-categoria-rosa: #d98bb6;
+  --color-categoria-azul: #82b1ef;
+  --color-categoria-petroleo: #75bdc8;
+  --color-categoria-oliva: #afc77b;
+  --color-categoria-neutro: #a4aebb;
 
   /* Reescalonada para a superfície escura, como as séries: #6b7887 sobre
      #161d25 dá 3.8:1. O tom claro (#7f8c9d) daria 2.6:1 aqui. */
@@ -317,6 +342,44 @@ body {
 }
 
 @layer components {
+  .cartao {
+    min-width: 0;
+    border: 1px solid var(--color-borda);
+    border-radius: var(--radius-xl);
+    background: var(--color-cartao);
+    box-shadow: 0 1px 3px rgb(15 26 36 / 0.06);
+    overflow-wrap: anywhere;
+  }
+
+  .pilha-paineis {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .cartao .rotulo {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    letter-spacing: 0.06em;
+  }
+
+  .acao-painel {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-campo-borda);
+    border-radius: var(--radius-lg);
+    padding: 0.625rem 1rem;
+    color: var(--color-tinta);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .acao-painel:hover {
+    background: var(--color-afundado);
+  }
+
   /* Números tabulares — a coluna de valores não pode tremer ao mudar de
      dígito. É o comportamento de um livro-caixa, e o motivo de os números
      serem mono nesta interface.

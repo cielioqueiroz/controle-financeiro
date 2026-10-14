@@ -3,6 +3,7 @@ import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
 import { MarcaCategoria } from '../MarcaCategoria'
+import { corCategoria } from '../corCategoria'
 import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 
@@ -36,7 +37,7 @@ export function MaioresSaidas({ itens, onEditar }: Props) {
               titulo={item.label ?? item.description}
               meta={
                 <>
-                  <MarcaCategoria cor={cat.cor} />
+                  <MarcaCategoria cor={corCategoria(cat)} />
                   <span className="truncate">{nomeCategoria(cat)}</span>
                 </>
               }

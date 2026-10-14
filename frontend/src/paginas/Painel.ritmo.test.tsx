@@ -101,15 +101,11 @@ describe('Painel — os tiles respiram como cartões separados', () => {
     // é inequívoco. "Lançamentos" nomeia um tile E o link do rodapé; "629,00"
     // aparece no tile de gasto E no de saldo.
     await screen.findByRole('button', { name: /3\/jun/ })
-    const grid = document.querySelector('.grid.grid-cols-1.gap-3')
-    expect(grid).not.toBeNull()
-    expect(grid?.parentElement).toHaveClass('space-y-4')
-    const itens = [...grid!.children]
+    const grid = screen.getByRole('group', { name: 'Resumo financeiro do período' })
+    const itens = [...grid.children]
     expect(itens).toHaveLength(4)
     for (const item of itens) {
-      expect(item).toHaveClass('bg-carvao-900')
-      expect(item).toHaveClass('rounded-xl')
-      expect(item).toHaveClass('sombra-flutuante')
+      expect(item).toHaveClass('cartao')
     }
   })
 })

@@ -82,6 +82,21 @@ taxa de economia, evolução por competência, categorias, maiores saídas e os
 estabelecimentos que mais concentraram gastos. A janela pode ser alternada entre
 3, 6 e 12 meses, e a navegação rápida abre com `Ctrl+K`/`⌘K`.
 
+A janela usa meses de calendário e fica salva na URL. A comparação só aparece
+quando os dois intervalos têm transações em todos os meses; meses ausentes são
+marcados no gráfico, sem virarem zero. **Ver meses e documentos** detalha o
+gasto real e a quantidade de documentos por competência. Essa presença não
+garante que todos os documentos de todas as contas foram importados.
+
+Os gráficos usam cores distintas para entradas, saídas e resultado, com destaque
+por mouse, teclado ou toque. As categorias mantêm a mesma cor ao mudar de posição
+no ranking. Nos relatórios, clicar numa categoria, estabelecimento ou maior saída
+abre as transações que compõem o valor, agrupadas por documento, sem perder o
+intervalo analisado. **Voltar ao gráfico** retorna ao controle acionado.
+
+As convenções visuais estão no [design system](docs/DESIGN-SYSTEM.md), e as
+regras dessa comparação na [spec dos relatórios](docs/specs/002-comparacao-por-competencia.md).
+
 > ### ⚠️ Nenhum número aqui é real
 >
 > Todas as imagens saem de `frontend/demo.html`, uma folha de provas com dados

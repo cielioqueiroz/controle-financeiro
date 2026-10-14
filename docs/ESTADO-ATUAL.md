@@ -1,6 +1,108 @@
 # Estado atual do projeto — retomada
 
-> Documento de continuidade. Última atualização: **2026-09-08** (a `Promise.try`, e o polyfill do worker que nunca rodou).
+## Retomada para o próximo chat — 2026-10-14
+
+**Rodada publicada em 2026-10-14:** design system, relatórios, gráficos,
+Minha situação financeira e correção do verificador foram reunidos na `main`
+após pedido explícito de commit e push. A fila abaixo contém recomendações
+ainda pendentes, não funcionalidades entregues.
+
+- Workspace: `D:\Projetos_Programacao\controle-financeiro`.
+- Branch de trabalho da rodada: `codex/design-system-estados`. Conferir
+  `git status` e partir da `main` atualizada antes da próxima rodada.
+- Última verificação completa, em 14/10: `npm run verificar` aprovado em tipos,
+  testes, lint, caminhos, build e CSP. Contraste e `medir:graficos` aprovados nos
+  dois temas. Layout e acessibilidade foram conferidos em 17 jornadas, desktop
+  e celular, após a rodada da Situação. Reexecutar os medidores pertinentes após
+  novas alterações; estes resultados não validam mudanças futuras.
+- Prévia sem login e com dados fictícios:
+  `http://127.0.0.1:5173/demo.html?tela=relatorios&janela=3`.
+  Acrescentar `&tema=claro` para o tema claro; `?tela=painel` abre o Painel.
+  Conferir se o servidor continua ativo. Se necessário, iniciar da raiz com
+  `npm run dev --workspace frontend -- --host 127.0.0.1 --port 5173 --strictPort`.
+- Continuar em branch. **Commit/push exigem pedido explícito atual**; push em
+  `main` publica em produção. A autorização desta rodada não cobre a próxima.
+
+### Próxima rodada recomendada
+
+1. **Simplificar o dashboard, principalmente no celular.**
+   Priorizar entradas, gasto real, resultado e pontos de atenção; organizar
+   informações secundárias em seções expansíveis sem esconder alertas importantes.
+   Preservar navegação até as transações, filtros e botão Voltar. Medir layout,
+   foco, acessibilidade e estados expandido/recolhido.
+
+### Melhorias seguintes
+
+2. **Conferência das importações mais clara.** Facilitar a leitura de documentos
+   importados, conferências divergentes e períodos sem dados. Ausência de
+   transações não prova documento faltando nem gasto zero; manter essa distinção.
+3. **Detalhamento dos valores nas demais telas.** Expandir o caminho
+   gráfico → transações → documento, preservando período e banco. Relatórios já
+   oferece esse detalhe por categoria, estabelecimento e maior saída; reutilizar
+   o comportamento onde fizer sentido. Não prometer abrir o PDF original: o app
+   não o armazena.
+4. **Consolidar design system e regras compartilhadas.** Aplicar os mesmos
+   botões, filtros, tabelas, espaçamentos e estados às telas restantes; extrair
+   cálculos financeiros dos componentes para funções de domínio testadas.
+   Preservar IBM Plex e a nova paleta, sem iniciar outro redesenho geral ou uma
+   reorganização de pastas sem necessidade concreta.
+
+**Adiado, não aprovado para implementação:** RAG e fine-tuning. Priorizar
+diagnósticos determinísticos e explicáveis, vinculados aos documentos. IA não
+deve substituir cálculo financeiro nem conferência.
+
+> **Continuação local 2026-10-14 — verificador:** `scripts/verificar.py` encerra
+> na primeira falha. Assim, CSP só mede o `dist` quando o build desta execução
+> passou. `scripts/test_verificar.py` simula falha do build, exige código de
+> saída 1 e confirma que CSP não roda; também prova a ordem no caminho aprovado.
+> `npm run verificar` passou após a mudança: tipos, testes, lint, caminhos,
+> build e CSP, nessa ordem.
+
+> **Continuação local 2026-10-14 — Minha situação financeira:** a tela agora
+> usa `analisarRelatorio` para janelas consecutivas por competência. Meses sem
+> transações aparecem como lacunas, com resumo ausente; a comparação só mostra
+> valores quando ambos os intervalos têm transações em todos os meses. Janela,
+> comparação e mês destacado ficam na URL; o saldo acompanha o banco escolhido.
+> Carregamento, erro com nova tentativa e vazio foram alinhados às outras telas.
+> Testes da tela cobrem lacunas, virada do ano, histórico curto, banco, saldo
+> filtrado e URL. `npm run verificar` passou em 14/10 após a mudança da tela.
+> Overflow e axe-core passaram nas 17 jornadas da prévia fictícia, incluindo
+> lacunas e comparação desta tela, em 1280×800 e 390×844.
+
+Referências para continuar: [design system](./DESIGN-SYSTEM.md),
+[spec 001](./specs/001-consistencia-painel-relatorios.md),
+[spec 002](./specs/002-comparacao-por-competencia.md) e
+[ADR-0016](./adr/0016-relatorios-comparam-janelas-de-calendario.md).
+As pendências históricas de banco real, amostras de novos bancos e validação
+manual continuam registradas abaixo; não foram resolvidas por esta rodada visual.
+
+> **Refino local 2026-10-13 — gráficos e procedência:** esmeralda/coral/azul,
+> categorias com identidade estável por slug, fluxo alinhado à área interativa,
+> destaque por mouse/teclado/toque, nomes completos e títulos sem repetição nos
+> relatórios. Clique em categoria, estabelecimento ou maior saída abre as
+> transações do intervalo agrupadas por documento, com retorno ao gráfico.
+> `medir:graficos` cobre geometria e cores renderizadas nos dois temas.
+> Foi desenvolvido na branch `codex/design-system-estados`, sem
+> commit/push/deploy naquela etapa.
+> Revisão em **2026-10-14**: a cor do resultado acompanha o modo de leitura
+> (acumulado ou mês), evitando marcar um acumulado positivo como déficit.
+> Testes de interação, contraste e geometria aprovados nos dois temas;
+> auditorias de layout e acessibilidade cobrem 15 jornadas em desktop e celular.
+
+> **Etapa local 2026-10-13 — consistência visual:** branch
+> `codex/design-system-estados`. Painel e Relatórios adotam cards compartilhados,
+> rótulos mais legíveis e estados de carregamento/vazio/erro. Relatórios passa a
+> apresentar falhas com recuperação, procedência calculada e janela na URL.
+> Escopo e critérios: [spec 001](./specs/001-consistencia-painel-relatorios.md).
+> Convenções: [design system](./DESIGN-SYSTEM.md). Esta nota não indica deploy.
+
+> **Continuação 2026-10-13 — relatórios por competência:** janelas de calendário,
+> comparação condicionada a meses com transações nos dois intervalos, detalhe
+> de documentos por mês e lacunas explícitas no gráfico. Regras puras em
+> `domain/relatorios.ts`; [spec 002](./specs/002-comparacao-por-competencia.md) e
+> [ADR-0016](./adr/0016-relatorios-comparam-janelas-de-calendario.md).
+
+> Documento de continuidade. Última atualização: **2026-10-14** (retomada local e fila de melhorias). Os registros datados abaixo preservam o contexto das rodadas anteriores.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 
@@ -906,6 +1008,10 @@ testar a recuperação.
 ---
 
 ## 🚧 Fila do que falta — em ordem
+
+> **Fila histórica:** para a prioridade atual de desenvolvimento, começar pela
+> seção **Retomada para o próximo chat — 2026-10-14**, no início deste arquivo.
+> Os estados datados abaixo não são uma auditoria atual de produção.
 
 > **Estado em 2026-08-29:** a correção de integridade da migração `0003` foi aplicada
 > em produção. O que permanece na fila são três frentes, duas dependentes de

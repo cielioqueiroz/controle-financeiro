@@ -26,6 +26,13 @@ function abrir(rota: string) {
 }
 
 describe('GraficoCategorias — o clique na fatia', () => {
+  it('mantém a identidade das fatias ao inverter o ranking', () => {
+    const { container, rerender } = render(<MemoryRouter><GraficoCategorias categorias={CATEGORIAS} totalCents={100000} /></MemoryRouter>)
+    const cores = [...container.querySelectorAll('circle')].map((el) => el.getAttribute('stroke'))
+    rerender(<MemoryRouter><GraficoCategorias categorias={[...CATEGORIAS].reverse()} totalCents={100000} /></MemoryRouter>)
+    expect([...container.querySelectorAll('circle')].map((el) => el.getAttribute('stroke'))).toEqual([...cores].reverse())
+  })
+
   // O clique montava `?cat=…` na mão e ia embora com o resto: quem clicava
   // numa fatia de MAIO, filtrando por um banco, caía em lançamentos de outro
   // mês (a página sem `ref` se ancora na competência mais recente) e com todos

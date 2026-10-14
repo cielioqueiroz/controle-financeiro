@@ -23,7 +23,6 @@ import sys
 import time
 
 RAIZ = Path(__file__).resolve().parent.parent
-RAPIDO = '--rapido' in sys.argv
 
 # O console do Windows e cp1252, e a saida do vitest tem caixa de desenho
 # (U+2502 e amigos). Sem isto, o script MORRE ao imprimir a falha que ele
@@ -44,33 +43,35 @@ PASSOS = [
     ('CSP (contra o build acima)', [sys.executable, 'scripts/medir-csp.py'], RAIZ, True),
 ]
 
-print('VERIFICACAO%s\n' % ('  (rapido: sem build)' if RAPIDO else ''))
-falhas = []
-for rotulo, cmd, cwd, so_completo in PASSOS:
-    if RAPIDO and so_completo:
-        print('  [  --  ] %-28s pulado' % rotulo)
-        continue
-    inicio = time.time()
-    r = subprocess.run(cmd, cwd=cwd, shell=(sys.platform == 'win32'),
-                       capture_output=True, text=True, encoding='utf-8', errors='replace')
-    seg = time.time() - inicio
-    ok = r.returncode == 0
-    print('  [%s] %-28s %5.1fs' % ('  OK  ' if ok else 'FALHOU', rotulo, seg))
-    if not ok:
-        falhas.append((rotulo, (r.stdout or '') + (r.stderr or '')))
+def main(rapido: bool) -> int:
+    print('VERIFICACAO%s\n' % ('  (rapido: sem build)' if rapido else ''))
+    for rotulo, cmd, cwd, so_completo in PASSOS:
+        if rapido and so_completo:
+            print('  [  --  ] %-28s pulado' % rotulo)
+            continue
+        inicio = time.time()
+        r = subprocess.run(cmd, cwd=cwd, shell=(sys.platform == 'win32'),
+                           capture_output=True, text=True, encoding='utf-8', errors='replace')
+        seg = time.time() - inicio
+        ok = r.returncode == 0
+        print('  [%s] %-28s %5.1fs' % ('  OK  ' if ok else 'FALHOU', rotulo, seg))
+        if not ok:
+            saida = (r.stdout or '') + (r.stderr or '')
+            print('\n' + '=' * 62)
+            print('FALHOU: %s' % rotulo)
+            print('=' * 62)
+            print('\n'.join(saida.strip().splitlines()[-25:]))
+            print('\nRESULTADO: falhou em %s; passos seguintes nao foram executados.' % rotulo)
+            return 1
 
-if falhas:
-    for rotulo, saida in falhas:
-        print('\n' + '=' * 62)
-        print('FALHOU: %s' % rotulo)
-        print('=' * 62)
-        print('\n'.join(saida.strip().splitlines()[-25:]))
-    print('\nRESULTADO: %d passo(s) falharam.' % len(falhas))
-    sys.exit(1)
+    print('\nRESULTADO: OK - tudo passou.')
+    if rapido:
+        print('Faltam o build e a CSP. Rode sem --rapido antes de publicar.')
+    else:
+        print('Se mexeu em COR: python scripts/medir-contraste.py')
+        print('Se mexeu em LAYOUT: npm run dev + python scripts/medir-overflow.py')
+    return 0
 
-print('\nRESULTADO: OK - tudo passou.')
-if RAPIDO:
-    print('Faltam o build e a CSP. Rode sem --rapido antes de publicar.')
-else:
-    print('Se mexeu em COR: python scripts/medir-contraste.py')
-    print('Se mexeu em LAYOUT: npm run dev + python scripts/medir-overflow.py')
+
+if __name__ == '__main__':
+    raise SystemExit(main('--rapido' in sys.argv))

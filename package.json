@@ -20,6 +20,7 @@
     "build:semlogin": "npm run build --workspace frontend -- --mode semlogin",
     "medir:pdf": "uv run --with playwright python scripts/medir-pdf.py",
     "medir:a11y": "uv run --with playwright python scripts/medir-a11y.py",
+    "medir:graficos": "uv run --with playwright python scripts/medir-graficos.py",
     "medir:peso": "uv run python scripts/medir-peso.py",
     "fixtures": "tsx scripts/gerar-fixtures.ts",
     "build:login": "npm run build --workspace frontend -- --mode login",

@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { agregar, evolucaoMensal, type PontoMes } from '../domain/agrupar'
+import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
 import { nomeCategoria } from '../domain/categorize/categorias'
 import { mesAbrev } from '../domain/normalize/data'
 import { saldosPorConta } from '../domain/saldos'
@@ -11,8 +13,12 @@ import { useT } from '../i18n/IdiomaProvider'
 import { ComparativoFinanceiro } from '../ui/graficos/ComparativoFinanceiro'
 import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
 import { GraficoFluxo } from '../ui/graficos/GraficoFluxo'
+import { corCategoria } from '../ui/corCategoria'
+import { CarregandoPainel } from '../ui/CarregandoPainel'
+import { ErroCarregar } from '../ui/ErroCarregar'
+import { EstadoVazio } from '../ui/EstadoVazio'
+import { MesesRelatorio } from '../ui/MesesRelatorio'
 
-type Janela = 3 | 6 | 12
 
 function rotuloMes(competencia: string): string {
   const [ano, mes] = competencia.split('-').map(Number)
@@ -21,11 +27,6 @@ function rotuloMes(competencia: string): string {
 
 function resultado(ponto: PontoMes): number {
   return ponto.entradasCents - ponto.gastoCents
-}
-
-function taxaEconomia(entradasCents: number, gastoCents: number): number | null {
-  if (entradasCents <= 0) return null
-  return ((entradasCents - gastoCents) / entradasCents) * 100
 }
 
 function variacaoPct(atual: number, anterior: number): number | null {
@@ -43,31 +44,27 @@ function variacaoPct(atual: number, anterior: number): number | null {
 export function SituacaoFinanceira() {
   const { t } = useT()
   const dinheiro = useDinheiro()
-  const { docsSaldo } = useDados()
-  const { visiveis, carregando } = useRecorte()
-  const [janela, setJanela] = useState<Janela>(12)
-  const [mesAtivo, setMesAtivo] = useState<string | null>(null)
-  const [comparar, setComparar] = useState(false)
+  const { docsSaldo, recarregar } = useDados()
+  const { visiveis, filtros, carregando, erro } = useRecorte()
+  const [search, setSearch] = useSearchParams()
+  const parametroJanela = search.get('janela')
+  const janela: JanelaRelatorio = parametroJanela === '3' ? 3 : parametroJanela === '6' ? 6 : 12
+  const comparar = search.get('comparar') === '1'
+
+  function atualizarBusca(chave: string, valor: string | null) {
+    const proxima = new URLSearchParams(search)
+    if (valor === null) proxima.delete(chave)
+    else proxima.set(chave, valor)
+    setSearch(proxima, { replace: true })
+  }
 
   const historico = useMemo(() => visiveis ?? [], [visiveis])
-  const serieCompleta = useMemo(() => evolucaoMensal(historico), [historico])
-  const serie = useMemo(() => serieCompleta.slice(-janela), [janela, serieCompleta])
-  const serieAnterior = useMemo(() => {
-    const fim = Math.max(0, serieCompleta.length - janela)
-    return serieCompleta.slice(Math.max(0, fim - janela), fim)
-  }, [janela, serieCompleta])
-  const competencias = useMemo(() => new Set(serie.map((p) => p.competencia)), [serie])
-  const competenciasAnteriores = useMemo(() => new Set(serieAnterior.map((p) => p.competencia)), [serieAnterior])
-  const txsJanela = useMemo(
-    () => historico.filter((tx) => competencias.has(tx.competencia)),
-    [competencias, historico],
-  )
-  const resumo = useMemo(() => agregar(txsJanela), [txsJanela])
-  const txsAnteriores = useMemo(
-    () => historico.filter((tx) => competenciasAnteriores.has(tx.competencia)),
-    [competenciasAnteriores, historico],
-  )
-  const resumoAnterior = useMemo(() => agregar(txsAnteriores), [txsAnteriores])
+  const relatorio = useMemo(() => analisarRelatorio(historico, janela), [historico, janela])
+  const txsJanela = useMemo(() => relatorio?.atual.transacoes ?? [], [relatorio])
+  const serie = useMemo(() => evolucaoMensal(txsJanela), [txsJanela])
+  const competencias = useMemo(() => relatorio?.atual.meses.map((mes) => mes.competencia) ?? [], [relatorio])
+  const resumo = relatorio?.atual.resumo
+  const resumoAnterior = relatorio?.anterior.resumo
   const melhorMes = useMemo(
     () => serie.reduce<PontoMes | null>((melhor, atual) => (!melhor || resultado(atual) > resultado(melhor) ? atual : melhor), null),
     [serie],
@@ -80,15 +77,14 @@ export function SituacaoFinanceira() {
     if (!piorMes) return []
     return agregar(historico.filter((tx) => tx.competencia === piorMes.competencia)).porCategoria.slice(0, 4)
   }, [historico, piorMes])
-  const saldos = useMemo(() => saldosPorConta(docsSaldo), [docsSaldo])
+  const saldos = useMemo(() => saldosPorConta(
+    filtros.banco === 'geral' ? docsSaldo : docsSaldo.filter((doc) => doc.bank === filtros.banco),
+  ), [docsSaldo, filtros.banco])
   const saldoAtual = saldos.reduce((total, conta) => total + conta.balanceCents, 0)
+  const mesAtivo = search.get('mes')
   const ativo = mesAtivo && serie.some((p) => p.competencia === mesAtivo) ? mesAtivo : serie.at(-1)?.competencia ?? ''
-  const primeiro = serie[0]
-  const ultimo = serie.at(-1)
-  const taxaAtual = taxaEconomia(resumo.entradasCents, resumo.gastoCents)
-  const taxaAnterior = taxaEconomia(resumoAnterior.entradasCents, resumoAnterior.gastoCents)
-
-  if (carregando) return null
+  const taxaAtual = relatorio?.taxaEconomiaAtualPct ?? null
+  const taxaAnterior = relatorio?.taxaEconomiaAnteriorPct ?? null
 
   return (
     <div className="mt-6 space-y-6">
@@ -101,7 +97,7 @@ export function SituacaoFinanceira() {
         <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
-            onClick={() => setComparar((valor) => !valor)}
+            onClick={() => atualizarBusca('comparar', comparar ? null : '1')}
             aria-pressed={comparar}
             className="rounded-lg border border-carvao-700 px-3 py-2 text-xs font-medium text-tinta-fraca transition-colors hover:border-carvao-600 hover:bg-carvao-850 hover:text-tinta"
           >
@@ -116,7 +112,12 @@ export function SituacaoFinanceira() {
             <button
               key={valor}
               type="button"
-              onClick={() => setJanela(valor)}
+              onClick={() => {
+                const proxima = new URLSearchParams(search)
+                proxima.set('janela', String(valor))
+                proxima.delete('mes')
+                setSearch(proxima, { replace: true })
+              }}
               aria-pressed={janela === valor}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 janela === valor ? 'bg-carvao-850 text-tinta' : 'text-tinta-tenue hover:text-tinta'
@@ -129,24 +130,29 @@ export function SituacaoFinanceira() {
         </div>
       </header>
 
-      {serie.length === 0 ? (
-        <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-6 text-sm text-tinta-fraca sombra-flutuante">
-          {t('situacao.semDados')}
-        </section>
+      {carregando ? (
+        <CarregandoPainel />
+      ) : erro ? (
+        <ErroCarregar mensagem={t(erro)} onTentar={recarregar} />
+      ) : !relatorio || !resumo ? (
+        <EstadoVazio titulo={t('estado.vazioTitulo')} descricao={t('situacao.semDados')}
+          acao={<Link to="/importar" className="acao-painel">{t('dash.importar')}</Link>} />
       ) : (
         <>
+          <MesesRelatorio atual={relatorio.atual} anterior={relatorio.anterior} comparavel={relatorio.comparavel}
+            titulo={t('situacao.mesesTitulo')} />
           {comparar && (
             <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
               <div className="flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                   <p className="rotulo">{t('situacao.comparacaoTitulo')}</p>
-                  <p className="mt-1 text-xs text-tinta-fraca">{t('situacao.comparacaoDescricao', { n: serie.length })}</p>
+                  <p className="mt-1 text-xs text-tinta-fraca">{t('situacao.comparacaoDescricao', { n: janela })}</p>
                 </div>
                 <span className="text-[11px] text-tinta-tenue">
-                  {serieAnterior.length > 0 ? t('situacao.comparacaoDisponivel') : t('situacao.comparacaoIndisponivel')}
+                  {relatorio.comparavel ? t('situacao.comparacaoDisponivel') : t('situacao.comparacaoIndisponivel')}
                 </span>
               </div>
-              {serieAnterior.length > 0 ? (
+              {relatorio.comparavel && resumoAnterior ? (
                 <div className="mt-5 grid gap-3 sm:grid-cols-3">
                   <ComparacaoCard
                     titulo={t('situacao.receitas')}
@@ -200,16 +206,22 @@ export function SituacaoFinanceira() {
                 <p className="rotulo">{t('situacao.linhaTempoTitulo')}</p>
                 <p className="mt-1 text-xs text-tinta-fraca">{t('situacao.linhaTempoDescricao')}</p>
               </div>
-              {primeiro && ultimo && (
+              {relatorio && (
                 <span className="text-[11px] text-tinta-tenue">
-                  {rotuloMes(primeiro.competencia)} — {rotuloMes(ultimo.competencia)}
+                  {rotuloMes(relatorio.atual.inicio)} — {rotuloMes(relatorio.atual.fim)}
                 </span>
               )}
             </div>
             <div className="relative mt-6">
               <div aria-hidden className="absolute left-0 right-0 top-4 h-px bg-carvao-700" />
               <div className="relative grid gap-x-2 gap-y-4 sm:grid-cols-3 lg:grid-cols-6">
-                {serie.map((ponto) => {
+                {relatorio.atual.meses.map((mes) => {
+                  const ponto = serie.find((item) => item.competencia === mes.competencia)
+                  if (!ponto) return <div key={mes.competencia} className="min-w-0" aria-label={t('fluxo.mesSemDados', { mes: rotuloMes(mes.competencia) })}>
+                    <span aria-hidden className="relative z-10 block h-8 w-8 rounded-full border-4 border-carvao-900 bg-carvao-700" />
+                    <span className="mt-2 block truncate text-[11px] text-tinta-fraca">{rotuloMes(mes.competencia)}</span>
+                    <span className="mt-1 block text-[10px] text-tinta-fraca">{t('relatorios.mesSemDados')}</span>
+                  </div>
                   const ehMelhor = ponto.competencia === melhorMes?.competencia
                   const ehPior = ponto.competencia === piorMes?.competencia
                   const selecionado = ponto.competencia === ativo
@@ -217,7 +229,7 @@ export function SituacaoFinanceira() {
                     <button
                       key={ponto.competencia}
                       type="button"
-                      onClick={() => setMesAtivo(ponto.competencia)}
+                      onClick={() => atualizarBusca('mes', ponto.competencia)}
                       aria-pressed={selecionado}
                       aria-label={t('situacao.selecionarMes', { mes: rotuloMes(ponto.competencia) })}
                       className="group min-w-0 text-left"
@@ -240,7 +252,7 @@ export function SituacaoFinanceira() {
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <p className="rotulo">{t('situacao.momentosTitulo')}</p>
-                <p className="mt-1 text-xs text-tinta-fraca">{t('situacao.momentosDescricao', { n: serie.length })}</p>
+                <p className="mt-1 text-xs text-tinta-fraca">{t('situacao.momentosDescricao', { n: relatorio.atual.mesesComDados })}</p>
               </div>
               <span className="text-[11px] text-tinta-tenue">{t('situacao.documentosAviso')}</span>
             </div>
@@ -263,11 +275,13 @@ export function SituacaoFinanceira() {
                     </div>
                     <div>
                       <p className="rotulo !text-[9px]">{t('situacao.economia')}</p>
-                      <p className="tabular mt-1 text-sm text-credito">{dinheiro(resultado(melhorMes))}</p>
+                      <p className={`tabular mt-1 text-sm ${resultado(melhorMes) >= 0 ? 'text-credito' : 'text-debito'}`}>
+                        {dinheiro(resultado(melhorMes))}
+                      </p>
                     </div>
                     <div>
                       <p className="rotulo !text-[9px]">{t('situacao.taxaEconomia')}</p>
-                      <p className="tabular mt-1 text-sm text-credito">
+                      <p className={`tabular mt-1 text-sm ${resultado(melhorMes) >= 0 ? 'text-credito' : 'text-debito'}`}>
                         {melhorMes.entradasCents > 0
                           ? `${((resultado(melhorMes) / melhorMes.entradasCents) * 100).toFixed(1).replace('.', ',')}%`
                           : '—'}
@@ -297,7 +311,7 @@ export function SituacaoFinanceira() {
                                 className="block h-full rounded-full"
                                 style={{
                                   width: `${Math.min((item.totalCents / piorMes.gastoCents) * 100, 100)}%`,
-                                  backgroundColor: item.cat.cor,
+                                  backgroundColor: corCategoria(item.cat),
                                 }}
                               />
                             </span>
@@ -315,7 +329,7 @@ export function SituacaoFinanceira() {
           </section>
 
           <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
-            <GraficoFluxo serie={serie} ativo={ativo} onSelecionar={setMesAtivo} />
+            <GraficoFluxo serie={serie} competencias={competencias} ativo={ativo} onSelecionar={(mes) => atualizarBusca('mes', mes)} />
           </section>
 
           {resumo.porCategoria.length > 0 && (

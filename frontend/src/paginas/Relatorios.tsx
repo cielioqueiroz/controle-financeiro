@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 
-import { agregar, evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
+import { evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
+import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
 import { mesAbrev } from '../domain/normalize/data'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
@@ -8,17 +10,21 @@ import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
 import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
 import { GraficoFluxo } from '../ui/graficos/GraficoFluxo'
+import { Cartao } from '../ui/Cartao'
+import { CarregandoPainel } from '../ui/CarregandoPainel'
+import { EstadoVazio } from '../ui/EstadoVazio'
+import { ErroCarregar } from '../ui/ErroCarregar'
+import { Procedencia } from '../ui/Procedencia'
+import { MesesRelatorio } from '../ui/MesesRelatorio'
+import { DetalheRelatorio } from '../ui/DetalheRelatorio'
+import { categoria, nomeCategoria } from '../domain/categorize/categorias'
+import { normalizeMerchant } from '../domain/normalize/merchant'
 
-type Janela = 3 | 6 | 12
+type Detalhe = { tipo: 'categoria' | 'estabelecimento' | 'transacao'; chave: string; titulo: string }
 
 function rotuloMes(competencia: string): string {
   const [ano, mes] = competencia.split('-').map(Number)
   return `${mesAbrev(new Date(ano, (mes ?? 1) - 1, 1))} ${ano}`
-}
-
-function taxaEconomia(entradasCents: number, gastoCents: number): number | null {
-  if (entradasCents <= 0) return null
-  return ((entradasCents - gastoCents) / entradasCents) * 100
 }
 
 function percentual(valor: number | null): string {
@@ -31,55 +37,55 @@ function percentual(valor: number | null): string {
 export function Relatorios() {
   const { t } = useT()
   const dinheiro = useDinheiro()
-  const { todas } = useDados()
-  const { visiveis, carregando, setFiltros } = useRecorte()
-  const [janela, setJanela] = useState<Janela>(12)
+  const { todas, recarregar } = useDados()
+  const { visiveis, carregando, erro, setFiltros, compAtiva } = useRecorte()
+  const [search, setSearch] = useSearchParams()
+  const [detalhe, setDetalhe] = useState<Detalhe | null>(null)
+  const gatilhoDetalhe = useRef<HTMLElement | null>(null)
 
-  // A janela do relatório acompanha o histórico mais recente. O estado local
-  // precisa ser mutável; a linha acima evita um useState extra neste cálculo.
-  // O seletor abaixo usa os filtros da URL para manter a leitura compartilhável.
+  function abrirDetalhe(proximo: Detalhe) {
+    gatilhoDetalhe.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    setDetalhe(proximo)
+  }
+
+  function fecharDetalhe() {
+    setDetalhe(null)
+    gatilhoDetalhe.current?.focus()
+  }
+  const parametroJanela = search.get('janela')
+  const janela: JanelaRelatorio = parametroJanela === '3' ? 3 : parametroJanela === '6' ? 6 : 12
+
+  function selecionarJanela(valor: JanelaRelatorio) {
+    setDetalhe(null)
+    const proxima = new URLSearchParams(search)
+    proxima.set('janela', String(valor))
+    setSearch(proxima, { replace: true })
+  }
+
   const historico = useMemo(() => visiveis ?? todas ?? [], [todas, visiveis])
-  const serieCompleta = useMemo(() => evolucaoMensal(historico), [historico])
-  const serie = useMemo(() => serieCompleta.slice(-janela), [janela, serieCompleta])
-  const competencias = useMemo(() => new Set(serie.map((p) => p.competencia)), [serie])
-  const txs = useMemo(
-    () => historico.filter((tx) => competencias.has(tx.competencia)),
-    [competencias, historico],
-  )
-  const resumo = useMemo(() => agregar(txs), [txs])
-  const anteriorSerie = useMemo(
-    () => serieCompleta.slice(Math.max(0, serieCompleta.length - janela * 2), Math.max(0, serieCompleta.length - janela)),
-    [janela, serieCompleta],
-  )
-  const competenciasAnteriores = useMemo(
-    () => new Set(anteriorSerie.map((p) => p.competencia)),
-    [anteriorSerie],
-  )
-  const txsAnteriores = useMemo(
-    () => historico.filter((tx) => competenciasAnteriores.has(tx.competencia)),
-    [competenciasAnteriores, historico],
-  )
-  const resumoAnterior = useMemo(() => agregar(txsAnteriores), [txsAnteriores])
+  const relatorio = useMemo(() => analisarRelatorio(historico, janela), [historico, janela])
+  const txs = useMemo(() => relatorio?.atual.transacoes ?? [], [relatorio])
+  const serie = useMemo(() => evolucaoMensal(txs), [txs])
+  const competencias = useMemo(() => relatorio?.atual.meses.map((mes) => mes.competencia), [relatorio])
+  const resumo = relatorio?.atual.resumo
   const maiores = useMemo(() => maioresSaidas(txs, 6), [txs])
   const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
-  const inicio = serie[0]
-  const fim = serie.at(-1)
-  const taxaAtual = taxaEconomia(resumo.entradasCents, resumo.gastoCents)
-  const taxaAnterior = taxaEconomia(resumoAnterior.entradasCents, resumoAnterior.gastoCents)
-  const variacaoGasto =
-    resumoAnterior.gastoCents > 0
-      ? ((resumo.gastoCents - resumoAnterior.gastoCents) / resumoAnterior.gastoCents) * 100
-      : null
+  const intervalo = relatorio ? `${rotuloMes(relatorio.atual.inicio)} — ${rotuloMes(relatorio.atual.fim)}` : ''
+  const taxaAtual = relatorio?.taxaEconomiaAtualPct ?? null
+  const taxaAnterior = relatorio?.taxaEconomiaAnteriorPct ?? null
+  const variacaoGasto = relatorio?.variacaoGastoPct ?? null
+  const transacoesDetalhe = txs.filter((tx) => tx.kind === 'expense' && detalhe && (
+    detalhe.tipo === 'categoria' ? (tx.category_slug ?? 'outros') === detalhe.chave :
+    detalhe.tipo === 'estabelecimento' ? normalizeMerchant(tx.description) === detalhe.chave : tx.id === detalhe.chave
+  ))
 
   function selecionarMes(competencia: string) {
     const [ano, mes] = competencia.split('-').map(Number)
     setFiltros({ periodo: 'mes', ref: new Date(ano, (mes ?? 1) - 1, 1) })
   }
 
-  if (carregando) return null
-
   return (
-    <div className="mt-6 space-y-6 pb-8">
+    <div className="pilha-paineis mt-6 pb-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="rotulo">{t('relatorios.eyebrow')}</p>
@@ -95,9 +101,9 @@ export function Relatorios() {
             <button
               key={valor}
               type="button"
-              onClick={() => setJanela(valor)}
+              onClick={() => selecionarJanela(valor)}
               aria-pressed={janela === valor}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`min-h-11 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 janela === valor ? 'bg-carvao-850 text-tinta' : 'text-tinta-tenue hover:text-tinta'
               }`}
             >
@@ -107,104 +113,105 @@ export function Relatorios() {
         </div>
       </header>
 
-      {serie.length === 0 ? (
-        <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-6 text-sm text-tinta-fraca sombra-flutuante">
-          {t('relatorios.semDados')}
-        </section>
+      {carregando ? (
+        <CarregandoPainel />
+      ) : erro ? (
+        <ErroCarregar mensagem={t(erro)} onTentar={recarregar} />
+      ) : !relatorio || !resumo ? (
+        <EstadoVazio
+          titulo={t('estado.vazioTitulo')}
+          descricao={t('relatorios.semDados')}
+          acao={<Link to="/importar" className="acao-painel">{t('dash.importar')}</Link>}
+        />
       ) : (
         <>
-          <section aria-label={t('relatorios.resumoAria')} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <article className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+          <Procedencia txs={txs} periodo={intervalo} />
+          <MesesRelatorio atual={relatorio.atual} anterior={relatorio.anterior} comparavel={relatorio.comparavel} />
+          <section aria-label={t('relatorios.resumoAria')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Cartao as="article">
               <p className="rotulo">{t('relatorios.receitas')}</p>
               <p className="tabular mt-3 text-2xl text-credito">{dinheiro(resumo.entradasCents)}</p>
-              <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.periodoResumo', { n: serie.length })}</p>
-            </article>
-            <article className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+              <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.mesesContagem', { n: relatorio.atual.mesesComDados, total: janela })}</p>
+            </Cartao>
+            <Cartao as="article">
               <p className="rotulo">{t('relatorios.despesas')}</p>
               <p className="tabular mt-3 text-2xl text-debito">{dinheiro(resumo.gastoCents)}</p>
               <p className="mt-1 text-xs text-tinta-fraca">
-                {variacaoGasto === null ? t('relatorios.semComparacao') : t('relatorios.variacao', { valor: percentual(variacaoGasto) })}
+                {variacaoGasto === null ? t(relatorio.comparavel ? 'relatorios.semBaseGasto' : 'relatorios.semComparacao') : t('relatorios.variacao', { valor: percentual(variacaoGasto) })}
               </p>
-            </article>
-            <article className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+            </Cartao>
+            <Cartao as="article">
               <p className="rotulo">{t('relatorios.resultado')}</p>
               <p className={`tabular mt-3 text-2xl ${resumo.saldoCents < 0 ? 'text-falha' : 'text-tinta'}`}>
                 {dinheiro(resumo.saldoCents)}
               </p>
               <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.resultadoDescricao')}</p>
-            </article>
-            <article className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+            </Cartao>
+            <Cartao as="article">
               <p className="rotulo">{t('relatorios.taxaEconomia')}</p>
-              <p className="tabular mt-3 text-2xl text-credito">{percentual(taxaAtual)}</p>
+              <p className={`tabular mt-3 text-2xl ${taxaAtual !== null && taxaAtual < 0 ? 'text-debito' : 'text-credito'}`}>{percentual(taxaAtual)}</p>
               <p className="mt-1 text-xs text-tinta-fraca">
-                {taxaAnterior === null ? t('relatorios.semComparacao') : t('relatorios.comparadoAnterior', { valor: percentual(taxaAnterior) })}
+                {taxaAnterior === null ? t(relatorio.comparavel ? 'relatorios.semBaseEntradas' : 'relatorios.semComparacao') : t('relatorios.comparadoAnterior', { valor: percentual(taxaAnterior) })}
               </p>
-            </article>
+            </Cartao>
           </section>
 
-          <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <div>
-                <p className="rotulo">{t('relatorios.fluxoTitulo')}</p>
-                <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.fluxoDescricao')}</p>
-              </div>
-              <span className="text-[11px] text-tinta-tenue">
-                {inicio && fim ? `${rotuloMes(inicio.competencia)} — ${rotuloMes(fim.competencia)}` : ''}
-              </span>
-            </div>
-            <div className="mt-5">
-              <GraficoFluxo serie={serie} ativo={fim?.competencia ?? ''} onSelecionar={selecionarMes} />
-            </div>
-          </section>
+          <Cartao>
+            <GraficoFluxo serie={serie} competencias={competencias} ativo={compAtiva} onSelecionar={selecionarMes} />
+          </Cartao>
 
           <div className="grid gap-6 lg:grid-cols-2">
             {resumo.porCategoria.length > 0 && (
-              <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
-                <p className="rotulo">{t('relatorios.categoriasTitulo')}</p>
-                <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.categoriasDescricao')}</p>
-                <div className="mt-5">
-                  <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
-                </div>
-              </section>
+              <Cartao>
+                <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents}
+                  onAbrir={(slug) => abrirDetalhe({ tipo: 'categoria', chave: slug, titulo: nomeCategoria(categoria(slug)) })} />
+              </Cartao>
             )}
-            <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+            <Cartao>
               <p className="rotulo">{t('relatorios.insightsTitulo')}</p>
               <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.insightsDescricao')}</p>
               <div className="mt-5 space-y-4">
                 {estabelecimentos.slice(0, 3).map((item) => (
-                  <div key={item.merchant} className="flex items-center gap-3">
+                  <button type="button" key={item.merchant} className="flex min-h-11 w-full flex-wrap items-center gap-3 rounded-md p-2 text-left hover:bg-afundado"
+                    onClick={() => abrirDetalhe({ tipo: 'estabelecimento', chave: item.merchant, titulo: item.rotulo })}>
                     <span className="h-2 w-2 shrink-0 rounded-full bg-marca" />
-                    <span className="min-w-0 flex-1 truncate text-sm text-tinta-fraca">{item.rotulo}</span>
+                    <span className="min-w-0 basis-32 flex-1 break-words text-sm text-tinta-fraca">{item.rotulo}</span>
                     <span className="tabular text-sm text-tinta">{dinheiro(item.totalCents)}</span>
-                  </div>
+                  </button>
                 ))}
                 {estabelecimentos.length === 0 && <p className="text-sm text-tinta-fraca">{t('relatorios.semInsights')}</p>}
               </div>
-            </section>
+            </Cartao>
           </div>
 
+          {detalhe && transacoesDetalhe.length > 0 && <DetalheRelatorio key={`${detalhe.tipo}:${detalhe.chave}`} titulo={detalhe.titulo}
+            txs={transacoesDetalhe} periodo={intervalo} onFechar={fecharDetalhe} />}
+
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+            <Cartao>
               <p className="rotulo">{t('relatorios.maioresSaidasTitulo')}</p>
               <p className="mt-1 text-xs text-tinta-fraca">{t('relatorios.maioresSaidasDescricao')}</p>
               <ul className="mt-5 divide-y divide-carvao-700">
                 {maiores.map((item) => (
-                  <li key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                  <li key={item.id}>
+                    <button type="button" className="flex min-h-11 w-full flex-wrap items-center gap-3 rounded-md py-3 text-left hover:bg-afundado"
+                      onClick={() => abrirDetalhe({ tipo: 'transacao', chave: item.id, titulo: item.label ?? item.description })}>
                     <span className="tabular w-6 text-xs text-tinta-tenue">{maiores.indexOf(item) + 1}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-tinta-fraca">{item.label ?? item.description}</span>
+                    <span className="min-w-0 basis-32 flex-1 break-words text-sm text-tinta-fraca">{item.label ?? item.description}</span>
                     <span className="tabular text-sm text-debito">{dinheiro(item.amount_cents)}</span>
+                    </button>
                   </li>
                 ))}
                 {maiores.length === 0 && <li className="text-sm text-tinta-fraca">{t('relatorios.semSaidas')}</li>}
               </ul>
-            </section>
-            <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+            </Cartao>
+            <Cartao>
               <p className="rotulo">{t('relatorios.provenienciaTitulo')}</p>
               <p className="mt-2 text-sm leading-relaxed text-tinta-fraca">{t('relatorios.provenienciaDescricao')}</p>
               <div className="mt-5 rounded-lg border border-dashed border-carvao-600 bg-afundado p-4 text-xs leading-relaxed text-tinta-tenue">
                 {t('relatorios.provenienciaAviso')}
               </div>
-            </section>
+            </Cartao>
           </div>
         </>
       )}

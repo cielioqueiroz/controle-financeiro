@@ -48,6 +48,28 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("relatorio-detalhe", "/demo.html?tela=relatorios&janela=3&tema=claro",
+     [("clicar-parcial", "Supermercado"), ("expandir-documento", "")], [("ver-secao", "detalhe-relatorio")], 6),
+    ("fluxo-destaque", "/demo.html?tela=painel",
+     [("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
+    ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",
+     [("expandir", "Ver meses e documentos")], [("ver-texto", "Sem transações importadas")], 6),
+    ("relatorios-comparacao", "/demo.html?tela=relatorios&amostra=comparavel&janela=3&tema=claro",
+     [("expandir", "Ver meses e documentos")],
+     [("ver-texto", "Os dois intervalos têm a mesma duração e transações em todos os meses.")], 6),
+    ("situacao-lacunas", "/demo.html?tela=situacao&amostra=lacunas&janela=3&comparar=1",
+     [("expandir", "Ver meses e documentos")],
+     [("ver-texto", "Histórico insuficiente"), ("ver-texto", "Sem transações importadas")], 6),
+    ("situacao-comparacao", "/demo.html?tela=situacao&amostra=comparavel&janela=3&comparar=1&tema=claro",
+     [("clicar", "Selecionar jun 2026")],
+     [("ver-texto", "Comparação disponível")], 6),
+    ("estados-painel", "/demo.html?tela=estados", [], [("ver-secao", "estados-painel")], 6),
+    ("painel-completo", "/demo.html?tela=painel", [], [("ver-texto", "Fluxo financeiro")], 6),
+    ("relatorios", "/demo.html?tela=relatorios",
+     [("clicar", "3 meses")], [("ver-botao", "6 meses")], 6),
+    ("relatorios-claro", "/demo.html?tela=relatorios&tema=claro",
+     [("clicar", "6 meses")], [("ver-botao", "3 meses")], 6),
+    ("painel-claro", "/demo.html?tela=painel&tema=claro", [], [("ver-texto", "Fluxo financeiro")], 6),
     ("acesso", "/", [], [("ver-botao", "Entrar")], 16),
     ("folha-de-provas", "/demo.html", [], [("ver-secao", "compromissos")], 6),
     ("busca-operadores", "/demo.html",
@@ -100,6 +122,12 @@ def executar(pagina: Page, passos: list[tuple[str, str]]) -> None:
     for acao, alvo in passos:
         if acao == "clicar":
             pagina.get_by_role("button", name=alvo, exact=True).first.click()
+        elif acao == "expandir":
+            pagina.locator("summary").filter(has_text=alvo).click()
+        elif acao == "clicar-parcial":
+            pagina.get_by_role("button").filter(has_text=alvo).first.click()
+        elif acao == "expandir-documento":
+            pagina.locator('[data-prova="detalhe-relatorio"] summary').first.click()
         elif acao == "focar":
             pagina.get_by_label(alvo, exact=True).first.focus()
         else:

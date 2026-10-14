@@ -19,7 +19,10 @@ export function useFiltros() {
   const setFiltros = useCallback(
     (mudanca: Partial<Filtros>) => {
       const alvo = { ...lerFiltros(`?${search.toString()}`), ...mudanca }
-      setSearch(escreverFiltros(alvo).slice(1), { replace: true })
+      const proxima = new URLSearchParams(search)
+      for (const chave of ['p', 'ref', 'banco', 'cat', 'q']) proxima.delete(chave)
+      new URLSearchParams(escreverFiltros(alvo)).forEach((valor, chave) => proxima.set(chave, valor))
+      setSearch(proxima, { replace: true })
     },
     [search, setSearch],
   )

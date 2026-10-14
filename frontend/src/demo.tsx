@@ -23,6 +23,13 @@ import { diagnosticar } from './domain/diagnosticos'
 import { NavLateral } from './navegacao/NavLateral'
 import { CarimboConferencia } from './ui/CarimboConferencia'
 import { Procedencia } from './ui/Procedencia'
+import { Painel } from './paginas/Painel'
+import { Relatorios } from './paginas/Relatorios'
+import { SituacaoFinanceira } from './paginas/SituacaoFinanceira'
+import { CarregandoPainel } from './ui/CarregandoPainel'
+import { EstadoVazio } from './ui/EstadoVazio'
+import { ErroCarregar } from './ui/ErroCarregar'
+import { Cartao } from './ui/Cartao'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
@@ -284,19 +291,19 @@ export function Folha() {
 
       <Secao titulo="graficos-painel">
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+          <Cartao as="div">
             <GraficoCategorias
               categorias={resumo.porCategoria}
               totalCents={resumo.gastoCents}
             />
-          </div>
-          <div className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+          </Cartao>
+          <Cartao as="div">
             <GraficoDiario dias={dias} onSelecionar={() => {}} />
-          </div>
+          </Cartao>
         </div>
-        <div className="mt-4 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+        <Cartao as="div" className="mt-4">
           <GraficoFluxo serie={SERIE} ativo="2026-07" onSelecionar={() => {}} />
-        </div>
+        </Cartao>
       </Secao>
 
       {/* Os dois rankings juntos, que é como o painel os mostra. A amostra
@@ -393,17 +400,49 @@ function Interativas() {
   )
 }
 
+function Previa() {
+  const tela = new URLSearchParams(window.location.search).get('tela')
+  if (!tela) return <Folha />
+  return (
+    <main className="mx-auto w-full max-w-[104rem] px-6 py-8">
+      <h1 className="mb-8 font-display text-2xl text-tinta">Capital Financeiro · dados fictícios</h1>
+      {tela === 'painel' ? <Painel /> : tela === 'relatorios' ? <Relatorios />
+        : tela === 'situacao' ? <SituacaoFinanceira /> : (
+        <div data-prova="estados-painel" className="pilha-paineis">
+          <CarregandoPainel />
+          <EstadoVazio titulo="Nada por aqui ainda" descricao="Importe uma fatura ou extrato para começar."
+            acao={<a className="acao-painel" href="/importar">Importar documento</a>} />
+          <ErroCarregar mensagem="Falha ao carregar." onTentar={() => {}} />
+        </div>
+      )}
+    </main>
+  )
+}
+
+const telaPrevia = new URLSearchParams(window.location.search).get('tela')
+const amostraPrevia = new URLSearchParams(window.location.search).get('amostra')
+const competenciasPrevia = amostraPrevia === 'lacunas' ? ['2026-05']
+  : amostraPrevia === 'comparavel' ? ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06']
+  : ['2026-05', '2026-06']
+const historicoPrevia = telaPrevia ? [
+  ...TUDO,
+  ...competenciasPrevia.flatMap((competencia) => [
+    tx({ date: `${competencia}-10`, competencia, document_id: `demo-${competencia}`, doc_type: 'extrato', amount_cents: 185000 }),
+    tx({ date: `${competencia}-05`, competencia, document_id: `demo-${competencia}`, doc_type: 'extrato', description: 'SALARIO', kind: 'income', amount_cents: -300000 }),
+  ]),
+] : TUDO
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <IdiomaProvider>
       {/* O donut navega para /lancamentos no clique: sem Router ele derruba
           a folha inteira na montagem. */}
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[`/${window.location.search}`]}>
         {/* `EditarCompra` chama `useDados`, que lança fora do provider. As
             sementes existem para isto: o provider de verdade, sem banco. */}
-        <DadosProvider sementes={TUDO}>
+        <DadosProvider sementes={historicoPrevia}>
           <DiscretoProvider>
-            <Folha />
+            <Previa />
           </DiscretoProvider>
         </DadosProvider>
       </MemoryRouter>

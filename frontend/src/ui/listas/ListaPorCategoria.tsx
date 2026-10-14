@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { LinhaTransacao } from './LinhaTransacao'
+import { corCategoria } from '../corCategoria'
 
 import { nomeCategoria } from '../../domain/categorize/categorias'
 import type { GrupoCategoria } from '../../domain/agrupar'
@@ -67,7 +68,7 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
                   <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-carvao-800">
                     <motion.span
                       className="block h-full rounded-full"
-                      style={{ background: g.cat.cor }}
+                      style={{ background: corCategoria(g.cat) }}
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}
                       transition={{ type: 'spring', stiffness: 120, damping: 22 }}

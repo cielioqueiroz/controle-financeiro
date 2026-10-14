@@ -8,6 +8,9 @@ Uso:  python scripts/medir-contraste.py
 """
 
 # ---------------------------------------------------------------- tokens
+from pathlib import Path
+import re
+
 # Direção "livro-razão": papel frio de formulário bancário, tinta azul-ferro.
 # Deliberadamente NÃO é creme (#F4F1EA e vizinhos): aquilo, somado a serifada
 # de alto contraste e acento terracota, é hoje o visual padrão de página
@@ -109,6 +112,16 @@ def medir(nome: str, tokens: dict) -> list:
 
 
 if __name__ == "__main__":
+    # Os tokens de gráficos são lidos do CSS real, não de uma cópia que pode
+    # continuar verde depois de alguém mudar a paleta do aplicativo.
+    css = (Path(__file__).resolve().parents[1] / 'frontend/src/index.css').read_text(encoding='utf-8')
+    claro, escuro = css.split(':root[data-theme="dark"]', 1)
+    for trecho, tokens in ((claro, CLARO), (escuro, ESCURO)):
+        cores = dict(re.findall(r'--color-((?:grafico|categoria)-[\w-]+):\s*(#[\da-fA-F]{6})', trecho))
+        if not cores:
+            raise ValueError('Tokens de gráfico ausentes no CSS')
+        tokens.update(cores)
+    CONTORNO.extend(sorted(cores))
     falhas = medir("CLARO", CLARO) + medir("ESCURO", ESCURO)
     print(f"\n{'=' * 62}")
     if falhas:

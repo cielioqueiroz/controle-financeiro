@@ -52,7 +52,7 @@ export function LinhaRanking({
       >
         <span className="tabular w-4 shrink-0 text-[11px] text-tinta-tenue">{posicao}</span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm text-tinta">{titulo}</span>
+          <span className="block break-words text-sm text-tinta">{titulo}</span>
           {/* `truncate` também aqui: a linha de baixo é a que tem texto de
               tamanho imprevisível (nome de categoria traduzido, contagem em
               três idiomas) e era por ela que a coluna estourava. */}
