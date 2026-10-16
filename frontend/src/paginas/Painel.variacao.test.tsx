@@ -110,8 +110,8 @@ describe('Painel — comparação com o período anterior', () => {
       tx({ competencia: '2026-06', amount_cents: -600000, kind: 'income' }),
     ])
     const linhas = await screen.findAllByText('20% acima do período anterior')
-    // A ordem dos tiles é gasto, entradas — a mesma do painel.
-    expect(linhas[0]).toHaveClass('text-debito')
-    expect(linhas[1]).toHaveClass('text-credito')
+    // A ordem de leitura prioriza entradas, depois gasto real.
+    expect(linhas[0]).toHaveClass('text-credito')
+    expect(linhas[1]).toHaveClass('text-debito')
   })
 })

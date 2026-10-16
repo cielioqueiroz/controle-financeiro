@@ -51,7 +51,7 @@ export function CarimboConferencia({ conf, data }: Props) {
       : conf.status === 'diverge'
         ? {
             palavra: t('carimbo.diverge'),
-            detalhe: `${t('carimbo.diferenca', {
+            detalhe: conf.diferenca === 0 ? t('conferencia.fluxosDivergem') : `${t('carimbo.diferenca', {
               v: formatBRL(Math.abs(conf.diferenca ?? 0)),
             })} · ${t('docs.nLancamentos', { n: conf.contagem })}`,
             cor: 'var(--color-falha)',

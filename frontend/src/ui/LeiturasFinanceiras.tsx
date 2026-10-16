@@ -13,6 +13,8 @@ export type LeituraFinanceira = {
 
 type Props = {
   itens: LeituraFinanceira[]
+  semCabecalho?: boolean
+  titulo?: string
 }
 
 /** Leituras curtas do recorte, no formato de cards do Ambit.
@@ -21,7 +23,7 @@ type Props = {
  * Painel a partir do mesmo Resumo, dos dias e dos rankings que alimentam os
  * gráficos; assim uma leitura nunca pode discordar do desenho ao lado.
  */
-export function LeiturasFinanceiras({ itens }: Props) {
+export function LeiturasFinanceiras({ itens, semCabecalho = false, titulo }: Props) {
   const { t } = useT()
   const semMovimento = useReducedMotion()
   if (itens.length === 0) return null
@@ -34,12 +36,14 @@ export function LeiturasFinanceiras({ itens }: Props) {
 
   return (
     <section className="screen-only">
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <p className="rotulo">{t('leituras.titulo')}</p>
-        <p className="text-[11px] text-tinta-tenue">{t('leituras.descricao')}</p>
-      </div>
+      {!semCabecalho && (
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <p className="rotulo">{titulo ?? t('leituras.titulo')}</p>
+          <p className="text-[11px] text-tinta-tenue">{t('leituras.descricao')}</p>
+        </div>
+      )}
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={`${semCabecalho ? '' : 'mt-3 '}grid gap-3 sm:grid-cols-2 xl:grid-cols-4`}>
         {itens.map((item, index) => {
           const conteudo = (
             <>

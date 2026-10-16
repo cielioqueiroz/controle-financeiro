@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Faturas } from './Faturas'
 import { DadosProvider } from '../dados/DadosProvider'
+import { puxarTudo } from '../persist/puxar'
+
+vi.mock('../aplicacao/comandos/falhas', () => ({ registrarFalha: vi.fn() }))
 
 vi.mock('../persist/puxar', () => ({
   puxarTudo: vi.fn(() =>
@@ -74,6 +77,14 @@ describe('página Faturas', () => {
   it('lista os documentos importados', async () => {
     montar()
     expect(await screen.findByText(/nubank/i)).toBeInTheDocument()
+  })
+
+  it('mantém os documentos sem inventar gasto zero quando a consulta das transações falha', async () => {
+    vi.mocked(puxarTudo).mockRejectedValueOnce(new Error('timeout'))
+    montar()
+    expect(await screen.findByText('Contagem e gasto real indisponíveis no momento.')).toBeVisible()
+    expect(screen.getByText('Nubank')).toBeVisible()
+    expect(screen.queryByText(/Gasto real salvo|Sem transações vinculadas/)).not.toBeInTheDocument()
   })
 
   // Era um modal. Numa página, travar a rolagem do body congelaria a página

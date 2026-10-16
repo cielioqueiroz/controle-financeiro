@@ -59,6 +59,36 @@ O preenchimento do cartão não deve cortar tooltip ou anel de foco.
 legendas de 3/6/12 meses e ida/volta do detalhe em dois temas e duas larguras.
 O medidor de contraste lê os novos tokens do CSS, cobrando 3:1 para os traços.
 
+## Hierarquia do Painel
+
+Filtros e procedência vêm antes de Entradas, Gasto real e Resultado. Os três
+valores ficam em uma coluna no celular. Diagnósticos e leituras em tom de alerta
+permanecem visíveis; o acesso aos lançamentos preserva o período e o banco.
+
+`Explorar o período` reúne contagem, exportação, comparativo, gráficos e rankings.
+`Contas e compromissos` reúne saldos e parcelas futuras, inclusive quando o recorte
+não tem transações. As duas seções começam recolhidas e usam `details`/`summary`
+nativos, com alvo de pelo menos 48 px e foco visível. Abrir uma seção não altera
+os filtros nem cria uma entrada no histórico de navegação.
+
+## Conferência e documentos
+
+A prévia compara **No documento**, **Lido pelo app** e **Diferença** para cada
+gabarito. Entradas e saídas têm linhas separadas; diferenças opostas não viram
+um carimbo com diferença zero. Sem gabarito suficiente, não se desenha uma
+comparação fictícia. O texto de apoio delimita o alcance da conferência ao
+documento lido.
+
+Documentos salvos usam cartões com banco, tipo, data de importação e gasto real
+identificado. `Ver dados do documento` é um `summary` nativo, com alvo mínimo
+de 44 px; revela nome do PDF, período completo e gabaritos disponíveis. O
+resultado original da conferência não é inferido desses valores — ver
+[ADR-0017](./adr/0017-conferencia-original-nao-e-recalculada-pelo-gasto-salvo.md).
+
+Consulta falha oferece nova tentativa. Contagem indisponível e documento sem
+transações vinculadas não recebem um gasto zero. Um recorte sem transações
+também não é prova de documento faltando.
+
 ## Estados compartilhados
 
 | Estado | Componente | Comportamento |
@@ -84,7 +114,9 @@ Prévias locais, com dados fictícios e fora do build de produção:
 - `/demo.html?tela=painel`
 - `/demo.html?tela=relatorios`
 - `/demo.html?tela=estados`
+- `/demo.html?tela=conferencia` (também `amostra=confere` e `amostra=sem-gabarito`)
+- `/demo.html?tela=documentos` (também `amostra=sem-transacoes`)
 
-Essas três jornadas integram os medidores de overflow e acessibilidade.
+Essas prévias integram os medidores de overflow e acessibilidade.
 Rodar `npm run verificar`, medir contraste, overflow e acessibilidade após
 alterações visuais. Conferir os dois temas e movimento reduzido.

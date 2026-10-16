@@ -67,7 +67,9 @@ async function abrir() {
       </DadosProvider>
     </MemoryRouter>,
   )
-  // Espera o carregamento terminar (os botões só existem com dados).
+  // As ações de relatório ficam na análise detalhada.
+  const user = userEvent.setup()
+  await user.click(await screen.findByText('Explorar o período'))
   return await screen.findAllByRole('button', { name: /Baixar PDF/ })
 }
 

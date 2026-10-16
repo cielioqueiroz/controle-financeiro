@@ -1,16 +1,19 @@
 import '@testing-library/jest-dom/vitest'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConteudoDocumentos } from './Documentos'
 import type { DocumentoSalvo } from '../persist/documentos'
+import { toast } from 'sonner'
+vi.mock('../aplicacao/comandos/falhas', () => ({ registrarFalha: vi.fn() }))
 
 // A ação destrutiva não pode acontecer sem passar pelo diálogo. Os testes
 // centrais aqui são NEGATIVOS — abrir o diálogo, ou cancelá-lo, não apaga —
 // porque este projeto já teve um teste que conviveu com o bug por só
 // conferir a presença de algo positivo.
 
-const { apagarDocumento, apagarTudo } = vi.hoisted(() => ({
+const { apagarDocumento, apagarTudo, puxarDocumentos } = vi.hoisted(() => ({
+  puxarDocumentos: vi.fn<() => Promise<DocumentoSalvo[]>>(),
   apagarDocumento: vi.fn(() => Promise.resolve()),
   apagarTudo: vi.fn(() => Promise.resolve()),
 }))
@@ -24,10 +27,12 @@ const doc: DocumentoSalvo = {
   filename: null,
   imported_at: '2026-07-01T00:00:00Z',
   declared_total: null,
+  declared_income: null,
+  declared_expense: null,
 }
 
 vi.mock('../persist/documentos', () => ({
-  puxarDocumentos: () => Promise.resolve([doc]),
+  puxarDocumentos,
   apagarDocumento,
   apagarTudo,
 }))
@@ -43,6 +48,18 @@ function montar() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  puxarDocumentos.mockResolvedValue([doc])
+})
+afterEach(() => toast.dismiss())
+
+it('mostra a falha de consulta e permite tentar novamente, sem fingir lista vazia', async () => {
+  puxarDocumentos.mockRejectedValueOnce(new Error('timeout'))
+  montar()
+  expect(await screen.findByRole('alert')).toHaveTextContent('Falha ao listar documentos.')
+  expect(screen.queryByText('Nenhum documento importado ainda.')).not.toBeInTheDocument()
+  const usuario = userEvent.setup()
+  await usuario.click(screen.getByRole('button', { name: 'Tentar de novo' }))
+  expect(await screen.findByText('Nubank')).toBeInTheDocument()
 })
 
 describe('Documentos — apagar um documento', () => {

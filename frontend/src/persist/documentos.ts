@@ -11,6 +11,8 @@ export type DocumentoSalvo = {
   filename: string | null
   imported_at: string
   declared_total: number | null
+  declared_income: number | null
+  declared_expense: number | null
 }
 
 /** Lista os documentos importados do usuário (RLS escopa aos dele). */
@@ -19,7 +21,7 @@ export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
   if (!neon) return []
   const { data, error } = await neon
     .from('documents')
-    .select('id, bank, doc_type, period_start, period_end, filename, imported_at, declared_total')
+    .select('id, bank, doc_type, period_start, period_end, filename, imported_at, declared_total, declared_income, declared_expense')
     .order('imported_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as DocumentoSalvo[]

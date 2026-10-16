@@ -185,6 +185,8 @@ export function Painel({ onAprendeu }: Props) {
 
     return itens
   })()
+  const alertas = leituras.filter((item) => item.tom === 'alerta')
+  const leiturasComplementares = leituras.filter((item) => item.tom !== 'alerta')
 
   // Entrada escalonada e discreta — o painel "se monta" de cima para baixo
   // em vez de piscar inteiro. Restrição de propósito: app de dinheiro pede
@@ -313,63 +315,6 @@ export function Painel({ onAprendeu }: Props) {
 
   return (
     <div className="mt-6">
-      {/* Ações do período */}
-      <div className="screen-only mb-4 flex flex-wrap justify-end gap-2">
-        {txs && txs.length > 0 && (
-          <>
-            <button
-              onClick={baixarPdf}
-              disabled={gerandoPdf}
-              className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta transition-all hover:-translate-y-0.5 hover:bg-carvao-850 active:translate-y-0 disabled:opacity-50"
-              title={t('dash.baixarTooltip')}
-            >
-              <IconeBaixar />
-              {gerandoPdf ? t('dash.gerando') : t('dash.baixarPdf')}
-            </button>
-            {podeCompartilhar && (
-              <button
-                onClick={compartilharPdf}
-                disabled={gerandoPdf}
-                className="flex items-center gap-2 rounded-xl border border-carvao-700 px-4 py-2 text-sm text-tinta-fraca transition-all hover:-translate-y-0.5 hover:bg-carvao-850 hover:text-tinta active:translate-y-0 disabled:opacity-50"
-                title={t('dash.compartilharTooltip')}
-              >
-                <IconeCompartilhar />
-                {t('dash.compartilharPdf')}
-              </button>
-            )}
-          </>
-        )}
-        <button
-          onClick={() => navigate('/importar')}
-          className="rounded-xl bg-tinta px-4 py-2 text-sm font-medium text-carvao-950 transition-all hover:-translate-y-0.5 hover:opacity-90 active:translate-y-0"
-        >
-          {t('dash.importar')}
-        </button>
-      </div>
-
-      {/* Saldo atual por conta (extrato) + saldo em aberto do cartão (fatura) */}
-      {(saldos.length > 0 || abertos.length > 0) && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {saldos.map((s) => (
-            <SaldoConta
-              key={`saldo-${s.bank}-${s.accountId ?? 'sem-conta'}`}
-              bank={s.bank}
-              balanceCents={s.balanceCents}
-              date={s.date}
-            />
-          ))}
-          {abertos.map((a) => (
-            <SaldoAberto
-              key={`aberto-${a.bank}-${a.accountId ?? 'sem-conta'}`}
-              bank={a.bank}
-              abertoCents={a.abertoCents}
-              futurasCents={a.futurasCents}
-              proximoFechamento={a.proximoFechamento}
-            />
-          ))}
-        </div>
-      )}
-
       <BarraFiltros />
 
       {/* Cabeçalho que só aparece no PDF impresso */}
@@ -400,117 +345,181 @@ export function Painel({ onAprendeu }: Props) {
         ) : (
           <>
             <div className="pilha-paineis">
-              {/* Tiles de resumo: o espaço entre eles faz cada leitura respirar
-                  e deixa o tratamento de cartão consistente com os gráficos. */}
-              <div role="group" aria-label={t('relatorios.resumoAria')} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <motion.div {...entra(0.05)} className="cartao overflow-hidden">
-                <Tile rotulo={t('dash.gasto')} destaque variacao={variacao.gasto} subirEhRuim>
-                  <ValorAnimado valor={resumo.gastoCents} />
-                </Tile>
-              </motion.div>
-              <motion.div {...entra(0.12)} className="cartao overflow-hidden">
-                <Tile
-                  rotulo={t('dash.entradas')}
-                  cor="var(--color-confere)"
-                  variacao={variacao.entradas}
-                >
-                  <ValorAnimado valor={resumo.entradasCents} />
-                </Tile>
-              </motion.div>
-              <motion.div {...entra(0.19)} className="cartao overflow-hidden">
-                {/* Saldo negativo em --color-falha; positivo fica na tinta
-                    normal. Verde é de --color-confere ("o total bate") e
-                    usar aqui diluiria essa semântica. */}
-                <Tile
-                  rotulo={t('dash.saldoMes')}
-                  cor={resumo.saldoCents < 0 ? 'var(--color-falha)' : undefined}
-                >
-                  <ValorAnimado valor={resumo.saldoCents} />
-                </Tile>
-              </motion.div>
-              <motion.div {...entra(0.26)} className="cartao overflow-hidden">
-                <Tile rotulo={t('dash.lancamentos')}>
-                  <ValorAnimado valor={resumo.contagem} moeda={false} />
-                </Tile>
-              </motion.div>
+              <div role="group" aria-label={t('relatorios.resumoAria')} className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:gap-4">
+                <motion.div {...entra(0.05)} className="cartao overflow-hidden">
+                  <Tile rotulo={t('dash.entradas')} variacao={variacao.entradas}>
+                    <ValorAnimado valor={resumo.entradasCents} />
+                  </Tile>
+                </motion.div>
+                <motion.div {...entra(0.12)} className="cartao overflow-hidden">
+                  <Tile rotulo={t('dash.gastoRealTitulo')} variacao={variacao.gasto} subirEhRuim>
+                    <ValorAnimado valor={resumo.gastoCents} />
+                  </Tile>
+                </motion.div>
+                <motion.div {...entra(0.19)} className="cartao overflow-hidden">
+                  <Tile
+                    rotulo={t('dash.resultado')}
+                    destaque
+                    cor={resumo.saldoCents < 0 ? 'var(--color-falha)' : undefined}
+                  >
+                    <ValorAnimado valor={resumo.saldoCents} />
+                  </Tile>
+                </motion.div>
               </div>
 
               <Diagnosticos itens={diagnosticos} onVerSemCategoria={irParaSemCategoria} />
 
-              <motion.div {...entra(0.27)} className="screen-only">
-                <ComparativoFinanceiro
-                  gastoCents={resumo.gastoCents}
-                  entradasCents={resumo.entradasCents}
-                  saldoCents={resumo.saldoCents}
-                />
-              </motion.div>
+              <LeiturasFinanceiras itens={alertas} titulo={t('dash.pontosAtencao')} />
 
-              <LeiturasFinanceiras itens={leituras} />
-
-              <ProximosCompromissos meses={futuros} href={`/recorrencias${escreverFiltros(filtros)}`} />
-
-              {/* Cada visual tem seu próprio cartão: a estrutura fica mais
-                  próxima de uma leitura analítica, e um gráfico não parece
-                  continuação acidental do outro. O conteúdo continua sendo
-                  alimentado pelos mesmos agregadores puros do domínio. */}
-              <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
-                <Cartao>
-                  {resumo.porCategoria.length > 0 && (
-                    <GraficoCategorias
-                      categorias={resumo.porCategoria}
-                      totalCents={resumo.gastoCents}
-                    />
-                  )}
-                </Cartao>
-
-                <Cartao>
-                  {temRitmo ? (
-                    <GraficoDiario
-                      dias={dias}
-                      onSelecionar={irParaDia}
-                      destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
-                      contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
-                    />
-                  ) : (
-                    <SemGrafico />
-                  )}
-                </Cartao>
-              </motion.div>
-
-              {serie.length >= 2 && (
-                <motion.section
-                  {...entra(0.32)}
-                  className="cartao screen-only p-5 sm:p-6"
+              <div className="screen-only flex flex-wrap gap-2">
+                <Link
+                  to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                  className="acao-painel bg-tinta px-4 text-sm font-medium text-carvao-950"
                 >
-                  <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
-                </motion.section>
-              )}
+                  {t('dash.verLancamentos')} →
+                </Link>
+                <button
+                  onClick={() => navigate('/importar')}
+                  className="acao-painel border border-carvao-700 px-4 text-sm text-tinta hover:bg-carvao-850"
+                >
+                  {t('dash.importar')}
+                </button>
+              </div>
 
-              <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
-                <Cartao>
-                  <MaioresSaidas itens={maiores} onEditar={setEditando} />
-                  <Link
-                    to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
-                    className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+              <SecaoExpansivel titulo={t('dash.explorarPeriodo')}>
+                <div className="cartao bg-carvao-900 px-5 py-4">
+                  <p className="rotulo">{t('dash.lancamentos')}</p>
+                  <p className="tabular mt-1 text-xl text-tinta">
+                    <ValorAnimado valor={resumo.contagem} moeda={false} />
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={baixarPdf}
+                    disabled={gerandoPdf}
+                    className="acao-painel gap-2 border border-carvao-700 px-4 text-sm text-tinta disabled:opacity-50"
+                    title={t('dash.baixarTooltip')}
                   >
-                    {t('dash.lancamentos')} →
-                  </Link>
-                </Cartao>
-                <Cartao>
-                  <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
-                  <Link
-                    to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
-                    className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                    <IconeBaixar />
+                    {gerandoPdf ? t('dash.gerando') : t('dash.baixarPdf')}
+                  </button>
+                  {podeCompartilhar && (
+                    <button
+                      onClick={compartilharPdf}
+                      disabled={gerandoPdf}
+                      className="acao-painel gap-2 border border-carvao-700 px-4 text-sm text-tinta disabled:opacity-50"
+                      title={t('dash.compartilharTooltip')}
+                    >
+                      <IconeCompartilhar />
+                      {t('dash.compartilharPdf')}
+                    </button>
+                  )}
+                </div>
+
+                <motion.div {...entra(0.27)} className="screen-only">
+                  <ComparativoFinanceiro
+                    gastoCents={resumo.gastoCents}
+                    entradasCents={resumo.entradasCents}
+                    saldoCents={resumo.saldoCents}
+                  />
+                </motion.div>
+
+                <LeiturasFinanceiras itens={leiturasComplementares} semCabecalho />
+
+                {/* Cada visual tem seu próprio cartão: a estrutura fica mais
+                    próxima de uma leitura analítica, e um gráfico não parece
+                    continuação acidental do outro. O conteúdo continua sendo
+                    alimentado pelos mesmos agregadores puros do domínio. */}
+                <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
+                  <Cartao>
+                    {resumo.porCategoria.length > 0 && (
+                      <GraficoCategorias
+                        categorias={resumo.porCategoria}
+                        totalCents={resumo.gastoCents}
+                      />
+                    )}
+                  </Cartao>
+
+                  <Cartao>
+                    {temRitmo ? (
+                      <GraficoDiario
+                        dias={dias}
+                        onSelecionar={irParaDia}
+                        destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
+                        contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
+                      />
+                    ) : (
+                      <SemGrafico />
+                    )}
+                  </Cartao>
+                </motion.div>
+
+                {serie.length >= 2 && (
+                  <motion.section
+                    {...entra(0.32)}
+                    className="cartao screen-only p-5 sm:p-6"
                   >
-                    {t('dash.lancamentos')} →
-                  </Link>
-                </Cartao>
-              </motion.div>
+                    <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+                  </motion.section>
+                )}
+
+                <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
+                  <Cartao>
+                    <MaioresSaidas itens={maiores} onEditar={setEditando} />
+                    <Link
+                      to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                      className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                    >
+                      {t('dash.lancamentos')} →
+                    </Link>
+                  </Cartao>
+                  <Cartao>
+                    <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+                    <Link
+                      to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
+                      className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
+                    >
+                      {t('dash.lancamentos')} →
+                    </Link>
+                  </Cartao>
+                </motion.div>
+
+              </SecaoExpansivel>
 
             </div>
           </>
         )}
       </>
+
+      {!carregando && !erro && (saldos.length > 0 || abertos.length > 0 || futuros.length > 0) && (
+        <div className="mt-4">
+          <SecaoExpansivel titulo={t('dash.contasCompromissos')}>
+            {(saldos.length > 0 || abertos.length > 0) && (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {saldos.map((s) => (
+                  <SaldoConta
+                    key={`saldo-${s.bank}-${s.accountId ?? 'sem-conta'}`}
+                    bank={s.bank}
+                    balanceCents={s.balanceCents}
+                    date={s.date}
+                  />
+                ))}
+                {abertos.map((a) => (
+                  <SaldoAberto
+                    key={`aberto-${a.bank}-${a.accountId ?? 'sem-conta'}`}
+                    bank={a.bank}
+                    abertoCents={a.abertoCents}
+                    futurasCents={a.futurasCents}
+                    proximoFechamento={a.proximoFechamento}
+                  />
+                ))}
+              </div>
+            )}
+            <ProximosCompromissos meses={futuros} href={`/recorrencias${escreverFiltros(filtros)}`} />
+          </SecaoExpansivel>
+        </div>
+      )}
 
       {editando && (
         <EditarCompra
@@ -529,6 +538,29 @@ function IconeBaixar() {
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
     </svg>
+  )
+}
+
+function SecaoExpansivel({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <details className="cartao group screen-only">
+      <summary className="flex min-h-12 list-none items-center justify-between gap-3 rounded-xl px-5 py-3 text-sm font-medium text-tinta hover:bg-carvao-850 [&::-webkit-details-marker]:hidden">
+        <span>{titulo}</span>
+        <svg
+          viewBox="0 0 24 24"
+          className="h-4 w-4 shrink-0 text-tinta-tenue transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+        </svg>
+      </summary>
+      <div className="pilha-paineis min-w-0 border-t border-carvao-700 p-4 sm:p-5">
+        {children}
+      </div>
+    </details>
   )
 }
 

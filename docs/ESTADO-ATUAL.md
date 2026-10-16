@@ -1,6 +1,31 @@
 # Estado atual do projeto — retomada
 
-## Retomada para o próximo chat — 2026-10-14
+## Retomada para o próximo chat — 2026-10-16
+
+**Rodada local em 2026-10-16:** conferência das importações mais clara, na mesma
+branch `codex/simplificar-painel`, sem commit ou push. A prévia compara o gabarito
+com a leitura e mostra a diferença por critério: entradas, saídas, variação de
+saldo ou total da fatura. Diferenças opostas de entradas e saídas continuam
+divergentes e não apresentam um carimbo com diferença zero.
+
+A lista de documentos agora revela nome do PDF, período completo e gabaritos,
+com o gasto real salvo identificado separadamente. Falha ao consultar documentos
+oferece nova tentativa; contagem indisponível e ausência de transações não viram
+gasto zero. Os textos de recorte vazio explicam que isso também não prova
+documento faltando. Traduções atualizadas em português, inglês e espanhol.
+
+**Limitação preservada:** o histórico não guarda o resultado da conferência
+original. A interface explica isso; não infere um carimbo a partir do gasto real,
+que já passou por vínculos e deduplicação. Não houve migração de banco nesta
+rodada. Decisão e caminho para persistência futura na
+[ADR-0017](./adr/0017-conferencia-original-nao-e-recalculada-pelo-gasto-salvo.md).
+
+**Rodada local em 2026-10-15:** Painel simplificado na branch
+`codex/simplificar-painel`, ainda sem commit ou push. Entradas, Gasto real e
+Resultado vêm primeiro; diagnósticos e leituras em tom de alerta ficam visíveis.
+Gráficos, rankings e PDF estão em **Explorar o período**; saldos e parcelas futuras
+em **Contas e compromissos**, acessível também quando o recorte não tem transações.
+As seções usam controles nativos expansíveis e preservam os filtros da URL.
 
 **Rodada publicada em 2026-10-14:** design system, relatórios, gráficos,
 Minha situação financeira e correção do verificador foram reunidos na `main`
@@ -8,40 +33,46 @@ após pedido explícito de commit e push. A fila abaixo contém recomendações
 ainda pendentes, não funcionalidades entregues.
 
 - Workspace: `D:\Projetos_Programacao\controle-financeiro`.
-- Branch de trabalho da rodada: `codex/design-system-estados`. Conferir
-  `git status` e partir da `main` atualizada antes da próxima rodada.
-- Última verificação completa, em 14/10: `npm run verificar` aprovado em tipos,
-  testes, lint, caminhos, build e CSP. Contraste e `medir:graficos` aprovados nos
-  dois temas. Layout e acessibilidade foram conferidos em 17 jornadas, desktop
-  e celular, após a rodada da Situação. Reexecutar os medidores pertinentes após
+- Branch de trabalho: `codex/simplificar-painel`. Conferir `git status` e
+  preservar as alterações locais das duas rodadas antes de iniciar outra.
+- Última verificação completa, em 16/10: `npm run verificar` aprovado em tipos,
+  testes, lint, caminhos, build e CSP. Contraste aprovado nos dois temas; layout
+  sem overflow e axe sem violações critical/serious nas 24 jornadas, em 1280×800
+  e 390×844. Incluem os três resultados da conferência, detalhes de documentos,
+  ausência de transações, foco por teclado e os dois temas. As iniciais do banco
+  usam a tinta do tema sobre o fundo suave: o roxo institucional como texto
+  nesse fundo reprovou no tema escuro (2,25:1) e foi corrigido.
+  Testes da rodada cobrem diferenças opostas, gabarito zero, saldo, consulta com
+  nova tentativa e gasto indisponível quando falha a consulta das transações.
+  A rodada anterior continua coberta por Painel recolhido, expandido e tema claro.
+  Os testes cobrem navegação aos lançamentos com período e banco, Voltar,
+  exportação dentro da seção e compromissos acessíveis no recorte vazio.
+  Na amostra fictícia de celular, a página recolhida mede 1.467 px, contra
+  5.657 px com os detalhes abertos. Reexecutar os medidores pertinentes após
   novas alterações; estes resultados não validam mudanças futuras.
 - Prévia sem login e com dados fictícios:
-  `http://127.0.0.1:5173/demo.html?tela=relatorios&janela=3`.
-  Acrescentar `&tema=claro` para o tema claro; `?tela=painel` abre o Painel.
+  `http://127.0.0.1:5175/demo.html?tela=painel`.
+  Conferência: `http://127.0.0.1:5175/demo.html?tela=conferencia` (também
+  `&amostra=confere` ou `&amostra=sem-gabarito`). Documentos:
+  `http://127.0.0.1:5175/demo.html?tela=documentos` (também
+  `&amostra=sem-transacoes`).
+  Acrescentar `&tema=claro` para o tema claro.
   Conferir se o servidor continua ativo. Se necessário, iniciar da raiz com
-  `npm run dev --workspace frontend -- --host 127.0.0.1 --port 5173 --strictPort`.
+  `npm run dev --workspace frontend -- --host 127.0.0.1 --port 5175 --strictPort`.
 - Continuar em branch. **Commit/push exigem pedido explícito atual**; push em
   `main` publica em produção. A autorização desta rodada não cobre a próxima.
 
 ### Próxima rodada recomendada
 
-1. **Simplificar o dashboard, principalmente no celular.**
-   Priorizar entradas, gasto real, resultado e pontos de atenção; organizar
-   informações secundárias em seções expansíveis sem esconder alertas importantes.
-   Preservar navegação até as transações, filtros e botão Voltar. Medir layout,
-   foco, acessibilidade e estados expandido/recolhido.
-
-### Melhorias seguintes
-
-2. **Conferência das importações mais clara.** Facilitar a leitura de documentos
-   importados, conferências divergentes e períodos sem dados. Ausência de
-   transações não prova documento faltando nem gasto zero; manter essa distinção.
-3. **Detalhamento dos valores nas demais telas.** Expandir o caminho
+1. **Detalhamento dos valores nas demais telas.** Expandir o caminho
    gráfico → transações → documento, preservando período e banco. Relatórios já
    oferece esse detalhe por categoria, estabelecimento e maior saída; reutilizar
    o comportamento onde fizer sentido. Não prometer abrir o PDF original: o app
    não o armazena.
-4. **Consolidar design system e regras compartilhadas.** Aplicar os mesmos
+
+### Melhorias seguintes
+
+2. **Consolidar design system e regras compartilhadas.** Aplicar os mesmos
    botões, filtros, tabelas, espaçamentos e estados às telas restantes; extrair
    cálculos financeiros dos componentes para funções de domínio testadas.
    Preservar IBM Plex e a nova paleta, sem iniciar outro redesenho geral ou uma
@@ -102,7 +133,7 @@ manual continuam registradas abaixo; não foram resolvidas por esta rodada visua
 > `domain/relatorios.ts`; [spec 002](./specs/002-comparacao-por-competencia.md) e
 > [ADR-0016](./adr/0016-relatorios-comparam-janelas-de-calendario.md).
 
-> Documento de continuidade. Última atualização: **2026-10-14** (retomada local e fila de melhorias). Os registros datados abaixo preservam o contexto das rodadas anteriores.
+> Documento de continuidade. Última atualização: **2026-10-16** (conferência das importações e fila de melhorias). Os registros datados abaixo preservam o contexto das rodadas anteriores.
 > Leia isto antes de continuar. O README explica o projeto; aqui está **onde paramos**,
 > **o que já foi decidido** e **o que vem a seguir**.
 

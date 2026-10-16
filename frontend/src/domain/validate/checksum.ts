@@ -11,72 +11,54 @@ export type Validacao = {
   diferenca: number | null
 }
 
-/** Confere a soma do parser contra o total declarado pelo documento.
- *
- *  Este é o mecanismo de confiança do sistema: se bate, o parse está
- *  completo; se não bate, o app avisa em vez de mostrar número errado.
- *  Tolerância zero — os gabaritos batem ao centavo (spec, "Validação").
- *
- *  Convenção de soma por tipo de documento:
- *  - Fatura: compras + encargos (o que compõe o "Total a pagar").
- *    Pagamentos e estornos não entram no total da fatura.
- *  - Extrato: tratado pelo próprio parser via saldo; aqui só há gabarito
- *    quando declaredTotal é fornecido. */
-export function validar(result: ParseResult): Validacao {
+export type ComparacaoGabarito = {
+  criterio: 'entradas' | 'saidas' | 'variacao-saldo' | 'total-fatura'
+  gabaritoCents: number
+  extraidoCents: number
+  diferencaCents: number
+}
+
+/** Os fluxos são confrontados separadamente: diferenças opostas não se anulam. */
+export function compararGabaritos(result: ParseResult): ComparacaoGabarito[] {
   const { transactions, declaredTotal, declaredIncome, declaredExpense } = result
-  const contagem = transactions.length
+  const comparar = (
+    criterio: ComparacaoGabarito['criterio'],
+    gabaritoCents: number,
+    extraidoCents: number,
+  ): ComparacaoGabarito => ({ criterio, gabaritoCents, extraidoCents, diferencaCents: extraidoCents - gabaritoCents })
 
-  // Dois fluxos: confere entradas E saídas contra os declarados. Cobre
-  // extratos e a fatura Bradesco (cujo "Resumo" declara créditos e
-  // débitos). Mais preciso que um total único. amountCents: saída
-  // positiva, entrada negativa (ver types).
   if (declaredIncome != null && declaredExpense != null) {
-    const saidas = transactions
-      .filter((t) => t.amountCents > 0)
-      .reduce((a, t) => a + t.amountCents, 0)
-    const entradas = transactions
-      .filter((t) => t.amountCents < 0)
-      .reduce((a, t) => a - t.amountCents, 0)
-    const difSaidas = saidas - declaredExpense
-    const difEntradas = entradas - declaredIncome
-    const diferenca = difSaidas + difEntradas
-    return {
-      status: difSaidas === 0 && difEntradas === 0 ? 'confere' : 'diverge',
-      contagem,
-      somaExtraida: saidas + entradas,
-      diferenca,
-    }
+    return [
+      comparar('entradas', declaredIncome, transactions.reduce((s, t) => s + Math.max(-t.amountCents, 0), 0)),
+      comparar('saidas', declaredExpense, transactions.reduce((s, t) => s + Math.max(t.amountCents, 0), 0)),
+    ]
   }
-
-  // Extrato por SALDO (ex.: Banco do Brasil, que não declara totais): a
-  // soma com sinal de TODAS as transações tem que igualar a variação de
-  // saldo. amountCents: saída > 0, entrada < 0; o saldo cresce com entrada,
-  // então saldoFinal = saldoInicial − Σ(amountCents), logo
-  // Σ(amountCents) = saldoInicial − saldoFinal. Inclui a varredura interna
-  // (o vínculo é que a tira do gasto, não a conferência).
   if (result.balance != null) {
-    const soma = transactions.reduce((a, t) => a + t.amountCents, 0)
-    const esperado = result.balance.initial - result.balance.final
-    const diferenca = soma - esperado
-    return {
-      status: diferenca === 0 ? 'confere' : 'diverge',
-      contagem,
-      somaExtraida: soma,
-      diferenca,
-    }
+    // Saída é positiva: saldo inicial − saldo final = soma das transações.
+    return [comparar('variacao-saldo', result.balance.initial - result.balance.final,
+      transactions.reduce((s, t) => s + t.amountCents, 0))]
   }
-
-  // Fatura Nubank: soma compras + encargos = "Total a pagar".
   if (declaredTotal != null) {
-    const somaExtraida = transactions
+    return [comparar('total-fatura', declaredTotal, transactions
       .filter((t) => t.kind === 'compra' || t.kind === 'encargo')
-      .reduce((a, t) => a + t.amountCents, 0)
-    const diferenca = somaExtraida - declaredTotal
+      .reduce((s, t) => s + t.amountCents, 0))]
+  }
+  return []
+}
+
+/** Tolerância zero: todas as comparações precisam bater ao centavo.
+ *  A diferença agregada mantém o contrato antigo; isolada, ela não prova
+ *  conferência porque diferenças entre entradas e saídas podem se anular. */
+export function validar(result: ParseResult): Validacao {
+  const { transactions } = result
+  const contagem = transactions.length
+  const comparacoes = compararGabaritos(result)
+  if (comparacoes.length > 0) {
     return {
-      status: diferenca === 0 ? 'confere' : 'diverge',
+      status: comparacoes.every((c) => c.diferencaCents === 0) ? 'confere' : 'diverge',
       contagem,
-      somaExtraida,
-      diferenca,
+      somaExtraida: comparacoes.reduce((s, c) => s + c.extraidoCents, 0),
+      diferenca: comparacoes.reduce((s, c) => s + c.diferencaCents, 0),
     }
   }
 

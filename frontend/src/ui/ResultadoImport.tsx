@@ -6,7 +6,7 @@ import type { ParseResult } from '../domain/parsers/types'
 import { dataLongaDe } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { validar } from '../domain/validate/checksum'
-import { CarimboConferencia } from './CarimboConferencia'
+import { ConferenciaDocumento } from './ConferenciaDocumento'
 import { construirInsights, type TxView } from '../domain/insights'
 import type { Regra } from '../domain/categorize/regras'
 import { CATEGORIAS, categoria, nomeCategoria } from '../domain/categorize/categorias'
@@ -29,7 +29,6 @@ type Props = {
   progresso?: { atual: number; total: number } | null
   onCancelarFila?: () => void
 }
-
 const dm = (d: Date) => dataLongaDe(d)
 
 /** Dia/mês curtos na locale ativa (rótulo da linha de transação). */
@@ -155,12 +154,7 @@ export function ResultadoImport({
         </div>
       </header>
 
-      <Veredito
-        conf={conf}
-        total={result.declaredTotal}
-        accent={tema.accent}
-        data={result.period?.end ?? null}
-      />
+      <ConferenciaDocumento result={result} />
 
       {/* Gráfico de categorias + gasto real */}
       {baseInsights.porCategoria.length > 0 && (
@@ -341,65 +335,5 @@ function SeletorCategoria({
         ))}
       </select>
     </span>
-  )
-}
-
-function Veredito({
-  conf,
-  total,
-  accent,
-  data,
-}: {
-  conf: ReturnType<typeof validar>
-  total: number | null
-  accent: string
-  data: Date | null
-}) {
-  const formatBRL = useDinheiro()
-  const cor =
-    conf.status === 'confere'
-      ? 'var(--color-confere)'
-      : conf.status === 'sem-gabarito'
-        ? 'var(--color-ressalva)'
-        : 'var(--color-falha)'
-
-  const { t } = useT()
-  const titulo =
-    conf.status === 'confere'
-      ? t('import.confereTitulo')
-      : conf.status === 'sem-gabarito'
-        ? t('import.semGabaritoTitulo')
-        : t('import.naoFechouTitulo')
-
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-8">
-      {/* O carimbo primeiro, a frase depois: o carimbo é o veredito e a
-          frase é a explicação dele. Antes havia um distintivo redondo com
-          ✓/~/! que dizia a mesma coisa em símbolo — o carimbo diz por
-          extenso E carrega o dado (a data e o valor que bateu, ou a
-          diferença a caçar), que o símbolo não tinha onde pôr. */}
-      <div className="flex flex-wrap items-center gap-5">
-        <CarimboConferencia conf={conf} data={data} />
-        <div>
-          <p className="font-display text-lg" style={{ color: cor }}>
-            {titulo}
-          </p>
-          <p className="tabular text-xs text-tinta-tenue">
-            {t('docs.nLancamentos', { n: conf.contagem })}
-          </p>
-        </div>
-      </div>
-
-      {total != null && (
-        <div className="text-right">
-          <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
-            {t('import.totalDeclarado')}
-          </p>
-          <p className="tabular text-2xl" style={{ color: accent }}>
-            {formatBRL(total)}
-          </p>
-        </div>
-      )}
-    </div>
   )
 }

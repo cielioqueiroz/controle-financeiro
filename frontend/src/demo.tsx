@@ -30,6 +30,10 @@ import { CarregandoPainel } from './ui/CarregandoPainel'
 import { EstadoVazio } from './ui/EstadoVazio'
 import { ErroCarregar } from './ui/ErroCarregar'
 import { Cartao } from './ui/Cartao'
+import { ResultadoImport } from './ui/ResultadoImport'
+import { DocumentoImportado } from './ui/DocumentoImportado'
+import type { ParseResult } from './domain/parsers/types'
+import type { DocumentoSalvo } from './aplicacao/consultas/documentos'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
 import {
   agregar,
@@ -407,7 +411,9 @@ function Previa() {
     <main className="mx-auto w-full max-w-[104rem] px-6 py-8">
       <h1 className="mb-8 font-display text-2xl text-tinta">Capital Financeiro · dados fictícios</h1>
       {tela === 'painel' ? <Painel /> : tela === 'relatorios' ? <Relatorios />
-        : tela === 'situacao' ? <SituacaoFinanceira /> : (
+        : tela === 'situacao' ? <SituacaoFinanceira />
+        : tela === 'conferencia' ? <PreviaConferencia />
+        : tela === 'documentos' ? <PreviaDocumento /> : (
         <div data-prova="estados-painel" className="pilha-paineis">
           <CarregandoPainel />
           <EstadoVazio titulo="Nada por aqui ainda" descricao="Importe uma fatura ou extrato para começar."
@@ -416,6 +422,41 @@ function Previa() {
         </div>
       )}
     </main>
+  )
+}
+
+function PreviaConferencia() {
+  const amostra = new URLSearchParams(window.location.search).get('amostra')
+  const result: ParseResult = {
+    transactions: [
+      { date: new Date(2026, 5, 10), description: 'MERCADO EXEMPLO', amountCents: 9000, kind: 'compra', raw: '', installment: null, card: null, fx: null },
+      { date: new Date(2026, 5, 12), description: 'TRANSFERENCIA RECEBIDA EXEMPLO', amountCents: -11000, kind: 'entrada', raw: '', installment: null, card: null, fx: null },
+    ],
+    declaredTotal: null,
+    declaredIncome: amostra === 'sem-gabarito' ? null : amostra === 'confere' ? 11000 : 10000,
+    declaredExpense: amostra === 'sem-gabarito' ? null : amostra === 'confere' ? 9000 : 10000,
+    period: { start: new Date(2026, 5, 1), end: new Date(2026, 5, 30) },
+    account: { bank: 'nubank', type: 'checking', last4: null, agency: null, number: null, holderName: null },
+    forward: { nextCloseDate: null, nextInvoiceBalance: null, totalOpenBalance: null, futureInstallmentsTotal: null },
+  }
+  return <ResultadoImport kind={{ bank: 'nubank', docType: 'extrato' }} result={result}
+    regras={[]} podeSalvar={false} salvando={false} onSalvar={() => {}} onLimpar={() => {}} />
+}
+
+function PreviaDocumento() {
+  const semTransacoes = new URLSearchParams(window.location.search).get('amostra') === 'sem-transacoes'
+  const documento: DocumentoSalvo = {
+    id: 'documento-ficticio', bank: 'nubank', doc_type: 'extrato',
+    filename: 'extrato-exemplo-com-nome-longo-para-conferir-no-celular-junho-2026.pdf',
+    period_start: '2026-06-01', period_end: '2026-06-30', imported_at: '2026-07-01T12:00:00Z',
+    declared_total: null, declared_income: semTransacoes ? null : 10000,
+    declared_expense: semTransacoes ? null : 10000,
+  }
+  return (
+    <ul className="mx-auto max-w-3xl">
+      <DocumentoImportado documento={documento}
+        contagem={semTransacoes ? { qtd: 0, totalCents: 0 } : { qtd: 2, totalCents: 9000 }} onApagar={() => {}} />
+    </ul>
   )
 }
 

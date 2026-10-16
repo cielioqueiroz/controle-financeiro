@@ -59,6 +59,16 @@ describe('puxarDocumentos', () => {
     expect(colunas).not.toContain('content_hash')
   })
 
+  it('carrega os três gabaritos para os detalhes do documento, incluindo zero', async () => {
+    montar({ documentos: [doc({ declared_income: 0, declared_expense: 15000 })] })
+    const documentos = await puxarDocumentos()
+    const colunas = falso.chamadas[0].colunas ?? ''
+    for (const coluna of ['declared_total', 'declared_income', 'declared_expense']) {
+      expect(colunas.split(',').map((c) => c.trim())).toContain(coluna)
+    }
+    expect(documentos[0]).toMatchObject({ declared_income: 0, declared_expense: 15000 })
+  })
+
   /** Contraste deliberado com `puxarSaldos` logo abaixo: aqui a falha SOBE,
    *  porque a lista de documentos é o conteúdo da tela — mostrá-la vazia
    *  diria "você não importou nada", que é mentira. */

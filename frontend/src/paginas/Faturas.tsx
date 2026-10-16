@@ -13,7 +13,7 @@ import { useDados } from '../dados/DadosProvider'
  *  ele saíram o cálculo de pagamentos daqui e `domain/quitacao.ts` inteiro —
  *  código que ninguém mais alcançava. Está no histórico do git se voltar. */
 export function Faturas() {
-  const { todas, recarregar } = useDados()
+  const { todas, recarregar, carregando, erro } = useDados()
 
   const contagem = useMemo(() => {
     const m = new Map<string, { qtd: number; totalCents: number }>()
@@ -28,7 +28,7 @@ export function Faturas() {
 
   return (
     <div className="mt-6 mx-auto max-w-3xl">
-      <ConteudoDocumentos contagem={contagem} onMudou={recarregar} />
+      <ConteudoDocumentos contagem={carregando || erro || todas === null ? null : contagem} onMudou={recarregar} />
     </div>
   )
 }

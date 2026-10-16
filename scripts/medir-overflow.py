@@ -48,10 +48,21 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("conferencia-diverge", "/demo.html?tela=conferencia", [],
+     [("ver-texto", "Entradas e saídas divergem")], 6),
+    ("conferencia-confere", "/demo.html?tela=conferencia&amostra=confere&tema=claro", [],
+     [("ver-texto", "Confere com o banco")], 6),
+    ("conferencia-sem-gabarito", "/demo.html?tela=conferencia&amostra=sem-gabarito", [],
+     [("ver-texto", "Lido, sem total para conferir")], 6),
+    ("documentos-detalhes", "/demo.html?tela=documentos&tema=claro",
+     [("expandir", "Ver dados do documento")], [("ver-texto", "Valores declarados pelo documento")], 6),
+    ("documentos-sem-transacoes", "/demo.html?tela=documentos&amostra=sem-transacoes",
+     [("ativar-resumo", "Ver dados do documento")], [("focado-resumo", "Ver dados do documento"),
+     ("ver-texto", "Não há totais declarados disponíveis neste registro. Isso não determina o resultado da conferência original.")], 6),
     ("relatorio-detalhe", "/demo.html?tela=relatorios&janela=3&tema=claro",
      [("clicar-parcial", "Supermercado"), ("expandir-documento", "")], [("ver-secao", "detalhe-relatorio")], 6),
     ("fluxo-destaque", "/demo.html?tela=painel",
-     [("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
+     [("expandir", "Explorar o período"), ("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
     ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",
      [("expandir", "Ver meses e documentos")], [("ver-texto", "Sem transações importadas")], 6),
     ("relatorios-comparacao", "/demo.html?tela=relatorios&amostra=comparavel&janela=3&tema=claro",
@@ -64,12 +75,20 @@ JORNADAS = [
      [("clicar", "Selecionar jun 2026")],
      [("ver-texto", "Comparação disponível")], 6),
     ("estados-painel", "/demo.html?tela=estados", [], [("ver-secao", "estados-painel")], 6),
-    ("painel-completo", "/demo.html?tela=painel", [], [("ver-texto", "Fluxo financeiro")], 6),
+    ("painel-recolhido", "/demo.html?tela=painel", [],
+     [("ver-texto", "Explorar o período"), ("oculto-texto", "Fluxo financeiro")], 6),
+    ("painel-expandido", "/demo.html?tela=painel",
+     [("expandir", "Contas e compromissos"), ("expandir", "Explorar o período")],
+     [("ver-texto", "Fluxo financeiro"), ("ver-texto", "Próximos compromissos")], 6),
+    ("painel-foco", "/demo.html?tela=painel",
+     [("ativar-resumo", "Explorar o período")], [("focado-resumo", "Explorar o período"), ("ver-texto", "Fluxo financeiro")], 6),
     ("relatorios", "/demo.html?tela=relatorios",
      [("clicar", "3 meses")], [("ver-botao", "6 meses")], 6),
     ("relatorios-claro", "/demo.html?tela=relatorios&tema=claro",
      [("clicar", "6 meses")], [("ver-botao", "3 meses")], 6),
-    ("painel-claro", "/demo.html?tela=painel&tema=claro", [], [("ver-texto", "Fluxo financeiro")], 6),
+    ("painel-claro", "/demo.html?tela=painel&tema=claro",
+     [("expandir", "Contas e compromissos"), ("expandir", "Explorar o período")],
+     [("ver-texto", "Fluxo financeiro"), ("ver-texto", "Próximos compromissos")], 6),
     ("acesso", "/", [], [("ver-botao", "Entrar")], 16),
     ("folha-de-provas", "/demo.html", [], [("ver-secao", "compromissos")], 6),
     ("busca-operadores", "/demo.html",
@@ -124,6 +143,10 @@ def executar(pagina: Page, passos: list[tuple[str, str]]) -> None:
             pagina.get_by_role("button", name=alvo, exact=True).first.click()
         elif acao == "expandir":
             pagina.locator("summary").filter(has_text=alvo).click()
+        elif acao == "ativar-resumo":
+            resumo = pagina.locator("summary").filter(has_text=alvo)
+            resumo.focus()
+            resumo.press("Enter")
         elif acao == "clicar-parcial":
             pagina.get_by_role("button").filter(has_text=alvo).first.click()
         elif acao == "expandir-documento":
@@ -142,6 +165,11 @@ def conferir(pagina: Page, provas: list[tuple[str, str]]) -> None:
             expect(pagina.get_by_role("button", name=alvo, exact=True).first).to_be_visible()
         elif acao == "ver-texto":
             expect(pagina.get_by_text(alvo, exact=True).first).to_be_visible()
+        elif acao == "oculto-texto":
+            expect(pagina.get_by_text(alvo, exact=True).first).not_to_be_visible()
+        elif acao == "focado-resumo":
+            resumo = pagina.locator("summary").filter(has_text=alvo)
+            expect(resumo).to_be_focused()
         elif acao == "ver-secao":
             expect(pagina.locator(f'[data-prova="{alvo}"]')).to_be_visible()
         elif acao == "focado":

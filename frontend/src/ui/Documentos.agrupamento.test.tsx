@@ -23,6 +23,8 @@ function doc(over: Partial<DocumentoSalvo> & { id: string }): DocumentoSalvo {
     filename: null,
     imported_at: '2026-07-01T00:00:00Z',
     declared_total: null,
+    declared_income: null,
+    declared_expense: null,
     ...over,
   }
 }
@@ -93,10 +95,10 @@ describe('Documentos — o banco vem do catálogo', () => {
     expect(screen.queryByText('Mercadopago')).toBeNull()
   })
 
-  it('usa a cor institucional do banco no selo', async () => {
+  it('usa o fundo suave do banco no selo', async () => {
     montar()
     await screen.findByText('Mercado Pago')
     const selo = screen.getByText('Me')
-    expect(selo).toHaveStyle({ color: '#009EE3' })
+    expect(selo).toHaveStyle({ background: 'rgba(0, 158, 227, 0.12)' })
   })
 })

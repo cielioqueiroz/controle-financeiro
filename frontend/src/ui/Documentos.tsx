@@ -4,18 +4,19 @@ import { chaveDeErro } from '../lib/erro-usuario'
 import { puxarDocumentos, type DocumentoSalvo } from '../aplicacao/consultas/documentos'
 import { apagarDocumento, apagarTudo } from '../aplicacao/comandos/documentos'
 
-import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
+import { mesAbrev } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { temaDoBanco } from '../domain/banks'
 import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './acesso/Confirmacao'
-import { useDinheiro } from '../dados/DiscretoProvider'
+import { DocumentoImportado } from './DocumentoImportado'
+import { ErroCarregar } from './ErroCarregar'
 
 type Props = {
   /** Chamado quando algo é apagado, para o histórico recarregar. */
   onMudou: () => void
   /** Contagem/soma por documento, vinda do provider (já em memória). */
-  contagem: Map<string, { qtd: number; totalCents: number }>
+  contagem: Map<string, { qtd: number; totalCents: number }> | null
 }
 
 /** A competência do documento: o mês em que ele conta para o usuário.
@@ -76,18 +77,19 @@ function realcarNumeros(texto: string) {
  *  dentro de página que já rola é a barra dupla que o usuário reclamou:
  *  aqui a lista simplesmente flui. */
 export function ConteudoDocumentos({ onMudou, contagem }: Props) {
-  const formatBRL = useDinheiro()
   const { t } = useT()
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
+  const [erro, setErro] = useState<ReturnType<typeof chaveDeErro> | null>(null)
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [apagandoTudo, setApagandoTudo] = useState(false)
   const [ocupado, setOcupado] = useState(false)
 
   async function carregar() {
+    setErro(null)
     try {
       setDocs(await puxarDocumentos())
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'docs.toastListaFalha', 'documentos')))
+      setErro(chaveDeErro(e, 'docs.toastListaFalha', 'documentos'))
     }
   }
 
@@ -161,7 +163,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
   const descricaoDoc = docAlvo
     ? t('docs.confApagarDesc', {
         tipo: t(docAlvo.doc_type === 'fatura' ? 'doc.fatura' : 'doc.extrato'),
-        banco: docAlvo.bank.charAt(0).toUpperCase() + docAlvo.bank.slice(1),
+        banco: temaDoBanco(docAlvo.bank).nome,
         periodo: periodoCurto(docAlvo.period_start, docAlvo.period_end),
       })
     : undefined
@@ -170,9 +172,9 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
   // para a pessoa parar e ler, em vez de um genérico "apagar tudo?".
   const totalDocs = docs?.length ?? 0
   const totalLancamentos = docs
-    ? docs.reduce((soma, d) => soma + (contagem.get(d.id)?.qtd ?? 0), 0)
+    ? docs.reduce((soma, d) => soma + (contagem?.get(d.id)?.qtd ?? 0), 0)
     : 0
-  const descricaoTudo = realcarNumeros(
+  const descricaoTudo = contagem === null ? t('docs.confTudoSemContagem') : realcarNumeros(
     t('docs.confTudoDesc', {
       docs: t(totalDocs === 1 ? 'docs.contDoc1' : 'docs.contDocs', { n: totalDocs }),
       lanc: t(totalLancamentos === 1 ? 'docs.contLanc1' : 'docs.contLanc', {
@@ -182,15 +184,17 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
   )
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900">
+    <section className="rounded-2xl border border-carvao-700 bg-carvao-900">
       <header className="border-b border-carvao-800 px-6 py-4">
         <h2 className="font-display text-xl text-tinta">{t('docs.titulo')}</h2>
         <p className="text-xs text-tinta-fraca">{t('docs.subtitulo')}</p>
       </header>
 
       <div className="px-3 py-2">
-        {docs === null ? (
-          <p className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.carregando')}</p>
+        {erro ? (
+          <ErroCarregar mensagem={t(erro)} onTentar={carregar} />
+        ) : docs === null ? (
+          <p role="status" className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.carregando')}</p>
         ) : docs.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.vazio')}</p>
         ) : (
@@ -203,56 +207,15 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
                 <p className="tabular sticky top-0 z-10 bg-carvao-900 px-3 pt-3 pb-1 text-[10px] uppercase tracking-[0.2em] text-tinta-tenue first-letter:uppercase">
                   {tituloCompetencia(comp, t('docs.semPeriodo'))}
                 </p>
-                <ul className="space-y-1">
-                  {doDoMes.map((d) => {
-              const c = contagem.get(d.id)
-              const ehFatura = d.doc_type === 'fatura'
-              return (
-                <li
-                  key={d.id}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-carvao-850"
-                >
-                  {/* Do CATÁLOGO, não de um ternário de dois bancos. O
-                      código antigo pintava de vermelho-Bradesco tudo o que
-                      não fosse Nubank — o Mercado Pago entrou em 31/08 e
-                      apareceu com a cor do concorrente. */}
-                  <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-semibold"
-                    style={{
-                      background: temaDoBanco(d.bank).wash,
-                      color: temaDoBanco(d.bank).accent,
-                    }}
-                  >
-                    {temaDoBanco(d.bank).nome.slice(0, 2)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-tinta">
-                      {t(ehFatura ? 'doc.fatura' : 'doc.extrato')} ·{' '}
-                      {/* `BANCOS[...].nome`, não o slug com `capitalize`:
-                          aquele escrevia "Mercadopago" e "Bb". */}
-                      <span>{temaDoBanco(d.bank).nome}</span>
-                      <span className="text-tinta-tenue"> · {periodoCurto(d.period_start, d.period_end)}</span>
-                    </p>
-                    <p className="tabular text-[11px] text-tinta-tenue">
-                      {c ? t('docs.nLancamentos', { n: c.qtd }) : '—'}
-                      {c && c.totalCents > 0 ? ` · ${formatBRL(c.totalCents)}` : ''} ·{' '}
-                      {t('docs.importadoEm', { data: dataLongaDe(new Date(d.imported_at)) })}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => setConfirmando(d.id)}
-                    aria-label={t('docs.apagarDoc')}
-                    title={t('docs.apagarDocTitle')}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha"
-                  >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
-                    </svg>
-                  </button>
-                    </li>
-                      )
-                    })}
+                <ul className="space-y-3 py-2">
+                  {doDoMes.map((d) => (
+                    <DocumentoImportado
+                      key={d.id}
+                      documento={d}
+                      contagem={contagem === null ? null : contagem.get(d.id) ?? { qtd: 0, totalCents: 0 }}
+                      onApagar={() => setConfirmando(d.id)}
+                    />
+                  ))}
                 </ul>
               </li>
             ))}
@@ -263,7 +226,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
       <footer className="border-t border-carvao-800 px-6 py-4">
         <button
           onClick={() => setApagandoTudo(true)}
-          disabled={!docs || docs.length === 0}
+          disabled={!docs || docs.length === 0 || erro !== null || ocupado}
           className="text-xs font-medium text-falha transition-opacity hover:opacity-80 disabled:opacity-40"
         >
           {t('docs.apagarTudo')}
