@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { chaveDeErro } from './lib/erro-usuario'
 import { NavPrincipal } from './navegacao/NavPrincipal'
 import { NavLateral } from './navegacao/NavLateral'
-import { DadosProvider } from './dados/DadosProvider'
+import { DadosProvider, useDados } from './dados/DadosProvider'
 import { ImportacaoProvider } from './dados/ImportacaoProvider'
 // As sete páginas entram ESTÁTICAS, e isso foi MEDIDO, não presumido
 // (13/08). Fatiar as quatro rotas secundárias com `lazy()` move 31 kB crus
@@ -33,6 +33,7 @@ import { Ajuda } from './ui/ajuda/Ajuda'
 import { EditarPerfil } from './ui/EditarPerfil'
 import { Notificacoes } from './ui/Notificacoes'
 import { AberturaTutorial } from './ui/AberturaTutorial'
+import { AvisoDadosParciais } from './ui/AvisoDadosParciais'
 import { AvisoVersaoNova } from './ui/AvisoVersaoNova'
 import { TelaAcesso } from './ui/acesso/TelaAcesso'
 import { AvisoConfirmarEmail } from './ui/acesso/AvisoConfirmarEmail'
@@ -377,6 +378,7 @@ export default function App() {
               // histórico na montagem, e montá-lo deslogado (ou no modo "importa
               // e vê") seria uma ida ao banco sem sessão.
               <DadosProvider>
+                <AvisosDoHistorico />
                 <AberturaTutorial onAbrir={() => setMostrarTutorial(true)} />
                 <Routes>
                   <Route path="/" element={<Painel onAprendeu={recarregarRegras} />} />
@@ -438,4 +440,10 @@ export default function App() {
       </ImportacaoProvider>
     </BrowserRouter>
   )
+}
+
+function AvisosDoHistorico() {
+  const { errosParciais, carregando, erro, recarregar } = useDados()
+  if (carregando || erro) return null
+  return <AvisoDadosParciais falhas={errosParciais} onTentar={() => void recarregar()} />
 }

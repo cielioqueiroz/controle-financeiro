@@ -34,7 +34,8 @@ um deploy exige *Instant Rollback* no painel.
 │   └── tests/fixtures/  um JSON por documento de referência — hoje 9,
 │                        dois por banco de cartão e um por banco de conta
 ├── backend/db/migrations/   0001 schema · 0002 saldo e bancos ·
-│                            0003 integridade entre usuários · 0004 Mercado Pago
+│                            0003 integridade · 0004 Mercado Pago · 0005 dedupe ·
+│                            0006 privilégios · 0007 falhas · 0008 importação atômica
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
@@ -49,7 +50,7 @@ um deploy exige *Instant Rollback* no painel.
 | `persist/` | **Só o adaptador do Neon.** Nada puro mora aqui: se tem nome no `CONTEXT.md`, é `domain/`. O `neon-falso.ts` é o dublê que os testes de escrita usam. |
 | `aplicacao/` | **A fronteira das telas**: `consultas/` (leitura) e `comandos/` (escrita). ⚠️ Importar `persist/` fora daqui **derruba o lint** — ver [ADR-0013](./docs/adr/0013-a-fronteira-das-telas-deixa-de-ser-promessa.md). |
 | `dados/` | Estado de tela compartilhado: os três providers, filtros da URL, recorte. |
-| `paginas/` | As seis telas **roteadas e autenticadas**. |
+| `paginas/` | As oito telas **roteadas e autenticadas**. |
 | `ui/acesso/` | As telas de **anônimo** (entrar, criar conta, recuperar, confirmar) e o que só elas usam — inclusive o `FundoAcesso`, a atmosfera em camada `fixed`. |
 | `ui/graficos/` | Os quatro gráficos e a escala robusta de barras. |
 | `ui/listas/` | Quem desenha linhas sobre transações: os dois rankings e as três listas. |
@@ -93,7 +94,8 @@ arquivo → domain/pdf/load.ts        pdf.js extrai os text items
         → domain/parsers/index.ts   parse() despacha para o parser do emissor
         → domain/validate/checksum  validar() confronta com o gabarito
         → [prévia na tela]
-        → persist/salvar.ts         categoriza, vincula, deduplica e grava
+        → persist/salvar.ts         categoriza, vincula e prepara os hashes
+        → salvar_documento_atomico  deduplica e grava tudo numa transação
 ```
 
 ⚠️ **Gravou, o histórico tem que reler.** O `ImportacaoProvider` incrementa
@@ -115,15 +117,15 @@ transações idênticas** — ele conta ocorrências e sufixa `#2`; não está n
 persist/puxar.ts + documentos.ts + categoriasUsuario.ts
         → dados/DadosProvider      busca na montagem do galho logado, e de
                                    novo a cada documento gravado (ver acima)
-        → persist/agrupar.ts       competência, filtrar por período, agregar
+        → domain/agrupar.ts        competência, filtrar por período, agregar
         → dados/useFiltros         o recorte vem da URL
         → paginas/*                ui/graficos + ui/listas desenham
 ```
 
 ## 1.4 Modelo de dados (Neon Postgres)
 
-Cinco tabelas, **todas com RLS por `user_id`**: `accounts`, `documents`,
-`categories`, `merchant_rules`, `transactions`. As políticas comparam
+Seis tabelas, **todas com RLS por `user_id`**: `accounts`, `documents`,
+`categories`, `merchant_rules`, `transactions`, `client_errors`. As políticas comparam
 `(select auth.user_id())::uuid = user_id`; `categories` é a exceção, porque lê
 também as globais (`user_id is null`).
 
@@ -141,14 +143,15 @@ estrangeira sozinha não garante isso. Ver
 O que protege o dado é **login + RLS + JWT**, não obscuridade: as `VITE_*` são
 URLs públicas por design.
 
-## 1.5 As seis rotas
+## 1.5 As oito rotas
 
 `navegacao/rotas.ts` é **fonte da verdade única**: a `NavPrincipal` e o `<Routes>`
 leem a mesma lista, então não existe link para rota inexistente nem rota alcançável
 só por URL digitada.
 
 `/` Painel · `/lancamentos` · `/faturas` · `/importar` · `/categorias` ·
-`/recorrencias`. URL desconhecida redireciona ao Painel.
+`/recorrencias` · `/minha-situacao-financeira` · `/relatorios`.
+URL desconhecida redireciona ao Painel.
 
 ## 1.6 Cobertura de bancos
 
@@ -241,6 +244,12 @@ fatura, `declaredIncome`/`declaredExpense` ou a progressão de `balance` no extr
 
 Divergir faz o app **avisar**, não mostrar número errado. Esse é o mecanismo de
 confiança do sistema — não o contorne.
+
+Na rodada de 16/10/2026, a gravação divergente foi bloqueada na prévia e no
+adaptador. Sem gabarito pode ser salvo, identificado como tal. A migração
+`0008` guarda a conferência original e cria a RPC atômica: **aplicá-la antes de
+publicar o frontend**. Documentos anteriores continuam com conferência
+desconhecida. Ver [ADR-0018](./docs/adr/0018-importacao-atomica-e-conferencia-original.md).
 
 ## 2.5 Estado de tela
 

@@ -1,9 +1,57 @@
 # Estado atual do projeto — retomada
 
+## Rodada de integridade — 2026-10-16
+
+Implementação e verificações concluídas; fechamento registrado em 17/10/2026.
+Execução autorizada no chat, branch `codex/integridade-importacao-leitura`,
+base `eda094f`. Commit e push desta rodada autorizados pelo usuário em
+17/10/2026. Integração em `main` continua condicionada à migração de produção.
+Plano e critérios em
+[integridade da importação e leitura](./superpowers/plans/2026-10-16-integridade-importacao-leitura.md).
+
+- Gravação preparada no cliente e concluída pela RPC transacional da migração
+  `0008`. Conferência divergente bloqueia salvar; sem gabarito continua permitido.
+- Novos documentos guardam a conferência original, com comparações e contagem
+  anteriores a vínculos/deduplicação. Legado continua desconhecido.
+- Leitura principal exige contagem exata válida e igual ao resultado; centavos
+  fora do inteiro seguro são recusados. Recargas antigas não sobrescrevem novas.
+- Falhas auxiliares de categorias/saldos mantêm o histórico, mas exibem aviso
+  traduzido e nova tentativa. Os saldos da consulta anterior não são reaproveitados
+  quando a nova consulta falha.
+- Duplicata também dispara releitura: recupera a gravação cuja resposta HTTP se
+  perdeu e documentos importados por outra aba. Teste integrado cobre a recuperação.
+- Migração aplicada **somente** na branch Neon `codex-integridade-20261016`
+  (`br-billowing-mud-ac8q493y`), expiração em 23/10/2026. **Produção pendente**:
+  aplicar e conferir a migração antes de publicar este frontend.
+- SQL real aprovado como `authenticated`: falha/rollback, nova tentativa,
+  duplicata, sobreposição e RLS entre dois usuários sintéticos. Duas chamadas
+  simultâneas também foram exercitadas: uma salva, outra duplicada; uma conta,
+  um documento e duas ocorrências idênticas preservadas. Privilégios das funções
+  conferidos. Nenhum documento sem transações encontrado na fotografia inicial.
+- `npm run verificar` final aprovado nos seis passos: tipos, suíte completa,
+  lint sem avisos, caminhos, build e CSP contra esse build. Execução concluída
+  em 16/10 e resultado reconferido em 17/10, sem mudanças posteriores no código do app.
+- Contraste aprovado nos dois temas. As 26 jornadas passaram em 1280×800 e
+  390×844 sem overflow e sem violações critical/serious no axe. Conferência
+  original inspecionada visualmente no celular.
+- Review independente concluído: nenhum crítico; um achado importante na
+  recuperação de duplicata foi corrigido e testado.
+- Validação HTTP real aprovada em 17/10: Auth, SDK, concorrência, rollback, RLS
+  com dois usuários sintéticos, conferência no histórico e PDF pela interface.
+  Resposta perdida depois do commit foi recuperada sem F5: Painel de R$ 24,68
+  para R$ 32,57. 21 verificações; sem chamadas ao Neon de produção. Evidências em
+  [validação da RPC real](./validacoes/2026-10-17-rpc-real.md).
+- O endereço local 127.0.0.1:5178 foi autorizado somente no Auth da branch de
+  teste. Aplicação da migração em produção continua pendente de autorização.
+
+Prévias novas: `http://127.0.0.1:5177/demo.html?tela=documentos&amostra=confere`
+e `&amostra=sem-gabarito`; legado sem `amostra`. Falhas parciais em
+`/demo.html?tela=estados`. Dados fictícios, sem acesso ao banco.
+
 ## Retomada para o próximo chat — 2026-10-16
 
-**Rodada local em 2026-10-16:** conferência das importações mais clara, na mesma
-branch `codex/simplificar-painel`, sem commit ou push. A prévia compara o gabarito
+**Rodada de 2026-10-16 integrada no commit `eda094f`:** conferência das importações
+mais clara. A prévia compara o gabarito
 com a leitura e mostra a diferença por critério: entradas, saídas, variação de
 saldo ou total da fatura. Diferenças opostas de entradas e saídas continuam
 divergentes e não apresentam um carimbo com diferença zero.
@@ -20,8 +68,8 @@ que já passou por vínculos e deduplicação. Não houve migração de banco ne
 rodada. Decisão e caminho para persistência futura na
 [ADR-0017](./adr/0017-conferencia-original-nao-e-recalculada-pelo-gasto-salvo.md).
 
-**Rodada local em 2026-10-15:** Painel simplificado na branch
-`codex/simplificar-painel`, ainda sem commit ou push. Entradas, Gasto real e
+**Rodada de 2026-10-15 integrada no commit `eda094f`:** Painel simplificado.
+Entradas, Gasto real e
 Resultado vêm primeiro; diagnósticos e leituras em tom de alerta ficam visíveis.
 Gráficos, rankings e PDF estão em **Explorar o período**; saldos e parcelas futuras
 em **Contas e compromissos**, acessível também quando o recorte não tem transações.
@@ -33,8 +81,8 @@ após pedido explícito de commit e push. A fila abaixo contém recomendações
 ainda pendentes, não funcionalidades entregues.
 
 - Workspace: `D:\Projetos_Programacao\controle-financeiro`.
-- Branch de trabalho: `codex/simplificar-painel`. Conferir `git status` e
-  preservar as alterações locais das duas rodadas antes de iniciar outra.
+- Estado conferido antes da rodada de integridade: checkout limpo em `main`,
+  no commit `eda094f`, também apontado por `origin/main` localmente.
 - Última verificação completa, em 16/10: `npm run verificar` aprovado em tipos,
   testes, lint, caminhos, build e CSP. Contraste aprovado nos dois temas; layout
   sem overflow e axe sem violações critical/serious nas 24 jornadas, em 1280×800

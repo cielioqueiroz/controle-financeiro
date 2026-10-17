@@ -210,6 +210,9 @@ export function ImportacaoProvider({
         await avancar()
       } else if (r.status === 'documento-duplicado') {
         toast.warning(t('salvar.duplicado', { data: dataLongaDe(new Date(r.importadoEm)) }))
+        // A gravação anterior pode ter concluído e perdido só a resposta,
+        // ou vindo de outra aba. O histórico local ainda precisa reler.
+        setSalvos((n) => n + 1)
         // Duplicado NÃO trava a fila: é um documento resolvido como outro
         // qualquer. Quem soltou cinco arquivos de uma vez provavelmente
         // repetiu algum, e parar ali obrigaria a recomeçar a leva.

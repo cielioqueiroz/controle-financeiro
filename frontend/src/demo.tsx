@@ -32,6 +32,7 @@ import { ErroCarregar } from './ui/ErroCarregar'
 import { Cartao } from './ui/Cartao'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { DocumentoImportado } from './ui/DocumentoImportado'
+import { AvisoDadosParciais } from './ui/AvisoDadosParciais'
 import type { ParseResult } from './domain/parsers/types'
 import type { DocumentoSalvo } from './aplicacao/consultas/documentos'
 import { TopEstabelecimentos } from './ui/listas/TopEstabelecimentos'
@@ -419,6 +420,7 @@ function Previa() {
           <EstadoVazio titulo="Nada por aqui ainda" descricao="Importe uma fatura ou extrato para começar."
             acao={<a className="acao-painel" href="/importar">Importar documento</a>} />
           <ErroCarregar mensagem="Falha ao carregar." onTentar={() => {}} />
+          <AvisoDadosParciais falhas={{ categorias: 'dados.categoriasIndisponiveis', saldos: 'erro.semConexao' }} onTentar={() => {}} />
         </div>
       )}
     </main>
@@ -440,17 +442,25 @@ function PreviaConferencia() {
     forward: { nextCloseDate: null, nextInvoiceBalance: null, totalOpenBalance: null, futureInstallmentsTotal: null },
   }
   return <ResultadoImport kind={{ bank: 'nubank', docType: 'extrato' }} result={result}
-    regras={[]} podeSalvar={false} salvando={false} onSalvar={() => {}} onLimpar={() => {}} />
+    regras={[]} podeSalvar salvando={false} onSalvar={() => {}} onLimpar={() => {}} />
 }
 
 function PreviaDocumento() {
-  const semTransacoes = new URLSearchParams(window.location.search).get('amostra') === 'sem-transacoes'
+  const amostra = new URLSearchParams(window.location.search).get('amostra')
+  const semTransacoes = amostra === 'sem-transacoes'
   const documento: DocumentoSalvo = {
     id: 'documento-ficticio', bank: 'nubank', doc_type: 'extrato',
     filename: 'extrato-exemplo-com-nome-longo-para-conferir-no-celular-junho-2026.pdf',
     period_start: '2026-06-01', period_end: '2026-06-30', imported_at: '2026-07-01T12:00:00Z',
     declared_total: null, declared_income: semTransacoes ? null : 10000,
     declared_expense: semTransacoes ? null : 10000,
+    conferencia: amostra === 'confere' ? {
+      versao: 1, status: 'confere', contagem: 4,
+      comparacoes: [
+        { criterio: 'entradas', gabaritoCents: 10000, extraidoCents: 10000, diferencaCents: 0 },
+        { criterio: 'saidas', gabaritoCents: 10000, extraidoCents: 10000, diferencaCents: 0 },
+      ],
+    } : amostra === 'sem-gabarito' ? { versao: 1, status: 'sem-gabarito', contagem: 2, comparacoes: [] } : null,
   }
   return (
     <ul className="mx-auto max-w-3xl">

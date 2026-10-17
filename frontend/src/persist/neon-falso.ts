@@ -53,6 +53,8 @@ export type EstadoFalso = {
   /** Simula resposta truncada: o `count` diz a verdade, o array vem curto.
    *  É exatamente o que um `db_max_rows` faz — e sem nenhum erro. */
   truncarEm?: number
+  /** Substitui a contagem do servidor, incluindo ausência inesperada. */
+  contagem?: number | null
   /** `false` faz `getSession` devolver sessão nenhuma. */
   logado?: boolean
   /** Força um erro na primeira operação que casar com tabela + op. */
@@ -150,6 +152,7 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
   const hashes = new Set(estado.hashes ?? [])
   const transacoes: Record<string, unknown>[] = [...(estado.transacoes ?? [])]
   const chamadas: Chamada[] = []
+  const rpcChamadas: Array<{ nome: string; parametros: Record<string, unknown> }> = []
   let erroPendente = estado.erro
 
   const resolver = (c: Chamada): RespostaFalsa => {
@@ -172,7 +175,7 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
         error: c.single && linhas.length === 0 ? { message: 'no rows' } : null,
         // Só devolve `count` se tiver sido pedido — é o comportamento real
         // do cliente, e a razão de uma resposta truncada passar despercebida.
-        ...(c.contagem ? { count: todas.length } : {}),
+        ...(c.contagem ? { count: 'contagem' in estado ? estado.contagem : todas.length } : {}),
       }
     }
 
@@ -218,6 +221,44 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
   }
 
   const cliente = {
+    // Este dublê só prova o payload e a resposta da RPC. Atomicidade, RLS e
+    // concorrência são exercitados contra Postgres pelo roteiro SQL.
+    rpc: async (nome: string, parametros: {
+      p_conta: Record<string, unknown>
+      p_documento: Record<string, unknown>
+      p_transacoes: Record<string, unknown>[]
+    }) => {
+      rpcChamadas.push({ nome, parametros })
+      if (erroPendente) {
+        const error = { message: erroPendente.message }
+        erroPendente = undefined
+        return { data: null, error }
+      }
+      const { p_conta: conta, p_documento: doc, p_transacoes: txs } = parametros
+      const existente = documentos.find((d) =>
+        d.file_hash === doc.file_hash || d.content_hash === doc.content_hash)
+      if (existente) return {
+        data: { status: 'documento-duplicado', importadoEm: existente.imported_at }, error: null,
+      }
+      const contaExistente = contas.find((c) => c.bank === conta.bank && c.type === conta.type
+        && (c.last4 ?? '') === (conta.last4 ?? '') && (c.number ?? '') === (conta.number ?? ''))
+      const accountId = contaExistente?.id ?? `acc-${contas.length + 1}`
+      const documentId = `doc-${documentos.length + 1}`
+      const novos = txs.filter((t) => !hashes.has(t.hash as string))
+      const registrar = (tabela: string, linhas: Record<string, unknown>[]) => {
+        chamadas.push({ tabela, op: 'insert', linhas, colunas: null, filtros: [], campos: null,
+          single: false, limite: null, contagem: null, ordem: null })
+      }
+      if (!contaExistente) {
+        contas.push({ ...conta, id: accountId })
+        registrar('accounts', [conta])
+      }
+      documentos.push({ ...doc, id: documentId, imported_at: '2026-09-06T00:00:00Z' })
+      registrar('documents', [{ ...doc, account_id: accountId }])
+      if (novos.length) registrar('transactions', novos.map((t) => ({ ...t, account_id: accountId, document_id: documentId })))
+      for (const t of novos) hashes.add(t.hash as string)
+      return { data: { status: 'salvo', documentId, inseridas: novos.length, jaExistiam: txs.length - novos.length }, error: null }
+    },
     auth: {
       getSession: async () => ({
         data: estado.logado === false ? {} : { session: { user: { id: 'u1' } } },
@@ -244,6 +285,7 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
   return {
     cliente,
     chamadas,
+    rpcChamadas,
     /** As linhas efetivamente gravadas numa tabela. */
     gravadasEm: (tabela: string): Record<string, unknown>[] =>
       chamadas.filter((c) => c.tabela === tabela && c.op === 'insert').flatMap((c) => c.linhas ?? []),

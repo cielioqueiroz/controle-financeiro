@@ -43,6 +43,14 @@ beforeEach(() => {
 })
 
 describe('puxarDocumentos', () => {
+  it('decodifica a conferência e trata fotografia inválida como desconhecida', async () => {
+    const conferencia = { versao: 1, status: 'sem-gabarito', contagem: 1, comparacoes: [] }
+    montar({ documentos: [doc({ conferencia }), doc({ id: 'doc-2', conferencia: { status: 'confere' } })] })
+    const documentos = await puxarDocumentos()
+    expect(documentos[0].conferencia).toEqual(conferencia)
+    expect(documentos[1].conferencia).toBeNull()
+    expect(falso.chamadas[0].colunas).toContain('conferencia')
+  })
   it('devolve os documentos do usuário, mais recentes primeiro', async () => {
     montar({ documentos: [doc(), doc({ id: 'doc-2' })] })
     const r = await puxarDocumentos()
@@ -87,9 +95,9 @@ describe('puxarSaldos', () => {
   /** Falha para o lado seguro DE PROPÓSITO: perder a fileira de saldo é
    *  muito melhor que não mostrar o histórico. A coluna `end_balance_cents`
    *  só existe depois da migração `0002`, e antes dela o select erra. */
-  it('devolve lista vazia quando o select erra, em vez de derrubar o painel', async () => {
+  it('propaga erro de saldo para o provider distinguir indisponível de vazio', async () => {
     montar({ erro: { tabela: 'documents', op: 'select', message: 'column end_balance_cents does not exist' } })
-    await expect(puxarSaldos()).resolves.toEqual([])
+    await expect(puxarSaldos()).rejects.toThrow(/end_balance_cents/)
   })
 
   it('sem cliente Neon devolve lista vazia', async () => {

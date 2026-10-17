@@ -85,6 +85,12 @@ de 44 px; revela nome do PDF, período completo e gabaritos disponíveis. O
 resultado original da conferência não é inferido desses valores — ver
 [ADR-0017](./adr/0017-conferencia-original-nao-e-recalculada-pelo-gasto-salvo.md).
 
+Na versão com a migração 0008, novos documentos mostram a conferência original
+guardada antes dos vínculos e da deduplicação. As comparações usam o mesmo
+componente da prévia; a contagem original pode diferir da contagem salva.
+Registros antigos continuam com resultado desconhecido. A prévia divergente
+explica por que o botão de salvar fica indisponível.
+
 Consulta falha oferece nova tentativa. Contagem indisponível e documento sem
 transações vinculadas não recebem um gasto zero. Um recorte sem transações
 também não é prova de documento faltando.
@@ -101,6 +107,9 @@ também não é prova de documento faltando.
 A precedência é carregando → erro → vazio → conteúdo. Erro de consulta nunca
 vira convite para importar um histórico que já existe. A página mantém seu
 cabeçalho enquanto carrega.
+
+Falhas auxiliares de categorias ou saldos mantêm o histórico e exibem
+`AvisoDadosParciais`, com as partes indisponíveis e uma ação de tentar de novo.
 
 ## Adoção e validação
 

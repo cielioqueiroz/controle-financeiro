@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitForElementToBeRemoved, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 import { ListaPorCategoria } from './ListaPorCategoria'
@@ -142,10 +142,8 @@ describe('ListaPorCategoria', () => {
 
     await usuario.click(screen.getByRole('button', { name: /Supermercado/i }))
 
-    // O `AnimatePresence` mantém o nó no DOM enquanto ele sai: um
-    // `queryByText` logo após o clique ainda o encontra, e o teste passaria
-    // igual se o fechamento não existisse.
-    await waitForElementToBeRemoved(() => screen.queryByText('SUPERMERCADO BH'))
+    // A animação pode terminar durante o clique; conferimos o estado final.
+    await waitFor(() => expect(screen.queryByText('SUPERMERCADO BH')).not.toBeInTheDocument())
   })
 
   it('leva a transação clicada para a edição', async () => {

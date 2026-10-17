@@ -88,11 +88,14 @@ describe('o botão de salvar chama quando a conferência fecha', () => {
   it('diverge: o botão NÃO chama', () => {
     montar(9999)
     expect(botaoSalvar()).not.toHaveClass('chamando')
+    expect(botaoSalvar()).toBeDisabled()
+    expect(screen.getByText(/a conferência divergiu.*histórico/i)).toBeVisible()
   })
 
   it('sem gabarito: o botão NÃO chama', () => {
     montar(null)
     expect(botaoSalvar()).not.toHaveClass('chamando')
+    expect(botaoSalvar()).toBeEnabled()
   })
 
   // Já clicou: chamar de novo enquanto grava é pedir um segundo clique num

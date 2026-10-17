@@ -1,6 +1,7 @@
 import { obterNeon } from '../lib/neon'
 import type { DocParaSaldo } from '../domain/saldos'
 import type { DocParaAberto } from '../domain/aberto'
+import { lerConferenciaSalva, type ConferenciaSalva } from '../domain/validate/conferencia-salva'
 
 export type DocumentoSalvo = {
   id: string
@@ -13,6 +14,7 @@ export type DocumentoSalvo = {
   declared_total: number | null
   declared_income: number | null
   declared_expense: number | null
+  conferencia?: ConferenciaSalva | null
 }
 
 /** Lista os documentos importados do usuário (RLS escopa aos dele). */
@@ -21,39 +23,29 @@ export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
   if (!neon) return []
   const { data, error } = await neon
     .from('documents')
-    .select('id, bank, doc_type, period_start, period_end, filename, imported_at, declared_total, declared_income, declared_expense')
+    .select('id, bank, doc_type, period_start, period_end, filename, imported_at, declared_total, declared_income, declared_expense, conferencia')
     .order('imported_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as DocumentoSalvo[]
+  const documentos = (data ?? []) as Array<Omit<DocumentoSalvo, 'conferencia'> & { conferencia?: unknown }>
+  return documentos.map((d) => ({ ...d, conferencia: lerConferenciaSalva(d.conferencia) }))
 }
 
 /** Uma linha de `documents` com tudo que o painel deriva dela: o saldo final
  *  do extrato (`saldos.ts`) e o saldo em aberto da fatura (`aberto.ts`). */
 export type DocDoPainel = DocParaSaldo & DocParaAberto
 
-/** Documentos com os campos que alimentam o saldo por conta E o saldo em
- *  aberto do cartão. Query SEPARADA (não o `puxarDocumentos` do painel) e
- *  DEFENSIVA: se a migração 0002 ainda não rodou, a coluna
- *  `end_balance_cents` não existe e o select erra — aqui isso vira lista
- *  vazia (as fileiras simplesmente não aparecem), sem contaminar o resto do
- *  dashboard. As outras quatro colunas são do schema 0001 e sempre existem.
- *
- *  O nome continua `puxarSaldos` de propósito: `Dashboard.pdf.test.tsx`
- *  mocka este módulo por nome, e renomear quebraria o mock sem ganho. */
+/** Documentos que sustentam saldos e valores em aberto. Falhas sobem ao
+ * provider, que pode mostrar o histórico e avisar que esta parte falhou. */
 export async function puxarSaldos(): Promise<DocDoPainel[]> {
   const neon = await obterNeon()
   if (!neon) return []
-  try {
-    const { data, error } = await neon
+  const { data, error } = await neon
       .from('documents')
       .select(
         'bank, account_id, doc_type, period_end, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
       )
-    if (error) return []
-    return (data ?? []) as DocDoPainel[]
-  } catch {
-    return []
-  }
+  if (error) throw error
+  return (data ?? []) as DocDoPainel[]
 }
 
 /** Apaga um documento. As transações caem junto por ON DELETE CASCADE

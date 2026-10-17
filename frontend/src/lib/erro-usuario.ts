@@ -43,6 +43,8 @@ import { registrarFalha, type ContextoFalha } from '../aplicacao/comandos/falhas
 
 /** Falhas com conserto do lado de quem lê. */
 const PADROES: ReadonlyArray<[RegExp, keyof Dicionario]> = [
+  [/conferência divergente/i, 'import.salvarDivergente'],
+  [/gravação atômica indisponível/i, 'salvar.atualizacaoNecessaria'],
   // Primeiro de todos, e o único que não fala de acesso nem de rede: a
   // leitura voltou incompleta, então os totais da tela estariam MENORES que
   // o histórico real. É a falha que o app precisa gritar, porque é a única

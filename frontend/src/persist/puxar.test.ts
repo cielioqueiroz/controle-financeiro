@@ -86,6 +86,10 @@ describe('puxarTudo — leitura do histórico', () => {
 })
 
 describe('integridade do recorte', () => {
+  it.each([null, undefined, -1, 1.5, Number.NaN, 0])('recusa contagem inválida ou incompatível: %s', async (contagem) => {
+    montar({ transacoes: [linha()], contagem })
+    await expect(puxarTudo()).rejects.toThrow(RecorteIncompletoError)
+  })
   /** O guarda só funciona se a pergunta for feita: sem `{ count: 'exact' }`
    *  o cliente devolve `count: null` e não há como perceber truncamento. */
   it('pede a contagem exata ao banco', async () => {
@@ -128,6 +132,10 @@ describe('integridade do recorte', () => {
 })
 
 describe('conferência da forma da linha', () => {
+  it('recusa dinheiro fora da precisão segura de inteiros', async () => {
+    montar({ transacoes: [linha({ amount_cents: Number.MAX_SAFE_INTEGER + 1 })] })
+    await expect(puxarTudo()).rejects.toThrow(/amount_cents/)
+  })
   it('recusa valor que não é inteiro de centavos', async () => {
     montar({ transacoes: [linha({ amount_cents: '500' })] })
     await expect(puxarTudo()).rejects.toThrow(/amount_cents não é inteiro/)

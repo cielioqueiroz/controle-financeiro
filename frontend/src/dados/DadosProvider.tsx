@@ -32,6 +32,7 @@ type Dados = {
    *  trocar de idioma com a tela de erro aberta deixaria a mensagem para
    *  trás. */
   erro: keyof Dicionario | null
+  errosParciais: Partial<Record<'categorias' | 'saldos', keyof Dicionario>>
   /** Recarrega do banco. Usado depois de apagar documento, editar
    *  categoria ou importar. */
   recarregar: () => Promise<void>
@@ -78,13 +79,18 @@ export function DadosProvider({
   const [docsSaldo, setDocsSaldo] = useState<DocDoPainel[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<keyof Dicionario | null>(null)
+  const [errosParciais, setErrosParciais] = useState<Dados['errosParciais']>({})
+  const requisicaoAtual = useRef(0)
 
   const recarregar = useCallback(async () => {
+    const requisicao = ++requisicaoAtual.current
     setCarregando(true)
     setErro(null)
+    setErrosParciais({})
     // A folha de provas não tem banco para consultar.
     if (sementes) {
       setTodas(sementes)
+      setDocsSaldo([])
       setCarregando(false)
       return
     }
@@ -93,21 +99,31 @@ export function DadosProvider({
       // serem expostas, para que categoria() já conheça as personalizadas
       // no primeiro render — senão a tela pisca com "Outros".
       //
-      // Só `puxarTudo` é essencial: categorias e saldos falham para o lado
-      // seguro (lista vazia), porque perder a cor de uma categoria ou a
-      // fileira de saldo é muito melhor que não mostrar o histórico.
-      const [cats, dados, saldoDocs] = await Promise.all([
-        puxarCategoriasUsuario().catch(() => []),
+      // As consultas auxiliares podem falhar sem esconder o histórico.
+      // allSettled conserva a causa para a tela distinguir falha de vazio.
+      const [cats, dados, saldoDocs] = await Promise.allSettled([
+        puxarCategoriasUsuario(),
         puxarTudo(),
-        puxarSaldos().catch(() => []),
+        puxarSaldos(),
       ])
-      registrarCategoriasUsuario(cats)
-      setTodas(dados)
-      setDocsSaldo(saldoDocs)
+      if (requisicao !== requisicaoAtual.current) return
+      if (dados.status === 'rejected') throw dados.reason
+      const parciais: Dados['errosParciais'] = {}
+      if (cats.status === 'rejected') {
+        parciais.categorias = chaveDeErro(cats.reason, 'dados.categoriasIndisponiveis', 'categorias')
+      }
+      if (saldoDocs.status === 'rejected') {
+        parciais.saldos = chaveDeErro(saldoDocs.reason, 'dados.saldosIndisponiveis', 'historico')
+      }
+      registrarCategoriasUsuario(cats.status === 'fulfilled' ? cats.value : [])
+      setTodas(dados.value)
+      setDocsSaldo(saldoDocs.status === 'fulfilled' ? saldoDocs.value : [])
+      setErrosParciais(parciais)
     } catch (e) {
+      if (requisicao !== requisicaoAtual.current) return
       setErro(chaveDeErro(e, 'erro.carregar', 'historico'))
     } finally {
-      setCarregando(false)
+      if (requisicao === requisicaoAtual.current) setCarregando(false)
     }
   }, [sementes])
 
@@ -117,7 +133,8 @@ export function DadosProvider({
     // porque `recarregar` acende o "carregando" na primeira linha, e isso
     // não tem como ser derivado durante a pintura: quem busca é o efeito.
     // oxlint-disable-next-line react/set-state-in-effect
-    recarregar()
+    void recarregar()
+    return () => { requisicaoAtual.current += 1 }
   }, [recarregar])
 
   // Documento gravado: relê o banco, sem F5.
@@ -168,6 +185,7 @@ export function DadosProvider({
       docsSaldo,
       carregando,
       erro,
+      errosParciais,
       recarregar,
       aplicarEdicao,
       aplicarRecategorizacao,
@@ -178,6 +196,7 @@ export function DadosProvider({
       docsSaldo,
       carregando,
       erro,
+      errosParciais,
       recarregar,
       aplicarEdicao,
       aplicarRecategorizacao,

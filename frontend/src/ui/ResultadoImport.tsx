@@ -126,7 +126,8 @@ export function ResultadoImport({
           {podeSalvar && (
             <button
               onClick={onSalvar}
-              disabled={salvando}
+              disabled={salvando || conf.status === 'diverge'}
+              aria-describedby={conf.status === 'diverge' ? 'salvar-divergencia' : undefined}
               className={`inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
                 conf.status === 'confere' && !salvando ? 'chamando' : ''
               }`}
@@ -155,6 +156,11 @@ export function ResultadoImport({
       </header>
 
       <ConferenciaDocumento result={result} />
+      {podeSalvar && conf.status === 'diverge' && (
+        <p id="salvar-divergencia" className="px-5 pb-5 text-sm text-falha sm:px-8">
+          {t('import.salvarDivergente')}
+        </p>
+      )}
 
       {/* Gráfico de categorias + gasto real */}
       {baseInsights.porCategoria.length > 0 && (

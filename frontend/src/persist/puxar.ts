@@ -74,8 +74,10 @@ export async function puxarTudo(): Promise<TransacaoSalva[]> {
 
   const linhas = data ?? []
 
-  // O servidor disse quantas linhas existem; vieram menos.
-  if (typeof count === 'number' && linhas.length < count) {
+  if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
+    throw new RecorteIncompletoError('o banco não informou uma contagem exata válida')
+  }
+  if (linhas.length !== count) {
     throw new RecorteIncompletoError(
       `o banco tem ${count} transações e a resposta trouxe ${linhas.length}`,
     )
@@ -134,7 +136,7 @@ function exigirTexto(v: unknown, campo: string): string {
  *  significaria que a coluna mudou de tipo, e arredondar por conta própria
  *  seria inventar dinheiro. */
 function exigirInteiro(v: unknown, campo: string): number {
-  if (typeof v !== 'number' || !Number.isInteger(v)) {
+  if (typeof v !== 'number' || !Number.isSafeInteger(v)) {
     throw new RecorteIncompletoError(`${campo} não é inteiro (${String(v)})`)
   }
   return v
