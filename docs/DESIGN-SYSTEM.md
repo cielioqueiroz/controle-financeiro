@@ -111,6 +111,17 @@ cabeçalho enquanto carrega.
 Falhas auxiliares de categorias ou saldos mantêm o histórico e exibem
 `AvisoDadosParciais`, com as partes indisponíveis e uma ação de tentar de novo.
 
+## Origem dos valores
+
+No detalhe de Relatórios, cada grupo oferece “Ver documento importado”. A ação
+abre os dados do documento em Faturas e foca seu resumo nativo. Voltar pelo
+navegador restaura o detalhe, com período, banco e janela preservados na URL.
+Fechar devolve o foco ao gatilho ou ao título do relatório após a navegação.
+
+Seleção indisponível exibe mensagem genérica e “Ver todos os documentos”, que
+limpa apenas a seleção. Ela só aparece após consulta bem-sucedida. Carregamento
+e falha mantêm seus estados próprios; selecionar nunca aciona exclusão.
+
 ## Adoção e validação
 
 Primeira adoção: Painel, Relatórios e estado de erro compartilhado. Outros
@@ -125,6 +136,8 @@ Prévias locais, com dados fictícios e fora do build de produção:
 - `/demo.html?tela=estados`
 - `/demo.html?tela=conferencia` (também `amostra=confere` e `amostra=sem-gabarito`)
 - `/demo.html?tela=documentos` (também `amostra=sem-transacoes`)
+- `/demo.html?tela=documentos&amostra=confere&documento=documento-ficticio`
+- `/demo.html?tela=documentos&documento=ausente`
 
 Essas prévias integram os medidores de overflow e acessibilidade.
 Rodar `npm run verificar`, medir contraste, overflow e acessibilidade após

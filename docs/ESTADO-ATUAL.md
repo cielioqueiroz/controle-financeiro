@@ -1,9 +1,27 @@
 # Estado atual do projeto — retomada
 
+## Continuação — origem dos valores — 2026-10-17
+
+Autorização integral do usuário nesta conversa cobre concluir e publicar as
+rodadas após revisão e verificações, sem novas confirmações intermediárias.
+
+- PR #33 integrado em `95397b0`, após os três jobs do CI aprovarem. Vercel
+  confirmou esse commit como READY no domínio de produção; migração já aplicada.
+- Em `codex/origem-dos-valores`, Relatórios oferece ação até o documento em
+  Faturas, com seleção na URL, abertura/foco dos dados e retorno ao detalhe.
+  Preserva período, banco e janela; documento indisponível tem estado próprio,
+  distinto de carregamento e falha. Textos em pt/en/es e aparência preservada.
+- Testes relacionados: 32/32 aprovados. Verificação completa aprovada nos seis
+  passos; 28 jornadas em desktop/celular sem overflow ou violações graves de
+  acessibilidade. Revisão final sem achados críticos/importantes. Um ajuste menor
+  da demo foi adiado. [Entrega, prints e decisões](./validacoes/2026-10-17-origem-dos-valores.md).
+- Envio em `9375e11`, [PR #34](https://github.com/cielioqueiroz/controle-financeiro/pull/34).
+  O PR registra o CI e a integração; este diário registra as provas anteriores ao envio.
+
 ## Envio e correção do CI — 2026-10-17
 
 - Rodada de integridade commitada em `3ba4f8f`, enviada para
-  `codex/integridade-importacao-leitura`; [PR #33 em rascunho](https://github.com/cielioqueiroz/controle-financeiro/pull/33).
+  `codex/integridade-importacao-leitura`; [PR #33 integrado](https://github.com/cielioqueiroz/controle-financeiro/pull/33).
 - O CI aprovou aplicação e medidores, mas apontou três dependências vulneráveis.
   Atualizadas somente DOMPurify (3.4.17), source-map-js (1.2.2) e undici (7.30.1).
   `npm audit` passou com zero vulnerabilidades; verificação completa aprovada
@@ -15,14 +33,15 @@
 - Após autorização integral no chat, migração `0008` aplicada em uma transação
   na produção (`br-polished-brook-ace866df`) e conferida: coluna JSONB anulável,
   funções invoker, permissões restritas e RLS ativo nas seis tabelas. Não houve
-  escrita de documentos ou transações de usuários. Merge aguarda o CI atualizado.
+  escrita de documentos ou transações de usuários. CI atualizado aprovado e
+  merge publicado em `95397b0`.
 
 ## Rodada de integridade — 2026-10-16
 
 Implementação e verificações concluídas; fechamento registrado em 17/10/2026.
 Execução autorizada no chat, branch `codex/integridade-importacao-leitura`,
 base `eda094f`. Commit e push desta rodada autorizados pelo usuário em
-17/10/2026. Integração em `main` continua condicionada à migração de produção.
+17/10/2026. Integração em `main` ocorreu após a migração de produção.
 Plano e critérios em
 [integridade da importação e leitura](./superpowers/plans/2026-10-16-integridade-importacao-leitura.md).
 
@@ -59,7 +78,8 @@ Plano e critérios em
   para R$ 32,57. 21 verificações; sem chamadas ao Neon de produção. Evidências em
   [validação da RPC real](./validacoes/2026-10-17-rpc-real.md).
 - O endereço local 127.0.0.1:5178 foi autorizado somente no Auth da branch de
-  teste. Aplicação da migração em produção continua pendente de autorização.
+  teste. A migração foi posteriormente autorizada, aplicada e conferida em
+  produção, conforme registro de 17/10 acima.
 
 Prévias novas: `http://127.0.0.1:5177/demo.html?tela=documentos&amostra=confere`
 e `&amostra=sem-gabarito`; legado sem `amostra`. Falhas parciais em
@@ -129,7 +149,8 @@ ainda pendentes, não funcionalidades entregues.
 
 ### Próxima rodada recomendada
 
-1. **Detalhamento dos valores nas demais telas.** Expandir o caminho
+1. **Detalhamento dos valores nas demais telas.** O caminho Relatórios →
+   documento em Faturas → Voltar foi concluído na rodada de 17/10. Expandir o caminho
    gráfico → transações → documento, preservando período e banco. Relatórios já
    oferece esse detalhe por categoria, estabelecimento e maior saída; reutilizar
    o comportamento onde fizer sentido. Não prometer abrir o PDF original: o app

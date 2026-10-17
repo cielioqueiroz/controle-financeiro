@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ConteudoDocumentos } from '../ui/Documentos'
 import { useDados } from '../dados/DadosProvider'
 
@@ -14,6 +15,12 @@ import { useDados } from '../dados/DadosProvider'
  *  código que ninguém mais alcançava. Está no histórico do git se voltar. */
 export function Faturas() {
   const { todas, recarregar, carregando, erro } = useDados()
+  const [params, setParams] = useSearchParams()
+  function limparSelecao() {
+    const proximos = new URLSearchParams(params)
+    proximos.delete('documento')
+    setParams(proximos, { replace: true })
+  }
 
   const contagem = useMemo(() => {
     const m = new Map<string, { qtd: number; totalCents: number }>()
@@ -28,7 +35,8 @@ export function Faturas() {
 
   return (
     <div className="mt-6 mx-auto max-w-3xl">
-      <ConteudoDocumentos contagem={carregando || erro || todas === null ? null : contagem} onMudou={recarregar} />
+      <ConteudoDocumentos contagem={carregando || erro || todas === null ? null : contagem} onMudou={recarregar}
+        documentoSelecionado={params.get('documento')} onLimparSelecao={limparSelecao} />
     </div>
   )
 }

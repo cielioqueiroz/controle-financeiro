@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Faturas } from './Faturas'
+import { MemoryRouter } from 'react-router-dom'
 import { DadosProvider } from '../dados/DadosProvider'
 import { puxarTudo } from '../persist/puxar'
 
@@ -65,9 +66,9 @@ vi.mock('../persist/documentos', () => ({
 
 function montar() {
   return render(
-    <DadosProvider>
+    <MemoryRouter><DadosProvider>
       <Faturas />
-    </DadosProvider>,
+    </DadosProvider></MemoryRouter>,
   )
 }
 

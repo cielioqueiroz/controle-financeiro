@@ -35,6 +35,29 @@ function abrir(search = '') {
 describe('Relatórios — estados e navegação', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  it('reabre o detalhe indicado pela URL sem perder janela e banco', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([transacao])
+    abrir('?janela=3&banco=nubank&ref=2026-07&detalhe=categoria&item=supermercado')
+    const detalhe = await screen.findByRole('region', { name: 'Supermercado' })
+    expect(detalhe).toHaveTextContent('R$ 100,00')
+    expect(screen.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText('Endereço')).toHaveTextContent('banco=nubank')
+    await userEvent.click(within(detalhe).getByRole('button', { name: 'Voltar ao gráfico' }))
+    expect(screen.getByLabelText('Endereço')).not.toHaveTextContent('detalhe=')
+    expect(screen.getByRole('heading', { name: 'Relatórios financeiros' })).toHaveFocus()
+  })
+
+  it('ignora um tipo de detalhe inválido e uma seleção sem transações', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([transacao])
+    const primeira = abrir('?janela=3&detalhe=outro&item=supermercado')
+    await screen.findByText('1 fatura')
+    expect(document.querySelector('[data-prova="detalhe-relatorio"]')).not.toBeInTheDocument()
+    primeira.unmount()
+    abrir('?janela=3&detalhe=transacao&item=ausente')
+    await screen.findByText('1 fatura')
+    expect(document.querySelector('[data-prova="detalhe-relatorio"]')).not.toBeInTheDocument()
+  })
+
   it('abre a categoria no intervalo inteiro, exclui vínculos e restaura o foco ao voltar', async () => {
     vi.mocked(puxarTudo).mockResolvedValue([
       transacao,
@@ -48,8 +71,9 @@ describe('Relatórios — estados e navegação', () => {
     const detalhe = screen.getByRole('region', { name: 'Supermercado' })
     expect(within(detalhe).getByRole('heading', { name: 'Supermercado' })).toHaveFocus()
     expect(detalhe.querySelectorAll('details')).toHaveLength(2)
-    await userEvent.click(within(detalhe).getByText(/Nubank.*2026-06/))
-    expect(within(detalhe).getByText('Documento: doc-jun')).toBeVisible()
+    const documentoJunho = within(detalhe).getByText(/Nubank.*2026-06/)
+    await userEvent.click(documentoJunho)
+    expect(within(documentoJunho.closest('details')!).getByRole('button', { name: 'Ver documento importado' })).toBeVisible()
     expect(within(detalhe).getByText('12/06/2026')).toBeVisible()
     expect(detalhe).not.toHaveTextContent('doc-vinculo')
     expect(detalhe).not.toHaveTextContent('doc-antigo')

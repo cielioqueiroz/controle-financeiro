@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { DocumentoSalvo } from '../aplicacao/consultas/documentos'
 import { temaDoBanco } from '../domain/banks'
 import { dataLongaDe } from '../domain/normalize/data'
@@ -9,6 +10,7 @@ type Props = {
   documento: DocumentoSalvo
   contagem: { qtd: number; totalCents: number } | null
   onApagar: () => void
+  selecionado?: boolean
 }
 
 function dataDocumento(data: string | null): string {
@@ -17,10 +19,17 @@ function dataDocumento(data: string | null): string {
   return dataLongaDe(new Date(ano, mes - 1, dia))
 }
 
-export function DocumentoImportado({ documento: d, contagem: c, onApagar }: Props) {
+export function DocumentoImportado({ documento: d, contagem: c, onApagar, selecionado = false }: Props) {
   const { t } = useT()
   const dinheiro = useDinheiro()
   const tema = temaDoBanco(d.bank)
+  const detalhes = useRef<HTMLDetailsElement>(null)
+  const resumo = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!selecionado) return
+    if (detalhes.current) detalhes.current.open = true
+    resumo.current?.focus()
+  }, [selecionado])
   const gabaritos = [
     { rotulo: 'conferencia.totalFatura', valor: d.declared_total },
     { rotulo: 'conferencia.entradas', valor: d.declared_income },
@@ -55,8 +64,8 @@ export function DocumentoImportado({ documento: d, contagem: c, onApagar }: Prop
           <>{t('docs.nLancamentos', { n: c.qtd })} · {t('docs.gastoReal', { valor: dinheiro(c.totalCents) })}</>
         )}
       </p>
-      <details className="mt-2">
-        <summary className="min-h-11 py-3 text-sm text-tinta">{t('docs.verDados')}</summary>
+      <details ref={detalhes} className="mt-2">
+        <summary ref={resumo} className="min-h-11 py-3 text-sm text-tinta">{t('docs.verDados')}</summary>
         <dl className="space-y-3 border-t border-carvao-700 pt-3 text-xs">
           <div>
             <dt className="text-tinta-tenue">{t('docs.nomeArquivo')}</dt>

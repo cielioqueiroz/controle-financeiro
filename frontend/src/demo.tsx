@@ -1,7 +1,7 @@
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useSearchParams } from 'react-router-dom'
 import { IdiomaProvider } from './i18n/IdiomaProvider'
 import { SaldoConta } from './ui/SaldoConta'
 import { SaldoAberto } from './ui/SaldoAberto'
@@ -32,6 +32,7 @@ import { ErroCarregar } from './ui/ErroCarregar'
 import { Cartao } from './ui/Cartao'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { DocumentoImportado } from './ui/DocumentoImportado'
+import { DocumentoNaoEncontrado } from './ui/Documentos'
 import { AvisoDadosParciais } from './ui/AvisoDadosParciais'
 import type { ParseResult } from './domain/parsers/types'
 import type { DocumentoSalvo } from './aplicacao/consultas/documentos'
@@ -446,7 +447,8 @@ function PreviaConferencia() {
 }
 
 function PreviaDocumento() {
-  const amostra = new URLSearchParams(window.location.search).get('amostra')
+  const [params, setParams] = useSearchParams()
+  const amostra = params.get('amostra')
   const semTransacoes = amostra === 'sem-transacoes'
   const documento: DocumentoSalvo = {
     id: 'documento-ficticio', bank: 'nubank', doc_type: 'extrato',
@@ -462,9 +464,17 @@ function PreviaDocumento() {
       ],
     } : amostra === 'sem-gabarito' ? { versao: 1, status: 'sem-gabarito', contagem: 2, comparacoes: [] } : null,
   }
+  if (params.get('documento') && params.get('documento') !== documento.id) {
+    return <DocumentoNaoEncontrado onLimpar={() => {
+      const proximos = new URLSearchParams(params)
+      proximos.delete('documento')
+      setParams(proximos, { replace: true })
+    }} />
+  }
   return (
     <ul className="mx-auto max-w-3xl">
       <DocumentoImportado documento={documento}
+        selecionado={params.get('documento') === documento.id}
         contagem={semTransacoes ? { qtd: 0, totalCents: 0 } : { qtd: 2, totalCents: 9000 }} onApagar={() => {}} />
     </ul>
   )

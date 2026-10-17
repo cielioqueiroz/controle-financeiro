@@ -48,6 +48,12 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("documento-selecionado", "/demo.html?tela=documentos&amostra=confere&documento=documento-ficticio&tema=claro", [],
+     [("focado-resumo", "Ver dados do documento"), ("ver-texto", "Conferência original"),
+      ("ver-texto", "extrato-exemplo-com-nome-longo-para-conferir-no-celular-junho-2026.pdf")], 6),
+    ("documento-ausente", "/demo.html?tela=documentos&documento=ausente", [],
+     [("ver-texto", "Este documento não está disponível no seu histórico."),
+      ("ver-botao", "Ver todos os documentos")], 6),
     ("documento-conferencia-original", "/demo.html?tela=documentos&amostra=confere&tema=claro",
      [("expandir", "Ver dados do documento")], [("ver-texto", "Conferência original"), ("ver-texto", "Lido pelo app")], 6),
     ("documento-sem-gabarito-original", "/demo.html?tela=documentos&amostra=sem-gabarito",
@@ -64,7 +70,8 @@ JORNADAS = [
      [("ativar-resumo", "Ver dados do documento")], [("focado-resumo", "Ver dados do documento"),
      ("ver-texto", "Não há totais declarados disponíveis neste registro. Isso não determina o resultado da conferência original.")], 6),
     ("relatorio-detalhe", "/demo.html?tela=relatorios&janela=3&tema=claro",
-     [("clicar-parcial", "Supermercado"), ("expandir-documento", "")], [("ver-secao", "detalhe-relatorio")], 6),
+     [("clicar-parcial", "Supermercado"), ("expandir-documento", "")],
+     [("ver-secao", "detalhe-relatorio"), ("ver-botao", "Ver documento importado")], 6),
     ("fluxo-destaque", "/demo.html?tela=painel",
      [("expandir", "Explorar o período"), ("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
     ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",

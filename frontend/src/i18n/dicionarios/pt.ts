@@ -9,7 +9,7 @@ export const pt = {
   'relatorios.detalheTitulo': 'Transações e documentos deste valor',
   'relatorios.detalheDescricao': 'Abra cada documento para conferir as transações incluídas neste total. Vínculos e entradas não compõem este gasto real.',
   'relatorios.voltarGrafico': 'Voltar ao gráfico',
-  'relatorios.documentoId': 'Documento: {id}',
+  'relatorios.verDocumento': 'Ver documento importado',
   // Tela de acesso
   'acesso.frase1': 'Seu extrato vira gráfico,',
   'acesso.frase2': 'em menos de um minuto.',
@@ -421,6 +421,8 @@ export const pt = {
   'docs.subtitulo': 'Consulte os documentos por competência e os valores que cada um declara. A lista não confirma que todos os documentos das suas contas foram importados.',
   'docs.carregando': 'Carregando…',
   'docs.vazio': 'Nenhum documento importado ainda.',
+  'docs.selecionadoAusente': 'Este documento não está disponível no seu histórico.',
+  'docs.verTodos': 'Ver todos os documentos',
   'docs.semPeriodo': 'sem período',
   'docs.nLancamentos': '{n} lançamentos',
   'docs.importadoEm': 'importado em {data}',
