@@ -14,6 +14,7 @@ import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { Confirmacao } from './acesso/Confirmacao'
 import { Portal, useTravarRolagem } from './Portal'
 import { useDinheiro } from '../dados/DiscretoProvider'
+import { SeletorEmoji } from './SeletorEmoji'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 
@@ -218,13 +219,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
             {criando && (
               <div className="mt-3 rounded-lg border border-carvao-700 bg-carvao-850 p-3">
                 <div className="flex items-center gap-2">
-                  <input
-                    value={novoIcone}
-                    onChange={(e) => setNovoIcone(e.target.value)}
-                    maxLength={2}
-                    aria-label={t('editar.emojiAria')}
-                    className="w-12 rounded-md border border-campo-borda bg-carvao-950 px-2 py-1.5 text-center text-base outline-none"
-                  />
+                  <SeletorEmoji valor={novoIcone} rotulo={t('editar.emojiAria')} aoSelecionar={setNovoIcone} />
                   <input
                     value={novoNome}
                     onChange={(e) => setNovoNome(e.target.value)}

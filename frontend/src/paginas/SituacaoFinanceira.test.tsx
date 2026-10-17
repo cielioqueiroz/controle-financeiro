@@ -81,7 +81,7 @@ describe('Minha situação financeira — histórico por competência', () => {
     expect(screen.getByText('out 2025 — dez 2025')).toBeVisible()
     expect(screen.getAllByText('jan 2026 — mar 2026').length).toBeGreaterThan(0)
     expect(screen.getByText('Comparação disponível')).toBeVisible()
-    await userEvent.click(screen.getByRole('button', { name: 'Selecionar fev 2026' }))
+    await userEvent.click(screen.getByRole('button', { name: /Selecionar fev 2026/ }))
     expect(screen.getByLabelText('Endereço')).toHaveTextContent('mes=2026-02')
     expect(screen.getByLabelText('Endereço')).toHaveTextContent('comparar=1')
     await userEvent.click(screen.getByRole('button', { name: '6 meses' }))

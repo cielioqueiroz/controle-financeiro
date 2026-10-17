@@ -62,6 +62,7 @@ export function SituacaoFinanceira() {
   const relatorio = useMemo(() => analisarRelatorio(historico, janela), [historico, janela])
   const txsJanela = useMemo(() => relatorio?.atual.transacoes ?? [], [relatorio])
   const serie = useMemo(() => evolucaoMensal(txsJanela), [txsJanela])
+  const maiorResultadoMensal = Math.max(1, ...serie.map((ponto) => Math.abs(resultado(ponto))))
   const competencias = useMemo(() => relatorio?.atual.meses.map((mes) => mes.competencia) ?? [], [relatorio])
   const resumo = relatorio?.atual.resumo
   const resumoAnterior = relatorio?.anterior.resumo
@@ -181,13 +182,13 @@ export function SituacaoFinanceira() {
             </section>
           )}
 
-          <section className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-            <div className="rounded-xl border border-carvao-700 bg-carvao-900 p-6 sombra-flutuante">
+          <section className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-stretch">
+            <div className="flex min-w-0 flex-col rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
               <p className="rotulo">{t('situacao.saldoAtual')}</p>
-              <p className="tabular mt-3 text-4xl text-tinta sm:text-5xl">
+              <p className="tabular mt-4 whitespace-nowrap font-display text-[clamp(1.3rem,3vw,2.45rem)] leading-tight tracking-tight text-tinta">
                 {saldos.length > 0 ? dinheiro(saldoAtual) : '—'}
               </p>
-              <p className="mt-4 max-w-sm text-sm leading-relaxed text-tinta-fraca">
+              <p className="mt-auto pt-4 text-sm leading-relaxed text-tinta-fraca">
                 {saldos.length > 0
                   ? t('situacao.saldoAtualDesc', { n: saldos.length })
                   : t('situacao.saldoIndisponivel')}
@@ -212,39 +213,48 @@ export function SituacaoFinanceira() {
                 </span>
               )}
             </div>
-            <div className="relative mt-6">
-              <div aria-hidden className="absolute left-0 right-0 top-4 h-px bg-carvao-700" />
-              <div className="relative grid gap-x-2 gap-y-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                 {relatorio.atual.meses.map((mes) => {
                   const ponto = serie.find((item) => item.competencia === mes.competencia)
-                  if (!ponto) return <div key={mes.competencia} className="min-w-0" aria-label={t('fluxo.mesSemDados', { mes: rotuloMes(mes.competencia) })}>
-                    <span aria-hidden className="relative z-10 block h-8 w-8 rounded-full border-4 border-carvao-900 bg-carvao-700" />
-                    <span className="mt-2 block truncate text-[11px] text-tinta-fraca">{rotuloMes(mes.competencia)}</span>
-                    <span className="mt-1 block text-[10px] text-tinta-fraca">{t('relatorios.mesSemDados')}</span>
+                  if (!ponto) return <div key={mes.competencia}
+                    role="img"
+                    aria-label={t('fluxo.mesSemDados', { mes: rotuloMes(mes.competencia) })}
+                    className="min-w-0 rounded-lg border border-dashed border-carvao-700 bg-afundado/50 p-3">
+                    <span className="block truncate text-[11px] text-tinta-fraca">{rotuloMes(mes.competencia)}</span>
+                    <span aria-hidden className="mt-3 flex h-14 items-center justify-center text-xl text-tinta-tenue">—</span>
+                    <span className="mt-2 block min-h-8 text-[10px] leading-relaxed text-tinta-fraca">{t('relatorios.mesSemDados')}</span>
                   </div>
                   const ehMelhor = ponto.competencia === melhorMes?.competencia
                   const ehPior = ponto.competencia === piorMes?.competencia
                   const selecionado = ponto.competencia === ativo
+                  const saldoMes = resultado(ponto)
+                  const alturaBarra = Math.round(Math.abs(saldoMes) / maiorResultadoMensal * 100)
                   return (
                     <button
                       key={ponto.competencia}
                       type="button"
                       onClick={() => atualizarBusca('mes', ponto.competencia)}
                       aria-pressed={selecionado}
-                      aria-label={t('situacao.selecionarMes', { mes: rotuloMes(ponto.competencia) })}
-                      className="group min-w-0 text-left"
+                      aria-label={t('situacao.selecionarMes', { mes: rotuloMes(ponto.competencia), valor: dinheiro(saldoMes) })}
+                      className={`group min-w-0 rounded-lg border p-3 text-left transition-colors ${selecionado ? 'border-marca/60 bg-carvao-850' : 'border-carvao-700 bg-afundado hover:border-carvao-600'}`}
                     >
-                      <span className={`relative z-10 block h-8 w-8 rounded-full border-4 border-carvao-900 transition-transform group-hover:scale-110 ${selecionado ? 'bg-marca' : ehPior ? 'bg-falha' : ehMelhor ? 'bg-credito' : 'bg-tinta-tenue'}`} />
-                      <span className={`mt-2 block truncate text-[11px] ${selecionado ? 'font-semibold text-tinta' : 'text-tinta-fraca'}`}>
+                      <span className={`block truncate text-[11px] ${selecionado ? 'font-semibold text-tinta' : 'text-tinta-fraca'}`}>
                         {rotuloMes(ponto.competencia)}
                       </span>
-                      <span className="tabular mt-1 block truncate text-[10px] text-tinta-tenue">
-                        {dinheiro(resultado(ponto))}
+                      <span aria-hidden className="relative mt-3 block h-14">
+                        <span className="absolute inset-x-0 top-1/2 h-px bg-carvao-700" />
+                        <span className={`absolute left-1/2 w-3 -translate-x-1/2 rounded-sm ${saldoMes >= 0 ? 'bottom-1/2 bg-credito' : 'top-1/2 bg-debito'}`}
+                          style={{ height: `${alturaBarra / 2}%` }} />
+                      </span>
+                      <span className={`tabular mt-2 block truncate text-[11px] ${saldoMes >= 0 ? 'text-credito' : 'text-debito'}`}>
+                        {dinheiro(saldoMes)}
+                      </span>
+                      <span className="mt-1 block min-h-4 truncate text-[9px] text-tinta-tenue">
+                        {ehMelhor ? t('situacao.melhorMes') : ehPior ? t('situacao.mesMaisCaro') : ''}
                       </span>
                     </button>
                   )
                 })}
-              </div>
             </div>
           </section>
 

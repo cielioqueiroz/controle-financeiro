@@ -59,15 +59,17 @@ export async function criarCategoria(c: {
  *  muda: é ele que as transações guardam, e mexer nele órfãozaria todas as
  *  compras já classificadas. */
 export async function editarCategoria(
-  id: string,
+  id: string | null,
+  slug: string,
   campos: { nome: string; icone: string; cor: string },
 ): Promise<void> {
   const neon = await obterNeon()
   if (!neon) throw new Error('Sem conexão.')
-  const { error } = await neon
-    .from('categories')
-    .update({ nome: campos.nome.trim(), icone: campos.icone, cor: campos.cor })
-    .eq('id', id)
+  const valores = { nome: campos.nome.trim(), icone: campos.icone, cor: campos.cor }
+  const consulta = id
+    ? neon.from('categories').update(valores).eq('id', id)
+    : neon.from('categories').insert({ ...valores, slug })
+  const { error } = await consulta
   if (error) throw error
 }
 

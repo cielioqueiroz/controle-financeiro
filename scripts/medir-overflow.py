@@ -91,7 +91,7 @@ JORNADAS = [
      [("expandir", "Ver meses e documentos")],
      [("ver-texto", "Histórico insuficiente"), ("ver-texto", "Sem transações importadas")], 6),
     ("situacao-comparacao", "/demo.html?tela=situacao&amostra=comparavel&janela=3&comparar=1&tema=claro",
-     [("clicar", "Selecionar jun 2026")],
+     [("clicar-parcial", "jun 2026")],
      [("ver-texto", "Comparação disponível")], 6),
     ("estados-painel", "/demo.html?tela=estados", [], [("ver-secao", "estados-painel"),
      ("ver-texto", "Parte dos dados está indisponível")], 6),

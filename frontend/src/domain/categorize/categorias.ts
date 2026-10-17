@@ -91,6 +91,8 @@ export function definirIdiomaCategorias(id: 'pt' | 'en' | 'es'): void {
  *  categoria do usuário (ou slug sem tradução) → o próprio `nome`. O `slug`
  *  (chave persistida) nunca muda. */
 export function nomeCategoria(cat: Categoria): string {
+  const personalizada = extras.get(cat.slug)
+  if (personalizada) return personalizada.nome
   if (idiomaCat === 'pt') return cat.nome
   return NOMES_I18N[cat.slug]?.[idiomaCat] ?? cat.nome
 }
@@ -113,10 +115,13 @@ export function adicionarCategoriaExtra(cat: Categoria): void {
 /** Todas as categorias para o seletor: embutidas + do usuário, com "Outros"
  *  sempre por último. */
 export function todasCategorias(): Categoria[] {
-  const semOutros = CATEGORIAS.filter((c) => c.slug !== 'outros')
-  const outros = CATEGORIAS.find((c) => c.slug === 'outros')!
-  return [...semOutros, ...extras.values(), outros]
+  const slugsPadrao = new Set(CATEGORIAS.map((c) => c.slug))
+  const embutidas = CATEGORIAS.filter((c) => c.slug !== 'outros')
+    .map((c) => extras.get(c.slug) ?? c)
+  const personalizadas = [...extras.values()].filter((c) => !slugsPadrao.has(c.slug))
+  const outros = extras.get('outros') ?? CATEGORIAS.find((c) => c.slug === 'outros')!
+  return [...embutidas, ...personalizadas, outros]
 }
 
 export const categoria = (slug: string): Categoria =>
-  porSlug.get(slug) ?? extras.get(slug) ?? porSlug.get('outros')!
+  extras.get(slug) ?? porSlug.get(slug) ?? porSlug.get('outros')!

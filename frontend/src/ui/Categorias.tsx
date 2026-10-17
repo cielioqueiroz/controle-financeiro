@@ -5,12 +5,14 @@ import { puxarCategoriasUsuario, type CategoriaUsuario } from '../aplicacao/cons
 import { editarCategoria, apagarCategoria } from '../aplicacao/comandos/categorias'
 import { puxarRegras } from '../aplicacao/consultas/regras'
 import { apagarRegra } from '../aplicacao/comandos/transacoes'
-import { categoria, nomeCategoria } from '../domain/categorize/categorias'
+import { CATEGORIAS, categoria, nomeCategoria } from '../domain/categorize/categorias'
 import type { Regra } from '../domain/categorize/regras'
 import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './acesso/Confirmacao'
+import { SeletorEmoji } from './SeletorEmoji'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
+type CategoriaEditavel = Omit<CategoriaUsuario, 'id'> & { id: string | null }
 
 type Props = {
   /** Chamado quando algo muda, para o histórico recarregar categorias/regras. */
@@ -30,12 +32,16 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
   const { t } = useT()
   const [cats, setCats] = useState<CategoriaUsuario[] | null>(null)
   const [regras, setRegras] = useState<Regra[] | null>(null)
-  const [editando, setEditando] = useState<CategoriaUsuario | null>(null)
+  const [editando, setEditando] = useState<CategoriaEditavel | null>(null)
   const [nome, setNome] = useState('')
   const [icone, setIcone] = useState('')
   const [cor, setCor] = useState(CORES[0])
-  const [confirmando, setConfirmando] = useState<CategoriaUsuario | null>(null)
+  const [confirmando, setConfirmando] = useState<CategoriaEditavel | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  const editaveis: CategoriaEditavel[] = cats === null ? [] : [
+    ...CATEGORIAS.map((base) => cats.find((c) => c.slug === base.slug) ?? { ...base, id: null }),
+    ...cats.filter((c) => !CATEGORIAS.some((base) => base.slug === c.slug)),
+  ]
   async function carregar() {
     try {
       const [c, r] = await Promise.all([puxarCategoriasUsuario(), puxarRegras()])
@@ -51,7 +57,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function abrirEdicao(c: CategoriaUsuario) {
+  function abrirEdicao(c: CategoriaEditavel) {
     setEditando(c)
     setNome(c.nome)
     setIcone(c.icone)
@@ -62,7 +68,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
     if (!editando || !nome.trim()) return
     setOcupado(true)
     try {
-      await editarCategoria(editando.id, { nome, icone: icone || '🏷️', cor })
+      await editarCategoria(editando.id, editando.slug, { nome, icone: icone || '🏷️', cor })
       toast.success(t('cats.toastSalva'))
       setEditando(null)
       await carregar()
@@ -74,7 +80,23 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
     }
   }
 
-  async function apagar(c: CategoriaUsuario) {
+  async function restaurar(c: CategoriaEditavel) {
+    if (!c.id) return
+    setOcupado(true)
+    try {
+      await apagarCategoria(c.id)
+      toast.success(t('cats.toastRestaurada'))
+      await carregar()
+      onMudou()
+    } catch (e) {
+      toast.error(t(chaveDeErro(e, 'cats.toastRestaurarFalha', 'categorias')))
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  async function apagar(c: CategoriaEditavel) {
+    if (!c.id) return
     setOcupado(true)
     try {
       await apagarCategoria(c.id)
@@ -120,28 +142,20 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       </header>
 
       <div className="px-3 py-2">
-            {/* Categorias do usuário */}
+            {/* Categorias padrão e personalizadas */}
             <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-widest text-tinta-tenue">
               {t('cats.suas')}
             </p>
             {cats === null ? (
               <p className="px-4 py-6 text-center text-sm text-tinta-fraca">{t('cats.carregando')}</p>
-            ) : cats.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-tinta-fraca">{t('cats.semSuas')}</p>
             ) : (
               <ul className="space-y-1">
-                {cats.map((c) => (
-                  <li key={c.id} className="rounded-lg px-3 py-2 transition-colors hover:bg-carvao-850">
-                    {editando?.id === c.id ? (
+                {editaveis.map((c) => (
+                  <li key={c.slug} className="rounded-lg px-3 py-2 transition-colors hover:bg-carvao-850">
+                    {editando?.slug === c.slug ? (
                       <div className="space-y-2">
                         <div className="flex gap-2">
-                          <input
-                            value={icone}
-                            onChange={(e) => setIcone(e.target.value)}
-                            aria-label={t('cats.icone')}
-                            maxLength={2}
-                            className="w-12 rounded-lg border border-campo-borda bg-carvao-950/40 px-2 py-1.5 text-center text-tinta"
-                          />
+                          <SeletorEmoji valor={icone} rotulo={t('cats.icone')} aoSelecionar={setIcone} />
                           <input
                             value={nome}
                             onChange={(e) => setNome(e.target.value)}
@@ -192,9 +206,8 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                             {t('cats.usoN', { n: usoPorSlug.get(c.slug) ?? 0 })}
                           </span>
                         </span>
-                        {/* aria-label nomeia a categoria: sem isso a tela
-                            tem vários botões "Apagar" idênticos — e, com a
-                            confirmação aberta, dois deles ao mesmo tempo. */}
+                        {/* A chave acessível inclui o nome porque a lista tem
+                            ações iguais para várias categorias. */}
                         <button
                           onClick={() => abrirEdicao(c)}
                           aria-label={t('cats.editarNome', { nome: c.nome })}
@@ -202,13 +215,19 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                         >
                           {t('cats.editar')}
                         </button>
-                        <button
-                          onClick={() => setConfirmando(c)}
-                          aria-label={t('cats.apagarNome', { nome: c.nome })}
-                          className="rounded-lg px-2 py-1 text-xs text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha"
-                        >
-                          {t('cats.apagar')}
-                        </button>
+                        {c.id && CATEGORIAS.some((base) => base.slug === c.slug) ? (
+                          <button onClick={() => restaurar(c)} disabled={ocupado}
+                            aria-label={t('cats.restaurarNome', { nome: c.nome })}
+                            className="rounded-lg px-2 py-1 text-xs text-tinta-tenue transition-colors hover:bg-carvao-800 hover:text-tinta disabled:opacity-50">
+                            {t('cats.restaurar')}
+                          </button>
+                        ) : c.id ? (
+                          <button onClick={() => setConfirmando(c)}
+                            aria-label={t('cats.apagarNome', { nome: c.nome })}
+                            className="rounded-lg px-2 py-1 text-xs text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha">
+                            {t('cats.apagar')}
+                          </button>
+                        ) : null}
                       </div>
                     )}
                   </li>

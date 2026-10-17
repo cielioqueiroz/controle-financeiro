@@ -1,5 +1,23 @@
 # Estado atual do projeto — retomada
 
+## Personalização de categorias e gráficos — 2026-10-17
+
+- Em `codex/categorias-graficos`, o usuário pode escolher emoji ao criar categoria
+  e editar nome, emoji e cor das categorias padrão sem mudar seus slugs. Isso
+  conserva as transações e regras existentes; a restauração remove a
+  personalização e não exige migração. Decisão: [ADR-0019](./adr/0019-personalizacao-de-categorias-sem-mudar-o-slug.md).
+- O saldo atual cabe em uma linha e mantém o alinhamento do cartão. A linha
+  financeira virou uma série mensal de barras com resultado positivo/negativo;
+  meses sem documento seguem explicitamente sem dados. Comparativo acima de
+  100% agora informa que a despesa excedeu a renda.
+- Typecheck, suíte (320,9s), lint, caminhos e build passaram. A primeira
+  execução do gate CSP ficou presa após o build; executado isoladamente em
+  seguida, aprovou a jornada de login e todas as sondas. Axe: 30 jornadas em
+  desktop e celular sem violações graves/críticas. Overflow: as mesmas 30
+  jornadas nos dois tamanhos sem estouro lateral. O gatilho da comparação
+  mensal foi atualizado para acompanhar seu rótulo acessível completo.
+- Evidência: [categorias e gráficos](./validacoes/2026-10-17-categorias-graficos.md).
+
 ## Continuação — origem nas transações — 2026-10-17
 
 - Em `codex/demo-origem`, a tela de transações agora permite chegar ao documento
