@@ -1,6 +1,8 @@
 # Origem dos valores — entrega e provas
 
 Data: 17/10/2026. Branch: `codex/origem-dos-valores`.
+Código em `9375e11`; [PR #34](https://github.com/cielioqueiroz/controle-financeiro/pull/34)
+registra os checks remotos e a integração.
 
 ## O que mudou
 

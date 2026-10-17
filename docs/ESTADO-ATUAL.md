@@ -15,6 +15,8 @@ rodadas após revisão e verificações, sem novas confirmações intermediária
   passos; 28 jornadas em desktop/celular sem overflow ou violações graves de
   acessibilidade. Revisão final sem achados críticos/importantes. Um ajuste menor
   da demo foi adiado. [Entrega, prints e decisões](./validacoes/2026-10-17-origem-dos-valores.md).
+- Envio em `9375e11`, [PR #34](https://github.com/cielioqueiroz/controle-financeiro/pull/34).
+  O PR registra o CI e a integração; este diário registra as provas anteriores ao envio.
 
 ## Envio e correção do CI — 2026-10-17
 
@@ -76,7 +78,8 @@ Plano e critérios em
   para R$ 32,57. 21 verificações; sem chamadas ao Neon de produção. Evidências em
   [validação da RPC real](./validacoes/2026-10-17-rpc-real.md).
 - O endereço local 127.0.0.1:5178 foi autorizado somente no Auth da branch de
-  teste. Aplicação da migração em produção continua pendente de autorização.
+  teste. A migração foi posteriormente autorizada, aplicada e conferida em
+  produção, conforme registro de 17/10 acima.
 
 Prévias novas: `http://127.0.0.1:5177/demo.html?tela=documentos&amostra=confere`
 e `&amostra=sem-gabarito`; legado sem `amostra`. Falhas parciais em
