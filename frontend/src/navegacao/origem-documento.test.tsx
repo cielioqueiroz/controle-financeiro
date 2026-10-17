@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { DadosProvider } from '../dados/DadosProvider'
 import { Relatorios } from '../paginas/Relatorios'
+import { Lancamentos } from '../paginas/Lancamentos'
 import { Faturas } from '../paginas/Faturas'
 
 vi.mock('../aplicacao/consultas/historico', () => ({
@@ -59,5 +60,26 @@ describe('procedência entre Relatórios e Faturas', () => {
     expect(screen.getByLabelText('Local')).toHaveTextContent('janela=3')
     expect(screen.getByLabelText('Local')).toHaveTextContent('banco=nubank')
     expect(screen.getByLabelText('Local')).toHaveTextContent('ref=2026-07')
+  })
+
+  it('abre a fatura de origem a partir da lista de transações', async () => {
+    const usuario = userEvent.setup()
+    render(<MemoryRouter initialEntries={['/lancamentos?ref=2026-07&banco=nubank']}>
+      <DadosProvider><Routes>
+        <Route path="/lancamentos" element={<Lancamentos />} />
+        <Route path="/faturas" element={<Faturas />} />
+      </Routes><Navegador /></DadosProvider>
+    </MemoryRouter>)
+    await usuario.click(await screen.findByRole('button', { name: 'Todos' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Ver documento importado' }))
+    expect(await screen.findByText('fatura-origem.pdf')).toBeVisible()
+    expect(screen.getByText('Ver dados do documento')).toHaveFocus()
+    expect(screen.getByLabelText('Local')).toHaveTextContent('/faturas?')
+    expect(screen.getByLabelText('Local')).toHaveTextContent('documento=doc-1')
+    expect(screen.getByLabelText('Local')).toHaveTextContent('banco=nubank')
+    expect(screen.getByLabelText('Local')).toHaveTextContent('ref=2026-07')
+    await usuario.click(screen.getByRole('button', { name: 'Voltar no navegador' }))
+    expect(await screen.findByRole('button', { name: 'Todos' })).toBeVisible()
+    expect(screen.getByLabelText('Local')).toHaveTextContent('/lancamentos?')
   })
 })

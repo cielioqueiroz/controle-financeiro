@@ -13,12 +13,13 @@ type Props = {
   grupos: GrupoCategoria<TransacaoSalva>[]
   totalCents: number
   onEditar: (t: TransacaoSalva) => void
+  onVerDocumento?: (t: TransacaoSalva) => void
 }
 
 /** Gastos por categoria com drill-down: cada categoria é uma seção que
  *  abre a tabela das compras daquela categoria (data, estabelecimento,
  *  valor). Abre a maior categoria por padrão. */
-export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
+export function ListaPorCategoria({ grupos, totalCents, onEditar, onVerDocumento }: Props) {
   const formatBRL = useDinheiro()
   const { t } = useT()
   const [abertas, setAbertas] = useState<Set<string>>(() =>
@@ -99,7 +100,7 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar }: Props) {
                 >
                   <ul className="bg-carvao-950/30 py-1">
                     {g.itens.map((t) => (
-                      <LinhaTransacao key={t.id} t={t} onEditar={onEditar} semIcone />
+                    <LinhaTransacao key={t.id} t={t} onEditar={onEditar} onVerDocumento={onVerDocumento} semIcone />
                     ))}
                   </ul>
                 </motion.div>

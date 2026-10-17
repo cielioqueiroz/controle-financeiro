@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { porCategoriaDetalhado, porDia } from '../domain/agrupar'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { useRecorte } from '../dados/useRecorte'
@@ -23,6 +24,8 @@ type Props = {
  *  lançamentos precisa e o que a coluna estreita do painel não dava. */
 export function Lancamentos({ onAprendeu }: Props) {
   const { t } = useT()
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { txs, resumo, carregando, erro, vazio, filtros, setFiltros } = useRecorte()
   // Chegar com `cat` ou `q` na URL é chegar procurando: veio do clique numa
   // fatia do donut, ou de um link salvo. A vista "por categoria" ignoraria os
@@ -33,6 +36,12 @@ export function Lancamentos({ onAprendeu }: Props) {
   )
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const { recarregar, aplicarEdicao } = useDados()
+
+  function abrirDocumento(id: string) {
+    const proxima = new URLSearchParams(params)
+    proxima.set('documento', id)
+    navigate(`/faturas?${proxima.toString()}`)
+  }
 
   const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
   const dias = useMemo(() => porDia(txs), [txs])
@@ -74,9 +83,11 @@ export function Lancamentos({ onAprendeu }: Props) {
                 grupos={grupos}
                 totalCents={resumo.gastoCents}
                 onEditar={setEditando}
+                onVerDocumento={(tx) => abrirDocumento(tx.document_id)}
               />
             ) : vista === 'dia' ? (
-              <ListaPorDia grupos={dias} onEditar={setEditando} />
+              <ListaPorDia grupos={dias} onEditar={setEditando}
+                onVerDocumento={(tx) => abrirDocumento(tx.document_id)} />
             ) : (
               <ListaTodos
                 txs={txs}
@@ -85,6 +96,7 @@ export function Lancamentos({ onAprendeu }: Props) {
                 cat={filtros.categoria}
                 onTermo={(busca) => setFiltros({ busca })}
                 onCat={(categoria) => setFiltros({ categoria })}
+                onVerDocumento={(tx) => abrirDocumento(tx.document_id)}
               />
             )}
           </>

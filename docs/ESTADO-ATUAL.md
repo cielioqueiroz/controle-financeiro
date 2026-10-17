@@ -1,5 +1,18 @@
 # Estado atual do projeto — retomada
 
+## Continuação — origem nas transações — 2026-10-17
+
+- Em `codex/demo-origem`, a tela de transações agora permite chegar ao documento
+  importado em todas as vistas (categoria, dia e lista). A navegação preserva
+  os filtros da URL; voltar restaura a tela anterior. Relatórios mantém o fluxo
+  da rodada anterior, e a demo acompanha a navegação interna do `MemoryRouter`.
+- O medidor cobre as duas origens (Relatórios e Transações). A nova jornada de
+  Transações passou em desktop/celular, sem overflow e sem violações graves ou
+  críticas do axe. As 29 jornadas anteriores passaram nas duas medidas.
+- `npm run verificar` passou nos seis gates no estado final. Teste integrado
+  também cobre abrir a fatura de origem e voltar pelo histórico.
+- Evidência: [origem nas transações](./validacoes/2026-10-17-origem-nas-transacoes.md).
+
 ## Continuação — origem dos valores — 2026-10-17
 
 Autorização integral do usuário nesta conversa cobre concluir e publicar as
