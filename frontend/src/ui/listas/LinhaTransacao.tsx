@@ -8,6 +8,7 @@ import { useDinheiro } from '../../dados/DiscretoProvider'
 type Props = {
   t: TransacaoSalva
   onEditar: (t: TransacaoSalva) => void
+  onVerDocumento?: (t: TransacaoSalva) => void
   /** Esconde o ícone da categoria (dentro de uma seção de categoria). */
   semIcone?: boolean
   /** Mostra a coluna de categoria (desktop) — útil na visão por dia. */
@@ -28,7 +29,7 @@ type Props = {
  *
  *  `lg` e não uma consulta de ponteiro fino porque é o mesmo limite em que a
  *  calha lateral aparece: abaixo dele o projeto já assume dedo. */
-export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Props) {
+export function LinhaTransacao({ t, onEditar, onVerDocumento, semIcone, mostrarCategoria }: Props) {
   const formatBRL = useDinheiro()
   const { t: tr } = useT()
   const cat = categoria(t.category_slug ?? 'outros')
@@ -62,6 +63,19 @@ export function LinhaTransacao({ t, onEditar, semIcone, mostrarCategoria }: Prop
         >
           {nomeCategoria(cat)}
         </span>
+      )}
+      {onVerDocumento && (
+        <button
+          onClick={() => onVerDocumento(t)}
+          aria-label={tr('relatorios.verDocumento')}
+          title={tr('relatorios.verDocumento')}
+          className="screen-only grid h-11 w-11 shrink-0 place-items-center rounded-md text-tinta-tenue transition-colors hover:bg-carvao-800 hover:text-tinta focus:text-tinta"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 3.75h7l4 4v12.5H7a2 2 0 0 1-2-2v-12.5a2 2 0 0 1 2-2Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14 3.75v4h4M8.5 12h7m-7 3.5h7" />
+          </svg>
+        </button>
       )}
       <button
         onClick={() => onEditar(t)}

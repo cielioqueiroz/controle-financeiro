@@ -20,6 +20,7 @@ type Props = {
   cat: string | null
   onTermo: (v: string) => void
   onCat: (v: string | null) => void
+  onVerDocumento?: (t: TransacaoSalva) => void
 }
 
 /** Lista plana do período com busca por texto e filtro por categoria.
@@ -28,7 +29,7 @@ type Props = {
  *  dinheiro". Esta responde "onde está aquela compra" — a pergunta que não
  *  tinha resposta antes: só dava para navegar por agrupamento, nunca
  *  procurar. Ordena por data desc, a ordem que a memória usa. */
-export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props) {
+export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat, onVerDocumento }: Props) {
   const formatBRL = useDinheiro()
   const { t, idioma } = useT()
   const [focado, setFocado] = useState(false)
@@ -124,7 +125,7 @@ export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat }: Props)
           <CabecalhoLancamentos mostrarCategoria />
           <ul>
             {filtradas.map((x) => (
-              <LinhaTransacao key={x.id} t={x} onEditar={onEditar} mostrarCategoria />
+              <LinhaTransacao key={x.id} t={x} onEditar={onEditar} onVerDocumento={onVerDocumento} mostrarCategoria />
             ))}
           </ul>
         </>

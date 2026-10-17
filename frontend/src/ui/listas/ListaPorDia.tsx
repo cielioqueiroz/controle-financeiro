@@ -9,6 +9,7 @@ import { diaSemanaAbrev, mesAbrev } from '../../domain/normalize/data'
 type Props = {
   grupos: GrupoDia<TransacaoSalva>[]
   onEditar: (t: TransacaoSalva) => void
+  onVerDocumento?: (t: TransacaoSalva) => void
 }
 
 /** ⚠️ `new Date(y, m - 1, d)`, e não `new Date(iso)`: a segunda forma lê a
@@ -27,7 +28,7 @@ function cabecalhoDia(iso: string): string {
 /** Lançamentos agrupados por dia: cada dia tem um cabeçalho com a data e o
  *  subtotal (gasto e entradas), e abaixo tudo o que rolou naquele dia —
  *  compras, débitos, créditos, estornos. */
-export function ListaPorDia({ grupos, onEditar }: Props) {
+export function ListaPorDia({ grupos, onEditar, onVerDocumento }: Props) {
   const formatBRL = useDinheiro()
   // O `useT` não é só pelas frases: `cabecalhoDia` lê a locale de um estado de
   // MÓDULO, e estado de módulo não repinta ninguém. É o hook que inscreve este
@@ -56,7 +57,7 @@ export function ListaPorDia({ grupos, onEditar }: Props) {
             </header>
             <ul>
               {g.itens.map((t) => (
-                <LinhaTransacao key={t.id} t={t} onEditar={onEditar} mostrarCategoria />
+                <LinhaTransacao key={t.id} t={t} onEditar={onEditar} onVerDocumento={onVerDocumento} mostrarCategoria />
               ))}
             </ul>
           </section>

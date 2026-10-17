@@ -72,6 +72,14 @@ JORNADAS = [
     ("relatorio-detalhe", "/demo.html?tela=relatorios&janela=3&tema=claro",
      [("clicar-parcial", "Supermercado"), ("expandir-documento", "")],
      [("ver-secao", "detalhe-relatorio"), ("ver-botao", "Ver documento importado")], 6),
+    ("relatorio-origem-documento", "/demo.html?tela=relatorios&janela=3&tema=claro",
+     [("clicar-parcial", "Supermercado"), ("expandir-documento", ""),
+      ("clicar", "Ver documento importado")],
+     [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento"),
+      ("ver-texto", "documento-exemplo-2026-07.pdf")], 6),
+    ("lancamento-origem-documento", "/demo.html?tela=lancamentos",
+     [("clicar", "Ver documento importado")],
+     [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
     ("fluxo-destaque", "/demo.html?tela=painel",
      [("expandir", "Explorar o período"), ("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
     ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",
@@ -184,6 +192,10 @@ def conferir(pagina: Page, provas: list[tuple[str, str]]) -> None:
             expect(resumo).to_be_focused()
         elif acao == "ver-secao":
             expect(pagina.locator(f'[data-prova="{alvo}"]')).to_be_visible()
+        elif acao == "ver-path":
+            rota = pagina.locator("main").get_attribute("data-rota-demo")
+            if not rota or not rota.startswith(alvo):
+                raise AssertionError(f"rota da demo {rota!r}, esperada {alvo!r}")
         elif acao == "focado":
             # `sr-only` tem caixa de 1px e o Playwright a considera visivel:
             # perguntar pelo foco e o unico jeito honesto de provar que a dica

@@ -1,7 +1,7 @@
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { MemoryRouter, useSearchParams } from 'react-router-dom'
+import { MemoryRouter, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { IdiomaProvider } from './i18n/IdiomaProvider'
 import { SaldoConta } from './ui/SaldoConta'
 import { SaldoAberto } from './ui/SaldoAberto'
@@ -407,15 +407,19 @@ function Interativas() {
 }
 
 function Previa() {
-  const tela = new URLSearchParams(window.location.search).get('tela')
+  const local = useLocation()
+  const tela = local.pathname === '/faturas' ? 'documentos'
+    : local.pathname === '/lancamentos' ? 'lancamentos'
+    : new URLSearchParams(local.search).get('tela')
   if (!tela) return <Folha />
   return (
-    <main className="mx-auto w-full max-w-[104rem] px-6 py-8">
+    <main data-rota-demo={`${local.pathname}${local.search}`} className="mx-auto w-full max-w-[104rem] px-6 py-8">
       <h1 className="mb-8 font-display text-2xl text-tinta">Capital Financeiro · dados fictícios</h1>
       {tela === 'painel' ? <Painel /> : tela === 'relatorios' ? <Relatorios />
         : tela === 'situacao' ? <SituacaoFinanceira />
         : tela === 'conferencia' ? <PreviaConferencia />
-        : tela === 'documentos' ? <PreviaDocumento /> : (
+        : tela === 'documentos' ? <PreviaDocumento />
+        : tela === 'lancamentos' ? <PreviaLancamentos /> : (
         <div data-prova="estados-painel" className="pilha-paineis">
           <CarregandoPainel />
           <EstadoVazio titulo="Nada por aqui ainda" descricao="Importe uma fatura ou extrato para começar."
@@ -426,6 +430,15 @@ function Previa() {
       )}
     </main>
   )
+}
+
+function PreviaLancamentos() {
+  const navigate = useNavigate()
+  const [termo, setTermo] = useState('')
+  const [cat, setCat] = useState<string | null>(null)
+  return <ListaTodos txs={historicoPrevia} onEditar={() => {}} termo={termo} cat={cat}
+    onTermo={setTermo} onCat={setCat}
+    onVerDocumento={(transacao) => navigate(`/faturas?documento=${encodeURIComponent(transacao.document_id)}`)} />
 }
 
 function PreviaConferencia() {
@@ -450,7 +463,7 @@ function PreviaDocumento() {
   const [params, setParams] = useSearchParams()
   const amostra = params.get('amostra')
   const semTransacoes = amostra === 'sem-transacoes'
-  const documento: DocumentoSalvo = {
+  const documentoFicticio: DocumentoSalvo = {
     id: 'documento-ficticio', bank: 'nubank', doc_type: 'extrato',
     filename: 'extrato-exemplo-com-nome-longo-para-conferir-no-celular-junho-2026.pdf',
     period_start: '2026-06-01', period_end: '2026-06-30', imported_at: '2026-07-01T12:00:00Z',
@@ -464,18 +477,51 @@ function PreviaDocumento() {
       ],
     } : amostra === 'sem-gabarito' ? { versao: 1, status: 'sem-gabarito', contagem: 2, comparacoes: [] } : null,
   }
-  if (params.get('documento') && params.get('documento') !== documento.id) {
+  const idSelecionado = params.get('documento')
+  const transacoesDaOrigem = idSelecionado && idSelecionado !== documentoFicticio.id
+    ? historicoPrevia.filter((transacao) => transacao.document_id === idSelecionado)
+    : []
+  if (idSelecionado && idSelecionado !== documentoFicticio.id && transacoesDaOrigem.length === 0) {
     return <DocumentoNaoEncontrado onLimpar={() => {
       const proximos = new URLSearchParams(params)
       proximos.delete('documento')
       setParams(proximos, { replace: true })
     }} />
   }
+  const documento: DocumentoSalvo = transacoesDaOrigem.length > 0
+    ? {
+        ...documentoFicticio,
+        id: transacoesDaOrigem[0].document_id,
+        bank: transacoesDaOrigem[0].bank,
+        doc_type: transacoesDaOrigem[0].doc_type,
+        filename: `documento-exemplo-${transacoesDaOrigem[0].competencia}.pdf`,
+        period_start: `${transacoesDaOrigem[0].competencia}-01`,
+        period_end: (() => {
+          const [ano, mes] = transacoesDaOrigem[0].competencia.split('-').map(Number)
+          const ultimoDia = new Date(ano, mes, 0).getDate()
+          return `${transacoesDaOrigem[0].competencia}-${String(ultimoDia).padStart(2, '0')}`
+        })(),
+        declared_total: null,
+        declared_income: null,
+        declared_expense: null,
+        conferencia: null,
+      }
+    : documentoFicticio
+  const transacoesDocumento = transacoesDaOrigem.length > 0
+    ? transacoesDaOrigem
+    : null
+  const contagem = transacoesDocumento
+    ? {
+        qtd: transacoesDocumento.length,
+        totalCents: transacoesDocumento.reduce((soma, transacao) =>
+          soma + (transacao.kind === 'expense' ? transacao.amount_cents : 0), 0),
+      }
+    : semTransacoes ? { qtd: 0, totalCents: 0 } : { qtd: 2, totalCents: 9000 }
   return (
     <ul className="mx-auto max-w-3xl">
       <DocumentoImportado documento={documento}
-        selecionado={params.get('documento') === documento.id}
-        contagem={semTransacoes ? { qtd: 0, totalCents: 0 } : { qtd: 2, totalCents: 9000 }} onApagar={() => {}} />
+        selecionado={idSelecionado === documento.id}
+        contagem={contagem} onApagar={() => {}} />
     </ul>
   )
 }
