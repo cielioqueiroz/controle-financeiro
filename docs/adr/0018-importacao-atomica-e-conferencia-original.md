@@ -1,6 +1,6 @@
 # ADR-0018 — Importação atômica e conferência original
 
-Data: 2026-10-16. Status: implementada em branch; migração 0008 pendente em produção.
+Data: 2026-10-16. Status: implementada; migração 0008 aplicada e conferida em produção em 17/10/2026.
 
 ## Contexto
 

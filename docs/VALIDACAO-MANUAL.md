@@ -86,7 +86,9 @@ senha que usar.
 PDF sintético e interface real. Incluiu concorrência, rollback, isolamento entre
 usuários e resposta perdida após commit com recuperação sem F5. Evidências e
 validador reproduzível em [validação da RPC real](./validacoes/2026-10-17-rpc-real.md).
-O roteiro abaixo serve para repetir o ensaio; não indica aplicação em produção.
+O roteiro abaixo serve para repetir o ensaio. A migração foi aplicada e seus
+privilégios conferidos em produção em 17/10/2026, após autorização no chat;
+os ensaios de escrita continuaram restritos à branch de teste.
 
 1. Usar o frontend desta branch localmente, com Auth e Data API da branch Neon
    `codex-integridade-20261016` (expira em 23/10/2026), e entrar numa conta de teste.
@@ -101,7 +103,7 @@ O roteiro abaixo serve para repetir o ensaio; não indica aplicação em produç
 5. Em uma conta diferente, o documento importado não aparece. Registrar resultado
    HTTP, data e branch em `ESTADO-ATUAL.md`, sem copiar tokens ou conteúdo pessoal.
 
-Depois da aprovação para produção: aplicar e conferir a migração `0008` antes
+Em instalações novas, aplicar e conferir a migração `0008` antes
 de publicar o frontend. Ausência da RPC deve produzir o aviso de atualização
 necessária; nunca deve acionar a antiga escrita em várias chamadas.
 

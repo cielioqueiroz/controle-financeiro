@@ -1,5 +1,22 @@
 # Estado atual do projeto — retomada
 
+## Envio e correção do CI — 2026-10-17
+
+- Rodada de integridade commitada em `3ba4f8f`, enviada para
+  `codex/integridade-importacao-leitura`; [PR #33 em rascunho](https://github.com/cielioqueiroz/controle-financeiro/pull/33).
+- O CI aprovou aplicação e medidores, mas apontou três dependências vulneráveis.
+  Atualizadas somente DOMPurify (3.4.17), source-map-js (1.2.2) e undici (7.30.1).
+  `npm audit` passou com zero vulnerabilidades; verificação completa aprovada
+  nos seis passos (tipos, testes, lint, caminhos, build e CSP).
+  Evidências: [correção do audit](./validacoes/2026-10-17-audit.md).
+- A próxima rodada, origem dos valores, começou em `codex/origem-dos-valores`:
+  design e plano escritos, builder check sem pendências, testes de URL/retorno
+  e seleção do documento. Trabalho preservado em stash durante a correção do CI.
+- Após autorização integral no chat, migração `0008` aplicada em uma transação
+  na produção (`br-polished-brook-ace866df`) e conferida: coluna JSONB anulável,
+  funções invoker, permissões restritas e RLS ativo nas seis tabelas. Não houve
+  escrita de documentos ou transações de usuários. Merge aguarda o CI atualizado.
+
 ## Rodada de integridade — 2026-10-16
 
 Implementação e verificações concluídas; fechamento registrado em 17/10/2026.
@@ -20,9 +37,9 @@ Plano e critérios em
   quando a nova consulta falha.
 - Duplicata também dispara releitura: recupera a gravação cuja resposta HTTP se
   perdeu e documentos importados por outra aba. Teste integrado cobre a recuperação.
-- Migração aplicada **somente** na branch Neon `codex-integridade-20261016`
-  (`br-billowing-mud-ac8q493y`), expiração em 23/10/2026. **Produção pendente**:
-  aplicar e conferir a migração antes de publicar este frontend.
+- Migração ensaiada na branch Neon `codex-integridade-20261016`
+  (`br-billowing-mud-ac8q493y`), expiração em 23/10/2026, e posteriormente
+  aplicada e conferida em produção em 17/10/2026 (registro acima).
 - SQL real aprovado como `authenticated`: falha/rollback, nova tentativa,
   duplicata, sobreposição e RLS entre dois usuários sintéticos. Duas chamadas
   simultâneas também foram exercitadas: uma salva, outra duplicada; uma conta,
