@@ -18,6 +18,14 @@ const documento: DocumentoSalvo = {
   declared_total: 10000, declared_income: null, declared_expense: null,
 }
 
+it('abre e foca o documento selecionado sem disparar exclusão', () => {
+  const apagar = vi.fn()
+  render(<ul><DocumentoImportado documento={documento} contagem={null} onApagar={apagar} selecionado /></ul>)
+  expect(screen.getByText('fatura-junho.pdf')).toBeVisible()
+  expect(screen.getByText('Ver dados do documento')).toHaveFocus()
+  expect(apagar).not.toHaveBeenCalled()
+})
+
 it('distingue o gasto real salvo do gabarito sem inventar uma conferência', () => {
   render(<ul><DocumentoImportado documento={documento} contagem={{ qtd: 2, totalCents: 8000 }} onApagar={vi.fn()} /></ul>)
   expect(screen.getByText(/Gasto real salvo: R\$ 80,00/)).toBeVisible()

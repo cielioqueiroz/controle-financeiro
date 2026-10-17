@@ -7,11 +7,11 @@ import { useT } from '../i18n/IdiomaProvider'
 import { Cartao } from './Cartao'
 import { Procedencia } from './Procedencia'
 
-type Props = { titulo: string; txs: TransacaoSalva[]; periodo: string; onFechar: () => void }
+type Props = { titulo: string; txs: TransacaoSalva[]; periodo: string; onFechar: () => void; onVerDocumento?: (id: string) => void }
 
 /** Recebe exatamente as transações que compõem o valor clicado, sem refazer
  * o recorte pela URL de mês (um relatório pode atravessar dois anos). */
-export function DetalheRelatorio({ titulo, txs, periodo, onFechar }: Props) {
+export function DetalheRelatorio({ titulo, txs, periodo, onFechar, onVerDocumento }: Props) {
   const { t } = useT()
   const dinheiro = useDinheiro()
   const id = useId()
@@ -44,7 +44,9 @@ export function DetalheRelatorio({ titulo, txs, periodo, onFechar }: Props) {
                 {BANCOS[primeira.bank as Bank]?.nome ?? primeira.bank} · {t(primeira.doc_type === 'fatura' ? 'proc.fatura1' : 'proc.extrato1')} · {primeira.competencia}
                 <span className="tabular ml-2">{dinheiro(transacoes.reduce((soma, tx) => soma + tx.amount_cents, 0))}</span>
               </summary>
-              <p className="mb-3 break-all text-xs text-tinta-tenue">{t('relatorios.documentoId', { id: documento })}</p>
+              {onVerDocumento && <button type="button" className="acao-painel my-3" onClick={() => onVerDocumento(documento)}>
+                {t('relatorios.verDocumento')}
+              </button>}
               <ul className="divide-y divide-borda">
                 {transacoes.map((tx) => (
                   <li key={tx.id} className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">

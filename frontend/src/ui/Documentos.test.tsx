@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConteudoDocumentos } from './Documentos'
 import type { DocumentoSalvo } from '../persist/documentos'
@@ -51,6 +51,32 @@ beforeEach(() => {
   puxarDocumentos.mockResolvedValue([doc])
 })
 afterEach(() => toast.dismiss())
+
+it('só informa seleção ausente depois de carregar e permite limpar sem excluir', async () => {
+  let concluir!: (docs: DocumentoSalvo[]) => void
+  puxarDocumentos.mockReturnValueOnce(new Promise((resolve) => { concluir = resolve }))
+  const limpar = vi.fn()
+  render(<ConteudoDocumentos onMudou={vi.fn()} contagem={null}
+    documentoSelecionado="ausente" onLimparSelecao={limpar} />)
+  expect(screen.queryByText('Este documento não está disponível no seu histórico.')).not.toBeInTheDocument()
+  await act(async () => concluir([doc]))
+  expect(screen.getByText('Este documento não está disponível no seu histórico.')).toBeVisible()
+  await userEvent.click(screen.getByRole('button', { name: 'Ver todos os documentos' }))
+  expect(limpar).toHaveBeenCalledOnce()
+  expect(apagarDocumento).not.toHaveBeenCalled()
+  expect(apagarTudo).not.toHaveBeenCalled()
+})
+
+it('trata falha de consulta como erro e abre a seleção após tentar novamente', async () => {
+  puxarDocumentos.mockRejectedValueOnce(new Error('offline'))
+  render(<ConteudoDocumentos onMudou={vi.fn()} contagem={null}
+    documentoSelecionado="doc-1" onLimparSelecao={vi.fn()} />)
+  expect(await screen.findByRole('alert')).toBeVisible()
+  expect(screen.queryByText('Este documento não está disponível no seu histórico.')).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
+  expect(await screen.findByText('Ver dados do documento')).toHaveFocus()
+  expect(apagarDocumento).not.toHaveBeenCalled()
+})
 
 it('mostra a falha de consulta e permite tentar novamente, sem fingir lista vazia', async () => {
   puxarDocumentos.mockRejectedValueOnce(new Error('timeout'))

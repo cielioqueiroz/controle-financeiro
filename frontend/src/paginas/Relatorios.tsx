@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useMemo, useRef } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
 import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
@@ -20,7 +20,7 @@ import { DetalheRelatorio } from '../ui/DetalheRelatorio'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import { normalizeMerchant } from '../domain/normalize/merchant'
 
-type Detalhe = { tipo: 'categoria' | 'estabelecimento' | 'transacao'; chave: string; titulo: string }
+type Detalhe = { tipo: 'categoria' | 'estabelecimento' | 'transacao'; chave: string }
 
 function rotuloMes(competencia: string): string {
   const [ano, mes] = competencia.split('-').map(Number)
@@ -40,24 +40,45 @@ export function Relatorios() {
   const { todas, recarregar } = useDados()
   const { visiveis, carregando, erro, setFiltros, compAtiva } = useRecorte()
   const [search, setSearch] = useSearchParams()
-  const [detalhe, setDetalhe] = useState<Detalhe | null>(null)
+  const navigate = useNavigate()
+  const tipoDetalhe = search.get('detalhe')
+  const chaveDetalhe = search.get('item')
+  const detalhe: Detalhe | null = chaveDetalhe && (tipoDetalhe === 'categoria' || tipoDetalhe === 'estabelecimento' || tipoDetalhe === 'transacao')
+    ? { tipo: tipoDetalhe, chave: chaveDetalhe } : null
   const gatilhoDetalhe = useRef<HTMLElement | null>(null)
+  const tituloRelatorio = useRef<HTMLHeadingElement>(null)
+
+  function semDetalhe() {
+    const proxima = new URLSearchParams(search)
+    proxima.delete('detalhe')
+    proxima.delete('item')
+    return proxima
+  }
 
   function abrirDetalhe(proximo: Detalhe) {
     gatilhoDetalhe.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    setDetalhe(proximo)
+    const proxima = semDetalhe()
+    proxima.set('detalhe', proximo.tipo)
+    proxima.set('item', proximo.chave)
+    setSearch(proxima, { replace: true })
   }
 
   function fecharDetalhe() {
-    setDetalhe(null)
-    gatilhoDetalhe.current?.focus()
+    setSearch(semDetalhe(), { replace: true })
+    const alvo = gatilhoDetalhe.current?.isConnected ? gatilhoDetalhe.current : tituloRelatorio.current
+    alvo?.focus()
+  }
+
+  function abrirDocumento(id: string) {
+    const proxima = semDetalhe()
+    proxima.set('documento', id)
+    navigate(`/faturas?${proxima.toString()}`)
   }
   const parametroJanela = search.get('janela')
   const janela: JanelaRelatorio = parametroJanela === '3' ? 3 : parametroJanela === '6' ? 6 : 12
 
   function selecionarJanela(valor: JanelaRelatorio) {
-    setDetalhe(null)
-    const proxima = new URLSearchParams(search)
+    const proxima = semDetalhe()
     proxima.set('janela', String(valor))
     setSearch(proxima, { replace: true })
   }
@@ -78,6 +99,11 @@ export function Relatorios() {
     detalhe.tipo === 'categoria' ? (tx.category_slug ?? 'outros') === detalhe.chave :
     detalhe.tipo === 'estabelecimento' ? normalizeMerchant(tx.description) === detalhe.chave : tx.id === detalhe.chave
   ))
+  const tituloDetalhe = detalhe && transacoesDetalhe.length > 0
+    ? detalhe.tipo === 'categoria' ? nomeCategoria(categoria(detalhe.chave))
+      : detalhe.tipo === 'estabelecimento' ? estabelecimentos.find((item) => item.merchant === detalhe.chave)?.rotulo ?? normalizeMerchant(transacoesDetalhe[0].description)
+        : transacoesDetalhe[0].label ?? transacoesDetalhe[0].description
+    : ''
 
   function selecionarMes(competencia: string) {
     const [ano, mes] = competencia.split('-').map(Number)
@@ -89,7 +115,7 @@ export function Relatorios() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="rotulo">{t('relatorios.eyebrow')}</p>
-          <h2 className="mt-1 font-display text-3xl text-tinta sm:text-4xl">{t('relatorios.titulo')}</h2>
+          <h2 ref={tituloRelatorio} tabIndex={-1} className="mt-1 font-display text-3xl text-tinta sm:text-4xl">{t('relatorios.titulo')}</h2>
           <p className="mt-1.5 max-w-2xl text-sm text-tinta-fraca">{t('relatorios.descricao')}</p>
         </div>
         <div className="flex gap-1 rounded-lg border border-carvao-700 bg-carvao-900 p-1">
@@ -164,7 +190,7 @@ export function Relatorios() {
             {resumo.porCategoria.length > 0 && (
               <Cartao>
                 <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents}
-                  onAbrir={(slug) => abrirDetalhe({ tipo: 'categoria', chave: slug, titulo: nomeCategoria(categoria(slug)) })} />
+                  onAbrir={(slug) => abrirDetalhe({ tipo: 'categoria', chave: slug })} />
               </Cartao>
             )}
             <Cartao>
@@ -173,7 +199,7 @@ export function Relatorios() {
               <div className="mt-5 space-y-4">
                 {estabelecimentos.slice(0, 3).map((item) => (
                   <button type="button" key={item.merchant} className="flex min-h-11 w-full flex-wrap items-center gap-3 rounded-md p-2 text-left hover:bg-afundado"
-                    onClick={() => abrirDetalhe({ tipo: 'estabelecimento', chave: item.merchant, titulo: item.rotulo })}>
+                    onClick={() => abrirDetalhe({ tipo: 'estabelecimento', chave: item.merchant })}>
                     <span className="h-2 w-2 shrink-0 rounded-full bg-marca" />
                     <span className="min-w-0 basis-32 flex-1 break-words text-sm text-tinta-fraca">{item.rotulo}</span>
                     <span className="tabular text-sm text-tinta">{dinheiro(item.totalCents)}</span>
@@ -184,8 +210,8 @@ export function Relatorios() {
             </Cartao>
           </div>
 
-          {detalhe && transacoesDetalhe.length > 0 && <DetalheRelatorio key={`${detalhe.tipo}:${detalhe.chave}`} titulo={detalhe.titulo}
-            txs={transacoesDetalhe} periodo={intervalo} onFechar={fecharDetalhe} />}
+          {detalhe && transacoesDetalhe.length > 0 && <DetalheRelatorio key={`${detalhe.tipo}:${detalhe.chave}`} titulo={tituloDetalhe}
+            txs={transacoesDetalhe} periodo={intervalo} onFechar={fecharDetalhe} onVerDocumento={abrirDocumento} />}
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Cartao>
@@ -195,7 +221,7 @@ export function Relatorios() {
                 {maiores.map((item) => (
                   <li key={item.id}>
                     <button type="button" className="flex min-h-11 w-full flex-wrap items-center gap-3 rounded-md py-3 text-left hover:bg-afundado"
-                      onClick={() => abrirDetalhe({ tipo: 'transacao', chave: item.id, titulo: item.label ?? item.description })}>
+                      onClick={() => abrirDetalhe({ tipo: 'transacao', chave: item.id })}>
                     <span className="tabular w-6 text-xs text-tinta-tenue">{maiores.indexOf(item) + 1}</span>
                     <span className="min-w-0 basis-32 flex-1 break-words text-sm text-tinta-fraca">{item.label ?? item.description}</span>
                     <span className="tabular text-sm text-debito">{dinheiro(item.amount_cents)}</span>

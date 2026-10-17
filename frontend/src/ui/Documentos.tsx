@@ -17,6 +17,8 @@ type Props = {
   onMudou: () => void
   /** Contagem/soma por documento, vinda do provider (já em memória). */
   contagem: Map<string, { qtd: number; totalCents: number }> | null
+  documentoSelecionado?: string | null
+  onLimparSelecao?: () => void
 }
 
 /** A competência do documento: o mês em que ele conta para o usuário.
@@ -76,7 +78,17 @@ function realcarNumeros(texto: string) {
  *  A lista também perdeu o `max-h-[55vh] overflow-y-auto`. Rolagem interna
  *  dentro de página que já rola é a barra dupla que o usuário reclamou:
  *  aqui a lista simplesmente flui. */
-export function ConteudoDocumentos({ onMudou, contagem }: Props) {
+export function DocumentoNaoEncontrado({ onLimpar }: { onLimpar?: () => void }) {
+  const { t } = useT()
+  return (
+    <div role="status" className="px-4 py-5 text-sm text-tinta-fraca">
+      <p>{t('docs.selecionadoAusente')}</p>
+      {onLimpar && <button onClick={onLimpar} className="acao-painel mt-3">{t('docs.verTodos')}</button>}
+    </div>
+  )
+}
+
+export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, onLimparSelecao }: Props) {
   const { t } = useT()
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
   const [erro, setErro] = useState<ReturnType<typeof chaveDeErro> | null>(null)
@@ -191,6 +203,9 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
       </header>
 
       <div className="px-3 py-2">
+        {!erro && docs !== null && documentoSelecionado && !docs.some((d) => d.id === documentoSelecionado) && (
+          <DocumentoNaoEncontrado onLimpar={onLimparSelecao} />
+        )}
         {erro ? (
           <ErroCarregar mensagem={t(erro)} onTentar={carregar} />
         ) : docs === null ? (
@@ -212,6 +227,7 @@ export function ConteudoDocumentos({ onMudou, contagem }: Props) {
                     <DocumentoImportado
                       key={d.id}
                       documento={d}
+                      selecionado={d.id === documentoSelecionado}
                       contagem={contagem === null ? null : contagem.get(d.id) ?? { qtd: 0, totalCents: 0 }}
                       onApagar={() => setConfirmando(d.id)}
                     />
