@@ -1,9 +1,9 @@
 # Validação manual — o que nenhum medidor alcança
 
-Este roteiro existe porque **a suíte mocka o SDK do Neon inteiro**
-([ADR-0008](./adr/0008-o-login-nao-tem-rede-de-testes.md)): autenticação não tem
-teste, e entrega de e-mail não tem como ter. Tudo o que está aqui depende de uma
-conta real e de uma caixa de entrada real — por isso é do usuário, não do agente.
+Este roteiro cobre o Neon real e a entrega de e-mail. A suíte mocka o SDK e
+`medir:login` usa o SDK real contra um servidor de mentira; eles provam a parte
+do app, mas não o serviço real (ver ADR-0008 e ADR-0014). Estas etapas dependem
+de uma conta real e, quando indicado, de uma caixa de entrada acessível.
 
 O que **não** está aqui: rolagem lateral, contraste, CSP e as peças que só
 aparecem depois de um clique. Esses viraram medidor
@@ -14,6 +14,7 @@ roda.
 **Onde rodar:** produção (https://capital-financeiro.vercel.app). O `npm run dev`
 serve para o resto; aqui o que se testa é justamente o que só existe no ar —
 domínio autorizado no Neon Auth, remetente do e-mail, CSP da Vercel.
+Exceção: §5 começa num frontend local ligado à branch Neon de teste.
 
 ---
 
@@ -25,6 +26,7 @@ domínio autorizado no Neon Auth, remetente do e-mail, CSP da Vercel.
 | Mexeu no fluxo de senha (`Auth`, `RecuperarSenha`, `lib/recuperar-senha`) | §2 e §3 |
 | Trocou de projeto no Neon, ou mexeu no `connect-src` da CSP | §1 |
 | Deploy comum, sem tocar em autenticação | Nada |
+| Antes de publicar o frontend com a RPC da migração `0008` | §5 |
 
 ---
 
@@ -77,6 +79,33 @@ senha que usar.
 4. Conferir o gasto real de junho contra a referência de `ESTADO-ATUAL.md`
    (**R$ 41.012,25** sobre os 4 PDFs de `D:/extratos/junho2026`). Mudou sem
    motivo? Regrediu.
+
+## §5 — Gravação pela Data API real (migração 0008)
+
+**Aprovado em 17/10/2026 na branch de teste**, com SDK instalado, Auth/JWT reais,
+PDF sintético e interface real. Incluiu concorrência, rollback, isolamento entre
+usuários e resposta perdida após commit com recuperação sem F5. Evidências e
+validador reproduzível em [validação da RPC real](./validacoes/2026-10-17-rpc-real.md).
+O roteiro abaixo serve para repetir o ensaio. A migração foi aplicada e seus
+privilégios conferidos em produção em 17/10/2026, após autorização no chat;
+os ensaios de escrita continuaram restritos à branch de teste.
+
+1. Usar o frontend desta branch localmente, com Auth e Data API da branch Neon
+   `codex-integridade-20261016` (expira em 23/10/2026), e entrar numa conta de teste.
+   Conferir os hosts antes de importar. Não usar a produção para este ensaio.
+2. Importar um PDF sintético reconhecido ou um PDF do titular da conta. A prévia
+   deve conferir; salvar deve mostrar sucesso. Na aba Rede, confirmar uma única
+   chamada `rpc/salvar_documento_atomico` e resposta `status: salvo`.
+3. O Painel atualiza sem F5. Em documentos, conferir que o detalhe guarda a
+   conferência original com as mesmas comparações e contagem da prévia.
+4. Repetir o mesmo PDF: aviso de duplicata, sem nova transação. Recarregar a
+   página e confirmar os mesmos números.
+5. Em uma conta diferente, o documento importado não aparece. Registrar resultado
+   HTTP, data e branch em `ESTADO-ATUAL.md`, sem copiar tokens ou conteúdo pessoal.
+
+Em instalações novas, aplicar e conferir a migração `0008` antes
+de publicar o frontend. Ausência da RPC deve produzir o aviso de atualização
+necessária; nunca deve acionar a antiga escrita em várias chamadas.
 
 ---
 

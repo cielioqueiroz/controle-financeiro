@@ -60,7 +60,7 @@ const pdf = (nome: string) => new File(['x'], nome, { type: 'application/pdf' })
 
 function Gatilho() {
   const { importar, salvar, limpar, cancelarFila, estado, progresso } = useImportacao()
-  const { carregando } = useDados()
+  const { carregando, todas } = useDados()
   return (
     <div>
       <button onClick={() => importar(pdf('extrato.pdf'))}>importar</button>
@@ -80,6 +80,7 @@ function Gatilho() {
       <span data-testid="fase">{estado.fase}</span>
       <span data-testid="progresso">{progresso ? `${progresso.atual}/${progresso.total}` : '-'}</span>
       <span data-testid="carregando">{String(carregando)}</span>
+      <span data-testid="transacoes">{todas?.length ?? '-'}</span>
     </div>
   )
 }
@@ -117,6 +118,32 @@ describe('importar → gravar → o histórico se atualiza sozinho', () => {
     // O defeito: aqui parava em 1, e o painel seguia mostrando o histórico
     // de antes da importação até alguém recarregar a página.
     await waitFor(() => expect(puxarTudo).toHaveBeenCalledTimes(2))
+  })
+
+  it('recupera o histórico quando a gravação concluiu mas a resposta se perdeu', async () => {
+    vi.mocked(salvarDocumento)
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce({ status: 'documento-duplicado', importadoEm: '2026-10-16T12:00:00Z' })
+    vi.mocked(puxarTudo).mockResolvedValueOnce([]).mockResolvedValueOnce([{
+      id: 'recuperada', date: '2026-06-10', competencia: '2026-06',
+      description: 'COMPRA', label: null, amount_cents: 100, kind: 'expense',
+      category_slug: 'outros', bank: 'nubank', doc_type: 'fatura',
+      document_id: 'documento', installment: null,
+    }])
+    const user = userEvent.setup()
+    montar()
+    await waitFor(() => expect(screen.getByTestId('carregando')).toHaveTextContent('false'))
+    await user.click(screen.getByRole('button', { name: 'importar' }))
+    await waitFor(() => expect(screen.getByTestId('fase')).toHaveTextContent('pronto'))
+
+    await user.click(screen.getByRole('button', { name: 'gravar' }))
+    expect(screen.getByTestId('fase')).toHaveTextContent('pronto')
+    expect(screen.getByTestId('transacoes')).toHaveTextContent('0')
+
+    await user.click(screen.getByRole('button', { name: 'gravar' }))
+    await waitFor(() => expect(screen.getByTestId('transacoes')).toHaveTextContent('1'))
+    expect(puxarTudo).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('fase')).toHaveTextContent('vazio')
   })
 
   // Recarregar por engano custa uma ida ao banco e um piscar de "carregando"

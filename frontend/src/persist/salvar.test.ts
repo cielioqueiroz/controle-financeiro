@@ -92,6 +92,58 @@ beforeEach(() => {
 // ---------------------------------------------------------------------
 
 describe('salvarDocumento — o caminho por onde o dinheiro entra', () => {
+  it('grava tudo numa única RPC com a conferência original, sem inserts separados', async () => {
+    montar()
+    const rpc = vi.fn().mockResolvedValue({
+      data: { status: 'salvo', documentId: 'doc-atomico', inseridas: 1, jaExistiam: 0 },
+      error: null,
+    })
+    dublê.cliente = { ...falso.cliente, rpc }
+    const r = await salvarDocumento(documento(), FATURA, BYTES, 'fatura.pdf', [])
+
+    expect(r).toMatchObject({ status: 'salvo', documentId: 'doc-atomico' })
+    expect(rpc).toHaveBeenCalledExactlyOnceWith('salvar_documento_atomico', expect.objectContaining({
+      p_conta: expect.objectContaining({ bank: 'nubank', type: 'credit_card' }),
+      p_documento: expect.objectContaining({ conferencia: {
+        versao: 1, status: 'confere', contagem: 1,
+        comparacoes: [{ criterio: 'total-fatura', gabaritoCents: 500, extraidoCents: 500, diferencaCents: 0 }],
+      } }),
+      p_transacoes: [expect.objectContaining({ amount_cents: 500, description: 'PADARIA DO ZE' })],
+    }))
+    expect(falso.chamadas.some((c) => c.op === 'insert')).toBe(false)
+  })
+
+  it('recusa conferência divergente antes de qualquer escrita', async () => {
+    montar()
+    await expect(salvarDocumento(documento({ declaredTotal: 501 }), FATURA, BYTES, 'f.pdf', []))
+      .rejects.toThrow(/conferência divergente/i)
+    expect(falso.chamadas).toHaveLength(0)
+  })
+
+  it('recusa soma fora do inteiro seguro mesmo com transações individualmente seguras', async () => {
+    montar()
+    const valor = Number.MAX_SAFE_INTEGER
+    const r = documento({ transactions: [tx('2026-06-10', 'A', valor), tx('2026-06-11', 'B', valor)], declaredTotal: valor * 2 })
+    await expect(salvarDocumento(r, FATURA, BYTES, 'f.pdf', [])).rejects.toThrow(/inteiro seguro/)
+    expect(falso.rpcChamadas).toHaveLength(0)
+  })
+
+  it('sem RPC instalada, falha sem voltar às chamadas parciais', async () => {
+    montar()
+    dublê.cliente = { ...falso.cliente, rpc: vi.fn().mockResolvedValue({ data: null,
+      error: { code: 'PGRST202', message: 'function missing' } }) }
+    await expect(salvarDocumento(documento(), FATURA, BYTES, 'f.pdf', [])).rejects.toThrow(/atômica indisponível/)
+    expect(falso.chamadas).toHaveLength(0)
+  })
+
+  it('resposta incompleta não é anunciada como sucesso', async () => {
+    montar()
+    dublê.cliente = { ...falso.cliente, rpc: vi.fn().mockResolvedValue({ data: {
+      status: 'salvo', documentId: 'doc', inseridas: 0, jaExistiam: 0,
+    }, error: null }) }
+    await expect(salvarDocumento(documento(), FATURA, BYTES, 'f.pdf', [])).rejects.toThrow(/incompleta/)
+  })
+
   it('grava documento, conta e transações quando nada existe ainda', async () => {
     montar()
     const r = await salvarDocumento(documento(), FATURA, BYTES, 'fatura.pdf', [])
@@ -168,16 +220,8 @@ describe('duplicata de Documento', () => {
     montar()
     await salvarDocumento(documento(), FATURA, BYTES, 'f.pdf', [])
 
-    const consultas = falso.chamadas.filter((c) => c.tabela === 'documents' && c.op === 'select')
-    expect(consultas.length).toBeGreaterThan(0)
-    for (const c of consultas) {
-      for (const f of c.filtros) {
-        expect(f.tipo).toBe('eq')
-        // O hash é o VALOR do filtro — não pedaço do nome da coluna.
-        expect(f.coluna).not.toContain(fileHash)
-      }
-    }
-    expect(consultas.some((c) => c.filtros.some((f) => f.valor === fileHash))).toBe(true)
+    expect(falso.rpcChamadas[0].parametros.p_documento).toMatchObject({ file_hash: fileHash })
+    expect(falso.chamadas.some((c) => c.op === 'select')).toBe(false)
   })
 
   /** Até 2026-09-06 a dedup trazia todo Documento de content_hash nulo COM
@@ -230,7 +274,8 @@ describe('dedupe contra o que já está no banco', () => {
     // Segundo documento, arquivo e conteúdo diferentes, mesmas transações.
     const outrosBytes = new TextEncoder().encode('%PDF-1.4 outro arquivo').buffer as ArrayBuffer
     const r = await salvarDocumento(
-      documento({ transactions: doc.transactions, declaredTotal: 2999 }),
+      documento({ transactions: doc.transactions, declaredTotal: 3000,
+        forward: { ...doc.forward, totalOpenBalance: 1000 } }),
       FATURA,
       outrosBytes,
       'f2.pdf',
@@ -292,7 +337,9 @@ describe('vínculo — o que não conta como gasto', () => {
     montar()
     const extrato = documento({
       transactions: [tx('2026-06-20', 'Pagamento de fatura', 15000, 'pagamento')],
-      declaredTotal: 15000,
+      declaredTotal: null,
+      declaredIncome: 0,
+      declaredExpense: 15000,
       account: {
         bank: 'bradesco',
         type: 'checking',

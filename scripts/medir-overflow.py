@@ -48,6 +48,10 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("documento-conferencia-original", "/demo.html?tela=documentos&amostra=confere&tema=claro",
+     [("expandir", "Ver dados do documento")], [("ver-texto", "Conferência original"), ("ver-texto", "Lido pelo app")], 6),
+    ("documento-sem-gabarito-original", "/demo.html?tela=documentos&amostra=sem-gabarito",
+     [("expandir", "Ver dados do documento")], [("ver-texto", "Conferência original"), ("ver-texto", "Sem gabarito")], 6),
     ("conferencia-diverge", "/demo.html?tela=conferencia", [],
      [("ver-texto", "Entradas e saídas divergem")], 6),
     ("conferencia-confere", "/demo.html?tela=conferencia&amostra=confere&tema=claro", [],
@@ -74,7 +78,8 @@ JORNADAS = [
     ("situacao-comparacao", "/demo.html?tela=situacao&amostra=comparavel&janela=3&comparar=1&tema=claro",
      [("clicar", "Selecionar jun 2026")],
      [("ver-texto", "Comparação disponível")], 6),
-    ("estados-painel", "/demo.html?tela=estados", [], [("ver-secao", "estados-painel")], 6),
+    ("estados-painel", "/demo.html?tela=estados", [], [("ver-secao", "estados-painel"),
+     ("ver-texto", "Parte dos dados está indisponível")], 6),
     ("painel-recolhido", "/demo.html?tela=painel", [],
      [("ver-texto", "Explorar o período"), ("oculto-texto", "Fluxo financeiro")], 6),
     ("painel-expandido", "/demo.html?tela=painel",

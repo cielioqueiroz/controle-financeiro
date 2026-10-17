@@ -3,6 +3,7 @@ import { temaDoBanco } from '../domain/banks'
 import { dataLongaDe } from '../domain/normalize/data'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
+import { ComparacoesConferencia } from './ComparacoesConferencia'
 
 type Props = {
   documento: DocumentoSalvo
@@ -80,7 +81,17 @@ export function DocumentoImportado({ documento: d, contagem: c, onApagar }: Prop
             <p className="mt-3 text-xs leading-relaxed text-tinta-fraca">{t('docs.gabaritoAjuda')}</p>
           </>
         ) : <p className="mt-2 text-xs leading-relaxed text-tinta-fraca">{t('docs.gabaritoAusente')}</p>}
-        <p className="mt-3 text-xs leading-relaxed text-tinta-fraca">{t('docs.conferenciaNaoGuardada')}</p>
+        {d.conferencia ? (
+          <section className="mt-5 border-t border-borda pt-4" aria-label={t('docs.conferenciaOriginal')}>
+            <h3 className="text-sm font-medium text-tinta">{t('docs.conferenciaOriginal')}</h3>
+            <p role="status" className={`mt-2 text-sm font-medium ${d.conferencia.status === 'confere' ? 'text-confere' : 'text-tinta-fraca'}`}>
+              <span>{t(d.conferencia.status === 'confere' ? 'carimbo.confere' : 'carimbo.semGabarito')}</span>
+              {' · '}{t('docs.nLancamentos', { n: d.conferencia.contagem })}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-tinta-fraca">{t('docs.conferenciaOriginalAjuda')}</p>
+            <ComparacoesConferencia comparacoes={d.conferencia.comparacoes} />
+          </section>
+        ) : <p className="mt-3 text-xs leading-relaxed text-tinta-fraca">{t('docs.conferenciaNaoGuardada')}</p>}
       </details>
     </li>
   )

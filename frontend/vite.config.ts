@@ -23,11 +23,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    // Os testes que sobem o <App/> inteiro e dirigem a tela com userEvent
-    // levam ~2s isolados, mas passam de 5s quando os 27 arquivos disputam
-    // CPU em paralelo — o padrão do Vitest os derrubava de forma
-    // intermitente (4 falhas, depois 1, depois nenhuma, sem mudar código).
-    // O limite continua existindo para pegar travamento de verdade.
+    // Limitar jsdoms simultâneos reduz disputa de CPU: a suíte completa
+    // estourava 15s num teste que isolado executava em 0,8s (16/10/2026).
+    maxWorkers: 2,
     testTimeout: 15000,
   },
 })
