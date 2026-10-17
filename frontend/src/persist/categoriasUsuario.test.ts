@@ -114,7 +114,7 @@ describe('editarCategoria', () => {
    *  compras já classificadas — por isso a edição toca só nome, ícone e cor. */
   it('NUNCA manda o slug', async () => {
     montar()
-    await editarCategoria('c1', { nome: 'Novo', icone: '🎯', cor: '#abc' })
+    await editarCategoria('c1', 'u-x', { nome: 'Novo', icone: '🎯', cor: '#abc' })
 
     const c = falso.chamadas[0]
     expect(c.op).toBe('update')
@@ -125,15 +125,23 @@ describe('editarCategoria', () => {
 
   it('apara o nome', async () => {
     montar()
-    await editarCategoria('c1', { nome: '  Pet  ', icone: '🐶', cor: '#111' })
+    await editarCategoria('c1', 'u-pet', { nome: '  Pet  ', icone: '🐶', cor: '#111' })
     expect(falso.chamadas[0].campos?.nome).toBe('Pet')
   })
 
   it('sem cliente Neon lança', async () => {
     dublê.cliente = null
-    await expect(editarCategoria('c1', { nome: 'X', icone: '?', cor: '#000' })).rejects.toThrow(
+    await expect(editarCategoria('c1', 'u-x', { nome: 'X', icone: '?', cor: '#000' })).rejects.toThrow(
       /conexão/i,
     )
+  })
+
+  it('cria uma personalização de uma categoria embutida usando o mesmo slug', async () => {
+    montar()
+    await editarCategoria(null, 'supermercado', { nome: 'Mercado', icone: '🧺', cor: '#abc' })
+    expect(falso.gravadasEm('categories')).toEqual([
+      { slug: 'supermercado', nome: 'Mercado', icone: '🧺', cor: '#abc' },
+    ])
   })
 })
 

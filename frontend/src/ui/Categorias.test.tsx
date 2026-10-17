@@ -40,7 +40,7 @@ describe('Categorias', () => {
   it('lista as regras aprendidas com a categoria de destino', async () => {
     render(<ConteudoCategorias {...props} />)
     expect(await screen.findByText('MERCADO BOM PRECO')).toBeInTheDocument()
-    expect(screen.getByText(/Supermercado/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Supermercado/).length).toBeGreaterThan(0)
   })
 
   it('esquecer uma regra chama apagarRegra com padrão e tipo', async () => {
@@ -62,8 +62,21 @@ describe('Categorias', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
     expect(editarCategoria).toHaveBeenCalledWith(
       'c1',
+      'u-pedreiro-ab12',
       expect.objectContaining({ nome: 'Obra' }),
     )
+  })
+
+  it('permite personalizar nome e ícone de uma categoria padrão', async () => {
+    render(<ConteudoCategorias {...props} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar a categoria Supermercado' }))
+    await userEvent.clear(screen.getByLabelText('Nome da categoria'))
+    await userEvent.type(screen.getByLabelText('Nome da categoria'), 'Mercado')
+    await userEvent.click(screen.getByRole('button', { name: 'Ícone' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Ícone: 🏠' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(editarCategoria).toHaveBeenCalledWith(null, 'supermercado',
+      expect.objectContaining({ nome: 'Mercado', icone: '🏠' }))
   })
 
   it('apagar pede confirmação e diz quantos lançamentos serão afetados', async () => {

@@ -80,6 +80,16 @@ async function corrigirPara(u: ReturnType<typeof userEvent.setup>, nome: string)
 }
 
 describe('EditarCompra — a correção alcança o histórico', () => {
+  it('abre opções de emoji no campo da nova categoria', async () => {
+    const usuario = userEvent.setup()
+    abrir()
+    await usuario.click(screen.getByRole('button', { name: 'Nova' }))
+    await usuario.click(screen.getByRole('button', { name: 'Emoji da categoria' }))
+    expect(screen.getByRole('dialog', { name: 'Emoji da categoria' })).toBeVisible()
+    await usuario.click(screen.getByRole('button', { name: 'Emoji da categoria: 🏠' }))
+    expect(screen.getByRole('button', { name: 'Emoji da categoria' })).toHaveTextContent('🏠')
+  })
+
   it('oferece corrigir as outras compras iguais, com a contagem certa', async () => {
     const u = userEvent.setup()
     abrir()

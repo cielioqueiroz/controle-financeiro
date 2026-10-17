@@ -87,8 +87,13 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }:
           </div>
           <div className="mt-2 flex justify-between gap-3 text-[10px] text-tinta-tenue">
             <span>{t('comparativo.gastoLegenda')}</span>
-            <span>{t('comparativo.guardadoLegenda')}</span>
+            <span>{consumo !== null && consumo > 100 ? t('comparativo.semDisponivel') : t('comparativo.guardadoLegenda')}</span>
           </div>
+          {consumo !== null && consumo > 100 && (
+            <p className="mt-3 text-xs text-debito">
+              {t('comparativo.excedeuRenda', { pct: Math.round(consumo - 100) })}
+            </p>
+          )}
         </div>
       </div>
 
