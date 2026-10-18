@@ -56,6 +56,7 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
           {PERIODOS.map((p) => (
             <button
               key={p.id}
+              aria-pressed={filtros.periodo === p.id}
               onClick={() => setFiltros({ periodo: p.id })}
               className={`relative min-h-11 rounded-full px-4 py-2.5 text-sm transition-colors ${
                 filtros.periodo === p.id ? 'text-carvao-950' : 'text-tinta-fraca hover:text-tinta'
@@ -152,6 +153,7 @@ function BancoPill({
   return (
     <button
       onClick={onClick}
+      aria-pressed={ativo}
       className={`relative flex min-h-11 items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition-colors ${
         ativo
           ? 'border-transparent text-carvao-950'

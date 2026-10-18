@@ -1,4 +1,5 @@
 export type SaldoConta = {
+  documentId?: string
   accountId: string | null
   bank: string
   balanceCents: number
@@ -6,6 +7,7 @@ export type SaldoConta = {
 }
 
 export type DocParaSaldo = {
+  id?: string
   bank: string
   account_id: string | null
   doc_type: string
@@ -26,6 +28,7 @@ export function saldosPorConta(docs: DocParaSaldo[]): SaldoConta[] {
     const atual = porConta.get(chave)
     if (!atual || d.period_end > atual._pe) {
       porConta.set(chave, {
+        documentId: d.id,
         accountId: d.account_id,
         bank: d.bank,
         balanceCents: d.end_balance_cents,
@@ -35,4 +38,11 @@ export function saldosPorConta(docs: DocParaSaldo[]): SaldoConta[] {
     }
   }
   return [...porConta.values()].map(({ _pe, ...s }) => s)
+}
+
+export function resumirSaldos(saldos: SaldoConta[]) {
+  return {
+    totalCents: saldos.length ? saldos.reduce((total, conta) => total + conta.balanceCents, 0) : null,
+    datasDiferentes: new Set(saldos.map((conta) => conta.date)).size > 1,
+  }
 }

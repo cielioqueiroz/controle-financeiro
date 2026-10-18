@@ -48,6 +48,26 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("saldo-centralizado", "/demo.html?tela=situacao&amostra=saldo", [],
+     [("ver-texto", "Último saldo importado"), ("ver-texto", "Ver contas e datas")], 6),
+    ("saldo-contas", "/demo.html?tela=situacao&amostra=saldo&tema=claro",
+     [("expandir", "Ver contas e datas")],
+     [("ver-texto", "As contas têm extratos de datas diferentes. Esta soma não representa um saldo em tempo real.")], 6),
+    ("saldo-origem", "/demo.html?tela=situacao&amostra=saldo",
+     [("expandir", "Ver contas e datas"), ("clicar-link", "Ver documento importado")],
+     [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
+    ("grafico-mes-origem", "/demo.html?tela=situacao&amostra=saldo",
+     [("clicar-parcial", "jun 2026"), ("clicar-link", "Ver lançamentos de jun 2026"), ("clicar", "Ver documento importado")],
+     [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
+    ("emoji-opcoes", "/demo.html",
+     [("clicar", "Abrir editor de compra"), ("clicar-parcial", "Nova"), ("clicar", "Emoji da categoria")],
+     [("ver-botao", "Emoji da categoria: 🏠")], 6),
+    ("emoji-busca", "/demo.html?tema=claro",
+     [("clicar", "Abrir editor de compra"), ("clicar-parcial", "Nova"), ("clicar", "Emoji da categoria"), ("buscar-emoji", "farmacia")],
+     [("ver-botao", "Emoji da categoria: 💊")], 6),
+    ("historico-paginado", "/demo.html?tela=lancamentos&amostra=grande&vista=todos",
+     [("clicar", "Próxima")], [("ver-texto", "Exibindo 51–100 de 10000 transações")], 6),
+
     ("documento-selecionado", "/demo.html?tela=documentos&amostra=confere&documento=documento-ficticio&tema=claro", [],
      [("focado-resumo", "Ver dados do documento"), ("ver-texto", "Conferência original"),
       ("ver-texto", "extrato-exemplo-com-nome-longo-para-conferir-no-celular-junho-2026.pdf")], 6),
@@ -159,7 +179,11 @@ def executar(pagina: Page, passos: list[tuple[str, str]]) -> None:
     a ficar sem medicao — o defeito que este arquivo existe para nao repetir.
     """
     for acao, alvo in passos:
-        if acao == "clicar":
+        if acao == "clicar-link":
+            pagina.get_by_role("link", name=alvo, exact=True).first.click()
+        elif acao == "buscar-emoji":
+            pagina.get_by_role("searchbox").filter(visible=True).last.fill(alvo)
+        elif acao == "clicar":
             pagina.get_by_role("button", name=alvo, exact=True).first.click()
         elif acao == "expandir":
             pagina.locator("summary").filter(has_text=alvo).click()

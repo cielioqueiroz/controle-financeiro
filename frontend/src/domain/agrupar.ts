@@ -62,7 +62,22 @@ export function pertence(tx: TxAgrupavel, periodo: Periodo, ref: Date): boolean 
 }
 
 export function filtrar<T extends TxAgrupavel>(txs: T[], periodo: Periodo, ref: Date): T[] {
-  return txs.filter((t) => pertence(t, periodo, ref))
+  const dia = isoLocal(ref)
+  switch (periodo) {
+    case 'dia': return txs.filter((tx) => tx.date === dia)
+    case 'semana': {
+      const { ini, fim } = semana(ref)
+      return txs.filter((tx) => tx.date >= ini && tx.date <= fim)
+    }
+    case 'mes': {
+      const competencia = dia.slice(0, 7)
+      return txs.filter((tx) => tx.competencia === competencia)
+    }
+    case 'ano': {
+      const ano = dia.slice(0, 4)
+      return txs.filter((tx) => tx.competencia.slice(0, 4) === ano)
+    }
+  }
 }
 
 export type Resumo = {

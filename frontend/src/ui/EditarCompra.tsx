@@ -14,6 +14,7 @@ import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { Confirmacao } from './acesso/Confirmacao'
 import { Portal, useTravarRolagem } from './Portal'
 import { useDinheiro } from '../dados/DiscretoProvider'
+import { normalizar } from '../domain/consulta'
 import { SeletorEmoji } from './SeletorEmoji'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
@@ -40,6 +41,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
   const [salvando, setSalvando] = useState(false)
   const [confirmandoSalvar, setConfirmandoSalvar] = useState(false)
   const [cats, setCats] = useState(() => todasCategorias())
+  const [buscaCategoria, setBuscaCategoria] = useState('')
   const [criando, setCriando] = useState(false)
   const [novoNome, setNovoNome] = useState('')
   const [novoIcone, setNovoIcone] = useState('🏷️')
@@ -74,6 +76,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
       setCats(todasCategorias())
       setSlug(nova.slug)
       setCriando(false)
+      setBuscaCategoria('')
       setNovoNome('')
       toast.success(t('editar.toastCatCriada', { nome: nova.nome }))
     } catch (e) {
@@ -191,12 +194,15 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
 
           <div>
             <span className="text-xs uppercase tracking-widest text-tinta-tenue">{t('editar.categoria')}</span>
+            <input type="search" value={buscaCategoria} onChange={(e) => setBuscaCategoria(e.target.value)}
+              aria-label={t('cats.buscar')} placeholder={t('cats.buscar')} className="campo-painel mt-2 w-full" />
             <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-              {cats.map((c) => (
+              {cats.filter((c) => normalizar(nomeCategoria(c)).includes(normalizar(buscaCategoria))).map((c) => (
                 <button
                   key={c.slug}
+                  aria-pressed={slug === c.slug}
                   onClick={() => setSlug(c.slug)}
-                  className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors ${
+                  className={`flex min-h-11 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors ${
                     slug === c.slug
                       ? 'border-transparent text-carvao-950'
                       : 'border-carvao-700 text-tinta-fraca hover:border-carvao-600 hover:text-tinta'
@@ -224,7 +230,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
                     value={novoNome}
                     onChange={(e) => setNovoNome(e.target.value)}
                     placeholder={t('editar.novaCatPh')}
-                    className="flex-1 rounded-md border border-campo-borda bg-carvao-950 px-3 py-1.5 text-sm text-tinta outline-none placeholder:text-tinta-tenue"
+                    className="campo-painel min-w-0 flex-1"
                   />
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">

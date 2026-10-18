@@ -42,7 +42,7 @@ export async function puxarSaldos(): Promise<DocDoPainel[]> {
   const { data, error } = await neon
       .from('documents')
       .select(
-        'bank, account_id, doc_type, period_end, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
+        'id, bank, account_id, doc_type, period_end, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
       )
   if (error) throw error
   return (data ?? []) as DocDoPainel[]

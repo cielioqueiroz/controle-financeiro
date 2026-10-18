@@ -1,5 +1,6 @@
 import { useId, useMemo, useState } from 'react'
-import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
+import { LinhasPaginadas } from './LinhasPaginadas'
+import { CabecalhoLancamentos } from './LinhaTransacao'
 import { buscar } from '../../domain/busca'
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 
@@ -80,13 +81,13 @@ export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat, onVerDoc
           placeholder={t('busca.placeholder')}
           aria-label={t('busca.rotulo')}
           aria-describedby={dicaId}
-          className="min-h-11 min-w-0 flex-1 rounded-lg border border-campo-borda bg-carvao-950/40 px-3 py-1.5 text-base text-tinta placeholder:text-tinta-tenue sm:min-h-0 sm:text-sm"
+          className="campo-painel flex-1"
         />
         <select
           value={catEfetiva ?? ''}
           onChange={(e) => onCat(e.target.value || null)}
           aria-label={t('busca.categoria')}
-          className="min-h-11 max-w-[10rem] rounded-lg border border-campo-borda bg-carvao-950/40 px-2 py-1.5 text-sm text-tinta sm:min-h-0 sm:max-w-none"
+          className="campo-painel max-w-[10rem] sm:max-w-none"
         >
           <option value="">{t('busca.todasCategorias')}</option>
           {categorias.map(({ slug, cat: c }) => (
@@ -123,11 +124,7 @@ export function ListaTodos({ txs, onEditar, termo, cat, onTermo, onCat, onVerDoc
       ) : (
         <>
           <CabecalhoLancamentos mostrarCategoria />
-          <ul>
-            {filtradas.map((x) => (
-              <LinhaTransacao key={x.id} t={x} onEditar={onEditar} onVerDocumento={onVerDocumento} mostrarCategoria />
-            ))}
-          </ul>
+          <LinhasPaginadas itens={filtradas} onEditar={onEditar} onVerDocumento={onVerDocumento} mostrarCategoria />
         </>
       )}
     </div>

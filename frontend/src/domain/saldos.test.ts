@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { saldosPorConta, type DocParaSaldo } from './saldos'
+import { resumirSaldos, saldosPorConta, type DocParaSaldo } from './saldos'
 
 const base: DocParaSaldo = {
   bank: 'nubank',
@@ -10,6 +10,16 @@ const base: DocParaSaldo = {
 }
 
 describe('saldosPorConta', () => {
+  it('mantém o documento do saldo escolhido e distingue datas entre contas', () => {
+    const saldos = saldosPorConta([
+      { ...base, id: 'antigo', period_end: '2026-05-31' },
+      { ...base, id: 'recente' },
+      { ...base, id: 'outra', account_id: 'a2', period_end: '2026-04-30', end_balance_cents: -150000 },
+    ])
+    expect(saldos[0].documentId).toBe('recente')
+    expect(resumirSaldos(saldos)).toEqual({ totalCents: -50000, datasDiferentes: true })
+    expect(resumirSaldos([]).totalCents).toBeNull()
+  })
   it('escolhe o extrato de maior period_end por conta', () => {
     const docs: DocParaSaldo[] = [
       { ...base, period_end: '2026-05-31', end_balance_cents: 50000 },

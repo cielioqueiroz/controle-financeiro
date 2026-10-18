@@ -1,3 +1,4 @@
+import { taxasFinanceiras } from './trajetoria'
 import { agregar, type Resumo, type TxAgrupavel } from './agrupar'
 
 export type JanelaRelatorio = 3 | 6 | 12
@@ -44,7 +45,7 @@ function periodo<T extends TxAgrupavel>(
 
 function taxaEconomia(resumo: Resumo | null): number | null {
   if (!resumo || resumo.entradasCents <= 0) return null
-  return (resumo.saldoCents / resumo.entradasCents) * 100
+  return taxasFinanceiras(resumo.entradasCents, resumo.gastoCents).economiaPct
 }
 
 /** Presença de transações permite comparar durações iguais, mas não prova

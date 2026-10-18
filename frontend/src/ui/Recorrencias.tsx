@@ -30,7 +30,7 @@ export function Recorrencias({ recorrencias, alertas }: Props) {
   const sobram = recorrencias.length - VISIVEIS
 
   return (
-    <div className="screen-only overflow-hidden rounded-sm border border-carvao-700 bg-carvao-900">
+    <div className="screen-only cartao">
       <div className="border-b border-carvao-800 px-5 py-4">
         <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
           {t('rec.titulo')}

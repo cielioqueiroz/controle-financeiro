@@ -64,7 +64,7 @@ export function GraficoCompromissos({ meses, onSelecionar }: Props) {
     // desenho cresce com a coluna em vez de flutuar no topo dela.
     // `min-w-0` pelo mesmo motivo do card irmao: filho de grid nao
     // encolhe abaixo do min-content sem isto.
-    <div className="screen-only flex h-full min-w-0 flex-col rounded-sm border border-carvao-700 bg-carvao-900 p-5">
+    <div className="screen-only flex h-full min-w-0 flex-col cartao p-5">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="rotulo">{t('compGrafico.titulo')}</p>
         <div className="flex items-center gap-3 text-[11px] text-tinta-tenue">

@@ -11,6 +11,8 @@ import {
   doMesCalendario,
   isoLocal,
 } from '../domain/agrupar'
+import { taxasFinanceiras } from '../domain/trajetoria'
+import { TransacoesDoMes } from '../ui/TransacoesDoMes'
 import { saldosPorConta } from '../domain/saldos'
 import { faturasAbertas } from '../domain/aberto'
 import { nomeCategoria } from '../domain/categorize/categorias'
@@ -171,7 +173,7 @@ export function Painel({ onAprendeu }: Props) {
     }
 
     if (resumo.entradasCents > 0) {
-      const pct = (resumo.saldoCents / resumo.entradasCents) * 100
+      const pct = taxasFinanceiras(resumo.entradasCents, resumo.gastoCents).economiaPct!
       itens.push({
         id: 'taxa-economia',
         titulo: t('leituras.economia'),
@@ -461,6 +463,7 @@ export function Painel({ onAprendeu }: Props) {
                     className="cartao screen-only p-5 sm:p-6"
                   >
                     <GraficoFluxo serie={serie} ativo={compAtiva} onSelecionar={irParaMes} />
+                    {serie.some((ponto) => ponto.competencia === compAtiva) && <TransacoesDoMes competencia={compAtiva} />}
                   </motion.section>
                 )}
 

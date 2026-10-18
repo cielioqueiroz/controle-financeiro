@@ -32,7 +32,7 @@ export function Lancamentos({ onAprendeu }: Props) {
   // dois e mostraria o agrupamento inteiro, como se o clique não tivesse
   // acontecido — então quem chega assim abre direto na vista que filtra.
   const [vista, setVista] = useState<Vista>(
-    filtros.categoria || filtros.busca ? 'todos' : 'categoria',
+    filtros.categoria || filtros.busca || params.get('vista') === 'todos' ? 'todos' : 'categoria',
   )
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
   const { recarregar, aplicarEdicao } = useDados()
@@ -43,14 +43,14 @@ export function Lancamentos({ onAprendeu }: Props) {
     navigate(`/faturas?${proxima.toString()}`)
   }
 
-  const grupos = useMemo(() => porCategoriaDetalhado(txs), [txs])
-  const dias = useMemo(() => porDia(txs), [txs])
+  const grupos = useMemo(() => vista === 'categoria' ? porCategoriaDetalhado(txs) : [], [txs, vista])
+  const dias = useMemo(() => vista === 'dia' ? porDia(txs) : [], [txs, vista])
 
   return (
     <div className="mt-6">
       <BarraFiltros />
 
-      <div className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900">
+      <div className="cartao">
         {carregando ? (
           <p className="px-6 py-16 text-center text-sm text-tinta-fraca">{t('docs.carregando')}</p>
         ) : erro ? (

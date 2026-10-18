@@ -1,4 +1,5 @@
-import { LinhaTransacao, CabecalhoLancamentos } from './LinhaTransacao'
+import { LinhasPaginadas } from './LinhasPaginadas'
+import { CabecalhoLancamentos } from './LinhaTransacao'
 
 import type { GrupoDia } from '../../domain/agrupar'
 import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
@@ -55,11 +56,7 @@ export function ListaPorDia({ grupos, onEditar, onVerDocumento }: Props) {
                 {g.gastoCents > 0 && <span className="text-tinta-fraca">−{formatBRL(g.gastoCents)}</span>}
               </span>
             </header>
-            <ul>
-              {g.itens.map((t) => (
-                <LinhaTransacao key={t.id} t={t} onEditar={onEditar} onVerDocumento={onVerDocumento} mostrarCategoria />
-              ))}
-            </ul>
+            <LinhasPaginadas itens={g.itens} onEditar={onEditar} onVerDocumento={onVerDocumento} mostrarCategoria />
           </section>
         ))}
       </div>

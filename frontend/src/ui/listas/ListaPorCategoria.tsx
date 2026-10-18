@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { LinhaTransacao } from './LinhaTransacao'
+import { LinhasPaginadas } from './LinhasPaginadas'
 import { corCategoria } from '../corCategoria'
 
 import { nomeCategoria } from '../../domain/categorize/categorias'
@@ -98,11 +98,7 @@ export function ListaPorCategoria({ grupos, totalCents, onEditar, onVerDocumento
                   transition={{ duration: 0.25 }}
                   className="overflow-hidden"
                 >
-                  <ul className="bg-carvao-950/30 py-1">
-                    {g.itens.map((t) => (
-                    <LinhaTransacao key={t.id} t={t} onEditar={onEditar} onVerDocumento={onVerDocumento} semIcone />
-                    ))}
-                  </ul>
+                  <LinhasPaginadas itens={g.itens} onEditar={onEditar} onVerDocumento={onVerDocumento} semIcone className="bg-carvao-950/30 py-1" />
                 </motion.div>
               )}
             </AnimatePresence>

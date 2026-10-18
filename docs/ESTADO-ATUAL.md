@@ -1,5 +1,24 @@
 # Estado atual do projeto — retomada
 
+## Continuação — saldo, categorias e jornadas — 2026-10-18
+
+- Branch `codex/refino-saldos-navegacao`, base `c787cf4`. O saldo importado
+  agora aparece centralizado, com explicação e detalhes expansíveis por conta,
+  data e documento. Gráficos levam às transações do mês e preservam os filtros;
+  listas longas mostram 50 linhas por página, mantendo busca e totais do recorte.
+- Categorias podem ser pesquisadas e editadas (nome, emoji e cor); o seletor de
+  emoji é pesquisável, navegável por teclado e traduzido em pt/en/es. Também
+  foram compartilhados estilos de campos/cartões/ações e extraídas análises
+  mensais para o domínio.
+- Typecheck, lint, caminhos, build e suíte completa passaram (1.202 testes).
+  A primeira execução dos testes bateu em `EPERM` no diretório temporário padrão;
+  com `TEMP/TMP/TMPDIR` no workspace, a suíte passou. Contraste foi aprovado
+  nos dois temas. Axe no componente do seletor passou; CSP e os medidores completos
+  de axe/overflow aguardam ambiente que permita Chromium acessar servidor local.
+- Plano: [refino do saldo e jornadas](./superpowers/plans/2026-10-17-refino-saldos-navegacao.md).
+  Decisão: [ADR-0020](./adr/0020-saldo-documental-e-paginacao-visual.md).
+  Evidências: [validação da rodada](./validacoes/2026-10-17-refino-saldos-navegacao.md).
+
 ## Personalização de categorias e gráficos — 2026-10-17
 
 - Em `codex/categorias-graficos`, o usuário pode escolher emoji ao criar categoria

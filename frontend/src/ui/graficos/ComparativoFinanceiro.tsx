@@ -1,3 +1,4 @@
+import { taxasFinanceiras } from '../../domain/trajetoria'
 import { motion, useReducedMotion } from 'motion/react'
 
 import { useDinheiro } from '../../dados/DiscretoProvider'
@@ -21,8 +22,7 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }:
   const { t } = useT()
   const semMovimento = useReducedMotion()
   const maior = Math.max(gastoCents, entradasCents, 1)
-  const consumo = entradasCents > 0 ? (gastoCents / entradasCents) * 100 : null
-  const economia = entradasCents > 0 ? (saldoCents / entradasCents) * 100 : null
+  const { consumoPct: consumo, economiaPct: economia } = taxasFinanceiras(entradasCents, gastoCents)
 
   const linhas = [
     { chave: 'comparativo.entradas' as const, valor: entradasCents, cor: 'bg-grafico-entrada' },
@@ -30,7 +30,7 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }:
   ]
 
   return (
-    <section className="min-w-0 rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante">
+    <section className="cartao p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="rotulo">{t('comparativo.titulo')}</p>

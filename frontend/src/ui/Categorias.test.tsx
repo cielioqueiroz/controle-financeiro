@@ -31,6 +31,19 @@ const props = {
 describe('Categorias', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  it('busca categorias pelo nome sem alterar as regras aprendidas', async () => {
+    const usuario = userEvent.setup()
+    render(<ConteudoCategorias {...props} />)
+    await screen.findByText('Pedreiro')
+    await usuario.type(screen.getByRole('searchbox', { name: 'Buscar categoria' }), 'pedreiro')
+    expect(screen.getByRole('button', { name: 'Editar a categoria Pedreiro' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Editar a categoria Supermercado' })).not.toBeInTheDocument()
+    expect(screen.getByText('MERCADO BOM PRECO')).toBeVisible()
+    await usuario.clear(screen.getByRole('searchbox'))
+    await usuario.type(screen.getByRole('searchbox'), 'inexistente')
+    expect(screen.getByText('Nenhuma categoria encontrada.')).toBeVisible()
+  })
+
   it('lista as categorias do usuário com quantos lançamentos usam', async () => {
     render(<ConteudoCategorias {...props} />)
     expect(await screen.findByText('Pedreiro')).toBeInTheDocument()

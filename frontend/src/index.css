@@ -342,6 +342,21 @@ body {
 }
 
 @layer components {
+  .campo-painel {
+    min-height: 2.75rem;
+    min-width: 0;
+    border: 1px solid var(--color-campo-borda);
+    border-radius: var(--radius-lg);
+    background: var(--color-afundado);
+    color: var(--color-tinta);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  .campo-painel::placeholder { color: var(--color-tinta-tenue); }
+  .acao-painel:disabled { opacity: 0.5; cursor: not-allowed; }
+  .saldo-importado { container-type: inline-size; }
+  .saldo-importado-valor { font-size: clamp(1rem, 6cqi, 2rem); white-space: nowrap; }
+
   .cartao {
     min-width: 0;
     border: 1px solid var(--color-borda);

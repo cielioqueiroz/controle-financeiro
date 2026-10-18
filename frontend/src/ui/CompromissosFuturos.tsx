@@ -36,7 +36,7 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
     // `min-w-0`: como filho de grid, o padrao e `min-width: auto`, que
     // recusa encolher abaixo do min-content — o card ficava 414px numa
     // coluna de 342 e rolava a pagina de lado a 390px.
-    <div className="screen-only min-w-0 overflow-hidden rounded-sm border border-carvao-700 bg-carvao-900">
+    <div className="screen-only min-w-0 cartao">
       <div className="flex items-baseline justify-between border-b border-carvao-800 px-5 py-4">
         <div>
           <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">

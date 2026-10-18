@@ -196,7 +196,7 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
   )
 
   return (
-    <section className="rounded-2xl border border-carvao-700 bg-carvao-900">
+    <section className="cartao">
       <header className="border-b border-carvao-800 px-6 py-4">
         <h2 className="font-display text-xl text-tinta">{t('docs.titulo')}</h2>
         <p className="text-xs text-tinta-fraca">{t('docs.subtitulo')}</p>

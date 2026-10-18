@@ -8,7 +8,10 @@ import { apagarRegra } from '../aplicacao/comandos/transacoes'
 import { CATEGORIAS, categoria, nomeCategoria } from '../domain/categorize/categorias'
 import type { Regra } from '../domain/categorize/regras'
 import { useT } from '../i18n/IdiomaProvider'
+import { ErroCarregar } from './ErroCarregar'
+import type { Dicionario } from '../i18n/dicionarios/pt'
 import { Confirmacao } from './acesso/Confirmacao'
+import { normalizar } from '../domain/consulta'
 import { SeletorEmoji } from './SeletorEmoji'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
@@ -30,9 +33,11 @@ type Props = {
  *  invisível. Aqui ela é visível e reversível. */
 export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
   const { t } = useT()
+  const [erro, setErro] = useState<keyof Dicionario | null>(null)
   const [cats, setCats] = useState<CategoriaUsuario[] | null>(null)
   const [regras, setRegras] = useState<Regra[] | null>(null)
   const [editando, setEditando] = useState<CategoriaEditavel | null>(null)
+  const [busca, setBusca] = useState('')
   const [nome, setNome] = useState('')
   const [icone, setIcone] = useState('')
   const [cor, setCor] = useState(CORES[0])
@@ -42,13 +47,15 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
     ...CATEGORIAS.map((base) => cats.find((c) => c.slug === base.slug) ?? { ...base, id: null }),
     ...cats.filter((c) => !CATEGORIAS.some((base) => base.slug === c.slug)),
   ]
+  const encontradas = editaveis.filter((c) => c.slug === editando?.slug || normalizar(c.id ? c.nome : nomeCategoria(c)).includes(normalizar(busca)))
   async function carregar() {
+    setErro(null)
     try {
       const [c, r] = await Promise.all([puxarCategoriasUsuario(), puxarRegras()])
       setCats(c)
       setRegras(r)
     } catch (e) {
-      toast.error(t(chaveDeErro(e, 'cats.toastFalha', 'categorias')))
+      setErro(chaveDeErro(e, 'cats.toastFalha', 'categorias'))
     }
   }
 
@@ -59,7 +66,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
 
   function abrirEdicao(c: CategoriaEditavel) {
     setEditando(c)
-    setNome(c.nome)
+    setNome(c.id ? c.nome : nomeCategoria(c))
     setIcone(c.icone)
     setCor(c.cor)
   }
@@ -135,22 +142,24 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
     : undefined
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-carvao-700 bg-carvao-900">
+    <section className="cartao">
       <header className="border-b border-carvao-800 px-6 py-4">
         <h2 className="font-display text-xl text-tinta">{t('cats.titulo')}</h2>
         <p className="text-xs text-tinta-fraca">{t('cats.subtitulo')}</p>
       </header>
 
-      <div className="px-3 py-2">
+      {erro ? <ErroCarregar mensagem={t(erro)} onTentar={carregar} /> : <div className="px-3 py-2">
             {/* Categorias padrão e personalizadas */}
             <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-widest text-tinta-tenue">
               {t('cats.suas')}
             </p>
+            <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)}
+              aria-label={t('cats.buscar')} placeholder={t('cats.buscar')} className="campo-painel my-3 w-full" />
             {cats === null ? (
               <p className="px-4 py-6 text-center text-sm text-tinta-fraca">{t('cats.carregando')}</p>
             ) : (
               <ul className="space-y-1">
-                {editaveis.map((c) => (
+                {encontradas.map((c) => (
                   <li key={c.slug} className="rounded-lg px-3 py-2 transition-colors hover:bg-carvao-850">
                     {editando?.slug === c.slug ? (
                       <div className="space-y-2">
@@ -160,7 +169,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                             value={nome}
                             onChange={(e) => setNome(e.target.value)}
                             aria-label={t('cats.nome')}
-                            className="min-w-0 flex-1 rounded-lg border border-campo-borda bg-carvao-950/40 px-3 py-1.5 text-sm text-tinta"
+                            className="campo-painel min-w-0 flex-1"
                           />
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -180,13 +189,13 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                           <button
                             onClick={salvar}
                             disabled={ocupado || !nome.trim()}
-                            className="rounded-lg bg-tinta px-3 py-1.5 text-xs font-medium text-carvao-950 disabled:opacity-50"
+                            className="acao-painel bg-tinta !text-carvao-950 disabled:opacity-50"
                           >
                             {ocupado ? t('geral.salvando') : t('geral.salvar')}
                           </button>
                           <button
                             onClick={() => setEditando(null)}
-                            className="rounded-lg border border-carvao-700 px-3 py-1.5 text-xs text-tinta-fraca"
+                            className="acao-painel"
                           >
                             {t('geral.cancelar')}
                           </button>
@@ -201,7 +210,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                           {c.icone}
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm text-tinta">{c.nome}</span>
+                          <span className="block truncate text-sm text-tinta">{c.id ? c.nome : nomeCategoria(c)}</span>
                           <span className="text-[11px] text-tinta-tenue">
                             {t('cats.usoN', { n: usoPorSlug.get(c.slug) ?? 0 })}
                           </span>
@@ -210,21 +219,21 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                             ações iguais para várias categorias. */}
                         <button
                           onClick={() => abrirEdicao(c)}
-                          aria-label={t('cats.editarNome', { nome: c.nome })}
-                          className="rounded-lg px-2 py-1 text-xs text-tinta-fraca transition-colors hover:bg-carvao-800 hover:text-tinta"
+                          aria-label={t('cats.editarNome', { nome: c.id ? c.nome : nomeCategoria(c) })}
+                          className="acao-painel"
                         >
                           {t('cats.editar')}
                         </button>
                         {c.id && CATEGORIAS.some((base) => base.slug === c.slug) ? (
                           <button onClick={() => restaurar(c)} disabled={ocupado}
-                            aria-label={t('cats.restaurarNome', { nome: c.nome })}
-                            className="rounded-lg px-2 py-1 text-xs text-tinta-tenue transition-colors hover:bg-carvao-800 hover:text-tinta disabled:opacity-50">
+                            aria-label={t('cats.restaurarNome', { nome: c.id ? c.nome : nomeCategoria(c) })}
+                            className="acao-painel disabled:opacity-50">
                             {t('cats.restaurar')}
                           </button>
                         ) : c.id ? (
                           <button onClick={() => setConfirmando(c)}
-                            aria-label={t('cats.apagarNome', { nome: c.nome })}
-                            className="rounded-lg px-2 py-1 text-xs text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha">
+                            aria-label={t('cats.apagarNome', { nome: c.id ? c.nome : nomeCategoria(c) })}
+                            className="acao-painel hover:!text-falha">
                             {t('cats.apagar')}
                           </button>
                         ) : null}
@@ -235,6 +244,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
               </ul>
             )}
 
+            {cats !== null && encontradas.length === 0 && <p role="status" className="px-3 py-6 text-center text-sm text-tinta-fraca">{t('cats.semResultado')}</p>}
             {/* Regras aprendidas */}
             <p className="px-3 pb-1 pt-5 text-[10px] uppercase tracking-widest text-tinta-tenue">
               {t('cats.regras')}
@@ -264,7 +274,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                         onClick={() => esquecer(r)}
                         disabled={ocupado}
                         aria-label={t('cats.esquecerNome', { padrao: r.padrao })}
-                        className="rounded-lg px-2 py-1 text-xs text-tinta-tenue transition-colors hover:bg-falha/15 hover:text-falha disabled:opacity-50"
+                        className="acao-painel hover:!text-falha disabled:opacity-50"
                       >
                         {t('cats.esquecer')}
                       </button>
@@ -273,7 +283,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
                 })}
               </ul>
             )}
-          </div>
+          </div>}
       <Confirmacao
         aberto={confirmando !== null}
         titulo={t('cats.confApagarTitulo')}

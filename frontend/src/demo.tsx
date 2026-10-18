@@ -1,7 +1,7 @@
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { MemoryRouter, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { MemoryRouter, useLocation, useSearchParams } from 'react-router-dom'
 import { IdiomaProvider } from './i18n/IdiomaProvider'
 import { SaldoConta } from './ui/SaldoConta'
 import { SaldoAberto } from './ui/SaldoAberto'
@@ -17,6 +17,7 @@ import { ListaTodos } from './ui/listas/ListaTodos'
 import { Diagnosticos } from './ui/Diagnosticos'
 import { DiscretoToggle } from './ui/DiscretoToggle'
 import { EditarCompra } from './ui/EditarCompra'
+import { Lancamentos } from './paginas/Lancamentos'
 import { DadosProvider } from './dados/DadosProvider'
 import { DiscretoProvider } from './dados/DiscretoProvider'
 import { diagnosticar } from './domain/diagnosticos'
@@ -408,7 +409,7 @@ function Interativas() {
 
 function Previa() {
   const local = useLocation()
-  const tela = local.pathname === '/faturas' ? 'documentos'
+  const tela = local.pathname === '/relatorios' ? 'relatorios' : local.pathname === '/faturas' ? 'documentos'
     : local.pathname === '/lancamentos' ? 'lancamentos'
     : new URLSearchParams(local.search).get('tela')
   if (!tela) return <Folha />
@@ -419,7 +420,7 @@ function Previa() {
         : tela === 'situacao' ? <SituacaoFinanceira />
         : tela === 'conferencia' ? <PreviaConferencia />
         : tela === 'documentos' ? <PreviaDocumento />
-        : tela === 'lancamentos' ? <PreviaLancamentos /> : (
+        : tela === 'lancamentos' ? <Lancamentos /> : (
         <div data-prova="estados-painel" className="pilha-paineis">
           <CarregandoPainel />
           <EstadoVazio titulo="Nada por aqui ainda" descricao="Importe uma fatura ou extrato para começar."
@@ -430,15 +431,6 @@ function Previa() {
       )}
     </main>
   )
-}
-
-function PreviaLancamentos() {
-  const navigate = useNavigate()
-  const [termo, setTermo] = useState('')
-  const [cat, setCat] = useState<string | null>(null)
-  return <ListaTodos txs={historicoPrevia} onEditar={() => {}} termo={termo} cat={cat}
-    onTermo={setTermo} onCat={setCat}
-    onVerDocumento={(transacao) => navigate(`/faturas?documento=${encodeURIComponent(transacao.document_id)}`)} />
 }
 
 function PreviaConferencia() {
@@ -531,13 +523,19 @@ const amostraPrevia = new URLSearchParams(window.location.search).get('amostra')
 const competenciasPrevia = amostraPrevia === 'lacunas' ? ['2026-05']
   : amostraPrevia === 'comparavel' ? ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06']
   : ['2026-05', '2026-06']
-const historicoPrevia = telaPrevia ? [
+const historicoPrevia = amostraPrevia === "grande" ? Array.from({ length: 10000 }, (_, i) => tx({ description: `MERCADO EXEMPLO ${i}`, amount_cents: 1000, document_id: "doc-demo" })) : telaPrevia ? [
   ...TUDO,
   ...competenciasPrevia.flatMap((competencia) => [
     tx({ date: `${competencia}-10`, competencia, document_id: `demo-${competencia}`, doc_type: 'extrato', amount_cents: 185000 }),
     tx({ date: `${competencia}-05`, competencia, document_id: `demo-${competencia}`, doc_type: 'extrato', description: 'SALARIO', kind: 'income', amount_cents: -300000 }),
   ]),
 ] : TUDO
+
+const saldosPrevia = amostraPrevia === 'saldo' ? [
+  { id: 'doc-demo', account_id: 'conta-demo-1', bank: 'nubank', period_end: '2026-07-31', end_balance_cents: 125000 },
+  { id: 'demo-2026-06', account_id: 'conta-demo-2', bank: 'bradesco', period_end: '2026-06-30', end_balance_cents: -2400000 },
+  { id: 'demo-2026-05', account_id: 'conta-demo-3', bank: 'bb', period_end: '2026-05-31', end_balance_cents: 300334 },
+].map((doc) => ({ ...doc, doc_type: 'extrato', total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null })) : undefined
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -547,7 +545,7 @@ createRoot(document.getElementById('root')!).render(
       <MemoryRouter initialEntries={[`/${window.location.search}`]}>
         {/* `EditarCompra` chama `useDados`, que lança fora do provider. As
             sementes existem para isto: o provider de verdade, sem banco. */}
-        <DadosProvider sementes={historicoPrevia}>
+        <DadosProvider sementes={historicoPrevia} sementesSaldo={saldosPrevia}>
           <DiscretoProvider>
             <Previa />
           </DiscretoProvider>

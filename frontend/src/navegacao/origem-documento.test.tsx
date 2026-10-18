@@ -7,6 +7,7 @@ import { DadosProvider } from '../dados/DadosProvider'
 import { Relatorios } from '../paginas/Relatorios'
 import { Lancamentos } from '../paginas/Lancamentos'
 import { Faturas } from '../paginas/Faturas'
+import { SituacaoFinanceira } from '../paginas/SituacaoFinanceira'
 
 vi.mock('../aplicacao/consultas/historico', () => ({
   puxarTudo: vi.fn(async () => [{
@@ -35,6 +36,27 @@ function Navegador() {
 }
 
 describe('procedência entre Relatórios e Faturas', () => {
+  it('vai do mês no gráfico às transações, ao documento e volta à seleção original', async () => {
+    const usuario = userEvent.setup()
+    render(<MemoryRouter initialEntries={['/minha-situacao-financeira?janela=6&comparar=1&banco=nubank&ref=2026-07']}>
+      <DadosProvider><Routes>
+        <Route path="/minha-situacao-financeira" element={<SituacaoFinanceira />} />
+        <Route path="/lancamentos" element={<Lancamentos />} />
+        <Route path="/faturas" element={<Faturas />} />
+      </Routes><Navegador /></DadosProvider>
+    </MemoryRouter>)
+    await usuario.click(await screen.findByRole('button', { name: /Selecionar jul 2026/ }))
+    await usuario.click(screen.getAllByRole('link', { name: 'Ver lançamentos de jul 2026' })[0])
+    expect(screen.getByLabelText('Local')).toHaveTextContent('banco=nubank')
+    expect(screen.getByLabelText('Local')).toHaveTextContent('ref=2026-07')
+    await usuario.click(await screen.findByRole('button', { name: 'Ver documento importado' }))
+    expect(await screen.findByText('fatura-origem.pdf')).toBeVisible()
+    await usuario.click(screen.getByRole('button', { name: 'Voltar no navegador' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Voltar no navegador' }))
+    expect(await screen.findByRole('button', { name: /Selecionar jul 2026/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText('Local')).toHaveTextContent('janela=6')
+    expect(screen.getByLabelText('Local')).toHaveTextContent('comparar=1')
+  })
   it('abre o documento e volta ao mesmo detalhe com período, banco e janela', async () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter initialEntries={['/relatorios?janela=3&banco=nubank&ref=2026-07']}>

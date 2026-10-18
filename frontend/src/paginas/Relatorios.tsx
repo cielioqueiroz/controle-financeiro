@@ -10,6 +10,7 @@ import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
 import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
 import { GraficoFluxo } from '../ui/graficos/GraficoFluxo'
+import { TransacoesDoMes } from '../ui/TransacoesDoMes'
 import { Cartao } from '../ui/Cartao'
 import { CarregandoPainel } from '../ui/CarregandoPainel'
 import { EstadoVazio } from '../ui/EstadoVazio'
@@ -184,6 +185,7 @@ export function Relatorios() {
 
           <Cartao>
             <GraficoFluxo serie={serie} competencias={competencias} ativo={compAtiva} onSelecionar={selecionarMes} />
+            {serie.some((ponto) => ponto.competencia === compAtiva) && <TransacoesDoMes competencia={compAtiva} />}
           </Cartao>
 
           <div className="grid gap-6 lg:grid-cols-2">

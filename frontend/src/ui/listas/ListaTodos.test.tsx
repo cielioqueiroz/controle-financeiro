@@ -49,6 +49,18 @@ const lista = [
 ]
 
 describe('ListaTodos', () => {
+  it('pagina a exibição sem limitar totais e busca ao que está visível', async () => {
+    const usuario = userEvent.setup()
+    render(<Lista txs={Array.from({ length: 120 }, (_, i) => tx({ id: String(i), description: `COMPRA ${i}`, amount_cents: 100 }))} />)
+    expect(screen.getAllByRole('listitem')).toHaveLength(50)
+    expect(screen.getByText(/^120 lançamentos/)).toHaveTextContent('120,00')
+    await usuario.click(screen.getByRole('button', { name: 'Próxima' }))
+    expect(screen.getByRole('status')).toHaveTextContent('51–100 de 120')
+    await usuario.type(screen.getByRole('searchbox', { name: 'Procurar lançamento' }), 'COMPRA 119')
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByText('COMPRA 119')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Próxima' })).not.toBeInTheDocument()
+  })
   it('lista tudo por padrão, mais recente primeiro', () => {
     render(<Lista txs={lista} onEditar={() => {}} />)
     expect(screen.getByText(/^3 lançamentos/)).toBeInTheDocument()

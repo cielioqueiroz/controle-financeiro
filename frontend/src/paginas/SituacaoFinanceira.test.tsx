@@ -105,7 +105,7 @@ describe('Minha situação financeira — histórico por competência', () => {
     expect(screen.getAllByText('mai 2026 — jul 2026').length).toBeGreaterThan(0)
     expect(screen.getByText('Histórico insuficiente')).toBeVisible()
     expect(screen.getAllByText('1 de 3 meses com transações').length).toBeGreaterThan(0)
-    expect(screen.getByText(/123,00/)).toBeVisible()
+    expect(screen.getAllByText(/123,00/)[0]).toBeVisible()
     expect(screen.queryByText(/456,00/)).not.toBeInTheDocument()
   })
 })

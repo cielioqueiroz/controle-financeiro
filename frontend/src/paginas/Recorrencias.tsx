@@ -4,6 +4,10 @@ import {
   alertasDe,
   competenciaMaisRecente,
 } from '../domain/recorrencias'
+import { useDados } from '../dados/DadosProvider'
+import { useT } from '../i18n/IdiomaProvider'
+import { CarregandoPainel } from '../ui/CarregandoPainel'
+import { ErroCarregar } from '../ui/ErroCarregar'
 import { useRecorte } from '../dados/useRecorte'
 import { BarraFiltros } from '../ui/BarraFiltros'
 import { Recorrencias as ListaRecorrencias } from '../ui/Recorrencias'
@@ -19,7 +23,9 @@ import { projecaoFutura } from '../domain/agrupar'
  *  mês" exige mais de um mês, e o recorte de período esconderia justamente
  *  a evidência. */
 export function Recorrencias() {
-  const { visiveis } = useRecorte()
+  const { visiveis, carregando, erro } = useRecorte()
+  const { recarregar } = useDados()
+  const { t } = useT()
 
   const recorrencias = useMemo(
     () => (visiveis ? detectarRecorrencias(visiveis) : []),
@@ -50,7 +56,7 @@ export function Recorrencias() {
           lista, o que sobrava à direita virou informação. As recorrências
           ficam por cima, em linha cheia — são uma tabela, e tabela estreita
           trunca nome de estabelecimento. */}
-      <div className="mx-auto max-w-6xl space-y-6">
+      {carregando ? <CarregandoPainel /> : erro ? <ErroCarregar mensagem={t(erro)} onTentar={recarregar} /> : <div className="mx-auto max-w-6xl space-y-6">
         <ListaRecorrencias recorrencias={recorrencias} alertas={alertas} />
         {futuros.length > 0 && (
           <div className="grid gap-6 lg:grid-cols-2">
@@ -62,7 +68,7 @@ export function Recorrencias() {
             <GraficoCompromissos meses={futuros} onSelecionar={setMesAberto} />
           </div>
         )}
-      </div>
+      </div>}
     </div>
   )
 }

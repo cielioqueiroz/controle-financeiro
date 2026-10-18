@@ -62,6 +62,7 @@ const Ctx = createContext<Dados | null>(null)
 export function DadosProvider({
   children,
   sementes,
+  sementesSaldo,
 }: {
   children: ReactNode
   /** Histórico fixo em vez de ir ao banco. É a porta da FOLHA DE PROVAS
@@ -74,6 +75,7 @@ export function DadosProvider({
    *  esta porta, as duas peças ficam fora de qualquer medição — foi o que
    *  aconteceu com elas por três rodadas. */
   sementes?: TransacaoSalva[]
+  sementesSaldo?: DocDoPainel[]
 }) {
   const [todas, setTodas] = useState<TransacaoSalva[] | null>(null)
   const [docsSaldo, setDocsSaldo] = useState<DocDoPainel[]>([])
@@ -90,7 +92,7 @@ export function DadosProvider({
     // A folha de provas não tem banco para consultar.
     if (sementes) {
       setTodas(sementes)
-      setDocsSaldo([])
+      setDocsSaldo(sementesSaldo ?? [])
       setCarregando(false)
       return
     }
@@ -125,7 +127,7 @@ export function DadosProvider({
     } finally {
       if (requisicao === requisicaoAtual.current) setCarregando(false)
     }
-  }, [sementes])
+  }, [sementes, sementesSaldo])
 
   useEffect(() => {
     // Buscar na montagem é sincronizar a tela com um sistema EXTERNO (o
@@ -171,11 +173,7 @@ export function DadosProvider({
   }, [])
 
   const competenciaInicial = useMemo(
-    () =>
-      todas
-        ?.map((t) => t.competencia)
-        .sort()
-        .at(-1) ?? null,
+    () => todas?.reduce<string | null>((maisRecente, tx) => !maisRecente || tx.competencia > maisRecente ? tx.competencia : maisRecente, null) ?? null,
     [todas],
   )
 

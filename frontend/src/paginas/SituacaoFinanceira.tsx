@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { agregar, evolucaoMensal, type PontoMes } from '../domain/agrupar'
+import { variacaoPct } from '../domain/agrupar'
+import { analisarTrajetoria, resultadoMensal as resultado, taxasFinanceiras } from '../domain/trajetoria'
 import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
 import { nomeCategoria } from '../domain/categorize/categorias'
 import { mesAbrev } from '../domain/normalize/data'
@@ -18,20 +19,14 @@ import { CarregandoPainel } from '../ui/CarregandoPainel'
 import { ErroCarregar } from '../ui/ErroCarregar'
 import { EstadoVazio } from '../ui/EstadoVazio'
 import { MesesRelatorio } from '../ui/MesesRelatorio'
+import { SaldoImportado } from '../ui/SaldoImportado'
+import { TransacoesDoMes } from '../ui/TransacoesDoMes'
+import { Cartao } from '../ui/Cartao'
 
 
 function rotuloMes(competencia: string): string {
   const [ano, mes] = competencia.split('-').map(Number)
   return `${mesAbrev(new Date(ano, mes - 1, 1))} ${ano}`
-}
-
-function resultado(ponto: PontoMes): number {
-  return ponto.entradasCents - ponto.gastoCents
-}
-
-function variacaoPct(atual: number, anterior: number): number | null {
-  if (anterior === 0) return null
-  return ((atual - anterior) / anterior) * 100
 }
 
 /** Visão retrospectiva da trajetória financeira.
@@ -43,6 +38,7 @@ function variacaoPct(atual: number, anterior: number): number | null {
  */
 export function SituacaoFinanceira() {
   const { t } = useT()
+  const navigate = useNavigate()
   const dinheiro = useDinheiro()
   const { docsSaldo, recarregar } = useDados()
   const { visiveis, filtros, carregando, erro } = useRecorte()
@@ -61,27 +57,14 @@ export function SituacaoFinanceira() {
   const historico = useMemo(() => visiveis ?? [], [visiveis])
   const relatorio = useMemo(() => analisarRelatorio(historico, janela), [historico, janela])
   const txsJanela = useMemo(() => relatorio?.atual.transacoes ?? [], [relatorio])
-  const serie = useMemo(() => evolucaoMensal(txsJanela), [txsJanela])
+  const { serie, melhorMes, mesMaisCaro: piorMes, categoriasMesMaisCaro: categoriasPiorMes } = useMemo(() => analisarTrajetoria(txsJanela), [txsJanela])
   const maiorResultadoMensal = Math.max(1, ...serie.map((ponto) => Math.abs(resultado(ponto))))
   const competencias = useMemo(() => relatorio?.atual.meses.map((mes) => mes.competencia) ?? [], [relatorio])
   const resumo = relatorio?.atual.resumo
   const resumoAnterior = relatorio?.anterior.resumo
-  const melhorMes = useMemo(
-    () => serie.reduce<PontoMes | null>((melhor, atual) => (!melhor || resultado(atual) > resultado(melhor) ? atual : melhor), null),
-    [serie],
-  )
-  const piorMes = useMemo(
-    () => serie.reduce<PontoMes | null>((pior, atual) => (!pior || atual.gastoCents > pior.gastoCents ? atual : pior), null),
-    [serie],
-  )
-  const categoriasPiorMes = useMemo(() => {
-    if (!piorMes) return []
-    return agregar(historico.filter((tx) => tx.competencia === piorMes.competencia)).porCategoria.slice(0, 4)
-  }, [historico, piorMes])
   const saldos = useMemo(() => saldosPorConta(
     filtros.banco === 'geral' ? docsSaldo : docsSaldo.filter((doc) => doc.bank === filtros.banco),
   ), [docsSaldo, filtros.banco])
-  const saldoAtual = saldos.reduce((total, conta) => total + conta.balanceCents, 0)
   const mesAtivo = search.get('mes')
   const ativo = mesAtivo && serie.some((p) => p.competencia === mesAtivo) ? mesAtivo : serie.at(-1)?.competencia ?? ''
   const taxaAtual = relatorio?.taxaEconomiaAtualPct ?? null
@@ -143,7 +126,7 @@ export function SituacaoFinanceira() {
           <MesesRelatorio atual={relatorio.atual} anterior={relatorio.anterior} comparavel={relatorio.comparavel}
             titulo={t('situacao.mesesTitulo')} />
           {comparar && (
-            <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+            <Cartao>
               <div className="flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                   <p className="rotulo">{t('situacao.comparacaoTitulo')}</p>
@@ -169,6 +152,7 @@ export function SituacaoFinanceira() {
                   />
                   <ComparacaoCard
                     titulo={t('situacao.taxaEconomia')}
+                    pontosPercentuais
                     atual={taxaAtual}
                     anterior={taxaAnterior}
                     formatar={(valor) => (valor === null ? '—' : `${valor.toFixed(1).replace('.', ',')}%`)}
@@ -179,21 +163,11 @@ export function SituacaoFinanceira() {
                   {t('situacao.comparacaoAjuda')}
                 </p>
               )}
-            </section>
+            </Cartao>
           )}
 
           <section className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-stretch">
-            <div className="flex min-w-0 flex-col rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
-              <p className="rotulo">{t('situacao.saldoAtual')}</p>
-              <p className="tabular mt-4 whitespace-nowrap font-display text-[clamp(1.3rem,3vw,2.45rem)] leading-tight tracking-tight text-tinta">
-                {saldos.length > 0 ? dinheiro(saldoAtual) : '—'}
-              </p>
-              <p className="mt-auto pt-4 text-sm leading-relaxed text-tinta-fraca">
-                {saldos.length > 0
-                  ? t('situacao.saldoAtualDesc', { n: saldos.length })
-                  : t('situacao.saldoIndisponivel')}
-              </p>
-            </div>
+            <SaldoImportado saldos={saldos} />
             <ComparativoFinanceiro
               gastoCents={resumo.gastoCents}
               entradasCents={resumo.entradasCents}
@@ -201,7 +175,7 @@ export function SituacaoFinanceira() {
             />
           </section>
 
-          <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+          <Cartao>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <p className="rotulo">{t('situacao.linhaTempoTitulo')}</p>
@@ -256,9 +230,10 @@ export function SituacaoFinanceira() {
                   )
                 })}
             </div>
-          </section>
+            {ativo && <TransacoesDoMes competencia={ativo} />}
+          </Cartao>
 
-          <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+          <Cartao>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <p className="rotulo">{t('situacao.momentosTitulo')}</p>
@@ -293,7 +268,7 @@ export function SituacaoFinanceira() {
                       <p className="rotulo !text-[9px]">{t('situacao.taxaEconomia')}</p>
                       <p className={`tabular mt-1 text-sm ${resultado(melhorMes) >= 0 ? 'text-credito' : 'text-debito'}`}>
                         {melhorMes.entradasCents > 0
-                          ? `${((resultado(melhorMes) / melhorMes.entradasCents) * 100).toFixed(1).replace('.', ',')}%`
+                          ? `${(taxasFinanceiras(melhorMes.entradasCents, melhorMes.gastoCents).economiaPct!).toFixed(1).replace('.', ',')}%`
                           : '—'}
                       </p>
                     </div>
@@ -336,16 +311,22 @@ export function SituacaoFinanceira() {
                 </article>
               )}
             </div>
-          </section>
+          </Cartao>
 
-          <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
+          <Cartao>
             <GraficoFluxo serie={serie} competencias={competencias} ativo={ativo} onSelecionar={(mes) => atualizarBusca('mes', mes)} />
-          </section>
+            {ativo && <TransacoesDoMes competencia={ativo} />}
+          </Cartao>
 
           {resumo.porCategoria.length > 0 && (
-            <section className="rounded-xl border border-carvao-700 bg-carvao-900 p-5 sombra-flutuante sm:p-6">
-              <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} />
-            </section>
+            <Cartao>
+              <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents} onAbrir={(slug) => {
+                const params = new URLSearchParams(search)
+                params.set("detalhe", "categoria")
+                params.set("item", slug)
+                navigate(`/relatorios?${params.toString()}`)
+              }} />
+            </Cartao>
           )}
         </>
       )}
@@ -359,7 +340,9 @@ function ComparacaoCard({
   anterior,
   dinheiro,
   formatar,
+  pontosPercentuais = false,
 }: {
+  pontosPercentuais?: boolean
   titulo: string
   atual: number | null
   anterior: number | null
@@ -367,12 +350,14 @@ function ComparacaoCard({
   formatar?: (valor: number | null) => string
 }) {
   const mostrar = formatar ?? ((valor: number | null) => (valor === null || !dinheiro ? '—' : dinheiro(valor)))
-  const variacao = atual !== null && anterior !== null ? variacaoPct(atual, anterior) : null
+  const { t } = useT()
+  const fracao = atual !== null && anterior !== null ? variacaoPct(atual, anterior) : null
+  const variacao = pontosPercentuais && atual !== null && anterior !== null ? atual - anterior : fracao === null ? null : fracao * 100
   return (
     <article className="rounded-lg border border-carvao-700 bg-afundado p-4">
       <p className="rotulo !text-[10px]">{titulo}</p>
       <p className="tabular mt-2 text-xl text-tinta">{mostrar(atual)}</p>
-      <p className="mt-1 text-[11px] text-tinta-tenue">{mostrar(anterior)} {variacao === null ? '' : `· ${variacao >= 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}%`}</p>
+      <p className="mt-1 text-[11px] text-tinta-tenue">{mostrar(anterior)} {variacao === null ? '' : `· ${variacao >= 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}${pontosPercentuais ? ` ${t('grafico.pontosPercentuais')}` : '%'}`}</p>
     </article>
   )
 }
