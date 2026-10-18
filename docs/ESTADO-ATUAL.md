@@ -1446,7 +1446,12 @@ Todos avaliados, nenhum bloqueia:
   dele, que nunca foi levantada. O único gatilho realista (senha > 128 caracteres)
   já está barrado por `maxLength` no campo.
 
-- Refinar as policies de RLS para `auth.uid()`.
+- ~~Refinar as policies de RLS para `auth.uid()`~~ ✅ **avaliado em 18/10**:
+  essa função é do padrão Supabase e não é a identidade usada por este projeto.
+  No Neon, as policies usam `(select auth.user_id())::uuid`, que também permite
+  ao otimizador tratar a identidade como valor por instrução; ver o schema
+  inicial e a [ADR-0004](./adr/0004-neon-no-lugar-de-supabase.md). Não trocar
+  por `auth.uid()` sem mudança de provedor.
 - Chaves próprias do Google OAuth (hoje usa as compartilhadas do Neon; só então será
   necessário mexer nos redirect URIs do Google Cloud Console).
 - ~~Code-splitting do bundle~~ ❌ **MEDIDO E RECUSADO (2026-08-13)**: fatiar as rotas
