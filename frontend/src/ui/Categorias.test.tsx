@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom/vitest'
 import { ConteudoCategorias } from './Categorias'
 import { editarCategoria, apagarCategoria } from '../persist/categoriasUsuario'
 import { apagarRegra } from '../persist/regras'

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom/vitest'
 import { IdiomaProvider, useT } from '../../i18n/IdiomaProvider'
 import { ListaPorDia } from './ListaPorDia'
 import { ListaPorCategoria } from './ListaPorCategoria'

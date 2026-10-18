@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom/vitest'
 import { afterEach, it, expect, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { DocumentoSalvo } from '../aplicacao/consultas/documentos'

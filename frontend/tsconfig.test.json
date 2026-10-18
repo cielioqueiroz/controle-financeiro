@@ -12,5 +12,5 @@
   // frontend desceu para frontend/, e um include não alcança fora da pasta
   // do tsconfig. Os scripts são ferramentas locais rodadas por tsx, que
   // checa tipo na hora — não perdem rede de segurança relevante aqui.
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "index.test.ts"]
+  "include": ["src/test-setup.ts", "src/**/*.test.ts", "src/**/*.test.tsx", "index.test.ts"]
 }

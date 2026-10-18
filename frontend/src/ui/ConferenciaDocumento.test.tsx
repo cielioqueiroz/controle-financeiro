@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom/vitest'
 import { it, expect } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import type { ParseResult, RawTransaction } from '../domain/parsers/types'

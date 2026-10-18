@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom/vitest'
 import { MaioresSaidas } from './MaioresSaidas'
 import type { TransacaoSalva } from '../../persist/puxar'
 

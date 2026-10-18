@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import '@testing-library/jest-dom/vitest'
 
 import type { ItemFuturo, MesFuturo } from '../domain/agrupar'
 import { ProximosCompromissos } from './ProximosCompromissos'

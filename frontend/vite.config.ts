@@ -23,6 +23,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./src/test-setup.ts'],
     // Limitar jsdoms simultâneos reduz disputa de CPU: a suíte completa
     // estourava 15s num teste que isolado executava em 0,8s (16/10/2026).
     maxWorkers: 2,

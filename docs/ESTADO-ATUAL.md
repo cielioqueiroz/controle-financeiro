@@ -1,5 +1,15 @@
 # Estado atual do projeto — retomada
 
+## Setup compartilhado dos testes — 2026-10-18
+
+- O import de `@testing-library/jest-dom/vitest` saiu de 73 specs e agora é
+  carregado pelo `setupFiles` do Vitest (`frontend/src/test-setup.ts`). A API
+  de matchers continua disponível para toda a suíte, sem imports repetidos.
+  Typecheck de testes e app, lint, build de produção e suíte completa passaram
+  (142 arquivos, 1.202 testes). O agregador `verificar:rapido` não iniciou:
+  `uv` não conseguiu gravar no cache Python protegido pelo sandbox; a checagem
+  de caminhos também não iniciou porque o launcher local do Python foi bloqueado.
+
 ## Continuação — saldo, categorias e jornadas — 2026-10-18
 
 - Branch `codex/refino-saldos-navegacao`, base `c787cf4`. O saldo importado
@@ -1439,9 +1449,9 @@ Todos avaliados, nenhum bloqueia:
   boot e importa `zod` estaticamente. Detalhes e a tabela na rodada de 13/08, item 7.
   **Não reabrir sem número novo.**
 - Proteger **só os deploys de preview** na Vercel, mantendo a produção aberta.
-- Promover `@testing-library/jest-dom/vitest` para `setupFiles` global — a condição que o
-  item esperava ("quando houver um segundo teste de componente") aconteceu faz tempo:
-  são **35** arquivos repetindo o import (conferido em 13/08).
+- ~~Promover `@testing-library/jest-dom/vitest` para `setupFiles` global~~ ✅
+  **resolvido em 18/10**: import central em `frontend/src/test-setup.ts`, com
+  73 specs sem a repetição individual.
 - ~~`mensagemCamposFaltando([])` com lista vazia gera texto com espaço duplo~~ ✅ **sem
   objeto**: a função não existe mais (conferido em 13/08).
 

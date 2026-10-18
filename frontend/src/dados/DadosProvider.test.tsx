@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DadosProvider, useDados } from './DadosProvider'

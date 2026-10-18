@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom/vitest'
 import { ListaPorDia } from './ListaPorDia'
 import type { GrupoDia } from '../../domain/agrupar'
 import type { TransacaoSalva } from '../../aplicacao/consultas/historico'

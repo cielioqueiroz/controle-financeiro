@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom/vitest'
 import { ListaPorCategoria } from './ListaPorCategoria'
 import { categoria } from '../../domain/categorize/categorias'
 import type { GrupoCategoria } from '../../domain/agrupar'
