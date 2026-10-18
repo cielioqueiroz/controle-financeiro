@@ -373,6 +373,7 @@ export const es: Dicionario = {
   'recuperar.erro.repita': 'Repite la nueva contraseña para confirmar.',
   'recuperar.erro.naoCoincidem': 'Las contraseñas no coinciden.',
   'recuperar.erro.rede': 'No pude contactar el servidor. Inténtalo de nuevo.',
+  'recuperar.erro.servidor': 'No se pudo cambiar la contraseña. Inténtalo de nuevo.',
   'recuperar.erro.token': 'Este enlace caducó o ya se usó.',
 
   'geral.cancelar': 'Cancelar',

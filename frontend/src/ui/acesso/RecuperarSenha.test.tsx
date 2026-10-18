@@ -195,6 +195,23 @@ describe('RecuperarSenha — definir a nova senha', () => {
     expect(screen.getByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
   })
 
+  it('erro do servidor mantém o formulário de nova senha disponível', async () => {
+    const usuario = userEvent.setup()
+    vi.mocked(redefinirSenha).mockResolvedValue({
+      ok: false,
+      erro: 'recuperar.erro.servidor',
+      motivo: 'servidor',
+    })
+    montar('tok123')
+
+    await usuario.type(screen.getByPlaceholderText('nova senha (mín. 8 caracteres)'), 'senhaboa123')
+    await usuario.type(screen.getByPlaceholderText('repita a nova senha'), 'senhaboa123')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    expect(await screen.findByText('Não foi possível alterar a senha. Tente novamente.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Salvar nova senha' })).toBeInTheDocument()
+  })
+
   // O olho é type="button": clicar não pode submeter o formulário. Os dois
   // campos precisam estar preenchidos com uma senha válida ANTES do clique
   // — senão a validação de campo vazio barraria o submit de qualquer jeito

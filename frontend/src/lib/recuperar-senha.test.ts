@@ -51,15 +51,15 @@ describe('pedirLink', () => {
     })
   })
 
-  it('devolve erro quando o servidor recusa', async () => {
+  it('distingue a resposta HTTP de uma falha de rede', async () => {
     vi.mocked(fetch).mockResolvedValue(respostaFake(500))
 
     const r = await pedirLink('alguem@exemplo.com', 'https://app.test/')
 
     expect(r).toEqual({
       ok: false,
-      erro: 'recuperar.erro.rede',
-      motivo: 'rede',
+      erro: 'recuperar.erro.servidor',
+      motivo: 'servidor',
     })
   })
 })
@@ -79,14 +79,24 @@ describe('redefinirSenha', () => {
     })
   })
 
-  // 400 aqui quer dizer token gasto ou expirado. A mensagem precisa dizer
-  // isso, porque a saída é pedir outro link — não tentar de novo.
-  it('traduz 400 como link expirado ou já usado', async () => {
-    vi.mocked(fetch).mockResolvedValue(respostaFake(400))
+  it('classifica como token somente o código INVALID_TOKEN', async () => {
+    vi.mocked(fetch).mockResolvedValue(respostaFake(400, { code: 'INVALID_TOKEN' }))
 
     const r = await redefinirSenha('tok123', 'senhaboa123')
 
     expect(r).toEqual({ ok: false, erro: 'recuperar.erro.token', motivo: 'token' })
+  })
+
+  it('mantém outros 400 como erro do servidor', async () => {
+    vi.mocked(fetch).mockResolvedValue(respostaFake(400, { code: 'INVALID_PASSWORD' }))
+
+    const r = await redefinirSenha('tok123', 'senhaboa123')
+
+    expect(r).toEqual({
+      ok: false,
+      erro: 'recuperar.erro.servidor',
+      motivo: 'servidor',
+    })
   })
 
   it('devolve erro amigável quando a rede falha', async () => {

@@ -1,5 +1,14 @@
 # Estado atual do projeto — retomada
 
+## Classificação dos erros de recuperação de senha — 2026-10-18
+
+- `/reset-password` só marca o link como inválido quando a resposta traz o
+  código `INVALID_TOKEN` do Better Auth. Outros erros HTTP exibem mensagem de
+  servidor, sem limpar o token nem encerrar o formulário; falhas de conexão
+  continuam separadas. Typecheck, lint, build e suíte completa passaram
+  (142 arquivos, 1.204 testes). A consulta de `npm audit` não conseguiu chegar
+  ao registry por falta de DNS neste ambiente.
+
 ## Proteção dos previews — 2026-10-18
 
 - A Vercel agora exige Vercel Authentication nos deploys de preview
@@ -1441,10 +1450,9 @@ Todos avaliados, nenhum bloqueia:
 - ~~**`tsconfig.app.json` e `tsconfig.test.json` são quase-duplicatas**~~ ✅
   **resolvido (2026-07-24)**: criado `tsconfig.base.json` com as 15 chaves comuns;
   os dois o estendem e só sobrescrevem `tsBuildInfoFile`, `types` e `include/exclude`.
-- **Classificação de erro do `/reset-password`**: hoje *qualquer* 400 vira "token
-  expirado". Mapear os códigos do Better Auth exigiria sondar a taxonomia de erros
-  dele, que nunca foi levantada. O único gatilho realista (senha > 128 caracteres)
-  já está barrado por `maxLength` no campo.
+- ~~Classificação de erro do `/reset-password`~~ ✅ **resolvido em 18/10**:
+  reconhece `INVALID_TOKEN` e separa erros HTTP de falhas de conexão; testes de
+  domínio e UI cobrem o comportamento.
 
 - ~~Refinar as policies de RLS para `auth.uid()`~~ ✅ **avaliado em 18/10**:
   essa função é do padrão Supabase e não é a identidade usada por este projeto.

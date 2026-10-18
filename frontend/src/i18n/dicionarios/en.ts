@@ -373,6 +373,7 @@ export const en: Dicionario = {
   'recuperar.erro.repita': 'Repeat the new password to confirm.',
   'recuperar.erro.naoCoincidem': "The passwords don't match.",
   'recuperar.erro.rede': "Couldn't reach the server. Try again.",
+  'recuperar.erro.servidor': 'The password could not be changed. Try again.',
   'recuperar.erro.token': 'This link has expired or was already used.',
 
   'geral.cancelar': 'Cancel',

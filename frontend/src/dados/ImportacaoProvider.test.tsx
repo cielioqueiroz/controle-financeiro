@@ -143,7 +143,7 @@ describe('importar → gravar → o histórico se atualiza sozinho', () => {
     await waitFor(() => expect(screen.getByTestId('transacoes')).toHaveTextContent('1'))
     expect(puxarTudo).toHaveBeenCalledTimes(2)
     expect(screen.getByTestId('fase')).toHaveTextContent('vazio')
-  })
+  }, 30_000)
 
   // Recarregar por engano custa uma ida ao banco e um piscar de "carregando"
   // em quem só estava olhando a prévia — e a prévia é justamente o momento

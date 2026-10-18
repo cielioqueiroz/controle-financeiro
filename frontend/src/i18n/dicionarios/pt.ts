@@ -385,6 +385,7 @@ export const pt = {
   'recuperar.erro.repita': 'Repita a nova senha para confirmar.',
   'recuperar.erro.naoCoincidem': 'As senhas não coincidem.',
   'recuperar.erro.rede': 'Não consegui falar com o servidor. Tente de novo.',
+  'recuperar.erro.servidor': 'Não foi possível alterar a senha. Tente novamente.',
   'recuperar.erro.token': 'Este link expirou ou já foi usado.',
 
   // Genéricos
