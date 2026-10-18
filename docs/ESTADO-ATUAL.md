@@ -1,5 +1,11 @@
 # Estado atual do projeto — retomada
 
+## Proteção dos previews — 2026-10-18
+
+- A Vercel agora exige Vercel Authentication nos deploys de preview
+  (`ssoProtection.deploymentType = preview`). A configuração foi lida de volta
+  pela API após a alteração; produção permanece fora do escopo de proteção.
+
 ## Setup compartilhado dos testes — 2026-10-18
 
 - O import de `@testing-library/jest-dom/vitest` saiu de 73 specs e agora é
