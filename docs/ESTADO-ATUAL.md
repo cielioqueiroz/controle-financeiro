@@ -1,5 +1,19 @@
 # Estado atual do projeto — retomada
 
+## Gráfico de fluxo acessível e redesenhado — 2026-10-18
+
+- Os dois modos de leitura ficam sempre selecionáveis, inclusive quando há
+  meses sem transações. O acumulado soma apenas competências documentadas e
+  mantém as lacunas vazias; o texto deixa claro que isso não é saldo bancário.
+- O fluxo mensal agora compara entradas e saídas em barras agrupadas, com a
+  linha do resultado do período. O acumulado usa uma linha própria para evitar
+  escalas sobrepostas. O contraste do chip de categoria selecionada também
+  escolhe tinta legível para a cor aplicada.
+- Testes do gráfico e da paleta passaram (10 testes). O medidor visual aprovou
+  os dois temas e as janelas de 3/6/12 meses em desktop e celular; overflow e
+  axe passaram nas 37 jornadas nos dois tamanhos. Medição de contraste passou
+  nos temas claro e escuro. `npm run verificar` passou nos seis gates.
+
 ## Classificação dos erros de recuperação de senha — 2026-10-18
 
 - `/reset-password` só marca o link como inválido quando a resposta traz o

@@ -16,6 +16,7 @@ import { Portal, useTravarRolagem } from './Portal'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { normalizar } from '../domain/consulta'
 import { SeletorEmoji } from './SeletorEmoji'
+import { corTextoSobreFundo } from './cor-texto-sobre-fundo'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 
@@ -207,7 +208,7 @@ export function EditarCompra({ tx, onFechar, onSalvo, onAprendeu }: Props) {
                       ? 'border-transparent text-carvao-950'
                       : 'border-carvao-700 text-tinta-fraca hover:border-carvao-600 hover:text-tinta'
                   }`}
-                  style={slug === c.slug ? { background: c.cor } : undefined}
+                  style={slug === c.slug ? { background: c.cor, color: corTextoSobreFundo(c.cor) } : undefined}
                 >
                   <span>{c.icone}</span>
                   <span className="truncate">{nomeCategoria(c)}</span>

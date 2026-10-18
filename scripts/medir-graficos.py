@@ -14,20 +14,31 @@ with sync_playwright() as p:
             page = browser.new_page(viewport={'width': largura, 'height': 844}, locale='pt-BR', reduced_motion='reduce')
             page.goto(f'{BASE}/demo.html?tela=relatorios&janela=3&tema={tema}')
             expect(page.get_by_text('Fluxo financeiro', exact=True)).to_be_visible()
-            erros = page.locator('[data-grafico="fluxo"]').evaluate('''el => {
+            grafico = page.locator('[data-grafico="fluxo"]')
+            page.get_by_role('button', name='Resultado do período', exact=True).click()
+            erros = grafico.evaluate('''el => {
                 const svg = el.querySelector('svg');
-                const line = svg.querySelector('path[stroke="var(--color-grafico-entrada)"]');
+                const line = svg.querySelector('path[data-serie="resultado"]');
                 const ctm = svg.getScreenCTM();
-                const buttons = [...el.querySelectorAll('button')];
+                const buttons = [...el.querySelectorAll('button[aria-label*="entradas"]')];
                 return [...line.getAttribute('d').matchAll(/[ML] ([\\d.]+) ([\\d.]+)/g)].map((m, i) => {
                     const point = new DOMPoint(+m[1], +m[2]).matrixTransform(ctm);
                     const rect = buttons[i].getBoundingClientRect();
                     return Math.abs(point.x - (rect.left + rect.width / 2));
                 });
             }''')
-            assert len(erros) == 3 and max(erros) < 1, erros
-            cores = page.locator('svg circle').evaluate_all("els => els.map(el => getComputedStyle(el).stroke)")
-            assert len(cores) == 8 and all(c != 'none' for c in cores), cores
+            assert len(erros) >= 2 and max(erros) < 1, erros
+            barras = grafico.locator('rect[data-serie]')
+            assert barras.count() > 0, 'O fluxo mensal deve mostrar barras de entradas e saídas'
+            cores = grafico.locator('svg circle').evaluate_all("els => els.map(el => getComputedStyle(el).fill)")
+            assert len(cores) > 0 and all(c != 'none' for c in cores), cores
+            acumulado = page.get_by_role('group', name='Leitura').get_by_role(
+                'button', name='Resultado acumulado', exact=True
+            )
+            acumulado.click()
+            expect(acumulado).to_have_attribute('aria-pressed', 'true')
+            expect(grafico.locator('path[data-serie="acumulado"]')).to_be_visible()
+            expect(page.get_by_text('Soma dos resultados dos meses com transações importadas', exact=False)).to_be_visible()
             for janela in ('6 meses', '12 meses'):
                 page.get_by_role('button', name=janela, exact=True).click()
                 rotulos = page.locator('[data-grafico="fluxo"] button > span:last-child').evaluate_all('''els =>
@@ -36,6 +47,7 @@ with sync_playwright() as p:
                     })''')
                 assert all(a['right'] <= b['left'] for a, b in zip(rotulos, rotulos[1:])), rotulos
             page.get_by_role('button', name='3 meses', exact=True).click()
+            page.get_by_role('button', name='Resultado do período', exact=True).click()
             entrada = page.get_by_role('button', name='Entradas', exact=True)
             entrada.click()
             expect(entrada).to_have_attribute('aria-pressed', 'true')

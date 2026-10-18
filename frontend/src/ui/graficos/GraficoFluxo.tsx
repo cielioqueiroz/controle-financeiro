@@ -14,7 +14,7 @@ type Props = {
 }
 
 type Modo = 'acumulado' | 'periodo'
-type Serie = 'entrada' | 'saida' | 'acumulado'
+type Serie = 'entrada' | 'saida' | 'resultado' | 'acumulado'
 
 const LARGURA = 720
 const ALTURA = 250
@@ -67,18 +67,13 @@ function valorCompacto(valor: number, formatBRL: (cents: number) => string): str
   return formatBRL(valor).replace('R$', '').trim()
 }
 
-/** Fluxo financeiro no formato analítico do Ambit.
- *
- * A estrutura é nova, mas a fonte não é: toda série vem de `evolucaoMensal`,
- * que já agrupa pela competência e ignora vínculos. O desenho só organiza a
- * leitura — entradas e saídas como áreas, e uma terceira linha alternável
- * para resultado do período ou saldo acumulado.
- */
+/** Compara entradas, saídas e resultado por competência. O acumulado soma
+ * apenas os meses documentados; lacunas continuam vazias e interrompem a linha. */
 export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props) {
   const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const { t } = useT()
-  const [modo, setModo] = useState<Modo>('acumulado')
+  const [modo, setModo] = useState<Modo>('periodo')
   const [emFoco, setEmFoco] = useState<string | null>(null)
   const [serieEmFoco, setSerieEmFoco] = useState<Serie | null>(null)
   const [serieFixada, setSerieFixada] = useState<Serie | null>(null)
@@ -91,15 +86,13 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
       competencia, dados: mapa.get(competencia) ?? null,
     }))
   }, [serie, competencias])
-  const temLacunas = pontos.some((p) => p.dados === null)
-  const modoLeitura = temLacunas ? 'periodo' : modo
   const acumulados = useMemo(() => {
     const totais = serie.reduce<number[]>((valores, p) => {
       const anterior = valores[valores.length - 1] ?? 0
       return [...valores, anterior + p.entradasCents - p.gastoCents]
     }, [])
     const porCompetencia = new Map(serie.map((p, i) => [p.competencia, totais[i]]))
-    return pontos.map((p) => porCompetencia.get(p.competencia) ?? 0)
+    return pontos.map((p) => porCompetencia.get(p.competencia) ?? null)
   }, [serie, pontos])
 
   if (pontos.length < 2) return null
@@ -107,8 +100,10 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
   const entradas = pontos.map((p) => p.dados?.entradasCents ?? null)
   const saidas = pontos.map((p) => p.dados?.gastoCents ?? null)
   const resultados = pontos.map((p) => p.dados ? p.dados.entradasCents - p.dados.gastoCents : null)
-  const linhaSecundaria = modoLeitura === 'acumulado' ? acumulados : resultados
-  const conhecidos = [...entradas, ...saidas, ...linhaSecundaria].filter((v): v is number => v !== null)
+  const linhaSecundaria = modo === 'acumulado' ? acumulados : resultados
+  const conhecidos = modo === 'acumulado'
+    ? linhaSecundaria.filter((v): v is number => v !== null)
+    : [...entradas, ...saidas, ...resultados].filter((v): v is number => v !== null)
   const minimo = Math.min(0, ...conhecidos)
   const maximo = Math.max(...conhecidos, 1)
   const zero = yDoValor(0, minimo, maximo)
@@ -116,8 +111,12 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
   const indiceLeitura = pontos.findIndex((p) => p.competencia === emLeitura.competencia)
   const acumuladoLeitura = acumulados[indiceLeitura]
   const resultadoLeitura = emLeitura.dados
-    ? modoLeitura === 'acumulado' ? acumuladoLeitura : emLeitura.dados.entradasCents - emLeitura.dados.gastoCents
+    ? modo === 'acumulado' ? acumuladoLeitura : emLeitura.dados.entradasCents - emLeitura.dados.gastoCents
     : null
+  const rotuloModo = modo === 'acumulado' ? t('fluxo.modoAcumulado') : t('fluxo.modoPeriodo')
+  const tituloResultado = modo === 'acumulado' ? t('fluxo.modoAcumulado') : t('fluxo.resultado')
+  const larguraBarra = Math.min(18, LARGURA / pontos.length * 0.28)
+  const deslocamentoBarra = larguraBarra / 2 + 2
 
   return (
     <div className="min-w-0">
@@ -126,54 +125,62 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
           <p className="rotulo">{t('fluxo.titulo')}</p>
           <p className="mt-1 text-xs text-tinta-fraca">{t('fluxo.descricao')}</p>
         </div>
-        <label className="flex items-center gap-2 text-[10px] text-tinta-tenue">
+        <div className="flex flex-col items-start gap-1.5 sm:items-end">
           <span className="rotulo !text-[9px]">{t('fluxo.modoRotulo')}</span>
-          <select
-            aria-label={t('fluxo.modoRotulo')}
-            value={modoLeitura}
-            onChange={(event) => setModo(event.target.value as Modo)}
-            className="rounded-sm border border-campo-borda bg-afundado px-2 py-1 text-xs text-tinta"
-          >
-            <option value="acumulado" disabled={temLacunas}>{t('fluxo.modoAcumulado')}</option>
-            <option value="periodo">{t('fluxo.modoPeriodo')}</option>
-          </select>
-        </label>
+          <div role="group" aria-label={t('fluxo.modoRotulo')} className="inline-flex rounded-md border border-campo-borda bg-afundado p-1">
+            {(['periodo', 'acumulado'] as const).map((opcao) => (
+              <button
+                key={opcao}
+                type="button"
+                aria-pressed={modo === opcao}
+                onClick={() => {
+                  setModo(opcao)
+                  setSerieFixada(null)
+                  setSerieEmFoco(null)
+                }}
+                className={`min-h-9 rounded px-3 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca ${
+                  modo === opcao ? 'bg-superficie text-tinta shadow-sm' : 'text-tinta-fraca hover:text-tinta'
+                }`}
+              >
+                {opcao === 'periodo' ? t('fluxo.modoPeriodo') : t('fluxo.modoAcumulado')}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-tinta-fraca">
-        {([
-          ['entrada', t('evolucao.entradas')],
-          ['saida', t('evolucao.saidas')],
-          ['acumulado', modoLeitura === 'acumulado' ? t('fluxo.modoAcumulado') : t('fluxo.modoPeriodo')],
-        ] as const).map(([cor, nome]) => (
+        {(modo === 'periodo'
+          ? [
+              ['entrada', t('evolucao.entradas')],
+              ['saida', t('evolucao.saidas')],
+              ['resultado', t('fluxo.resultado')],
+            ] as const
+          : [['acumulado', t('fluxo.modoAcumulado')]] as const
+        ).map(([cor, nome]) => (
           <button key={cor} type="button" aria-pressed={serieFixada === cor}
             onClick={() => setSerieFixada(serieFixada === cor ? null : cor)}
             onMouseEnter={() => setSerieEmFoco(cor)} onMouseLeave={() => setSerieEmFoco(null)}
             onFocus={() => setSerieEmFoco(cor)} onBlur={() => setSerieEmFoco(null)}
             className={`flex min-h-11 items-center gap-2 rounded-md border px-3 ${destaque === cor ? 'border-campo-borda bg-afundado' : 'border-transparent'}`}>
-            <span aria-hidden className={`w-4 border-t-2 ${cor === 'acumulado' ? 'border-dashed' : ''}`}
-              style={{ borderColor: `var(--color-grafico-${cor})` }} />
+            <span aria-hidden className={`w-4 border-t-2 ${cor === 'acumulado' || cor === 'resultado' ? 'border-dashed' : ''}`}
+              style={{ borderColor: `var(--color-grafico-${cor === 'resultado' ? 'acumulado' : cor})` }} />
             {nome}
           </button>
         ))}
       </div>
 
-      {temLacunas && <p className="mb-3 text-xs leading-relaxed text-tinta-fraca">{t('fluxo.lacunasAviso')}</p>}
-      <div className="mb-2 flex min-h-9 flex-wrap items-center gap-3 rounded-sm bg-afundado px-3 py-2">
+      {modo === 'acumulado' && pontos.some((p) => !p.dados) && (
+        <p className="mb-3 text-xs leading-relaxed text-tinta-fraca">{t('fluxo.lacunasAviso')}</p>
+      )}
+      <div className="mb-2 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-1 rounded-md bg-afundado px-3 py-2">
         <span className="rotulo !text-[10px]">{rotulo(emLeitura.competencia)}</span>
         {emLeitura.dados ? <>
-        <span className="tabular text-xs text-credito">
-          +{valorCompacto(emLeitura.dados.entradasCents, formatBRL)}
-        </span>
-        <span className="tabular text-xs text-debito">
-          −{valorCompacto(emLeitura.dados.gastoCents, formatBRL)}
-        </span>
-        <span
-          className={`tabular ml-auto text-xs ${
-            resultadoLeitura !== null && resultadoLeitura < 0 ? 'text-debito' : 'text-tinta'
-          }`}
-        >
-          {resultadoLeitura !== null && valorCompacto(resultadoLeitura, formatBRL)}
+        <span className="tabular text-xs text-credito">+{valorCompacto(emLeitura.dados.entradasCents, formatBRL)}</span>
+        <span className="tabular text-xs text-debito">−{valorCompacto(emLeitura.dados.gastoCents, formatBRL)}</span>
+        <span className={`ml-auto tabular text-xs ${resultadoLeitura !== null && resultadoLeitura < 0 ? 'text-debito' : 'text-tinta'}`}>
+          <span className="mr-1 text-tinta-tenue">{tituloResultado}</span>
+          {resultadoLeitura !== null ? valorCompacto(resultadoLeitura, formatBRL) : '—'}
         </span>
         </> : <span className="text-xs text-tinta-fraca">{t('relatorios.mesSemDados')}</span>}
       </div>
@@ -187,82 +194,62 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
           preserveAspectRatio="none"
           className="absolute inset-0 h-full w-full overflow-visible"
           role="img"
-          aria-label={t('fluxo.rotulo', { modo: modoLeitura === 'acumulado' ? t('fluxo.modoAcumulado') : t('fluxo.modoPeriodo') })}
+          aria-label={t('fluxo.rotulo', { modo: rotuloModo })}
         >
           {[TOPO, (TOPO + BASE) / 2, BASE].map((y) => (
-            <line
-              key={y}
-              x1={ESQUERDA}
-              x2={LARGURA - DIREITA}
-              y1={y}
-              y2={y}
-              stroke="var(--color-grade-grafico)"
-              strokeDasharray="2 5"
-              opacity="0.78"
-            />
+            <line key={y} x1={ESQUERDA} x2={LARGURA - DIREITA} y1={y} y2={y}
+              stroke="var(--color-grade-grafico)" strokeDasharray="2 5" opacity="0.78" />
           ))}
-          {minimo < 0 && <line x1="0" x2={LARGURA} y1={zero} y2={zero} stroke="var(--color-grade-grafico)" />}
+          <line x1="0" x2={LARGURA} y1={zero} y2={zero} stroke="var(--color-linha-grafico)" strokeWidth="1.25" />
+
+          {modo === 'periodo' && pontos.map((p, i) => p.dados && (
+            <g key={p.competencia}>
+              {([
+                ['entrada', p.dados.entradasCents, -deslocamentoBarra],
+                ['saida', p.dados.gastoCents, deslocamentoBarra],
+              ] as const).map(([cor, valor, deslocamento]) => {
+                const y = yDoValor(valor, minimo, maximo)
+                return (
+                  <motion.rect
+                    key={cor}
+                    data-serie={cor}
+                    x={xDoIndice(i, pontos.length) + deslocamento - larguraBarra / 2}
+                    y={Math.min(zero, y)}
+                    width={larguraBarra}
+                    height={Math.max(1, Math.abs(zero - y))}
+                    rx="2"
+                    fill={`var(--color-grafico-${cor})`}
+                    opacity={opacidade(cor)}
+                    initial={semMovimento ? false : { opacity: 0.25 }}
+                    animate={{ opacity: opacidade(cor) }}
+                    transition={{ duration: 0.35 }}
+                  />
+                )
+              })}
+            </g>
+          ))}
+
+          {modo === 'acumulado' && (
+            <path d={caminhoArea(linhaSecundaria, minimo, maximo)} fill="var(--color-grafico-acumulado)" fillOpacity="0.11" />
+          )}
           <motion.path
-            d={caminhoArea(entradas, minimo, maximo)}
-            fill="var(--color-grafico-entrada)"
-            fillOpacity="0.08"
-            stroke="none"
-            initial={semMovimento ? false : { opacity: 0 }}
-            animate={{ opacity: opacidade('entrada') }}
-            transition={{ duration: 0.55 }}
-          />
-          <motion.path
-            d={caminhoArea(saidas, minimo, maximo)}
-            fill="var(--color-grafico-saida)"
-            fillOpacity="0.07"
-            stroke="none"
-            initial={semMovimento ? false : { opacity: 0 }}
-            animate={{ opacity: opacidade('saida') }}
-            transition={{ duration: 0.55, delay: 0.06 }}
-          />
-          <motion.path
-            d={caminhoLinha(entradas, minimo, maximo)}
-            fill="none"
-            stroke="var(--color-grafico-entrada)"
-            vectorEffect="non-scaling-stroke"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={semMovimento ? false : { pathLength: 0 }}
-            animate={{ pathLength: 1, opacity: opacidade('entrada') }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          />
-          <motion.path
-            d={caminhoLinha(saidas, minimo, maximo)}
-            fill="none"
-            stroke="var(--color-grafico-saida)"
-            vectorEffect="non-scaling-stroke"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={semMovimento ? false : { pathLength: 0 }}
-            animate={{ pathLength: 1, opacity: opacidade('saida') }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
-          />
-          <motion.path
+            data-serie={modo === 'acumulado' ? 'acumulado' : 'resultado'}
             d={caminhoLinha(linhaSecundaria, minimo, maximo)}
             fill="none"
             stroke="var(--color-grafico-acumulado)"
             vectorEffect="non-scaling-stroke"
-            strokeWidth="1.8"
-            strokeDasharray="5 4"
+            strokeWidth="2.5"
+            strokeDasharray={modo === 'acumulado' ? undefined : '6 4'}
             strokeLinecap="round"
+            strokeLinejoin="round"
             initial={semMovimento ? false : { opacity: 0 }}
-            animate={{ opacity: opacidade('acumulado') }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.16 }}
+            animate={{ opacity: opacidade(modo === 'acumulado' ? 'acumulado' : 'resultado') }}
+            transition={{ duration: 0.55 }}
           />
-          {temLacunas && pontos.map((p, i) => p.dados && (
-            <g key={p.competencia}>
-              {([['entrada', p.dados.entradasCents], ['saida', p.dados.gastoCents], ['acumulado', resultados[i]!]] as const).map(([cor, valor]) => (
-                <circle key={cor} cx={xDoIndice(i, pontos.length)} opacity={opacidade(cor)}
-                  cy={yDoValor(valor, minimo, maximo)} r="3" fill={`var(--color-grafico-${cor})`} />
-              ))}
-            </g>
+          {pontos.map((p, i) => p.dados && (
+            <circle key={p.competencia} data-ponto={p.competencia}
+              cx={xDoIndice(i, pontos.length)} cy={yDoValor(modo === 'acumulado' ? acumulados[i] ?? 0 : resultados[i] ?? 0, minimo, maximo)}
+              r="3.5" fill="var(--color-grafico-acumulado)" />
           ))}
         </svg>
 
@@ -286,17 +273,12 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
               }) : t('fluxo.mesSemDados', { mes: rotulo(p.competencia) })}
               className="group relative h-full min-w-0 flex-1 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-marca focus-visible:ring-inset"
             >
-              <span
-                aria-hidden
-                className={`absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-grafico-acumulado/45 transition-opacity ${
-                  emLeitura.competencia === p.competencia ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                }`}
-              />
-              <span
-                className={`tabular absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] ${pontos.length > 6 && i % 3 !== 0 && i !== pontos.length - 1 ? 'hidden sm:block' : ''} ${
-                  p.competencia === ativo ? 'font-semibold text-tinta' : 'text-tinta-tenue'
-                }`}
-              >
+              <span aria-hidden className={`absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-grafico-acumulado/45 transition-opacity ${
+                emLeitura.competencia === p.competencia ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              }`} />
+              <span className={`tabular absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] ${
+                pontos.length > 6 && i % 3 !== 0 && i !== pontos.length - 1 ? 'hidden sm:block' : ''
+              } ${p.competencia === ativo ? 'font-semibold text-tinta' : 'text-tinta-tenue'}`}>
                 {rotulo(p.competencia)}
               </span>
             </button>
@@ -305,7 +287,7 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
       </div>
 
       <p className="mt-1 text-right text-[10px] text-tinta-tenue">
-        {modoLeitura === 'acumulado' ? t('fluxo.rodapeAcumulado') : t('fluxo.rodapePeriodo')}
+        {modo === 'acumulado' ? t('fluxo.rodapeAcumulado') : t('fluxo.rodapePeriodo')}
       </p>
     </div>
   )
