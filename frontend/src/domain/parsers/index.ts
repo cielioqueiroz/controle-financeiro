@@ -9,6 +9,7 @@ import { parseSicrediExtrato } from './sicredi-extrato'
 import { parseSicoobExtrato } from './sicoob-extrato'
 import { parseMercadoPagoFatura } from './mercadopago-fatura'
 import { parseMercadoPagoExtrato } from './mercadopago-extrato'
+import { parseCaixaExtrato } from './caixa-extrato'
 import type { ParseResult } from './types'
 
 export class ParserNaoImplementadoError extends Error {
@@ -44,6 +45,9 @@ export function parse(lines: Line[]): { kind: DocKind; result: ParseResult } {
   }
   if (kind.bank === 'bb' && kind.docType === 'extrato') {
     return { kind, result: parseBBExtrato(lines) }
+  }
+  if (kind.bank === 'caixa' && kind.docType === 'extrato') {
+    return { kind, result: parseCaixaExtrato(lines) }
   }
   if (kind.bank === 'sicredi' && kind.docType === 'extrato') {
     return { kind, result: parseSicrediExtrato(lines) }

@@ -52,6 +52,13 @@ beforeEach(() => {
 })
 
 describe('puxarTudo — leitura do histórico', () => {
+  it('lê a evidência salva e desambigua a relação com o documento de origem', async () => {
+    montar({ transacoes: [linha({ vinculo_document_id: 'fatura-1', vinculo_criterio: 'quitacao-fatura' })] })
+    const [tx] = await puxarTudo()
+    expect(tx.vinculo_document_id).toBe('fatura-1')
+    expect(tx.vinculo_criterio).toBe('quitacao-fatura')
+    expect(falso.chamadas[0].colunas).toContain('documents!transactions_document_id_fkey(')
+  })
   it('sem cliente Neon devolve lista vazia', async () => {
     dublê.cliente = null
     expect(await puxarTudo()).toEqual([])

@@ -14,9 +14,14 @@ no banco** é a fronteira de segurança (cada usuário só vê o que é dele).
 
 - Projeto Neon `controle-financeiro` (região São Paulo), Data API e Neon
   Auth ativos.
-- Schema em [`backend/db/migrations/`](../backend/db/migrations/) aplicado na
-  produção, com RLS + 2 policies por tabela.
+- Schema e migrações até `0008` em [`backend/db/migrations/`](../backend/db/migrations/)
+  aplicados na produção, com RLS + policies por tabela.
 - Código usando `@neondatabase/neon-js` (cliente único: auth + queries).
+
+As migrações 0009–0011 desta branch **ainda não foram aplicadas**. Para validar
+esta versão, use uma branch Neon descartável, aplique as migrações em ordem e
+siga o [ensaio de vínculos, regras e parsers](./VALIDACAO-MANUAL.md).
+Não publique o frontend atualizado antes delas.
 
 ## Configurar o app (uma vez)
 
@@ -36,10 +41,16 @@ No Console do Neon → **Auth → Configuration**, confirme que estão
 ligados:
 
 - **E-mail/senha** (o app usa `signIn.email` / `signUp.email`).
-- **Google** (opcional): exige credenciais OAuth criadas no seu Google
-  Cloud Console (Client ID + Secret) e coladas na config do provider
-  Google. Sem isso, o botão "Continuar com o Google" aparece mas não
-  completa. O e-mail/senha funciona sozinho.
+- **Google** (opcional): o Neon oferece credenciais compartilhadas para
+  desenvolvimento; a auditoria de 08/09/2026 registrou esse modo no projeto.
+  Para produção, preparar credenciais próprias no Google Cloud e configurá-las
+  no provider da branch. O procedimento e a distinção entre os dois retornos
+  estão em [SETUP-GOOGLE-OAUTH.md](./SETUP-GOOGLE-OAUTH.md), com fontes oficiais.
+  A configuração atual do console precisa ser conferida antes de alterá-la.
+
+A confirmação de e-mail implementada usa **código de seis dígitos**, solicitado
+pelo cliente após o cadastro. O ensaio de entrega e confirmação está em
+[VALIDACAO-MANUAL.md, §2](./VALIDACAO-MANUAL.md#2--criar-conta-e-receber-o-e-mail).
 
 ## Cold start (free tier)
 

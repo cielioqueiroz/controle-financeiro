@@ -14,7 +14,9 @@ roda.
 **Onde rodar:** produção (https://capital-financeiro.vercel.app). O `npm run dev`
 serve para o resto; aqui o que se testa é justamente o que só existe no ar —
 domínio autorizado no Neon Auth, remetente do e-mail, CSP da Vercel.
-Exceção: §5 começa num frontend local ligado à branch Neon de teste.
+Exceção: §5 começa num frontend local ligado à branch Neon de teste. Executar
+cadastro, recuperação e OAuth requer uma conta de teste autorizada; o roteiro
+documentado não significa que essas ações foram executadas nesta rodada.
 
 ---
 
@@ -24,9 +26,11 @@ Exceção: §5 começa num frontend local ligado à branch Neon de teste.
 |---|---|
 | Mexeu em `@neondatabase/neon-js`, `lib/neon.ts` ou qualquer coisa de sessão | **Tudo** |
 | Mexeu no fluxo de senha (`Auth`, `RecuperarSenha`, `lib/recuperar-senha`) | §2 e §3 |
+| Mexeu em `lib/confirmar-email`, `AvisoConfirmarEmail` ou cadastro | §2 |
+| Trocou as credenciais do Google | §1 e [roteiro de OAuth](./SETUP-GOOGLE-OAUTH.md) |
 | Trocou de projeto no Neon, ou mexeu no `connect-src` da CSP | §1 |
 | Deploy comum, sem tocar em autenticação | Nada |
-| Antes de publicar o frontend com a RPC da migração `0008` | §5 |
+| Antes de publicar o frontend com as novas migrações 0009–0011 | §5 e §6 |
 
 ---
 
@@ -41,6 +45,8 @@ Exceção: §5 começa num frontend local ligado à branch Neon de teste.
 5. **Continuar com o Google.** Entra sem passar pela senha.
    ⚠️ Se der `403 {"code":"INVALID_CALLBACKURL"}`, o domínio não está autorizado:
    *Neon → Auth → Configuration → Domains*.
+   Credenciais próprias, retorno do provedor e identidade visual têm roteiro
+   separado em [SETUP-GOOGLE-OAUTH.md](./SETUP-GOOGLE-OAUTH.md).
 
 ## §2 — Criar conta e receber o e-mail
 
@@ -51,7 +57,20 @@ Só o e-mail real prova esta parte — o remetente é da Neon, compartilhado.
    "controle-financeiro". (Se disser, o campo é *Neon → Auth → Configuration →
    Project Info → Application Name*.) É o único e-mail que pedimos ao usuário
    para confiar; chegar sob nome que ele não reconhece tem forma de phishing.
-3. Confirmar pelo link. A faixa de "confirme seu e-mail" some.
+3. O cadastro pede explicitamente um **código de seis dígitos**. Pedido aceito
+   não prova entrega: conferir a caixa de entrada e o spam.
+4. No app, abrir **Confirmar agora**, digitar o código recebido e confirmar.
+   Abrir o campo não deve pedir outro código. A faixa de confirmação some após
+   a releitura da sessão e continua ausente depois de `F5`.
+5. Em outra conta de teste ainda não confirmada, testar um código incorreto:
+   a mensagem orienta conferir o número ou pedir outro, e o campo permanece
+   aberto. **Reenviar código** permite concluir com o novo código recebido.
+   Não provocar repetidamente o limite de envio do serviço real.
+
+O fluxo implementado está em `lib/confirmar-email.ts` e
+`ui/acesso/AvisoConfirmarEmail.tsx`: envio por
+`/email-otp/send-verification-otp` e confirmação por `/email-otp/verify-email`.
+Um link de redefinição de senha (§3) pertence a outro fluxo.
 
 ## §3 — Trocar a senha
 
@@ -103,12 +122,45 @@ os ensaios de escrita continuaram restritos à branch de teste.
 5. Em uma conta diferente, o documento importado não aparece. Registrar resultado
    HTTP, data e branch em `ESTADO-ATUAL.md`, sem copiar tokens ou conteúdo pessoal.
 
-Em instalações novas, aplicar e conferir a migração `0008` antes
-de publicar o frontend. Ausência da RPC deve produzir o aviso de atualização
-necessária; nunca deve acionar a antiga escrita em várias chamadas.
+Em instalações novas, aplicar e conferir `0008` antes de publicar o frontend.
+Esta prova histórica não inclui as migrações 0009–0011, que ainda estão somente
+nesta branch; elas exigem os ensaios do §6 antes de ativar o frontend atualizado.
+Ausência da RPC deve produzir o aviso de atualização necessária; nunca deve
+acionar a antiga escrita em várias chamadas.
+
+## §6 — Vínculos, regras e novos parsers (migrações 0009–0011)
+
+Executar somente numa branch Neon descartável e com conta de teste. Aplicar
+`0009_vinculos_historico.sql`, `0010_regras_consulta.sql` e
+`0011-caixa.sql` nessa ordem, revisar o SQL da rodada e confirmar que a sessão
+usa a branch certa antes de importar. A aprovação local de PostgreSQL não prova
+por si só a Data API/JWT do Neon.
+
+1. Importar uma fatura de cartão e o extrato com o pagamento, primeiro fatura e
+   depois extrato; abrir **Faturas → Conferir vínculos** e conferir os dois
+   documentos, valor, data, critério e ação para abrir cada um. Repetir em ordem
+   inversa com outro período. Não pode haver par quando a correspondência for
+   ambígua.
+2. Importar as duas pontas de uma transferência entre contas do titular. Conferir
+   a evidência recíproca. Corrigir manualmente a natureza de uma ponta, reimportar
+   um documento e conferir que a correção prevalece; excluir a contraparte e
+   conferir que a ponta restante volta a contar como gasto/entrada.
+3. Criar regras como `banco:caixa >100`, `cat:farmacia posto` e
+   `sem:categoria <500`. Conferir que elas valem apenas para novos documentos,
+   que condição vazia ou contraditória é recusada e que as regras podem ser
+   removidas. As transações históricas não devem mudar.
+4. Importar amostras autorizadas da Caixa GovConta e do BB layout A; conferir
+   manualmente saldo inicial/final, quantidade, valores e direção. Não testar
+   uma compilação de bancos como se fosse um documento único.
+5. Repetir as jornadas em pt/en/es e no modo discreto. Registrar branch, data,
+   resultado, IDs dos documentos de teste e migrações aplicadas, sem anexar
+   extratos, tokens ou dados de conta ao repositório.
 
 ---
 
 **Deu tudo certo?** Anote a data na rodada corrente do
 [`ESTADO-ATUAL.md`](./ESTADO-ATUAL.md). Roteiro rodado e não registrado vira
 roteiro rodado de novo.
+
+A preparação de 18/10/2026 e as dependências externas ainda abertas estão em
+[recursos externos](./validacoes/2026-10-18-recursos-externos.md).

@@ -1,9 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import { toast, Toaster } from 'sonner'
 import userEvent from '@testing-library/user-event'
 import { ConteudoCategorias } from './Categorias'
 import { editarCategoria, apagarCategoria } from '../persist/categoriasUsuario'
-import { apagarRegra } from '../persist/regras'
+import { apagarRegra, salvarRegra, puxarRegras } from '../persist/regras'
+import { recategorizarEmLote } from '../persist/editar'
+
+vi.mock('../persist/editar', () => ({
+  editarTransacao: vi.fn(),
+  recategorizarEmLote: vi.fn(),
+}))
 
 vi.mock('../persist/categoriasUsuario', () => ({
   puxarCategoriasUsuario: vi.fn().mockResolvedValue([
@@ -20,6 +27,7 @@ vi.mock('../persist/regras', () => ({
       { padrao: 'MERCADO BOM PRECO', tipo: 'contains', categoria: 'supermercado', prioridade: 10 },
     ]),
   apagarRegra: vi.fn().mockResolvedValue(undefined),
+  salvarRegra: vi.fn().mockResolvedValue(undefined),
 }))
 
 const props = {
@@ -29,6 +37,80 @@ const props = {
 
 describe('Categorias', () => {
   beforeEach(() => vi.clearAllMocks())
+  afterEach(() => toast.dismiss())
+
+  it('mostra a condição completa e exclui especificamente a regra com operadores', async () => {
+    vi.mocked(puxarRegras).mockResolvedValueOnce([
+      { padrao: 'posto banco:nubank >100', tipo: 'consulta', categoria: 'viagem', prioridade: 1000 },
+    ])
+    render(<ConteudoCategorias {...props} />)
+    expect(await screen.findByText('posto banco:nubank >100')).toBeVisible()
+    expect(screen.getByText('Regra com operadores')).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: 'Esquecer a regra de posto banco:nubank >100' }))
+    expect(apagarRegra).toHaveBeenCalledWith(expect.objectContaining({ padrao: 'posto banco:nubank >100', tipo: 'consulta' }))
+  })
+
+  it('bloqueia edição e novo envio enquanto grava', async () => {
+    let concluir: (() => void) | undefined
+    const pendente = new Promise<void>((resolve) => { concluir = resolve })
+    vi.mocked(salvarRegra).mockReturnValueOnce(pendente)
+    const usuario = userEvent.setup()
+    render(<ConteudoCategorias {...props} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Nova regra com operadores' }))
+    await usuario.type(screen.getByLabelText('Condição da regra'), '>100')
+    await usuario.selectOptions(screen.getByLabelText('Categoria de destino'), 'viagem')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar regra' }))
+    expect(screen.getByLabelText('Condição da regra')).toBeDisabled()
+    expect(screen.getByLabelText('Categoria de destino')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    expect(salvarRegra).toHaveBeenCalledOnce()
+    concluir?.()
+    await waitFor(() => expect(screen.queryByLabelText('Condição da regra')).not.toBeInTheDocument())
+  })
+
+  it('cria regra com texto, banco e valor apenas para próximas importações', async () => {
+    const usuario = userEvent.setup()
+    render(<ConteudoCategorias {...props} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Nova regra com operadores' }))
+    expect(screen.getAllByText(/As regras valem para as próximas importações/).length).toBeGreaterThan(0)
+    const salvar = screen.getByRole('button', { name: 'Salvar regra' })
+    expect(salvar).toBeDisabled()
+    await usuario.type(screen.getByLabelText('Condição da regra'), 'posto banco:nubank >100')
+    await usuario.selectOptions(screen.getByLabelText('Categoria de destino'), 'u-pedreiro-ab12')
+    await usuario.click(salvar)
+    expect(salvarRegra).toHaveBeenCalledExactlyOnceWith({
+      padrao: 'posto banco:nubank >100', tipo: 'consulta', categoria: 'u-pedreiro-ab12', prioridade: 1000,
+    })
+    await waitFor(() => expect(screen.queryByLabelText('Condição da regra')).not.toBeInTheDocument())
+    expect(props.onMudou).toHaveBeenCalledOnce()
+    expect(recategorizarEmLote).not.toHaveBeenCalled()
+  })
+
+  it('impede condição inválida e explica como corrigir', async () => {
+    const usuario = userEvent.setup()
+    render(<ConteudoCategorias {...props} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Nova regra com operadores' }))
+    await usuario.type(screen.getByLabelText('Condição da regra'), 'banco:inexistente')
+    await usuario.selectOptions(screen.getByLabelText('Categoria de destino'), 'viagem')
+    expect(screen.getByRole('button', { name: 'Salvar regra' })).toBeDisabled()
+    expect(screen.getByLabelText('Condição da regra')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText(/Revise os operadores/)).toBeVisible()
+    expect(salvarRegra).not.toHaveBeenCalled()
+  })
+
+  it('preserva a condição quando salvar falha e permite tentar novamente', async () => {
+    vi.mocked(salvarRegra).mockRejectedValueOnce(new Error('detalhe interno'))
+    const usuario = userEvent.setup()
+    render(<><ConteudoCategorias {...props} /><Toaster /></>)
+    await usuario.click(await screen.findByRole('button', { name: 'Nova regra com operadores' }))
+    await usuario.type(screen.getByLabelText('Condição da regra'), '>100')
+    await usuario.selectOptions(screen.getByLabelText('Categoria de destino'), 'viagem')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar regra' }))
+    expect(await screen.findByText('Não foi possível salvar a regra. Tente novamente.')).toBeVisible()
+    expect(screen.getByLabelText('Condição da regra')).toHaveValue('>100')
+    expect(screen.getByRole('button', { name: 'Salvar regra' })).toBeEnabled()
+    expect(screen.queryByText('detalhe interno')).not.toBeInTheDocument()
+  })
 
   it('busca categorias pelo nome sem alterar as regras aprendidas', async () => {
     const usuario = userEvent.setup()

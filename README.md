@@ -12,7 +12,7 @@ guarda só as transações.
   <a href="#-minha-situação-financeira">Minha situação financeira</a> ·
   <a href="#-relatórios">Relatórios</a> ·
   <a href="#-arquitetura">Arquitetura</a> ·
-  <a href="#-as-quatro-regras-que-fazem-a-conta-fechar">As regras que fazem a conta fechar</a>
+  <a href="#-as-cinco-regras-que-fazem-a-conta-fechar">As regras que fazem a conta fechar</a>
 </p>
 
 <p align="center">
@@ -113,7 +113,7 @@ regras dessa comparação na [spec dos relatórios](docs/specs/002-comparacao-po
 |---|---|
 | 📄 **Lê o PDF no navegador** | pdf.js em worker; o arquivo não é enviado a servidor nenhum |
 | ✅ **Confere ao centavo** | cada parser valida o total lido contra o total declarado no PDF |
-| 🏦 **6 bancos** | Nubank, Bradesco, Banco do Brasil, Sicredi, Sicoob e Mercado Pago (fatura e/ou extrato) |
+| 🏦 **7 bancos** | Nubank, Bradesco, Banco do Brasil, Sicredi, Sicoob, Mercado Pago e Caixa (GovConta) — conforme o layout do documento |
 | 🏷️ **Categoriza e aprende** | 30 categorias embutidas; corrigir uma compra ensina o app para as próximas |
 | 🔗 **Não conta o mesmo dinheiro duas vezes** | cruza fatura × extrato e marca quitação e transferência entre contas próprias |
 | 📅 **Dia / Semana / Mês / Ano** | Mês e Ano agrupam por **competência da fatura**; Dia e Semana, pela data da compra |
@@ -140,7 +140,7 @@ flowchart LR
 
     subgraph NAV ["🖥️ Navegador — o PDF não sai daqui"]
         W["pdf.js worker<br/>→ linhas com coordenadas"]
-        P["detecta o banco<br/>→ parser (5 layouts)"]
+        P["detecta o banco<br/>→ parser do documento"]
         V{{"confere contra o<br/>gabarito do PDF"}}
         C["categoriza · vincula<br/>· dedupe por conteúdo"]
         AV["avisa, não esconde"]
@@ -177,15 +177,17 @@ graph TD
     PG["<b>paginas/</b> · as 8 telas<br/>Painel · Lançamentos · Faturas · Importação · Relatórios<br/>Categorias · Recorrências · Situação financeira"]
     CP["<b>ui/</b> · componentes<br/><i>gráficos em SVG próprio, sem biblioteca</i>"]
     RC["<b>dados/</b> · o recorte da tela<br/><i>useRecorte + filtros na URL</i>"]
-    DOM["<b>domain/</b> · puro, sem React e sem I/O<br/>parsers · validate · categorize · link<br/>dedupe · recorrencias · normalize"]
-    PER["<b>persist/</b> · leitura, escrita e agregação<br/><i>agrupar · salvar · puxar · editar</i>"]
+    DOM["<b>domain/</b> · puro, sem React e sem I/O<br/>parsers · validate · categorize · link<br/>dedupe · recorrencias · normalize · agrupar"]
+    APL["<b>aplicacao/</b> · fronteira das telas<br/>consultas de leitura · comandos de escrita"]
+    PER["<b>persist/</b> · adaptador do Neon<br/><i>salvar · puxar · editar</i>"]
     LIB["<b>lib/</b> · cliente Neon<br/>e auth por HTTP"]
     NEON[("Neon Data API<br/>PostgREST + RLS")]
     AUTH["Neon Auth<br/>Better Auth"]
 
     PG --> RC
     CP --> RC
-    RC --> PER
+    RC --> APL --> PER
+    PG --> APL
     PG --> DOM
     PER --> DOM
     PER --> NEON
@@ -204,18 +206,19 @@ capital-financeiro/
 │   ├── index.html               # entrada de produção (CSP, tema pré-pintura, OG)
 │   ├── demo.html + src/demo.tsx # folha de provas: componentes com dados fictícios
 │   ├── public/                  # fontes próprias (16 woff2), og.png, favicon
-│   ├── tests/fixtures/          # PDFs anonimizados
+│   ├── tests/fixtures/          # JSON extraído e anonimizado
 │   └── src/
 │       ├── domain/              # ⭐ regras puras (sem React, sem I/O)
 │       │   ├── normalize/       # dinheiro em centavos, datas, parcelas, estabelecimento
 │       │   ├── pdf/             # texto com coordenadas, linhas, detecção do banco
-│       │   ├── parsers/         # Nubank, Bradesco, BB, Sicredi, Sicoob
+│       │   ├── parsers/         # Nubank, Bradesco, BB, Sicredi, Sicoob, Mercado Pago, Caixa GovConta
 │       │   ├── categorize/      # catálogo de 30 categorias, regras e aprendizado
 │       │   ├── validate/        # conferência contra o gabarito do banco
 │       │   ├── link/            # vínculos entre documentos (dupla contagem)
 │       │   ├── dedupe/          # conteúdo do Documento e hash de transação
 │       │   └── recorrencias.ts  # séries que se repetem + alertas
-│       ├── persist/             # Data API + agregação de leitura
+│       ├── persist/             # adaptador da Data API
+│       ├── aplicacao/           # consultas e comandos usados pelas telas
 │       ├── dados/               # filtros na URL, recorte, provider do histórico
 │       ├── ui/                  # primitivos, marca e o que é usado por 2+ grupos
 │       │   ├── acesso/          # as telas de anônimo (entrar, criar, recuperar)
@@ -237,7 +240,7 @@ pdf.js · jsPDF · Vitest · oxlint · Neon (Postgres + Data API + Auth) · Verc
 
 ## 🗄️ Modelo de dados
 
-Cinco tabelas, **RLS desde o primeiro dia**. O cliente **nunca** envia `user_id`: ele
+Seis tabelas, incluindo `client_errors`, **todas com RLS**. O cliente **nunca** envia `user_id`: ele
 vem do `default (auth.user_id())` no servidor, então não há como um cliente adulterado
 gravar linha no nome de outra pessoa.
 
@@ -292,7 +295,7 @@ erDiagram
 
 ---
 
-## 🧠 As quatro regras que fazem a conta fechar
+## 🧠 As cinco regras que fazem a conta fechar
 
 Quem for mexer no código precisa destas. São a diferença entre um número certo e um
 número que mente com confiança:
@@ -305,14 +308,14 @@ número que mente com confiança:
    atravessa dois meses; agrupar pela data real partia a fatura ao meio (o supermercado
    de junho aparecia como R$ 287 em vez dos R$ 918 reais). A competência é o mês do
    `documents.period_end`. **Dia e Semana** seguem a data real, porque ali a pergunta é
-   outra. → `persist/agrupar.ts`
+   outra. → `domain/agrupar.ts`
 
 3. **O PDF declara totais que servem de gabarito.** O parser se autoconfere contra eles.
    Nunca exiba um número que não bateu sem avisar. → `domain/validate/checksum.ts`
 
 4. **Compromissos futuros nunca vão para o banco.** São calculados na hora, a partir da
    parcela mais recente de cada série — por isso não duplicam quando a próxima fatura é
-   importada. → `persist/agrupar.ts::projecaoFutura`
+   importada. → `domain/agrupar.ts::projecaoFutura`
 
 5. **Um Documento é identificado pelo conteúdo financeiro, não pelo nome do PDF.**
    Reexportar o mesmo extrato pode mudar metadados e IDs internos do PDF; a impressão
@@ -332,7 +335,7 @@ flowchart TB
     end
 
     APP -->|"HTTPS + JWT<br/>só as transações"| API["Neon Data API<br/>PostgREST"]
-    API --> RLS{{"RLS: user_id = auth.user_id()<br/><i>nas 5 tabelas</i>"}}
+    API --> RLS{{"RLS: user_id = auth.user_id()<br/><i>nas 6 tabelas</i>"}}
     RLS --> T1[("linhas do usuário A")]
     RLS -.->|"invisível"| T2[("linhas do usuário B")]
 
@@ -346,7 +349,7 @@ flowchart TB
 - **PDFs reais são ignorados pelo git** (`*.pdf`): contêm CPF, agência, conta e nomes de
   terceiros, e o histórico do git é permanente. Os fixtures são **anonimizados**
   (`scripts/gerar-fixtures.ts`).
-- **RLS nas cinco tabelas**, por `auth.user_id()`. O cliente nunca manda `user_id`.
+- **RLS nas seis tabelas**, por `auth.user_id()`. O cliente nunca manda `user_id`.
 - **CSP completa** (`vercel.json`), incluindo `script-src 'self'` + hash, `base-uri
   'none'` e `connect-src` com as **duas origens exatas** da Neon — um curinga
   `*.neon.tech` seria canal de exfiltração pronto, porque qualquer pessoa cria um
@@ -361,10 +364,10 @@ flowchart TB
 - **`npm audit` faz parte da revisão.** Em 13/08/2026 ele apontou uma falha **alta** no
   `pdfjs-dist` — *execução de JavaScript arbitrário ao abrir um PDF malicioso* —, que é
   a superfície mais exposta do app inteiro: abrir PDF é o que ele faz. Corrigida
-  (5.7.284 → 6.2.108). O que **não** dá para corrigir daqui são as falhas da cadeia do
-  SDK do Neon (`@neondatabase/neon-js` → `better-auth`): dependem de a Neon publicar
-  versão nova, e os caminhos vulneráveis do `better-auth` são do **servidor de auth**
-  hospedado por eles, não do cliente que vai no bundle.
+  naquela rodada (5.7.284 → 6.2.108); o manifesto atual já usa `^6.3.289`.
+  O SDK do Neon já está em `^0.7.0-beta`. Esses registros descrevem correções
+  realizadas; a avaliação de segurança de uma instalação exige auditar o lockfile
+  atual, sem reaproveitar um resultado antigo como prova.
 
 > **Sobre o upgrade do pdf.js:** nenhum teste do projeto exercita o pdf.js de verdade
 > (os fixtures são JSON já extraído, e `domain/pdf/load.ts` é mockado em jsdom, que não
@@ -480,24 +483,41 @@ nome acessível e o aviso "escala até R$ 816 · 1 dia acima" embaixo. A distor�
 
 ## 📌 Estado e o que falta
 
-Funcionando ponta a ponta contra o Neon real: importação, conferência ao centavo,
+Implementado: importação, conferência ao centavo,
 categorização com aprendizado, vínculos, persistência, login, recuperação de senha,
 confirmação de e-mail por código, as oito páginas, filtros na URL, gráficos, recorrências,
 compromissos futuros, tutorial e relatório em PDF.
 
-Aberto hoje:
+O backend próprio foi **descartado**, conforme a
+[ADR-0011](docs/adr/0011-backend-serverless-descartado.md). O adaptador conversa
+com a Data API sob RLS; `backend/` guarda as migrações SQL. O upgrade do SDK
+para `^0.7.0-beta` já consta no manifesto.
 
-- **Backend próprio** (Vercel Functions) — desenhado, esperando a `DATABASE_URL` de uma
-  role sem `BYPASSRLS`. Enquanto isso o cliente fala direto com a Data API, com RLS.
-- **SDK do Neon em beta** (`@neondatabase/neon-js@0.6.2-beta`) — já existe a `0.7.0-beta`,
-  e o `npm audit` aponta a cadeia dele. O upgrade está **parado de propósito**: a suíte
-  mocka o SDK inteiro, então uma regressão de login não seria pega por teste nenhum —
-  validar exige entrar com uma conta real.
-- **Mais bancos** — Caixa parada por falta de amostra (o extrato veio como imagem e o
-  app lê texto) e o layout A do BB (2020) espera um PDF nesse formato aparecer.
-- **Confirmação de e-mail por link** — o Neon Auth com remetente compartilhado só envia
-  **código**; link exige provedor de e-mail próprio. O app se ajustou ao que de fato
-  chega na caixa de entrada.
+Em execução na rodada de 18/10/2026: vínculos com documentos do histórico,
+explicação das duas pontas na tela e regras de categoria com operadores. A
+[spec da rodada](docs/superpowers/specs/2026-10-18-pendencias-design.md) e os
+planos registram escopo e critérios; implementação local não significa publicação.
+
+Ainda dependem de prova ou recurso externo:
+
+- **Mais layouts de banco:** Caixa GovConta e BB layout A (2020) ganharam
+  parsers locais com referências anonimizadas e conferência por saldo nesta
+  rodada. GovConta não cobre automaticamente todos os extratos pessoais da
+  Caixa; novos layouts exigem amostras. A migração `0011-caixa.sql` precisa ser
+  aplicada antes de publicar o suporte Caixa. O
+  [inventário](docs/validacoes/2026-10-18-recursos-externos.md) registra as provas
+  e os limites de cobertura.
+- **Google OAuth próprio:** preparar e validar a troca das credenciais
+  compartilhadas pelo [roteiro de configuração](docs/SETUP-GOOGLE-OAUTH.md).
+- **Serviços reais:** repetir os cenários afetados do
+  [roteiro manual](docs/VALIDACAO-MANUAL.md) com conta e caixa de entrada
+  autorizadas. `medir:login` usa SDK real com Auth sintético e não prova a
+  entrega de e-mail nem o OAuth real.
+- **Revisão nativa de inglês e espanhol:** a cobertura técnica das traduções
+  não substitui revisão de linguagem por falantes nativos.
+
+A confirmação de e-mail funciona por **código de seis dígitos**; confirmação
+por link não é uma pendência do fluxo atual.
 
 O histórico completo, com o porquê de cada decisão, está em
 [`docs/ESTADO-ATUAL.md`](docs/ESTADO-ATUAL.md) — é o arquivo para ler antes de retomar

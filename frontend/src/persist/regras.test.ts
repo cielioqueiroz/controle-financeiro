@@ -34,17 +34,17 @@ describe('puxarRegras', () => {
     comRegras([
       { padrao: 'FARMACIA', match_type: 'contains', categoria: 'farmacia', prioridade: 100 },
       { padrao: '12345678000199', match_type: 'cnpj', categoria: 'mercado', prioridade: 200 },
+      { padrao: '>100 banco:nubank', match_type: 'consulta', categoria: 'viagem', prioridade: 1000 },
     ])
 
     expect(await puxarRegras()).toEqual([
       { padrao: 'FARMACIA', tipo: 'contains', categoria: 'farmacia', prioridade: 100 },
       { padrao: '12345678000199', tipo: 'cnpj', categoria: 'mercado', prioridade: 200 },
+      { padrao: '>100 banco:nubank', tipo: 'consulta', categoria: 'viagem', prioridade: 1000 },
     ])
   })
 
-  /** Qualquer coisa que não seja exatamente 'cnpj' vira 'contains'. O
-   *  domínio só conhece dois tipos, e um valor estranho vindo do banco não
-   *  pode virar um terceiro que ninguém trata. */
+  /** Tipo futuro desconhecido mantém a compatibilidade de texto literal. */
   it('valor desconhecido de match_type cai em contains', async () => {
     comRegras([{ padrao: 'X', match_type: 'regex-do-futuro', categoria: 'c', prioridade: 1 }])
     expect((await puxarRegras())[0].tipo).toBe('contains')
@@ -74,41 +74,31 @@ describe('puxarRegras', () => {
 })
 
 describe('salvarRegra', () => {
-  /** Apaga antes de inserir: sem isso, corrigir o mesmo estabelecimento
-   *  várias vezes acumula linhas concorrentes e a categoria valendo passa a
-   *  depender da ordem de leitura. */
-  it('apaga o par (padrão, tipo) ANTES de inserir', async () => {
-    const falso = criarNeonFalso()
-    dublê.cliente = falso.cliente
-    await salvarRegra({ padrao: 'FARMACIA', tipo: 'contains', categoria: 'farmacia', prioridade: 1 })
-
-    const ops = falso.chamadas.filter((c) => c.tabela === 'merchant_rules').map((c) => c.op)
-    expect(ops).toEqual(['delete', 'insert'])
-  })
-
-  it('o delete casa pelo padrão E pelo tipo, não só pelo padrão', async () => {
-    const falso = criarNeonFalso()
-    dublê.cliente = falso.cliente
-    await salvarRegra({ padrao: 'X', tipo: 'cnpj', categoria: 'c', prioridade: 1 })
-
-    const del = falso.chamadas.find((c) => c.op === 'delete')
-    expect(del?.filtros).toEqual([
-      { tipo: 'eq', coluna: 'padrao', valor: 'X' },
-      { tipo: 'eq', coluna: 'match_type', valor: 'cnpj' },
-    ])
-  })
-
-  it('grava os quatro campos da regra', async () => {
-    const falso = criarNeonFalso()
-    dublê.cliente = falso.cliente
-    await salvarRegra({ padrao: 'X', tipo: 'contains', categoria: 'c', prioridade: 9 })
-
-    expect(falso.gravadasEm('merchant_rules')[0]).toEqual({
-      padrao: 'X',
-      match_type: 'contains',
-      categoria: 'c',
-      prioridade: 9,
+  it.each(['contains', 'cnpj', 'consulta'] as const)('grava %s numa única RPC com os quatro campos', async (tipo) => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null })
+    dublê.cliente = { rpc }
+    await salvarRegra({ padrao: 'posto banco:nubank >100', tipo, categoria: 'viagem', prioridade: 1000 })
+    expect(rpc).toHaveBeenCalledExactlyOnceWith('salvar_regra_atomica', {
+      p_regra: { padrao: 'posto banco:nubank >100', match_type: tipo, categoria: 'viagem', prioridade: 1000 },
     })
+  })
+
+  it('recusa consulta inválida sem enviar escrita alguma', async () => {
+    const rpc = vi.fn()
+    dublê.cliente = { rpc }
+    await expect(salvarRegra({ padrao: 'banco:', tipo: 'consulta', categoria: 'viagem', prioridade: 1000 })).rejects.toThrow()
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('propaga falha da RPC sem recorrer à antiga escrita parcial', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'RPC indisponível' } })
+    dublê.cliente = { rpc }
+    await expect(salvarRegra({ padrao: '>100', tipo: 'consulta', categoria: 'viagem', prioridade: 1000 })).rejects.toMatchObject({ message: 'RPC indisponível' })
+    expect(rpc).toHaveBeenCalledTimes(1)
+  })
+
+  it('consulta sem persistência falha em vez de afirmar que salvou', async () => {
+    await expect(salvarRegra({ padrao: '>100', tipo: 'consulta', categoria: 'viagem', prioridade: 1000 })).rejects.toThrow()
   })
 
   it('sem cliente Neon não grava nada', async () => {
@@ -120,6 +110,14 @@ describe('salvarRegra', () => {
 })
 
 describe('apagarRegra', () => {
+  it('exclui só o tipo consulta sem atingir aprendizado com o mesmo padrão', async () => {
+    const falso = comRegras()
+    await apagarRegra({ padrao: 'POSTO', tipo: 'consulta' })
+    expect(falso.chamadas[0].filtros).toEqual([
+      { tipo: 'eq', coluna: 'padrao', valor: 'POSTO' },
+      { tipo: 'eq', coluna: 'match_type', valor: 'consulta' },
+    ])
+  })
   it('é simétrico ao salvar: apaga pelo par (padrão, tipo)', async () => {
     const falso = criarNeonFalso()
     dublê.cliente = falso.cliente

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { buildLines } from '../pdf/lines'
 import { parse } from '../parsers'
-import { categoriaDe, extrairCNPJ } from './regras'
+import { categoriaDe, extrairCNPJ, criarRegraConsulta, consultaDeRegraValida, casaRegra, REGRAS_GLOBAIS } from './regras'
 import type { TextItem } from '../pdf/types'
 import type { RawTransaction } from '../parsers/types'
 
@@ -15,6 +15,51 @@ const tx = (description: string): RawTransaction => ({
   fx: null,
   kind: 'compra',
   raw: description,
+})
+
+describe('regras com operadores', () => {
+  it('combina texto, banco e magnitude do valor, preservando os dois sinais', () => {
+    const regras = [criarRegraConsulta('posto banco:nubank >100 <200', 'viagem'), ...REGRAS_GLOBAIS]
+    for (const amountCents of [15000, -15000]) {
+      const transacao = { ...tx('AUTO POSTO CENTRAL'), amountCents }
+      expect(categoriaDe(transacao, regras, { bank: 'nubank' })).toBe('viagem')
+      expect(categoriaDe(transacao, regras, { bank: 'bb' })).toBe('combustivel')
+      expect(categoriaDe(transacao, regras)).toBe('combustivel')
+    }
+    expect(categoriaDe({ ...tx('AUTO POSTO'), amountCents: 10000 }, regras, { bank: 'nubank' })).toBe('combustivel')
+  })
+
+  it('cat e sem categoria sempre olham a categoria global, independente da ordem', () => {
+    const regras = [criarRegraConsulta('cat:combustivel', 'viagem'), criarRegraConsulta('sem:categoria', 'servicos')]
+    for (const ordenadas of [regras, [...regras].reverse()]) {
+      expect(categoriaDe(tx('AUTO POSTO'), [...ordenadas, ...REGRAS_GLOBAIS])).toBe('viagem')
+      expect(categoriaDe(tx('ALGO DESCONHECIDO'), [...ordenadas, ...REGRAS_GLOBAIS])).toBe('servicos')
+    }
+  })
+
+  it('mantém prioridade, especificidade e a categoria global diante de regra inválida', () => {
+    const regra = criarRegraConsulta('posto', 'viagem')
+    const aprendida = { padrao: 'AUTO POSTO CENTRAL', tipo: 'contains' as const, categoria: 'servicos', prioridade: 1000 }
+    expect(categoriaDe(tx('AUTO POSTO CENTRAL'), [regra, aprendida, ...REGRAS_GLOBAIS])).toBe('servicos')
+    expect(categoriaDe(tx('AUTO POSTO'), [{ ...regra, padrao: '' }, ...REGRAS_GLOBAIS])).toBe('combustivel')
+  })
+
+  it.each(['', '  ', '>', '>abc', '>1,,2', '>1.2.3', '>9007199254740991', 'banco:', 'banco:inexistente', 'sem:algo', 'cat:', 'cat:inexistente', '>100 <100', '>100 <100,01', '<0', 'banco:bb banco:nubank', 'cat:taxas sem:categoria'])('recusa condição vazia ou impossível: %s', (padrao) => {
+    expect(consultaDeRegraValida(padrao)).toBe(false)
+    expect(() => criarRegraConsulta(padrao, 'viagem')).toThrow()
+  })
+
+  it('preserva operador desconhecido como texto e aceita limites e categorias coerentes', () => {
+    expect(consultaDeRegraValida('PIX:Joao >100')).toBe(true)
+    expect(consultaDeRegraValida('cat:outros sem:categoria <0,02')).toBe(true)
+    expect(categoriaDe({ ...tx('PIX:Joao'), amountCents: 20000 }, [criarRegraConsulta('PIX:Joao >100', 'servicos')])).toBe('servicos')
+  })
+
+  it('exige contexto real para avaliar uma consulta avulsa', () => {
+    const regra = criarRegraConsulta('posto banco:nubank >100 cat:combustivel', 'viagem')
+    expect(casaRegra(regra, 'AUTO POSTO')).toBe(false)
+    expect(casaRegra(regra, 'AUTO POSTO', { amountCents: 15000, bank: 'nubank', categoriaBase: 'combustivel' })).toBe(true)
+  })
 })
 
 describe('categoriaDe — estabelecimentos reais', () => {

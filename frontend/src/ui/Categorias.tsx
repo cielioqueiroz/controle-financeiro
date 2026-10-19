@@ -4,7 +4,7 @@ import { chaveDeErro } from '../lib/erro-usuario'
 import { puxarCategoriasUsuario, type CategoriaUsuario } from '../aplicacao/consultas/historico'
 import { editarCategoria, apagarCategoria } from '../aplicacao/comandos/categorias'
 import { puxarRegras } from '../aplicacao/consultas/regras'
-import { apagarRegra } from '../aplicacao/comandos/transacoes'
+import { apagarRegra, salvarRegra } from '../aplicacao/comandos/transacoes'
 import { CATEGORIAS, categoria, nomeCategoria } from '../domain/categorize/categorias'
 import type { Regra } from '../domain/categorize/regras'
 import { useT } from '../i18n/IdiomaProvider'
@@ -13,6 +13,7 @@ import type { Dicionario } from '../i18n/dicionarios/pt'
 import { Confirmacao } from './acesso/Confirmacao'
 import { normalizar } from '../domain/consulta'
 import { SeletorEmoji } from './SeletorEmoji'
+import { FormularioRegra } from './FormularioRegra'
 
 const CORES = ['#a05bd6', '#e8637a', '#4ade80', '#38bdf8', '#facc15', '#fb923c', '#f472b6', '#94a3b8']
 type CategoriaEditavel = Omit<CategoriaUsuario, 'id'> & { id: string | null }
@@ -43,6 +44,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
   const [cor, setCor] = useState(CORES[0])
   const [confirmando, setConfirmando] = useState<CategoriaEditavel | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  const [criandoRegra, setCriandoRegra] = useState(false)
   const editaveis: CategoriaEditavel[] = cats === null ? [] : [
     ...CATEGORIAS.map((base) => cats.find((c) => c.slug === base.slug) ?? { ...base, id: null }),
     ...cats.filter((c) => !CATEGORIAS.some((base) => base.slug === c.slug)),
@@ -127,6 +129,23 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
       onMudou()
     } catch (e) {
       toast.error(t(chaveDeErro(e, 'cats.toastRegraFalha', 'categorias')))
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  async function criarRegra(regra: Regra): Promise<boolean> {
+    setOcupado(true)
+    try {
+      await salvarRegra(regra)
+      toast.success(t('regrasOp.salva'))
+      setCriandoRegra(false)
+      await carregar()
+      onMudou()
+      return true
+    } catch (e) {
+      toast.error(t(chaveDeErro(e, 'regrasOp.falha', 'categorias')))
+      return false
     } finally {
       setOcupado(false)
     }
@@ -247,23 +266,31 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
             {cats !== null && encontradas.length === 0 && <p role="status" className="px-3 py-6 text-center text-sm text-tinta-fraca">{t('cats.semResultado')}</p>}
             {/* Regras aprendidas */}
             <p className="px-3 pb-1 pt-5 text-[10px] uppercase tracking-widest text-tinta-tenue">
-              {t('cats.regras')}
+              {t('regrasOp.titulo')}
             </p>
-            <p className="px-3 pb-2 text-[11px] text-tinta-tenue">{t('cats.regrasAjuda')}</p>
+            <p className="px-3 pb-2 text-[11px] text-tinta-tenue">{t('regrasOp.descricao')}</p>
+            <p className="px-3 pb-2 text-xs text-tinta-fraca">{t('regrasOp.futuras')}</p>
+            {criandoRegra ? <FormularioRegra categorias={editaveis} ocupado={ocupado}
+              onSalvar={criarRegra} onCancelar={() => setCriandoRegra(false)} />
+              : <button onClick={() => setCriandoRegra(true)} disabled={ocupado || cats === null}
+                className="acao-painel mx-3 mb-3 disabled:opacity-50">{t('regrasOp.nova')}</button>}
             {regras === null ? (
               <p className="px-4 py-6 text-center text-sm text-tinta-fraca">{t('cats.carregando')}</p>
             ) : regras.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-tinta-fraca">{t('cats.semRegras')}</p>
+              <p className="px-4 py-6 text-center text-sm text-tinta-fraca">{t('regrasOp.vazio')}</p>
             ) : (
               <ul className="space-y-1 pb-2">
                 {regras.map((r) => {
-                  const cat = categoria(r.categoria)
+                  const cat = editaveis.find((c) => c.slug === r.categoria) ?? categoria(r.categoria)
                   return (
                     <li
                       key={`${r.tipo}-${r.padrao}`}
                       className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-carvao-850"
                     >
-                      <span className="min-w-0 flex-1 truncate text-sm text-tinta">{r.padrao}</span>
+                      <span className="min-w-0 flex-1 break-words text-sm text-tinta">
+                        {r.padrao}
+                        {r.tipo === 'consulta' && <span className="block text-xs text-tinta-fraca">{t('regrasOp.consulta')}</span>}
+                      </span>
                       <span className="shrink-0 text-tinta-tenue" aria-hidden>
                         →
                       </span>

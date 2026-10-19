@@ -32,6 +32,7 @@ const ESPERADO = [
   { fixture: 'sicoob-extrato', bank: 'sicoob', docType: 'extrato' },
   { fixture: 'mercadopago-fatura', bank: 'mercadopago', docType: 'fatura' },
   { fixture: 'mercadopago-extrato', bank: 'mercadopago', docType: 'extrato' },
+  { fixture: 'caixa-extrato', bank: 'caixa', docType: 'extrato' },
 ] as const
 
 describe('parse — despacho por documento de referência', () => {

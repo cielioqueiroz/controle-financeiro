@@ -1,5 +1,47 @@
 # Estado atual do projeto — retomada
 
+## Vínculos, regras e novos layouts — 2026-10-18
+
+- Em `codex/vinculos-regras-pendencias`, três frentes começaram a partir do
+  inventário: a migração 0009 reconcilia fatura/pagamento e transferências entre
+  contas no histórico, com evidência recíproca e respeito à correção manual; a
+  0010 permite regras de categoria com os operadores já usados na busca; a
+  0011 adiciona o banco Caixa para extratos GovConta. O parser do BB agora lê os
+  layouts 2023 e A. A ajuda e as descrições foram alinhadas em pt/en/es.
+- A página Faturas apresenta as pontas dos vínculos e permite abrir cada
+  documento. Regras novas valem para importações futuras. Foram acrescentadas
+  3 fixtures anonimizadas (12 no total), mantendo os PDFs locais fora do git.
+- A suíte completa passou com dois workers: 147 arquivos e 1.270 testes. Também
+  passaram typecheck, lint, caminhos, build, geração/auditoria dos fixtures e
+  contraste nos dois temas. Um teste de navegação encontrou o nome do PDF em
+  dois pontos; a consulta foi ajustada para mirar o painel correto e os 11
+  testes de vínculos/navegação passaram.
+- `npm run verificar` e `medir-csp.py` não concluíram porque o `uv` não conseguiu
+  obter Playwright do PyPI por falha de DNS; `medir:a11y` e overflow ainda
+  dependem desse pacote. O Chromium via Playwright de Node abriu, mas a sandbox
+  negou acesso ao Vite local (`127.0.0.1:5173`). Os testes SQL das migrações
+  0009 e 0010 passaram em PostgreSQL descartável com RLS e concorrência. A
+  0011 também foi aplicada numa branch Neon temporária isolada e o CHECK foi
+  conferido como validado, aceitando os oito bancos suportados e recusando
+  valores fora do catálogo. A limpeza dessa branch depende da confirmação
+  exigida pela ferramenta Neon; nada foi aplicado à branch pai.
+- A revisão do diff encontrou e corrigiu cinco bordas dos parsers: valor Caixa
+  zero sem C/D, compilação BB A com outro emissor ou página sem estrutura
+  compatível e datas impossíveis no movimento e período. Os testes focados dos
+  dois parsers passaram (31 testes), junto com typecheck forçado, lint, build e
+  checagem de caminhos.
+- Antes de ativar/publicar o frontend, aplicar 0009, 0010 e 0011 em Neon de
+  teste e provar a leitura pela Data API. Continuam manuais: recebimento real de
+  e-mail, login e OAuth com credenciais próprias, revisão nativa de inglês e
+  espanhol e validação com conta real. Edições de `kind` anteriores à 0009 não
+  eram identificáveis como manuais; a ADR-0021 descreve esse limite.
+- Planos: [vínculos](./superpowers/plans/2026-10-18-vinculos-historico.md),
+  [regras com operadores](./superpowers/plans/2026-10-18-regras-operadores.md),
+  [parsers Caixa/BB](./superpowers/plans/2026-10-18-parsers-caixa-bb-antigo.md)
+  e [validação/documentação](./superpowers/plans/2026-10-18-validacao-documentacao-bancos.md).
+  Especificação comum:
+  [pendências](./superpowers/specs/2026-10-18-pendencias-design.md).
+
 ## Gráfico de fluxo acessível e redesenhado — 2026-10-18
 
 - Os dois modos de leitura ficam sempre selecionáveis, inclusive quando há

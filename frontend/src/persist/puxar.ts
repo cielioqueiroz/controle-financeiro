@@ -16,10 +16,13 @@ export type TransacaoSalva = {
   doc_type: string
   document_id: string
   installment: { current: number; total: number } | null
+  vinculo_document_id?: string | null
+  vinculo_transacao_id?: string | null
+  vinculo_criterio?: string | null
 }
 
 const COLUNAS =
-  'id, date, description, label, amount_cents, kind, category_slug, installment, document_id, accounts(bank), documents(doc_type, period_end)'
+  'id, date, description, label, amount_cents, kind, category_slug, installment, document_id, vinculo_document_id, vinculo_transacao_id, vinculo_criterio, accounts!transactions_account_id_fkey(bank), documents!transactions_document_id_fkey(doc_type, period_end)'
 
 /** A leitura voltou incompleta ou deformada.
  *
@@ -113,6 +116,9 @@ function paraTransacaoSalva(bruto: unknown): TransacaoSalva {
     doc_type: texto(doc?.doc_type) ?? 'desconhecido',
     document_id: exigirTexto(r.document_id, 'document_id'),
     installment: parcela(r.installment),
+    ...(r.vinculo_document_id != null ? { vinculo_document_id: exigirTexto(r.vinculo_document_id, 'vinculo_document_id') } : {}),
+    ...(r.vinculo_transacao_id != null ? { vinculo_transacao_id: exigirTexto(r.vinculo_transacao_id, 'vinculo_transacao_id') } : {}),
+    ...(r.vinculo_criterio != null ? { vinculo_criterio: exigirTexto(r.vinculo_criterio, 'vinculo_criterio') } : {}),
   }
 }
 

@@ -11,6 +11,8 @@ import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './acesso/Confirmacao'
 import { DocumentoImportado } from './DocumentoImportado'
 import { ErroCarregar } from './ErroCarregar'
+import { ConferenciaVinculos } from './ConferenciaVinculos'
+import type { TransacaoParaConferencia } from '../domain/link/conferencia-vinculos'
 
 type Props = {
   /** Chamado quando algo é apagado, para o histórico recarregar. */
@@ -19,6 +21,8 @@ type Props = {
   contagem: Map<string, { qtd: number; totalCents: number }> | null
   documentoSelecionado?: string | null
   onLimparSelecao?: () => void
+  transacoes?: TransacaoParaConferencia[] | null
+  onVerDocumento?: (id: string) => void
 }
 
 /** A competência do documento: o mês em que ele conta para o usuário.
@@ -88,7 +92,7 @@ export function DocumentoNaoEncontrado({ onLimpar }: { onLimpar?: () => void }) 
   )
 }
 
-export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, onLimparSelecao }: Props) {
+export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, onLimparSelecao, transacoes, onVerDocumento }: Props) {
   const { t } = useT()
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
   const [erro, setErro] = useState<ReturnType<typeof chaveDeErro> | null>(null)
@@ -201,6 +205,10 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
         <h2 className="font-display text-xl text-tinta">{t('docs.titulo')}</h2>
         <p className="text-xs text-tinta-fraca">{t('docs.subtitulo')}</p>
       </header>
+
+      {!erro && docs !== null && transacoes !== undefined && onVerDocumento && (
+        <ConferenciaVinculos transacoes={transacoes} documentos={docs} onVerDocumento={onVerDocumento} />
+      )}
 
       <div className="px-3 py-2">
         {!erro && docs !== null && documentoSelecionado && !docs.some((d) => d.id === documentoSelecionado) && (

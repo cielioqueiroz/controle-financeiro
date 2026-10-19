@@ -1,7 +1,10 @@
 import { normalizeMerchant } from '../normalize/merchant'
 import type { RawTransaction } from '../parsers/types'
+import { analisarConsulta, casaConsulta, normalizar, type TxConsultavel } from '../consulta'
+import { BANCOS } from '../banks'
+import { CATEGORIAS } from './categorias'
 
-export type MatchType = 'contains' | 'cnpj'
+export type MatchType = 'contains' | 'cnpj' | 'consulta'
 
 export type Regra = {
   padrao: string
@@ -9,6 +12,51 @@ export type Regra = {
   categoria: string
   /** Prioridade: maior vence. Regras do usuário nascem acima das globais. */
   prioridade: number
+}
+
+/** A busca preserva operadores desconhecidos como texto. Regras também,
+ * mas um operador conhecido incompleto ou contraditório não pode virar
+ * uma regra que nunca casa (ou que alcance tudo por engano). */
+export function consultaDeRegraValida(padrao: string): boolean {
+  if (!padrao.trim()) return false
+  for (const pedaco of padrao.trim().split(/\s+/)) {
+    const consulta = analisarConsulta(pedaco)
+    if (/^[<>]/.test(pedaco)
+      && !/^[<>](?:\d+(?:[.,]\d{1,2})?|\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?)$/.test(pedaco)) return false
+    if ((/^[<>]/.test(pedaco) || /^(banco|bank|cat|categoria|category|sem|no|sin):/i.test(normalizar(pedaco)))
+      && consulta.operadores.length === 0) return false
+  }
+  const { operadores } = analisarConsulta(padrao)
+  let minimo = -1
+  let maximo = Infinity
+  const bancos = new Set<string>()
+  const categorias = new Set<string>()
+  for (const op of operadores) {
+    switch (op.tipo) {
+      case 'valor-min':
+      case 'valor-max':
+        if (!Number.isSafeInteger(op.cents)) return false
+        if (op.tipo === 'valor-min') minimo = Math.max(minimo, op.cents)
+        else maximo = Math.min(maximo, op.cents)
+        break
+      case 'banco':
+        if (!Object.hasOwn(BANCOS, op.valor)) return false
+        bancos.add(op.valor)
+        break
+      case 'categoria':
+        if (!CATEGORIAS.some((c) => c.slug === op.slug)) return false
+        categorias.add(op.slug)
+        break
+      case 'sem-categoria':
+        categorias.add('outros')
+    }
+  }
+  return minimo < Number.MAX_SAFE_INTEGER && maximo - minimo > 1 && bancos.size <= 1 && categorias.size <= 1
+}
+
+export function criarRegraConsulta(padrao: string, categoria: string): Regra {
+  if (!consultaDeRegraValida(padrao) || !categoria.trim()) throw new Error('Condição de regra inválida')
+  return { padrao: padrao.trim(), tipo: 'consulta', categoria, prioridade: 1000 }
 }
 
 /** Regras globais embutidas, derivadas dos estabelecimentos reais do
@@ -138,7 +186,12 @@ function casa(
   description: string,
   merchant: string,
   cnpj: string | null,
+  tx?: TxConsultavel,
 ): boolean {
+  if (regra.tipo === 'consulta') {
+    return tx !== undefined && consultaDeRegraValida(regra.padrao)
+      && casaConsulta(tx, analisarConsulta(regra.padrao))
+  }
   if (regra.tipo === 'cnpj') {
     return cnpj !== null && regra.padrao.replace(/\D/g, '') === cnpj
   }
@@ -151,9 +204,18 @@ function casa(
  *  unicidade é o ponto: a prévia de "quantas compras esta correção também
  *  conserta" tem que dar exatamente o veredito que a categorização daria.
  *  Duas cópias da regra de casamento seriam duas opiniões, e a que o usuário
- *  vê na tela é justamente a que não roda na importação. */
-export function casaRegra(regra: Regra, description: string): boolean {
-  return casa(regra, description, normalizeMerchant(description), extrairCNPJ(description))
+ *  vê na tela é justamente a que não roda na importação. Consulta exige
+ *  valor e categoria-base explícitos; sem eles não se inventa contexto. */
+export function casaRegra(
+  regra: Regra,
+  description: string,
+  contexto?: { amountCents: number; bank?: string; categoriaBase: string },
+): boolean {
+  const tx = contexto ? {
+    description, label: null, category_slug: contexto.categoriaBase,
+    amount_cents: contexto.amountCents, bank: contexto.bank ?? '', kind: '',
+  } : undefined
+  return casa(regra, description, normalizeMerchant(description), extrairCNPJ(description), tx)
 }
 
 /** Aplica as regras a uma transação e devolve o slug da categoria.
@@ -162,21 +224,32 @@ export function casaRegra(regra: Regra, description: string): boolean {
 export function categoriaDe(
   tx: RawTransaction,
   regras: Regra[] = REGRAS_GLOBAIS,
+  contexto: { bank?: string } = {},
 ): string {
   const merchant = normalizeMerchant(tx.description)
   const cnpj = extrairCNPJ(tx.description)
 
-  let melhor: Regra | null = null
-  for (const r of regras) {
-    if (!casa(r, tx.description, merchant, cnpj)) continue
-    if (
-      !melhor ||
-      r.prioridade > melhor.prioridade ||
-      (r.prioridade === melhor.prioridade && r.padrao.length > melhor.padrao.length)
-    ) {
-      melhor = r
+  function escolher(candidatas: Regra[], consultavel?: TxConsultavel): string {
+    let melhor: Regra | null = null
+    for (const r of candidatas) {
+      if (!casa(r, tx.description, merchant, cnpj, consultavel)) continue
+      if (
+        !melhor ||
+        r.prioridade > melhor.prioridade ||
+        (r.prioridade === melhor.prioridade && r.padrao.length > melhor.padrao.length)
+      ) {
+        melhor = r
+      }
     }
+    return melhor?.categoria ?? 'outros'
   }
 
-  return melhor?.categoria ?? 'outros'
+  if (!regras.some((r) => r.tipo === 'consulta')) return escolher(regras)
+  // cat:/sem:categoria enxergam a classificação global imutável, jamais
+  // o resultado de outra regra do usuário (que dependeria da ordem).
+  const categoriaBase = escolher(REGRAS_GLOBAIS)
+  return escolher(regras, {
+    description: tx.description, label: null, category_slug: categoriaBase,
+    amount_cents: tx.amountCents, bank: contexto.bank ?? '', kind: tx.kind,
+  })
 }

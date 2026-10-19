@@ -1,5 +1,6 @@
 import type { Line } from '../pdf/lines'
 import { cellAt } from '../pdf/lines'
+import { detectDocument } from '../pdf/detect'
 import { parseBRL } from '../normalize/money'
 import type { ParseResult, RawKind, RawTransaction } from './types'
 
@@ -27,6 +28,17 @@ const VALOR_CD = /([\d.]+,\d{2})\s*([CD])\b/
 const SALDO_ANTERIOR = /Saldo\s+Anterior/i
 const SALDO_FINAL = /S\s*A\s*L\s*D\s*O/i
 
+function dataValida(texto: string): Date | null {
+  const m = texto.trim().match(DATA)
+  if (!m) return null
+  const dia = Number(m[1])
+  const mes = Number(m[2]) - 1
+  const ano = Number(m[3])
+  const data = new Date(ano, mes, dia)
+  return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === dia
+    ? data : null
+}
+
 /** Lê a primeira ocorrência de "número C/D" nas células à direita do
  *  documento. Numa linha de varredura o valor e o saldo colam
  *  ("5.361,48 C 0,00 C"): o primeiro é o valor. */
@@ -42,24 +54,32 @@ function valorCD(line: Line): { cents: number; letra: 'C' | 'D' } | null {
 
 /** Histórico sem os códigos de lote/agência que o antecedem
  *  ("13105 144 Pix - Enviado" → "Pix - Enviado"). */
-function historico(line: Line): string {
-  const bruto = cellAt(line, X_HISTORICO[0], X_HISTORICO[1]) ?? ''
+function historico(line: Line, antigo: boolean): string {
+  const bruto = antigo ? cellAt(line, 175, 200) ?? '' : cellAt(line, X_HISTORICO[0], X_HISTORICO[1]) ?? ''
   return bruto.replace(/^[\d\s]+/, '').trim()
 }
 
-function detalhe(line: Line | undefined, ancora: Line): string | null {
+function detalhe(line: Line | undefined, ancora: Line, antigo: boolean): string | null {
   if (!line || line.page !== ancora.page) return null
   const dt = cellAt(line, X_DATA[0], X_DATA[1])
   if (dt && DATA.test(dt.trim())) return null // é outra âncora
-  return cellAt(line, X_DETALHE[0], X_DETALHE[1])
+  return antigo ? cellAt(line, 175, 200) : cellAt(line, X_DETALHE[0], X_DETALHE[1])
 }
 
 function periodo(lines: Line[]): { start: Date; end: Date } | null {
   const texto = lines.map((l) => l.text).join('\n')
+  const intervalo = texto.match(/Per[íi]odo do extrato\s*(\d{2})\/(\d{2})\/(\d{4})\s*(?:a|-|at[ée])\s*(\d{2})\/(\d{2})\/(\d{4})/i)
+  if (intervalo) {
+    const start = dataValida(`${intervalo[1]}/${intervalo[2]}/${intervalo[3]}`)
+    const end = dataValida(`${intervalo[4]}/${intervalo[5]}/${intervalo[6]}`)
+    if (!start || !end || start > end) throw new Error('Período do extrato BB não reconhecido')
+    return { start, end }
+  }
   const m = texto.match(/Per[íi]odo do extrato\s*(\d{2})\s*\/\s*(\d{4})/i)
   if (!m) return null
   const mes = Number(m[1]) - 1
   const ano = Number(m[2])
+  if (mes < 0 || mes > 11) throw new Error('Período do extrato BB não reconhecido')
   return { start: new Date(ano, mes, 1), end: new Date(ano, mes + 1, 0) }
 }
 
@@ -76,6 +96,26 @@ function conta(lines: Line[]): { agency: string | null; number: string | null; h
 
 export function parseBBExtrato(lines: Line[]): ParseResult {
   const transactions: RawTransaction[] = []
+  // Layout A inverte o cabeçalho das datas e desloca o histórico para x≈186.
+  const antigo = lines.some((l) => /Dt\.?\s*movimento.*Dt\.?\s*balancete/i.test(l.text))
+  if (antigo) {
+    const periodos = new Set(lines.filter((l) => /Per[íi]odo do extrato/i.test(l.text)).map((l) => l.text))
+    const contas = new Set(lines.filter((l) => /^Conta corrente/i.test(l.text)).map((l) => l.text))
+    const paginas = new Set(lines.map((l) => l.page))
+    const outroEmissor = [...paginas].some((pagina) => {
+      const linhasPagina = lines.filter((l) => l.page === pagina)
+      const tipo = detectDocument(linhasPagina.map((l) => ({ ...l, page: 1 })))
+      return tipo.bank !== 'desconhecido' && tipo.bank !== 'bb'
+    })
+    const paginaIncompativel = [...paginas].some((pagina) => !lines.some((l) => {
+      if (l.page !== pagina) return false
+      const data = cellAt(l, X_DATA[0], X_DATA[1])?.trim()
+      return Boolean(data?.match(DATA) && valorCD(l) && historico(l, true).trim())
+    }))
+    if (periodos.size > 1 || contas.size > 1 || outroEmissor || paginaIncompativel || lines.some((l) => /GOVCONTA CAIXA/i.test(l.text))) {
+      throw new Error('O documento reúne contas ou períodos diferentes')
+    }
+  }
   let saldoInicial: number | null = null
   let saldoFinal: number | null = null
 
@@ -85,8 +125,9 @@ export function parseBBExtrato(lines: Line[]): ParseResult {
     const dm = dataTexto?.trim().match(DATA)
     if (!dm) continue
 
-    const data = new Date(Number(dm[3]), Number(dm[2]) - 1, Number(dm[1]))
-    const hist = historico(l)
+    const data = dataValida(dataTexto ?? '')
+    if (!data) throw new Error('Data do movimento BB não reconhecida')
+    const hist = historico(l, antigo)
     const v = valorCD(l)
 
     // Saldo inicial e final: entram só na conferência, não como transação.
@@ -105,7 +146,7 @@ export function parseBBExtrato(lines: Line[]): ParseResult {
     // saída (positivo). Convenção oposta à do saldo, de propósito.
     const amountCents = v.letra === 'C' ? -v.cents : v.cents
 
-    const det = detalhe(lines[i + 1], l)
+    const det = detalhe(lines[i + 1], l, antigo)
     const description = [hist, det].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
 
     const kind: RawKind =
