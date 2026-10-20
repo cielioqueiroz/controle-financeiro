@@ -9,7 +9,7 @@ em Faturas. **Tech Stack:** Postgres/Neon, React 19, TypeScript, Vitest.
 
 ## Restrições e revisão
 
-Centavos inteiros; RLS; sem produção/commit/push; correção manual prevalece.
+Centavos inteiros; RLS; ensaios restritos à branch de teste; correção manual prevalece.
 Revisar ambiguidades, ordem inversa, datas distantes, exclusão e atualização manual.
 
 ### Task 1: reconciliação transacional
@@ -25,6 +25,8 @@ Interface produzida: colunas opcionais `vinculo_document_id`,
 - [x] Implementar migração com integridade de referências por usuário,
   reconciliação sob trava e preservação da escolha manual.
 - [x] Ensaiar em Postgres descartável e registrar resultados.
+- [x] Repetir pela Data API/JWT reais numa branch Neon isolada, incluindo os
+  default privileges das funções e a recusa de chamada direta ao helper.
 
 Evidência da Task 1: [ADR-0021](../../adr/0021-vinculos-reconciliados-no-historico.md).
 PostgreSQL local 18.4, migrações 0001–0010 em ordem; provas SQL da 0008 e da
@@ -61,6 +63,14 @@ borda nos parsers; os testes focados, typecheck forçado, lint e build passaram.
 A 0011 foi ensaiada numa branch Neon temporária, depois descartada sem aplicar
 na branch pai; 0009 e 0010 têm ensaio completo em PostgreSQL descartável
 registrado na ADR-0021.
+
+Em 20/10, o ensaio real encontrou e corrigiu o \n literal ao fim da 0009 e
+o EXECUTE concedido por default privilege do Neon ao helper interno.
+As três migrações foram aplicadas na branch de teste existente; o validador
+aprovou 50 asserções e as provas de interface, isolamento por JWT e rede.
+O PostgreSQL local também reaplicou os arquivos completos com o default
+privilege do Neon e aprovou as provas SQL da 0008/0009.
+[Evidência e reprodução](../../validacoes/2026-10-20-vinculos-regras-neon.md).
 
 ### Task 3: fechamento
 

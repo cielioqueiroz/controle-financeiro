@@ -1,7 +1,7 @@
 # ADR-0021 — Vínculos reconciliados no histórico
 
 Data: 2026-10-18. Status: implementada e ensaiada em Postgres local descartável;
-migração 0009 ainda não aplicada em produção.
+Data API/JWT reais aprovados em 20/10; migração 0009 ainda não aplicada em produção.
 
 ## Contexto
 
@@ -48,7 +48,9 @@ lado, precisa continuar funcionando sem trocar o contrato do adaptador.
   excluídas num DELETE; gatilhos aninhados não iniciam nova reconciliação.
 - O helper que escreve evidências é `SECURITY DEFINER`, tem `search_path`
   vazio, referências qualificadas e predicado de usuário em todas as consultas.
-  Seu EXECUTE é revogado de PUBLIC e não é concedido a `authenticated`. O
+  Seu EXECUTE é revogado explicitamente de PUBLIC e de `authenticated`. O
+  Neon concede EXECUTE por default privilege a `authenticated`; revogar só
+  PUBLIC não remove essa concessão, como mostrou o ensaio real de 20/10. O
   helper só é chamado por gatilhos e pelo backfill da migração. A preparação
   de `kind` é INVOKER: distingue o proprietário da tabela, usado pela rotina
   automática, do cliente autenticado. Aplicar a migração como proprietário das
@@ -110,8 +112,9 @@ rollback da substituição após falha no INSERT, RLS e `user_id` forjado ignora
 
 ## Implantação e manutenção
 
-Aplicar a 0009 antes do frontend e repetir a prova em branch Neon descartável,
-incluindo a leitura pela Data API. A leitura de `transactions` precisa
+Aplicar a 0009 antes do frontend. A prova em branch Neon descartável com leitura
+pela Data API foi aprovada em 20/10; [resultados e repetição](../validacoes/2026-10-20-vinculos-regras-neon.md).
+A leitura de `transactions` precisa
 desambiguar as relações antigas com `accounts` e `documents` pelos nomes das
 FKs, porque agora há outra relação com `documents`. Nenhuma migração desta
 rodada foi aplicada em produção.

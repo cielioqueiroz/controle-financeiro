@@ -56,15 +56,15 @@ e atualização de assinatura do BB. Não exige migração: `bb` já é aceito.
   A extração usa o pdf.js do projeto com fontes padrão locais.
 - Lint focado com `--deny-warnings` e `git diff --check`: aprovados.
 - Contraste nos dois temas aprovado; tinta/acento da Caixa medidos em 6,11:1.
-- Nenhuma migração aplicada à branch pai, nenhum commit ou push. A verificação integrada,
-  as jornadas de layout/a11y e a atualização transversal do glossário/AGENTS
-  foram concluídas em parte na integração: CONTEXT/AGENTS, typecheck, lint,
-  caminhos, build, suíte completa e contraste passaram. A revisão final também
+- Nenhuma migração aplicada à produção. Na integração, CONTEXT/AGENTS,
+  typecheck, lint, caminhos, build, suíte completa e contraste passaram. A revisão final também
   corrigiu valor Caixa sem direção, página BB A sem estrutura de continuação,
   mistura com outro emissor e datas impossíveis no movimento/período. O CHECK
-  de 0011 foi aplicado e validado numa branch Neon
-  temporária; a ferramenta exige confirmação para descartar essa branch, e a
-  branch pai segue sem alteração. Overflow/axe/CSP dependem do Playwright Python,
-  indisponível por falha de DNS para PyPI.
+  de 0011 foi aplicado e validado numa branch Neon temporária, depois descartada
+  sem aplicar mudanças à branch pai. Em 20/10, verificação completa, CSP,
+  overflow e axe passaram. O ensaio conjunto de 0009–0011 na branch Neon
+  codex-integridade-20261016 comprovou os três fixtures novos pelo parser,
+  adaptador e Data API reais: banco, contagem, centavos e conferência preservados.
+  [Prova real e limites](../../validacoes/2026-10-20-vinculos-regras-neon.md).
 
 Evidência e limites: [recursos externos](../../validacoes/2026-10-18-recursos-externos.md).

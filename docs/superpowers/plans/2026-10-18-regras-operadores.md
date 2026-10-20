@@ -56,6 +56,8 @@ as passadas válidas usam TEMP/TMP dentro de `.cache/regras-temp`.
 
 As migrações 0001–0010 foram ensaiadas em PostgreSQL local descartável, incluindo
 RLS, duas conexões concorrentes, rollback da substituição e ignorar `user_id`
-forjado. Nenhum teste mudou o Neon real. Typecheck, lint e build integrados da
-branch passaram; `npm run verificar` e os medidores de layout/acessibilidade
-ficaram bloqueados pela indisponibilidade do PyPI/Playwright neste ambiente.
+forjado. Em 20/10, o ensaio na branch Neon de teste aprovou a RPC real, o
+rollback após falha no INSERT, a leitura e exclusão de regras, os operadores
+na gravação de documentos futuros e o isolamento entre JWTs. A verificação
+completa, CSP, overflow e axe também passaram após disponibilizar Playwright.
+[Evidência real e repetição](../../validacoes/2026-10-20-vinculos-regras-neon.md).

@@ -1,5 +1,26 @@
 # Estado atual do projeto — retomada
 
+## Vínculos e regras com Neon real — 2026-10-20
+
+- Migrações 0009–0011 aplicadas e ensaiadas juntas na branch de teste
+  `codex-integridade-20261016`, com expiração em 23/10. Auth, JWT, SDK e Data
+  API reais aprovaram 50 asserções e as provas de interface, RLS e rede. O
+  validador anterior da RPC também passou novamente nas 21 verificações.
+- O ensaio encontrou dois defeitos na 0009: um `\n` literal inválido no fim
+  do arquivo e o EXECUTE concedido por default privilege do Neon ao helper
+  interno. A migração agora revoga explicitamente PUBLIC e `authenticated`
+  nos três helpers privados. Chamada direta com JWT real retorna 403/42501.
+- Os arquivos completos das migrações 0001–0011 também passaram num PostgreSQL
+  local descartável com o default privilege do Neon; as provas SQL da 0008 e
+  0009 passaram. A leitura real preservou referências de vínculos, regras,
+  centavos e conferência dos três fixtures novos da Caixa/BB.
+- `npm run verificar` passou novamente após a correção: tipos, 1.270 testes,
+  lint, caminhos, build e CSP. Não houve mudança visual nesta continuação.
+- Produção ainda não recebeu 0009–0011. Continuam externos a esta prova:
+  conferência visual dos PDFs originais, revisão nativa, entrega de e-mail e
+  OAuth com credenciais próprias.
+- [Resultados, limites e validador reproduzível](./validacoes/2026-10-20-vinculos-regras-neon.md).
+
 ## Vínculos, regras e novos layouts — 2026-10-18
 
 - Em `codex/vinculos-regras-pendencias`, três frentes começaram a partir do
@@ -31,10 +52,10 @@
   compatível e datas impossíveis no movimento e período. Os testes focados dos
   dois parsers passaram (31 testes), junto com typecheck forçado, lint, build e
   checagem de caminhos.
-- Antes de ativar/publicar o frontend, aplicar 0009, 0010 e 0011 em Neon de
-  teste e provar a leitura pela Data API. Continuam manuais: recebimento real de
-  e-mail, login e OAuth com credenciais próprias, revisão nativa de inglês e
-  espanhol e validação com conta real. Edições de `kind` anteriores à 0009 não
+- A prova de 0009–0011 pela Data API na branch de teste foi concluída em 20/10;
+  aplicar as migrações na produção antes de publicar o frontend. Continuam
+  manuais: recebimento real de e-mail, OAuth com credenciais próprias, revisão
+  nativa de inglês e espanhol e validação com conta real. Edições de `kind` anteriores à 0009 não
   eram identificáveis como manuais; a ADR-0021 descreve esse limite.
 - Planos: [vínculos](./superpowers/plans/2026-10-18-vinculos-historico.md),
   [regras com operadores](./superpowers/plans/2026-10-18-regras-operadores.md),
@@ -55,8 +76,8 @@
   Isso não substitui teste com Neon real, recebimento de e-mail, OAuth ou RLS.
 - A migração 0011 foi testada em branch Neon temporária e depois cancelada; a
   branch foi removida sem aplicar a migração na branch pai. Antes de ativar o
-  frontend, ainda é necessário aplicar 0009, 0010 e 0011 no Neon de teste e
-  verificar a leitura via Data API.
+  frontend, aplicar 0009, 0010 e 0011 na produção. A aplicação e leitura via
+  Data API na branch de teste foram concluídas no ensaio de 20/10 acima.
 
 ## Gráfico de fluxo acessível e redesenhado — 2026-10-18
 

@@ -123,12 +123,20 @@ os ensaios de escrita continuaram restritos à branch de teste.
    HTTP, data e branch em `ESTADO-ATUAL.md`, sem copiar tokens ou conteúdo pessoal.
 
 Em instalações novas, aplicar e conferir `0008` antes de publicar o frontend.
-Esta prova histórica não inclui as migrações 0009–0011, que ainda estão somente
-nesta branch; elas exigem os ensaios do §6 antes de ativar o frontend atualizado.
+Esta prova histórica não inclui as migrações 0009–0011; o novo ensaio real do
+§6 foi concluído em 20/10/2026 antes de ativar o frontend atualizado.
 Ausência da RPC deve produzir o aviso de atualização necessária; nunca deve
 acionar a antiga escrita em várias chamadas.
 
 ## §6 — Vínculos, regras e novos parsers (migrações 0009–0011)
+
+**Data API aprovada em 20/10/2026 na branch de teste**, com Auth/JWT reais:
+vínculos nas duas ordens, ambiguidades, correção manual, exclusão, regras e
+rollback, fixtures Caixa/BB, interface e RLS. A prova encontrou e corrigiu a
+concessão padrão de EXECUTE do Neon ao helper interno.
+[Resultados, limites e validador reproduzível](./validacoes/2026-10-20-vinculos-regras-neon.md).
+A conferência visual dos PDFs originais e a revisão nativa de idiomas seguem
+manuais; o ensaio usa dados sintéticos e fixtures anonimizados.
 
 Executar somente numa branch Neon descartável e com conta de teste. Aplicar
 `0009_vinculos_historico.sql`, `0010_regras_consulta.sql` e

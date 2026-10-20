@@ -87,7 +87,7 @@ begin
   return new;
 end;
 $$;
-revoke all on function public.verificar_proprietario_vinculo() from public;
+revoke all on function public.verificar_proprietario_vinculo() from public, authenticated;
 create trigger transactions_vinculos_mesmo_usuario
   before insert or update of user_id, vinculo_document_id, vinculo_transacao_id
   on public.transactions for each row
@@ -161,7 +161,9 @@ begin
     from unicos u where t.id = u.transacao and t.user_id = p_usuario;
 end;
 $$;
-revoke all on function public.reconciliar_vinculos_usuario(uuid) from public;
+-- O Neon concede EXECUTE a authenticated por default privilege; revogar
+-- somente de PUBLIC deixaria este DEFINER acessível como RPC de outro dono.
+revoke all on function public.reconciliar_vinculos_usuario(uuid) from public, authenticated;
 
 -- A trava antecede os locks de linha: edição/exclusão não pode travar uma
 -- transação e depois esperar a importação que já detém a trava do usuário.
@@ -189,7 +191,7 @@ begin
   return null;
 end;
 $$;
-revoke all on function public.reconciliar_vinculos_apos_escrita() from public;
+revoke all on function public.reconciliar_vinculos_apos_escrita() from public, authenticated;
 
 create trigger transactions_travar_historico
   before insert or update or delete on public.transactions
@@ -222,5 +224,3 @@ end;
 $$;
 
 commit;
-
-\n

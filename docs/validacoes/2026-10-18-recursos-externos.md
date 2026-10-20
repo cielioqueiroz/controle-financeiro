@@ -4,6 +4,13 @@ Este registro distingue preparação local de ensaio do serviço real. Não houv
 alteração de Auth, criação de credenciais, cadastro, troca de senha, envio de
 e-mail nem gravação em produção durante esta preparação.
 
+**Continuação de 20/10:** migrações 0009–0011 e escrita pela Data API/JWT reais
+foram aprovadas na branch Neon de teste. O ensaio incluiu os três fixtures
+novos e encontrou dois defeitos da 0009, já corrigidos. A verificação completa,
+CSP, overflow, axe e login sintético também passaram. Ver [prova real e
+limites](./2026-10-20-vinculos-regras-neon.md); os resultados abaixo preservam
+o estado da preparação de 18/10.
+
 ## Amostras de bancos
 
 Inventário local por nome em `.amostras-bancos/` e nas pastas já conhecidas de

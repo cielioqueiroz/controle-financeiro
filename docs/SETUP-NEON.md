@@ -18,10 +18,12 @@ no banco** é a fronteira de segurança (cada usuário só vê o que é dele).
   aplicados na produção, com RLS + policies por tabela.
 - Código usando `@neondatabase/neon-js` (cliente único: auth + queries).
 
-As migrações 0009–0011 desta branch **ainda não foram aplicadas**. Para validar
-esta versão, use uma branch Neon descartável, aplique as migrações em ordem e
-siga o [ensaio de vínculos, regras e parsers](./VALIDACAO-MANUAL.md).
-Não publique o frontend atualizado antes delas.
+As migrações 0009–0011 desta branch foram aplicadas e ensaiadas pela Data API
+real na branch descartável codex-integridade-20261016 em 20/10/2026.
+Evidências e validador em [vínculos, regras e parsers no Neon](./validacoes/2026-10-20-vinculos-regras-neon.md).
+Elas **ainda não foram aplicadas em produção**. Não publique o frontend
+atualizado antes delas. O [roteiro manual](./VALIDACAO-MANUAL.md) permite repetir
+a prova enquanto a branch existir.
 
 ## Configurar o app (uma vez)
 
