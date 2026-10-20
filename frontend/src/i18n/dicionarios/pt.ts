@@ -5,6 +5,21 @@
  *  `Dicionario` exigiria de en/es os mesmos textos, impedindo a tradução. Aqui
  *  os valores são `string`, então en/es só precisam ter as MESMAS CHAVES. */
 export const pt = {
+  'regrasOp.nova': 'Nova regra com operadores',
+  'regrasOp.titulo': 'Regras de categorização',
+  'regrasOp.descricao': 'Aqui ficam as regras que você cria e as que o app aprende quando você corrige uma categoria. Maior prioridade vence; em empate, a condição mais longa vence.',
+  'regrasOp.vazio': 'Você ainda não tem regras de categorização.',
+  'regrasOp.condicao': 'Condição da regra',
+  'regrasOp.ajuda': 'Combine texto e operadores: posto banco:nubank >100 <500. Os valores usam a magnitude, tanto nas entradas quanto nas saídas. Operadores desconhecidos são tratados como texto.',
+  'regrasOp.categoriaBase': 'cat:combustivel e sem:categoria consultam a categoria global, antes das suas regras. Use o código da categoria; categorias criadas por você são apenas destino.',
+  'regrasOp.invalida': 'Revise os operadores: informe valores válidos, um banco reconhecido e condições que possam ocorrer juntas.',
+  'regrasOp.categoria': 'Categoria de destino',
+  'regrasOp.escolher': 'Escolha uma categoria',
+  'regrasOp.futuras': 'As regras valem para as próximas importações. As transações já salvas mantêm suas categorias.',
+  'regrasOp.salvar': 'Salvar regra',
+  'regrasOp.salva': 'Regra salva para as próximas importações.',
+  'regrasOp.falha': 'Não foi possível salvar a regra. Tente novamente.',
+  'regrasOp.consulta': 'Regra com operadores',
   "saldoImportado.titulo": "Último saldo importado",
   "saldoImportado.descricao": "Soma dos últimos saldos de {n} contas, conforme os extratos importados.",
   "saldoImportado.detalhar": "Ver contas e datas",
@@ -536,7 +551,7 @@ export const pt = {
   'ajuda.varios.c': 'Pode soltar vários PDFs juntos. Eu leio um de cada vez, mostro a prévia de cada um e espero você salvar ou descartar antes de começar o próximo — o contador diz em qual documento você está. Descartar pula só aquele; “Descartar os restantes” abandona a leva inteira.',
   'ajuda.varios.k': 'lote fila varios multiplos juntos todos de uma vez pasta',
   'ajuda.bancos.t': 'Quais bancos eu leio',
-  'ajuda.bancos.c': 'Nubank, Bradesco, Banco do Brasil, Sicredi, Sicoob e Mercado Pago. Fatura de cartão e extrato de conta do Nubank, do Bradesco e do Mercado Pago; extrato de conta do BB, do Sicredi e do Sicoob. O PDF precisa ter texto de verdade: extrato que é foto ou digitalização eu não consigo ler.',
+  'ajuda.bancos.c': 'Nubank, Bradesco, Banco do Brasil, Sicredi, Sicoob, Mercado Pago e Caixa. Faturas e extratos de conta do Nubank, do Bradesco e do Mercado Pago; extratos de conta do BB (incluindo os formatos 2023 e A), do Sicredi, do Sicoob e GovConta da Caixa. O PDF precisa ter texto de verdade: extrato que é foto ou digitalização eu não consigo ler.',
   'ajuda.bancos.k': 'banco suportado aceita nubank bradesco bb sicredi sicoob mercado pago caixa itau santander inter c6',
   'ajuda.conferencia.t': 'O carimbo CONFERE',
   'ajuda.conferencia.c': 'Todo documento declara um total — “Total a pagar” na fatura, entradas e saídas no extrato. Eu somo o que li e comparo com o que o banco declarou, ao centavo. CONFERE traz a data e o valor que bateu. SEM GABARITO quer dizer que o documento não declarou total nenhum para eu comparar.',
@@ -843,6 +858,19 @@ export const pt = {
 
   // Aba desatualizada depois de um deploy
   'app.versaoNova': 'Saiu uma versão nova. Recarregue para continuar.',
+  'vinculos.titulo': 'Conferir vínculos entre documentos',
+  'vinculos.explicacao': 'Veja quais documentos sustentam cada vínculo automático. A conferência original de cada documento continua separada.',
+  'vinculos.indisponiveis': 'As transações estão indisponíveis. Recarregue o histórico para conferir os vínculos.',
+  'vinculos.vazio': 'Nenhum par documentado neste histórico. Isso não determina se uma fatura foi paga ou se uma transação é gasto real. Vínculos manuais e reconhecidos apenas pela descrição não têm contraparte documentada.',
+  'vinculos.quitacao': 'Quitação de fatura',
+  'vinculos.transferencia': 'Transferência entre suas contas',
+  'vinculos.pagamento': 'Pagamento no extrato',
+  'vinculos.saida': 'Saída no extrato',
+  'vinculos.entrada': 'Entrada no extrato',
+  'vinculos.criterioFatura': 'Critério: pagamento identificado, valor exato e até 7 dias do vencimento, com correspondência única.',
+  'vinculos.criterioTransferencia': 'Critério: transferência identificada, contas diferentes, valores opostos e até 2 dias, com correspondência única.',
+  'vinculos.contraparteIndisponivel': 'Contraparte indisponível neste histórico. Nenhum valor foi presumido.',
+  'vinculos.valorIndisponivel': 'Valor indisponível',
   'app.recarregar': 'Recarregar',
 
   // Seletor de idioma

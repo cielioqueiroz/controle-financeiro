@@ -67,7 +67,7 @@ export async function salvarDocumento(
       amount_cents: t.amountCents,
       direction: t.amountCents >= 0 ? 'out' : 'in',
       kind: kindParaBanco(t.kind, t.link),
-      category_slug: categoriaDe(t, regras),
+      category_slug: categoriaDe(t, regras, { bank: kind.bank }),
       installment: t.installment,
       fx: t.fx,
       hash: n === 1 ? base : `${base}#${n}`,

@@ -48,6 +48,12 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("vinculos-documentados", "/demo.html?tela=documentos&amostra=vinculos",
+     [("ativar-resumo", "Conferir vínculos entre documentos")],
+     [("ver-texto", "Pagamento no extrato"), ("ver-texto", "PIX recebido")], 6),
+    ("vinculos-documentados-claro", "/demo.html?tela=documentos&amostra=vinculos&tema=claro",
+     [("expandir", "Conferir vínculos entre documentos")],
+     [("ver-texto", "Pagamento no extrato"), ("ver-texto", "PIX recebido")], 6),
     ("saldo-centralizado", "/demo.html?tela=situacao&amostra=saldo", [],
      [("ver-texto", "Último saldo importado"), ("ver-texto", "Ver contas e datas")], 6),
     ("saldo-contas", "/demo.html?tela=situacao&amostra=saldo&tema=claro",

@@ -36,6 +36,11 @@ export function Faturas() {
   return (
     <div className="mt-6 mx-auto max-w-3xl">
       <ConteudoDocumentos contagem={carregando || erro || todas === null ? null : contagem} onMudou={recarregar}
+        transacoes={carregando || erro ? null : todas} onVerDocumento={(id) => {
+          const proximos = new URLSearchParams(params)
+          proximos.set('documento', id)
+          setParams(proximos)
+        }}
         documentoSelecionado={params.get('documento')} onLimparSelecao={limparSelecao} />
     </div>
   )

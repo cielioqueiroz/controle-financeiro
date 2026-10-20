@@ -6,9 +6,10 @@
  *  pessoais trocados. Testa exatamente a mesma coisa, sem expor nada.
  *
  *  Uso: npm run fixtures -- <pasta-com-os-pdfs>
+ *       npm run fixtures -- --bancos .amostras-bancos
  */
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { extractFromDocument } from '../frontend/src/domain/pdf/extract'
 import { buildLines } from '../frontend/src/domain/pdf/lines'
@@ -18,7 +19,8 @@ import type { TextItem } from '../frontend/src/domain/pdf/types'
 
 const require = createRequire(import.meta.url)
 
-const ENTRADAS = [
+type Entrada = { arquivo: string; saida: string; paginas?: number[]; bancoNovo?: 'caixa' | 'bb' }
+const ENTRADAS: Entrada[] = [
   { arquivo: 'BradescoCartoes14-07-2026-17-40-28.pdf', saida: 'bradesco-fatura' },
   { arquivo: 'extratoBradescoJunho.pdf', saida: 'bradesco-extrato' },
   { arquivo: 'NuBank_extratoConta.pdf', saida: 'nubank-extrato' },
@@ -26,6 +28,45 @@ const ENTRADAS = [
   { arquivo: 'credit-card-mp-statement.pdf', saida: 'mercadopago-fatura' },
   { arquivo: 'ffd46a6a-b950-498a-a701-3aab2897172d.pdf', saida: 'mercadopago-extrato' },
 ]
+
+const ENTRADAS_BANCOS: Entrada[] = [
+  { arquivo: 'caixa-cohapar.pdf', saida: 'caixa-extrato', paginas: [2], bancoNovo: 'caixa' },
+  { arquivo: 'bb-belem.pdf', saida: 'caixa-extrato-transferencias', paginas: [80], bancoNovo: 'caixa' },
+  { arquivo: 'bb-belem.pdf', saida: 'bb-extrato-antigo', paginas: [1, 2], bancoNovo: 'bb' },
+]
+
+/** As amostras públicas são compilações: escolher páginas não altera a
+ * geometria extraída. Fora do vocabulário fixo do banco, texto de cabeçalho,
+ * descrição e identificadores são substituídos por construção. */
+function anonimizarBancoPublico(items: TextItem[]): TextItem[] {
+  const lines = buildLines(items)
+  const cabecalhos = new Map<number, number>()
+  for (const l of lines) {
+    if (/Data Mov.*Hist[óo]rico.*Valor|Dt\.? movimento.*Dt\.? balancete.*Hist[óo]rico/i.test(l.text)) cabecalhos.set(l.page, l.y)
+  }
+  const fixos = /^(?:::?\s*)?Extrato (?:das Contas Individuais|(?:de )?Conta Corrente)$|^(?:GOVCONTA CAIXA:?|Origem do Extrato:|Conta(?: Refer[êe]ncia| corrente)?:?|Ag[êe]ncia|Nome:|Per[íi]odo(?: do extrato)?:?|Cliente|Lan[çc]amentos|Data Mov|Nr\.?\s*Doc\.?|Hist[óo]rico|Valor \(R\$\)|Saldo \(R\$\)|Dt\.? movimento|Dt\.? balancete|Documento|Valor R\$|Saldo)$/i
+  return items.map((item) => {
+    const texto = item.text.trim()
+    const line = lines.find((l) => l.page === item.page && Math.abs(l.y - item.y) <= 2)
+    const cabecalhoY = cabecalhos.get(item.page) ?? Infinity
+    let text: string
+    if (fixos.test(texto)) text = texto
+    else if (item.y > cabecalhoY) {
+      if (/\d{2}\/\d{2}\/\d{4}|^\d{2}\/\d{4}$/.test(texto) && /Per[íi]odo/i.test(line?.text ?? '')) text = texto
+      else if (/\d{4}\/\d{3,4}\/[\d-]+/.test(texto)) text = texto.replace(/\d/g, '9')
+      else if (/^[\d-]+$/.test(texto)) text = texto.replace(/\d/g, '9')
+      else text = 'TITULAR ANONIMO'
+    } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto) || /^[\d.]+,\d{2}\s*[CD]?$/.test(texto)) text = texto
+    else if (/^[\d.]+$/.test(texto)) text = texto.replace(/\d/g, '1')
+    else if (/^SALDO|^S\s+A\s+L\s+D\s+O$/i.test(texto)) text = /^SALDO (?:ANTERIOR|FINAL)$/i.test(texto) ? texto : 'SALDO'
+    else if (/^(?:TARIFA|TAR\b|IOF)/i.test(texto)) text = 'TARIFA BANCARIA'
+    else if (/RESG|APLIC/i.test(texto)) text = /RESG/i.test(texto) ? 'RESGATE AUTOMATICO' : 'APLICACAO AUTOMATICA'
+    else if (/ENVIO TED/i.test(texto)) text = 'ENVIO TED'
+    else if (line && /^\d{2}\/\d{2}\/\d{4}/.test(line.text)) text = 'OPERACAO ANONIMIZADA'
+    else text = 'CONTRAPARTE ANONIMA'
+    return { ...item, text }
+  })
+}
 
 /** Substituições literais, aplicadas na ordem. As mais longas vêm antes
  *  para não deixar sobra: "JACIELIO DA SILVA QUEIROZ" precisa casar antes
@@ -284,7 +325,8 @@ async function acharPdf(pastas: string[], arquivo: string): Promise<string> {
 }
 
 async function main() {
-  const pastas = process.argv.slice(2)
+  const bancosNovos = process.argv[2] === '--bancos'
+  const pastas = process.argv.slice(bancosNovos ? 3 : 2)
   if (pastas.length === 0) {
     console.error('Uso: npm run fixtures -- <pasta-com-os-pdfs> [outra-pasta...]')
     process.exit(1)
@@ -295,14 +337,21 @@ async function main() {
 
   const problemas: string[] = []
 
-  for (const { arquivo, saida } of ENTRADAS) {
+  for (const { arquivo, saida, paginas, bancoNovo } of bancosNovos ? ENTRADAS_BANCOS : ENTRADAS) {
     const buffer = await readFile(await acharPdf(pastas, arquivo))
     const data = new Uint8Array(buffer)
 
-    const doc = await pdfjs.getDocument({ data, useSystemFonts: false }).promise
-    const items = await extractFromDocument(doc)
+    const doc = await pdfjs.getDocument({
+      data, useSystemFonts: false,
+      standardFontDataUrl: join(dirname(require.resolve('pdfjs-dist/package.json')), 'standard_fonts').replaceAll('\\', '/') + '/',
+    }).promise
+    const items = await extractFromDocument(paginas
+      ? { numPages: paginas.length, getPage: (n) => doc.getPage(paginas[n - 1]) }
+      : doc)
     const estabelecimentos = mapaEstabelecimentos(items)
-    const anonimos = anonimizar(items, saida.startsWith('mercadopago'), estabelecimentos)
+    const anonimos = bancoNovo
+      ? anonimizarBancoPublico(items)
+      : anonimizar(items, saida.startsWith('mercadopago'), estabelecimentos)
 
     // A PROVA de que a anonimizacao nao deixou resto E de que ela nao quebrou
     // o documento. Roda sobre o RESULTADO, nao sobre a intencao: reparsear e
@@ -319,6 +368,18 @@ async function main() {
       }
       const st = validar(depois).status
       const stAntes = validar(antes).status
+      if (bancoNovo) {
+        const textoAnonimo = anonimos.map((i) => i.text).join(' ')
+        const proibidosDoDocumento = [antes.account.number, antes.account.holderName]
+          .filter((s): s is string => s !== null && s.length >= 6)
+        if (proibidosDoDocumento.some((s) => textoAnonimo.includes(s))) {
+          problemas.push(`${saida}: identificador do cabecalho original permaneceu no fixture`)
+        }
+        if (antes.transactions.length !== depois.transactions.length
+          || antes.transactions.some((tx, i) => tx.amountCents !== depois.transactions[i]?.amountCents || tx.kind !== depois.transactions[i]?.kind)) {
+          problemas.push(`${saida}: anonimizacao alterou transacoes ou natureza`)
+        }
+      }
       if (st !== stAntes) {
         problemas.push(`${saida}: conferencia mudou de ${stAntes} para ${st} ao anonimizar`)
       }
@@ -330,7 +391,7 @@ async function main() {
 
     const destino = `frontend/tests/fixtures/${saida}.items.json`
     await writeFile(destino, JSON.stringify(anonimos, null, 2))
-    console.log(`${destino}: ${anonimos.length} items, ${doc.numPages} páginas`)
+    console.log(`${destino}: ${anonimos.length} items, ${paginas?.length ?? doc.numPages} páginas`)
   }
 
   if (problemas.length > 0) {

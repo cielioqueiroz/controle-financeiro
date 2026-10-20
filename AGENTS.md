@@ -31,11 +31,12 @@ um deploy exige *Instant Rollback* no painel.
 │   ├── index.html     ponto de entrada do Vite (NÃO fica na raiz)
 │   ├── demo.html      segunda entrada, só para gerar os prints do README
 │   ├── src/           fonte e teste lado a lado (~135 + ~90 arquivos)
-│   └── tests/fixtures/  um JSON por documento de referência — hoje 9,
-│                        dois por banco de cartão e um por banco de conta
+│   └── tests/fixtures/  um JSON por documento de referência — hoje 12,
+│                        incluindo duas amostras Caixa GovConta e uma BB layout A
 ├── backend/db/migrations/   0001 schema · 0002 saldo e bancos ·
 │                            0003 integridade · 0004 Mercado Pago · 0005 dedupe ·
-│                            0006 privilégios · 0007 falhas · 0008 importação atômica
+│                            0006 privilégios · 0007 falhas · 0008 importação atômica ·
+│                            0009 vínculos históricos · 0010 regras com consulta · 0011 Caixa
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
@@ -138,7 +139,7 @@ estrangeira sozinha não garante isso. Ver
 [ADR-0010](./docs/adr/0010-cqrs-e-integridade-de-dados.md).
 
 ⚠️ **`accounts.bank` tem CHECK**, e ele é a razão de banco novo exigir migração
-(ver §2.3). Hoje aceita os seis do catálogo mais `desconhecido`.
+(ver §2.3). Hoje aceita os sete do catálogo mais `desconhecido`.
 
 O que protege o dado é **login + RLS + JWT**, não obscuridade: as `VITE_*` são
 URLs públicas por design.
@@ -155,15 +156,25 @@ URL desconhecida redireciona ao Painel.
 
 ## 1.6 Cobertura de bancos
 
-**Seis** bancos no catálogo (`nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`,
-`mercadopago`) e **nove parsers**: fatura e extrato do Nubank, do Bradesco e do
-Mercado Pago, mais o extrato do BB, do Sicredi e do Sicoob. Ver
+**Sete** bancos no catálogo (`nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`,
+`mercadopago`, `caixa`) e **dez parsers**: fatura e extrato do Nubank, do
+Bradesco e do Mercado Pago, mais extratos do BB (layouts 2023 e A), do Sicredi,
+do Sicoob e GovConta Caixa. Há 12 fixtures anonimizados. Ver
 [ADR-0006](./docs/adr/0006-detector-de-layout-e-um-parser-por-banco.md).
 
 ⚠️ **A migração `0004` precisa estar aplicada no Neon** antes do primeiro
 documento do Mercado Pago — sem ela o insert bate no `accounts_bank_check` e a
 importação falha inteira, com uma mensagem de Postgres que não diz ao usuário o
 que aconteceu.
+
+⚠️ **A migração `0011` precisa estar aplicada antes do primeiro GovConta Caixa.**
+Ela amplia o CHECK de `accounts.bank`; escrever a migração no repositório não a
+aplica no Neon.
+
+⚠️ **Caixa aqui significa apenas GovConta comprovado.** Os fixtures cobrem duas
+numerações de conta e a continuação de período/layout testada; isso não autoriza
+outros extratos ou investimentos da Caixa. O BB antigo é o layout A; o parser
+identifica o cabeçalho e mantém também o layout 2023.
 
 **Duas coisas que só o Mercado Pago faz**, e que qualquer mexida nesses parsers
 precisa preservar:

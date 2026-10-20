@@ -7,6 +7,7 @@ export type Bank =
   | 'sicredi'
   | 'sicoob'
   | 'mercadopago'
+  | 'caixa'
   | 'desconhecido'
 export type DocType = 'fatura' | 'extrato' | 'desconhecido'
 export type DocKind = { bank: Bank; docType: DocType }
@@ -35,6 +36,14 @@ const ASSINATURAS: Array<{ kind: DocKind; marcadores: RegExp[] }> = [
   {
     kind: { bank: 'bb', docType: 'extrato' },
     marcadores: [/Extrato de Conta Corrente/i, /Dt\.?\s*balancete/i],
+  },
+  {
+    kind: { bank: 'bb', docType: 'extrato' },
+    marcadores: [/Extrato (?:de )?Conta Corrente/i, /Dt\.?\s*movimento\s+Dt\.?\s*balancete/i],
+  },
+  {
+    kind: { bank: 'caixa', docType: 'extrato' },
+    marcadores: [/GOVCONTA CAIXA/i, /Extrato das Contas Individuais/i, /Data Mov/i],
   },
   {
     kind: { bank: 'sicredi', docType: 'extrato' },

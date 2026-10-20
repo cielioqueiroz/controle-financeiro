@@ -33,6 +33,7 @@ import { ErroCarregar } from './ui/ErroCarregar'
 import { Cartao } from './ui/Cartao'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { DocumentoImportado } from './ui/DocumentoImportado'
+import { ConferenciaVinculos } from './ui/ConferenciaVinculos'
 import { DocumentoNaoEncontrado } from './ui/Documentos'
 import { AvisoDadosParciais } from './ui/AvisoDadosParciais'
 import type { ParseResult } from './domain/parsers/types'
@@ -454,6 +455,7 @@ function PreviaConferencia() {
 function PreviaDocumento() {
   const [params, setParams] = useSearchParams()
   const amostra = params.get('amostra')
+  if (amostra === 'vinculos') return <PreviaVinculos />
   const semTransacoes = amostra === 'sem-transacoes'
   const documentoFicticio: DocumentoSalvo = {
     id: 'documento-ficticio', bank: 'nubank', doc_type: 'extrato',
@@ -516,6 +518,38 @@ function PreviaDocumento() {
         contagem={contagem} onApagar={() => {}} />
     </ul>
   )
+}
+
+function PreviaVinculos() {
+  const [params, setParams] = useSearchParams()
+  const documentos: DocumentoSalvo[] = [
+    { id: 'extrato-vinculado', bank: 'nubank', doc_type: 'extrato', filename: 'extrato-ficticio.pdf',
+      imported_at: '2026-07-01T12:00:00Z', period_start: '2026-06-01', period_end: '2026-06-30',
+      declared_total: null, declared_income: null, declared_expense: null },
+    { id: 'fatura-vinculada', bank: 'bradesco', doc_type: 'fatura', filename: 'fatura-ficticia.pdf',
+      imported_at: '2026-07-01T12:00:00Z', period_start: '2026-05-01', period_end: '2026-06-10',
+      declared_total: 12500, declared_income: null, declared_expense: null },
+    { id: 'segundo-extrato', bank: 'bradesco', doc_type: 'extrato', filename: 'segundo-extrato-ficticio.pdf',
+      imported_at: '2026-07-01T12:00:00Z', period_start: '2026-06-01', period_end: '2026-06-30',
+      declared_total: null, declared_income: null, declared_expense: null },
+  ]
+  const transacoes = [
+    tx({ id: 'pagamento-vinculado', document_id: 'extrato-vinculado', description: 'Pagamento de fatura', kind: 'card_payment',
+      amount_cents: 12500, date: '2026-06-10', vinculo_document_id: 'fatura-vinculada', vinculo_criterio: 'quitacao-fatura' }),
+    tx({ id: 'pix-saida', document_id: 'extrato-vinculado', description: 'PIX enviado', kind: 'internal_transfer', amount_cents: 9000,
+      date: '2026-06-11', vinculo_transacao_id: 'pix-entrada', vinculo_criterio: 'transferencia-pareada' }),
+    tx({ id: 'pix-entrada', document_id: 'segundo-extrato', description: 'PIX recebido', kind: 'internal_transfer', amount_cents: -9000,
+      date: '2026-06-12', vinculo_transacao_id: 'pix-saida', vinculo_criterio: 'transferencia-pareada' }),
+  ]
+  return <div className="mx-auto max-w-3xl space-y-4">
+    <div className="cartao"><ConferenciaVinculos transacoes={transacoes} documentos={documentos} onVerDocumento={(id) => {
+      const proximos = new URLSearchParams(params)
+      proximos.set('documento', id)
+      setParams(proximos)
+    }} /></div>
+    <ul className="space-y-4">{documentos.map((documento) => <DocumentoImportado key={documento.id} documento={documento}
+      selecionado={params.get('documento') === documento.id} contagem={null} onApagar={() => {}} />)}</ul>
+  </div>
 }
 
 const telaPrevia = new URLSearchParams(window.location.search).get('tela')

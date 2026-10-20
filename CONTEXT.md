@@ -34,10 +34,10 @@ _Evitar_: statement, movimentação
 
 **Banco**:
 A instituição emissora do documento, de um catálogo fechado do que o app sabe
-ler: `nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`, `mercadopago`. **Estar no
-catálogo não é o mesmo que ser legível**: quem responde o que o app lê é
-`domain/parsers/index.ts`, não esta lista — e é ele, não ela, que autoriza um
-nome novo no carrossel da tela de acesso.
+ler: `nubank`, `bradesco`, `bb`, `sicredi`, `sicoob`, `mercadopago` e `caixa`.
+**Estar no catálogo não é o mesmo que ser legível**: quem responde o que o app lê
+é `domain/parsers/index.ts`, não esta lista — e é ele, não ela, que autoriza um
+nome novo no carrossel da tela de acesso. Caixa aqui significa GovConta.
 _Evitar_: instituição, emissor, financeira
 
 **Gabarito**:
@@ -221,9 +221,18 @@ O rótulo de consumo de uma transação, vindo de um catálogo fechado com slug,
 _Evitar_: tag, grupo, rubrica, classe
 
 **Regra**:
-O casamento entre um padrão — trecho da descrição normalizada, ou CNPJ — e uma
-categoria, com prioridade. A regra do usuário nasce acima de qualquer regra global.
-_Evitar_: mapeamento, filtro, condição
+O casamento entre um padrão — trecho da descrição normalizada, CNPJ ou consulta
+com operadores — e uma categoria, com prioridade. Consulta usa o mesmo avaliador
+de `Operador`; `cat:` e `sem:categoria` leem a categoria-base global, antes das
+regras do usuário. Uma regra criada pelo usuário vale para importações futuras.
+_Evitar_: mapeamento, filtro
+
+**Categoria-base**:
+A categoria calculada apenas pelas regras globais, antes de aplicar regras do
+usuário. É estável para que uma regra com `cat:` não dependa da ordem de outras
+regras aprendidas.
+_Em código_: categoria global em `categoriaDe`
+_Evitar_: categoria anterior, categoria atual
 
 **Aprendizado**:
 A regra que nasce sozinha quando o usuário corrige a categoria de uma transação. É

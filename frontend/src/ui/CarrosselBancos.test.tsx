@@ -27,6 +27,7 @@ const FIXTURES = [
   'sicoob-extrato',
   'mercadopago-fatura',
   'mercadopago-extrato',
+  'caixa-extrato',
 ]
 
 /** Os bancos que o app PROVADAMENTE lê: os que algum documento de referência

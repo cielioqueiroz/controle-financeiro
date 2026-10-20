@@ -14,9 +14,17 @@ no banco** é a fronteira de segurança (cada usuário só vê o que é dele).
 
 - Projeto Neon `controle-financeiro` (região São Paulo), Data API e Neon
   Auth ativos.
-- Schema em [`backend/db/migrations/`](../backend/db/migrations/) aplicado na
-  produção, com RLS + 2 policies por tabela.
+- Schema e migrações até `0011` em [`backend/db/migrations/`](../backend/db/migrations/)
+  aplicados na produção, com RLS + policies por tabela.
 - Código usando `@neondatabase/neon-js` (cliente único: auth + queries).
+
+As migrações 0009–0011 desta branch foram aplicadas e ensaiadas pela Data API
+real na branch descartável codex-integridade-20261016 em 20/10/2026.
+Evidências e validador em [vínculos, regras e parsers no Neon](./validacoes/2026-10-20-vinculos-regras-neon.md).
+Após autorização no chat, foram aplicadas e conferidas em produção em 20/10,
+antes do frontend do PR #38. [Aplicação e recuperação](./validacoes/2026-10-20-producao-vinculos-regras.md).
+O [roteiro manual](./VALIDACAO-MANUAL.md) permite repetir a prova enquanto a
+branch de teste existir.
 
 ## Configurar o app (uma vez)
 
@@ -36,10 +44,16 @@ No Console do Neon → **Auth → Configuration**, confirme que estão
 ligados:
 
 - **E-mail/senha** (o app usa `signIn.email` / `signUp.email`).
-- **Google** (opcional): exige credenciais OAuth criadas no seu Google
-  Cloud Console (Client ID + Secret) e coladas na config do provider
-  Google. Sem isso, o botão "Continuar com o Google" aparece mas não
-  completa. O e-mail/senha funciona sozinho.
+- **Google** (opcional): o Neon oferece credenciais compartilhadas para
+  desenvolvimento; a auditoria de 08/09/2026 registrou esse modo no projeto.
+  Para produção, preparar credenciais próprias no Google Cloud e configurá-las
+  no provider da branch. O procedimento e a distinção entre os dois retornos
+  estão em [SETUP-GOOGLE-OAUTH.md](./SETUP-GOOGLE-OAUTH.md), com fontes oficiais.
+  A configuração atual do console precisa ser conferida antes de alterá-la.
+
+A confirmação de e-mail implementada usa **código de seis dígitos**, solicitado
+pelo cliente após o cadastro. O ensaio de entrega e confirmação está em
+[VALIDACAO-MANUAL.md, §2](./VALIDACAO-MANUAL.md#2--criar-conta-e-receber-o-e-mail).
 
 ## Cold start (free tier)
 

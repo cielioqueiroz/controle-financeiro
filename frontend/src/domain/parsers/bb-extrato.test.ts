@@ -71,3 +71,66 @@ describe('parseBBExtrato — leitura das linhas', () => {
     )
   })
 })
+
+describe('BB layout A — páginas de referência de 2020', () => {
+  const antigo = buildLines(JSON.parse(readFileSync('tests/fixtures/bb-extrato-antigo.items.json', 'utf-8')) as TextItem[])
+  const resultado = parseBBExtrato(antigo)
+
+  it('reconhece o título e a ordem específica das duas datas', () => {
+    expect(detectDocument(antigo)).toEqual({ bank: 'bb', docType: 'extrato' })
+  })
+
+  it('lê transações nas duas páginas e confere contra o saldo', () => {
+    expect(resultado.transactions.length).toBeGreaterThan(20)
+    expect(resultado.transactions.some((tx) => tx.amountCents < 0)).toBe(true)
+    expect(resultado.transactions.some((tx) => tx.amountCents > 0)).toBe(true)
+    expect(validar(resultado).status).toBe('confere')
+    expect(resultado.transactions.some((tx) => /CONTRAPARTE ANONIMA/.test(tx.description))).toBe(true)
+  })
+
+  it('usa o intervalo declarado, sem presumir o mês do computador', () => {
+    expect(resultado.period?.start).toEqual(new Date(2020, 11, 1))
+    expect(resultado.period?.end).toEqual(new Date(2020, 11, 31))
+  })
+
+  it('a falta de uma transação faz divergir', () => {
+    expect(validar({ ...resultado, transactions: resultado.transactions.slice(1) }).status).toBe('diverge')
+  })
+
+  it('recusa uma compilação com extratos de outro banco', () => {
+    expect(() => parseBBExtrato([...antigo, { text: 'GOVCONTA CAIXA', page: 3, y: 0, cells: [] }])).toThrow(/contas ou períodos/)
+  })
+
+  it('recusa página de outro emissor mesmo sem conta ou período legíveis', () => {
+    const outra = [
+      { text: 'Bradesco Celular', page: 3, y: 0, cells: [] },
+      { text: 'Extrato de: Agência', page: 3, y: 10, cells: [] },
+    ]
+    expect(() => parseBBExtrato([...antigo, ...outra])).toThrow(/contas ou períodos/)
+  })
+
+  it('recusa uma página sem assinatura ou estrutura de continuação BB A', () => {
+    const outra = [{ text: 'Extrato de banco não reconhecido', page: 3, y: 0, cells: [] }]
+    expect(() => parseBBExtrato([...antigo, ...outra])).toThrow(/contas ou períodos/)
+  })
+
+  it('recusa data de movimento impossível em vez de normalizá-la', () => {
+    const invalida = antigo.map((l) => {
+      if (!l.cells.some((c) => /^09\/12\/2020$/.test(c.text.trim()))) return l
+      return { ...l, cells: l.cells.map((c) => c.text.trim() === '09/12/2020' ? { ...c, text: '31/02/2020' } : c) }
+    })
+    expect(() => parseBBExtrato(invalida)).toThrow(/Data do movimento BB/)
+  })
+
+  it('recusa datas impossíveis no período declarado', () => {
+    const invalido = antigo.map((l) => {
+      if (!l.text.includes('Período do extrato')) return l
+      return {
+        ...l,
+        text: l.text.replace('01/12/2020', '31/02/2020'),
+        cells: l.cells.map((c) => ({ ...c, text: c.text.replace('01/12/2020', '31/02/2020') })),
+      }
+    })
+    expect(() => parseBBExtrato(invalido)).toThrow(/Período do extrato BB/)
+  })
+})

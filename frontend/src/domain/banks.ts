@@ -47,6 +47,12 @@ export const BANCOS: Record<Bank, BankTheme> = {
     wash: 'rgba(0, 158, 227, 0.12)',
     tinta: '#F5F3EF',
   },
+  caixa: {
+    nome: 'Caixa',
+    accent: '#005CA9',
+    wash: 'rgba(0, 92, 169, 0.12)',
+    tinta: '#F5F3EF',
+  },
   desconhecido: {
     nome: 'Documento',
     accent: '#8A857C',

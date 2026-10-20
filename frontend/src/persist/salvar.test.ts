@@ -92,6 +92,16 @@ beforeEach(() => {
 // ---------------------------------------------------------------------
 
 describe('salvarDocumento — o caminho por onde o dinheiro entra', () => {
+  it('aplica regra com operadores usando o banco do documento na importação', async () => {
+    montar()
+    const doc = documento({ transactions: [tx('2026-06-10', 'FARMACIA DO BAIRRO', 4500)], declaredTotal: 4500 })
+    await salvarDocumento(doc, FATURA, BYTES, 'fatura.pdf', [{
+      padrao: 'farmacia banco:nubank >40', tipo: 'consulta', categoria: 'saude-pessoal', prioridade: 1000,
+    }])
+    expect(falso.rpcChamadas[0].parametros.p_transacoes).toEqual([
+      expect.objectContaining({ category_slug: 'saude-pessoal', amount_cents: 4500 }),
+    ])
+  })
   it('grava tudo numa única RPC com a conferência original, sem inserts separados', async () => {
     montar()
     const rpc = vi.fn().mockResolvedValue({

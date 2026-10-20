@@ -1,5 +1,98 @@
 # Estado atual do projeto — retomada
 
+## Migrações de vínculos e regras em produção — 2026-10-20
+
+- Após autorização explícita no chat, 0009–0011 foram aplicadas juntas na
+  produção, antes do frontend do [PR #38](https://github.com/cielioqueiroz/controle-financeiro/pull/38).
+  Contas (8), documentos (21), transações (500), valores e descrições
+  preservados. Cinco evidências de vínculo registradas, sem mudança de natureza.
+- Esquema, CHECKs, RLS e privilégios conferidos após commit. Helpers privados
+  bloqueados; RPC de regras disponível para authenticated. Backup sem compute
+  válido até 27/10; a cota de snapshots estava esgotada.
+- Código `5486a3c` aprovado nos três jobs do CI. O PR acompanha a integração e
+  o deploy; a continuação documental registra a migração efetiva.
+- [Aplicação, recuperação e evidências](./validacoes/2026-10-20-producao-vinculos-regras.md).
+  As seções abaixo preservam o estado de cada etapa anterior à publicação.
+
+## Vínculos e regras com Neon real — 2026-10-20
+
+- Migrações 0009–0011 aplicadas e ensaiadas juntas na branch de teste
+  `codex-integridade-20261016`, com expiração em 23/10. Auth, JWT, SDK e Data
+  API reais aprovaram 50 asserções e as provas de interface, RLS e rede. O
+  validador anterior da RPC também passou novamente nas 21 verificações.
+- O ensaio encontrou dois defeitos na 0009: um `\n` literal inválido no fim
+  do arquivo e o EXECUTE concedido por default privilege do Neon ao helper
+  interno. A migração agora revoga explicitamente PUBLIC e `authenticated`
+  nos três helpers privados. Chamada direta com JWT real retorna 403/42501.
+- Os arquivos completos das migrações 0001–0011 também passaram num PostgreSQL
+  local descartável com o default privilege do Neon; as provas SQL da 0008 e
+  0009 passaram. A leitura real preservou referências de vínculos, regras,
+  centavos e conferência dos três fixtures novos da Caixa/BB.
+- `npm run verificar` passou novamente após a correção: tipos, 1.270 testes,
+  lint, caminhos, build e CSP. Não houve mudança visual nesta continuação.
+- Produção ainda não recebeu 0009–0011. Continuam externos a esta prova:
+  conferência visual dos PDFs originais, revisão nativa, entrega de e-mail e
+  OAuth com credenciais próprias.
+- [Resultados, limites e validador reproduzível](./validacoes/2026-10-20-vinculos-regras-neon.md).
+
+## Vínculos, regras e novos layouts — 2026-10-18
+
+- Em `codex/vinculos-regras-pendencias`, três frentes começaram a partir do
+  inventário: a migração 0009 reconcilia fatura/pagamento e transferências entre
+  contas no histórico, com evidência recíproca e respeito à correção manual; a
+  0010 permite regras de categoria com os operadores já usados na busca; a
+  0011 adiciona o banco Caixa para extratos GovConta. O parser do BB agora lê os
+  layouts 2023 e A. A ajuda e as descrições foram alinhadas em pt/en/es.
+- A página Faturas apresenta as pontas dos vínculos e permite abrir cada
+  documento. Regras novas valem para importações futuras. Foram acrescentadas
+  3 fixtures anonimizadas (12 no total), mantendo os PDFs locais fora do git.
+- A suíte completa passou com dois workers: 147 arquivos e 1.270 testes. Também
+  passaram typecheck, lint, caminhos, build, geração/auditoria dos fixtures e
+  contraste nos dois temas. Um teste de navegação encontrou o nome do PDF em
+  dois pontos; a consulta foi ajustada para mirar o painel correto e os 11
+  testes de vínculos/navegação passaram.
+- Na execução inicial de 18/10, `npm run verificar`, CSP, `medir:a11y` e
+  overflow não concluíram porque o `uv` não conseguiu obter Playwright do PyPI
+  por falha de DNS e o Chromium via Node não acessava o Vite local. [Atualização
+  de 20/10](#validacoes-locais-concluidas--2026-10-20): essas provas agora
+  passaram após instalar Playwright no cache do workspace.
+  Os testes SQL das migrações 0009 e 0010 passaram em PostgreSQL descartável
+  com RLS e concorrência. A 0011 foi ensaiada numa branch Neon temporária
+  isolada, e o CHECK foi conferido aceitando os oito bancos suportados e
+  recusando valores fora do catálogo; essa branch temporária foi descartada sem
+  aplicar mudanças à branch pai.
+- A revisão do diff encontrou e corrigiu cinco bordas dos parsers: valor Caixa
+  zero sem C/D, compilação BB A com outro emissor ou página sem estrutura
+  compatível e datas impossíveis no movimento e período. Os testes focados dos
+  dois parsers passaram (31 testes), junto com typecheck forçado, lint, build e
+  checagem de caminhos.
+- A prova de 0009–0011 pela Data API na branch de teste foi concluída em 20/10;
+  aplicar as migrações na produção antes de publicar o frontend. Continuam
+  manuais: recebimento real de e-mail, OAuth com credenciais próprias, revisão
+  nativa de inglês e espanhol e validação com conta real. Edições de `kind` anteriores à 0009 não
+  eram identificáveis como manuais; a ADR-0021 descreve esse limite.
+- Planos: [vínculos](./superpowers/plans/2026-10-18-vinculos-historico.md),
+  [regras com operadores](./superpowers/plans/2026-10-18-regras-operadores.md),
+  [parsers Caixa/BB](./superpowers/plans/2026-10-18-parsers-caixa-bb-antigo.md)
+  e [validação/documentação](./superpowers/plans/2026-10-18-validacao-documentacao-bancos.md).
+  Especificação comum:
+  [pendências](./superpowers/specs/2026-10-18-pendencias-design.md).
+
+## Validações locais concluídas — 2026-10-20
+
+- `npm run verificar` passou nos seis gates: typecheck, suíte completa (147
+  arquivos/1.270 testes), lint, caminhos, build e CSP.
+- O medidor de overflow aprovou 40 jornadas em 1280×800 e 390×844, sem
+  rolagem lateral. O axe-core aprovou as mesmas 40 jornadas em ambos os
+  tamanhos, sem violações `critical` ou `serious`.
+- `npm run build:login` passou e o medidor com Auth sintético aprovou os cinco
+  cenários: sem sessão, login aceito, login recusado, sessão existente e sair.
+  Isso não substitui teste com Neon real, recebimento de e-mail, OAuth ou RLS.
+- A migração 0011 foi testada em branch Neon temporária e depois cancelada; a
+  branch foi removida sem aplicar a migração na branch pai. Antes de ativar o
+  frontend, aplicar 0009, 0010 e 0011 na produção. A aplicação e leitura via
+  Data API na branch de teste foram concluídas no ensaio de 20/10 acima.
+
 ## Gráfico de fluxo acessível e redesenhado — 2026-10-18
 
 - Os dois modos de leitura ficam sempre selecionáveis, inclusive quando há
