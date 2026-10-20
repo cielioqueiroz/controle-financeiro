@@ -138,6 +138,10 @@ concessão padrão de EXECUTE do Neon ao helper interno.
 A conferência visual dos PDFs originais e a revisão nativa de idiomas seguem
 manuais; o ensaio usa dados sintéticos e fixtures anonimizados.
 
+As três migrações foram aplicadas e conferidas na produção em 20/10/2026,
+após autorização no chat e antes de integrar o PR #38. Ensaios de escrita
+permanecem restritos à branch de teste. [Registro da aplicação](./validacoes/2026-10-20-producao-vinculos-regras.md).
+
 Executar somente numa branch Neon descartável e com conta de teste. Aplicar
 `0009_vinculos_historico.sql`, `0010_regras_consulta.sql` e
 `0011-caixa.sql` nessa ordem, revisar o SQL da rodada e confirmar que a sessão

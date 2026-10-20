@@ -1,5 +1,19 @@
 # Estado atual do projeto — retomada
 
+## Migrações de vínculos e regras em produção — 2026-10-20
+
+- Após autorização explícita no chat, 0009–0011 foram aplicadas juntas na
+  produção, antes do frontend do [PR #38](https://github.com/cielioqueiroz/controle-financeiro/pull/38).
+  Contas (8), documentos (21), transações (500), valores e descrições
+  preservados. Cinco evidências de vínculo registradas, sem mudança de natureza.
+- Esquema, CHECKs, RLS e privilégios conferidos após commit. Helpers privados
+  bloqueados; RPC de regras disponível para authenticated. Backup sem compute
+  válido até 27/10; a cota de snapshots estava esgotada.
+- Código `5486a3c` aprovado nos três jobs do CI. O PR acompanha a integração e
+  o deploy; a continuação documental registra a migração efetiva.
+- [Aplicação, recuperação e evidências](./validacoes/2026-10-20-producao-vinculos-regras.md).
+  As seções abaixo preservam o estado de cada etapa anterior à publicação.
+
 ## Vínculos e regras com Neon real — 2026-10-20
 
 - Migrações 0009–0011 aplicadas e ensaiadas juntas na branch de teste

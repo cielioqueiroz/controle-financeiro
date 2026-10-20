@@ -14,16 +14,17 @@ no banco** é a fronteira de segurança (cada usuário só vê o que é dele).
 
 - Projeto Neon `controle-financeiro` (região São Paulo), Data API e Neon
   Auth ativos.
-- Schema e migrações até `0008` em [`backend/db/migrations/`](../backend/db/migrations/)
+- Schema e migrações até `0011` em [`backend/db/migrations/`](../backend/db/migrations/)
   aplicados na produção, com RLS + policies por tabela.
 - Código usando `@neondatabase/neon-js` (cliente único: auth + queries).
 
 As migrações 0009–0011 desta branch foram aplicadas e ensaiadas pela Data API
 real na branch descartável codex-integridade-20261016 em 20/10/2026.
 Evidências e validador em [vínculos, regras e parsers no Neon](./validacoes/2026-10-20-vinculos-regras-neon.md).
-Elas **ainda não foram aplicadas em produção**. Não publique o frontend
-atualizado antes delas. O [roteiro manual](./VALIDACAO-MANUAL.md) permite repetir
-a prova enquanto a branch existir.
+Após autorização no chat, foram aplicadas e conferidas em produção em 20/10,
+antes do frontend do PR #38. [Aplicação e recuperação](./validacoes/2026-10-20-producao-vinculos-regras.md).
+O [roteiro manual](./VALIDACAO-MANUAL.md) permite repetir a prova enquanto a
+branch de teste existir.
 
 ## Configurar o app (uma vez)
 

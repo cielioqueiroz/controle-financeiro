@@ -4,6 +4,10 @@ Autorização: criar planos e iniciar todas as frentes indicadas no chat. Trabal
 em `codex/vinculos-regras-pendencias`, base `414d07b`; sem commit, push ou
 alteração de produção. Execução contínua autorizada, sem nova aprovação de plano.
 
+Autorização posterior no mesmo chat: commit e push da branch solicitados pelo
+usuário; em 20/10, aplicação de 0009–0011 na produção e integração do PR #38
+explicitamente autorizadas após CI e ensaio com Data API reais aprovados.
+
 ## Vínculos com o histórico e sua explicação
 
 A importação precisa reconhecer documentos anteriores e posteriores, independente

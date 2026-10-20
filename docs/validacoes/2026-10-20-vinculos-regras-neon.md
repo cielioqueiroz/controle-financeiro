@@ -84,5 +84,6 @@ node_modules/.cache/validacao-vinculos-regras-real-resultado.json.
 
 A prova usa fixtures anonimizados já extraídos e dados sintéticos. Não
 substitui a conferência visual dos PDFs originais, revisão nativa dos textos,
-recebimento de e-mail ou OAuth com credenciais próprias. As migrações desta
-rodada continuam pendentes em produção, antes de publicar o frontend.
+recebimento de e-mail ou OAuth com credenciais próprias. Após este ensaio e
+autorização explícita no chat, as migrações foram aplicadas em produção em
+20/10, antes do frontend. [Registro da aplicação](./2026-10-20-producao-vinculos-regras.md).

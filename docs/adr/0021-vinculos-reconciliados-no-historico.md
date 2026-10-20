@@ -1,7 +1,8 @@
 # ADR-0021 — Vínculos reconciliados no histórico
 
 Data: 2026-10-18. Status: implementada e ensaiada em Postgres local descartável;
-Data API/JWT reais aprovados em 20/10; migração 0009 ainda não aplicada em produção.
+Data API/JWT reais aprovados e migração 0009 aplicada em produção em 20/10,
+após autorização no chat. [Registro](../validacoes/2026-10-20-producao-vinculos-regras.md).
 
 ## Contexto
 
@@ -116,8 +117,8 @@ Aplicar a 0009 antes do frontend. A prova em branch Neon descartável com leitur
 pela Data API foi aprovada em 20/10; [resultados e repetição](../validacoes/2026-10-20-vinculos-regras-neon.md).
 A leitura de `transactions` precisa
 desambiguar as relações antigas com `accounts` e `documents` pelos nomes das
-FKs, porque agora há outra relação com `documents`. Nenhuma migração desta
-rodada foi aplicada em produção.
+FKs, porque agora há outra relação com `documents`. As migrações 0009–0011
+foram aplicadas em produção em 20/10, antes do frontend do PR #38.
 
 Manutenção administrativa que altera dados sem sessão de usuário deve executar
 explicitamente a reconciliação dos usuários afetados sob a mesma trava; gatilhos
