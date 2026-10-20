@@ -48,17 +48,18 @@ do provider e os documentos da consulta existente, sem acesso direto ao adaptado
 - [x] Provar comportamento no modo discreto, teclado e traduções.
 - [x] Rodar contraste pertinente e revisar o diff integrado; corrigir achados.
 - [x] Rodar typecheck forçado, lint e testes focados após correções da revisão.
-- [ ] Rodar `npm run verificar`, CSP, overflow e axe quando Playwright Python e
-  acesso do navegador ao servidor local estiverem disponíveis.
+- [x] Rodar `npm run verificar`, CSP, overflow e axe com Playwright e acesso
+  local disponíveis.
 
 Provas de componente e navegação: 11 testes em três arquivos passaram. A suíte
 completa passou (147 arquivos, 1.270 testes), assim como typecheck, lint,
-caminhos, build e contraste. `npm run verificar`/CSP e o medidor visual
-completo de overflow/axe não completaram: falta Playwright para Python e o DNS
-não alcança PyPI; o Chromium via Node também não acessa Vite local por bloqueio
-da sandbox. A revisão posterior corrigiu cinco casos de borda nos parsers; os
-testes focados, typecheck forçado, lint e build passaram. A 0011 foi ensaiada numa
-branch Neon temporária; 0009 e 0010 têm ensaio completo em PostgreSQL descartável
+caminhos, build e contraste. Em 20/10, `npm run verificar` passou nos seis
+gates, incluindo build e CSP. Overflow aprovou 40 jornadas em desktop e celular
+sem rolagem lateral; axe aprovou as mesmas 40 jornadas nos dois tamanhos sem
+violações `critical`/`serious`. A revisão posterior corrigiu cinco casos de
+borda nos parsers; os testes focados, typecheck forçado, lint e build passaram.
+A 0011 foi ensaiada numa branch Neon temporária, depois descartada sem aplicar
+na branch pai; 0009 e 0010 têm ensaio completo em PostgreSQL descartável
 registrado na ADR-0021.
 
 ### Task 3: fechamento

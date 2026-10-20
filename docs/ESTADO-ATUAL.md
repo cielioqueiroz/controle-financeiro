@@ -16,15 +16,16 @@
   contraste nos dois temas. Um teste de navegação encontrou o nome do PDF em
   dois pontos; a consulta foi ajustada para mirar o painel correto e os 11
   testes de vínculos/navegação passaram.
-- `npm run verificar` e `medir-csp.py` não concluíram porque o `uv` não conseguiu
-  obter Playwright do PyPI por falha de DNS; `medir:a11y` e overflow ainda
-  dependem desse pacote. O Chromium via Playwright de Node abriu, mas a sandbox
-  negou acesso ao Vite local (`127.0.0.1:5173`). Os testes SQL das migrações
-  0009 e 0010 passaram em PostgreSQL descartável com RLS e concorrência. A
-  0011 também foi aplicada numa branch Neon temporária isolada e o CHECK foi
-  conferido como validado, aceitando os oito bancos suportados e recusando
-  valores fora do catálogo. A limpeza dessa branch depende da confirmação
-  exigida pela ferramenta Neon; nada foi aplicado à branch pai.
+- Na execução inicial de 18/10, `npm run verificar`, CSP, `medir:a11y` e
+  overflow não concluíram porque o `uv` não conseguiu obter Playwright do PyPI
+  por falha de DNS e o Chromium via Node não acessava o Vite local. [Atualização
+  de 20/10](#validacoes-locais-concluidas--2026-10-20): essas provas agora
+  passaram após instalar Playwright no cache do workspace.
+  Os testes SQL das migrações 0009 e 0010 passaram em PostgreSQL descartável
+  com RLS e concorrência. A 0011 foi ensaiada numa branch Neon temporária
+  isolada, e o CHECK foi conferido aceitando os oito bancos suportados e
+  recusando valores fora do catálogo; essa branch temporária foi descartada sem
+  aplicar mudanças à branch pai.
 - A revisão do diff encontrou e corrigiu cinco bordas dos parsers: valor Caixa
   zero sem C/D, compilação BB A com outro emissor ou página sem estrutura
   compatível e datas impossíveis no movimento e período. Os testes focados dos
@@ -41,6 +42,21 @@
   e [validação/documentação](./superpowers/plans/2026-10-18-validacao-documentacao-bancos.md).
   Especificação comum:
   [pendências](./superpowers/specs/2026-10-18-pendencias-design.md).
+
+## Validações locais concluídas — 2026-10-20
+
+- `npm run verificar` passou nos seis gates: typecheck, suíte completa (147
+  arquivos/1.270 testes), lint, caminhos, build e CSP.
+- O medidor de overflow aprovou 40 jornadas em 1280×800 e 390×844, sem
+  rolagem lateral. O axe-core aprovou as mesmas 40 jornadas em ambos os
+  tamanhos, sem violações `critical` ou `serious`.
+- `npm run build:login` passou e o medidor com Auth sintético aprovou os cinco
+  cenários: sem sessão, login aceito, login recusado, sessão existente e sair.
+  Isso não substitui teste com Neon real, recebimento de e-mail, OAuth ou RLS.
+- A migração 0011 foi testada em branch Neon temporária e depois cancelada; a
+  branch foi removida sem aplicar a migração na branch pai. Antes de ativar o
+  frontend, ainda é necessário aplicar 0009, 0010 e 0011 no Neon de teste e
+  verificar a leitura via Data API.
 
 ## Gráfico de fluxo acessível e redesenhado — 2026-10-18
 
