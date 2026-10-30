@@ -192,6 +192,15 @@ o recorte cai num mês cuja fatura ninguém importou.
 _Em código_: `Procedencia`
 _Evitar_: origem, fonte, lastro, cobertura
 
+**Cobertura**:
+A grade **fonte × competência** do histórico inteiro: para cada banco e tipo
+de documento, mês a mês, se o documento foi importado, falta, é do mês em curso
+(pode nem existir ainda) ou é anterior à primeira importação daquela fonte.
+**Não é o mesmo que Procedência**: a procedência descreve o recorte na tela; a
+cobertura descreve o histórico e responde "o que eu ainda não importei?".
+_Em código_: `coberturaDocumentos` (`domain/cobertura.ts`), `CoberturaDocumentos`
+_Evitar_: completude, matriz, checklist
+
 **Operador**:
 O pedaço da busca que restringe por algo que não é texto — `>100`, `<50`,
 `banco:nubank`, `cat:farmacia`, `sem:categoria`. Mora dentro da caixa de busca, e

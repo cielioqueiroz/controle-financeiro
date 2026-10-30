@@ -11,6 +11,7 @@ import { useT } from '../i18n/IdiomaProvider'
 import { Confirmacao } from './acesso/Confirmacao'
 import { DocumentoImportado } from './DocumentoImportado'
 import { ErroCarregar } from './ErroCarregar'
+import { CoberturaDocumentos } from './CoberturaDocumentos'
 import { ConferenciaVinculos } from './ConferenciaVinculos'
 import type { TransacaoParaConferencia } from '../domain/link/conferencia-vinculos'
 
@@ -205,6 +206,8 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
         <h2 className="font-display text-xl text-tinta">{t('docs.titulo')}</h2>
         <p className="text-xs text-tinta-fraca">{t('docs.subtitulo')}</p>
       </header>
+
+      {!erro && docs !== null && <CoberturaDocumentos documentos={docs} />}
 
       {!erro && docs !== null && transacoes !== undefined && onVerDocumento && (
         <ConferenciaVinculos transacoes={transacoes} documentos={docs} onVerDocumento={onVerDocumento} />

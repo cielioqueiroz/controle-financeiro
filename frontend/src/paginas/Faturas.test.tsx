@@ -76,7 +76,7 @@ describe('página Faturas', () => {
 
   it('lista os documentos importados', async () => {
     montar()
-    expect(await screen.findByText(/nubank/i)).toBeInTheDocument()
+    expect(await screen.findByText('Nubank')).toBeInTheDocument()
   })
 
   it('mantém os documentos sem inventar gasto zero quando a consulta das transações falha', async () => {
@@ -92,7 +92,7 @@ describe('página Faturas', () => {
   // adaptado.
   it('não trava a rolagem do body — isso era comportamento de modal', async () => {
     montar()
-    await screen.findByText(/nubank/i)
+    await screen.findByText('Nubank')
     expect(document.body.style.overflow).not.toBe('hidden')
   })
 
@@ -101,7 +101,7 @@ describe('página Faturas', () => {
   // conteúdo preso atrás de uma segunda barra de rolagem.
   it('não cria barra de rolagem própria dentro da página', async () => {
     const { container } = montar()
-    await screen.findByText(/nubank/i)
+    await screen.findByText('Nubank')
     expect(container.querySelector('.overflow-y-auto')).toBeNull()
     expect(container.innerHTML).not.toContain('max-h-[55vh]')
   })
@@ -110,7 +110,7 @@ describe('página Faturas', () => {
   // numa página não teria o que fechar.
   it('não oferece botão de fechar', async () => {
     montar()
-    await screen.findByText(/nubank/i)
+    await screen.findByText('Nubank')
     expect(screen.queryByRole('button', { name: /fechar/i })).toBeNull()
   })
 })
