@@ -1,3 +1,4 @@
+import { ehDivida } from './categorize/categorias'
 import { normalizeMerchant } from './normalize/merchant'
 
 /** Diagnósticos do recorte: o que o histórico já importado denuncia sozinho.
@@ -45,11 +46,15 @@ const LIMIARES = {
 /** Mesmo filtro de `agregar`, `maioresSaidas` e `porEstabelecimento`:
  *  vínculo é dinheiro que só mudou de lugar e entrada não é saída. Sem
  *  isso a quitação da fatura — o maior valor de todo mês — dispararia a
- *  concentração para sempre, sem significar nada. */
-const ehGasto = (t: TxDiagnosticavel) => t.kind === 'expense'
+ *  concentração para sempre, sem significar nada.
+ *
+ *  A dívida também fica de fora, pelo mesmo motivo com outra roupa: uma
+ *  parcela de R$ 41 mil seria a concentração de todo mês e reduziria a
+ *  fatia das taxas a nada. Os diagnósticos falam do CONSUMO. */
+const ehConsumo = (t: TxDiagnosticavel) => t.kind === 'expense' && !ehDivida(t.category_slug)
 
 export function diagnosticar(txs: TxDiagnosticavel[]): Diagnostico[] {
-  const gastos = txs.filter(ehGasto)
+  const gastos = txs.filter(ehConsumo)
   const totalCents = gastos.reduce((a, t) => a + t.amount_cents, 0)
   if (totalCents <= 0) return []
 

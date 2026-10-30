@@ -95,6 +95,25 @@ describe('agregar', () => {
     expect(r.saldoCents).toBe(110000)
   })
 
+  it('separa o gasto real em consumo e dívidas sem mudar o total', () => {
+    const txs = [
+      tx({ amount_cents: 4165385, category_slug: 'dividas' }),
+      tx({ amount_cents: 30000, category_slug: 'supermercado' }),
+      tx({ amount_cents: 1000, category_slug: 'taxas' }),
+      tx({ amount_cents: 200000, kind: 'card_payment', category_slug: 'dividas' }),
+    ]
+    const r = agregar(txs)
+    expect(r.gastoCents).toBe(4196385)
+    expect(r.dividasCents).toBe(4165385)
+    expect(r.consumoCents).toBe(31000)
+  })
+
+  it('sem dívida, consumo é o gasto real inteiro', () => {
+    const r = agregar([tx({ amount_cents: 5000 })])
+    expect(r.dividasCents).toBe(0)
+    expect(r.consumoCents).toBe(5000)
+  })
+
   it('saldo negativo quando se gasta mais do que entra', () => {
     const txs = [
       tx({ amount_cents: 200000, kind: 'expense', category_slug: 'outros' }),

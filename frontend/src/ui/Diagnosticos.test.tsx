@@ -26,7 +26,7 @@ describe('Diagnosticos', () => {
   it('escreve a frase do achado com o percentual e o valor', () => {
     render(<Diagnosticos itens={[concentracao]} />)
     expect(
-      screen.getByText(/Mercado concentra 42% do gasto do período \(R\$ 915,00\)/),
+      screen.getByText(/Mercado concentra 42% do consumo do período \(R\$ 915,00\)/),
     ).toBeInTheDocument()
   })
 
@@ -35,7 +35,7 @@ describe('Diagnosticos', () => {
   // aparece com o número errado.
   it('arredonda a fração para percentual inteiro', () => {
     render(<Diagnosticos itens={[outros]} />)
-    expect(screen.getByText(/^31% do gasto/)).toBeInTheDocument()
+    expect(screen.getByText(/^31% do consumo/)).toBeInTheDocument()
   })
 
   it('desenha uma linha por achado', () => {

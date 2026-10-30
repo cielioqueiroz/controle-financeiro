@@ -119,6 +119,22 @@ A mesma soma **sem** descontar os vínculos. Existe só para mostrar ao usuário
 quanto de dupla contagem desapareceu na importação.
 _Evitar_: total bruto, gasto aparente
 
+**Dívida**:
+A categoria `dividas`: amortização de empréstimo, financiamento, consignado ou
+renegociação. É gasto real, mas não é consumo nem **encargo** — IOF e juros,
+mesmo os de um empréstimo, continuam em `taxas`.
+_Em código_: `ehDivida`, `dividasCents`
+_Evitar_: taxa, prestação, parcela (parcela é `installment`)
+
+**Consumo**:
+O gasto real sem as dívidas: o que o mês custou para ser vivido.
+`consumoCents + dividasCents === gastoCents`, então separar não esconde
+dinheiro. Diagnósticos e "maior categoria" medem o consumo; sem isso, a
+parcela de um empréstimo seria a resposta de todo mês. ("Consumo da renda", no
+comparativo, é outra conta — gasto real ÷ entradas — e é frase de tela.)
+_Em código_: `consumoCents`
+_Evitar_: gasto do dia a dia, despesa corrente
+
 **installment**:
 Uma das cobranças de uma compra dividida, com o número e o total (`03/10`).
 _Em português_: parcela

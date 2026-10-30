@@ -1,5 +1,26 @@
 # Estado atual do projeto — retomada
 
+## Gasto real em consumo e dívidas — 2026-10-30
+
+- Em `feat/categoria-dividas`, a partir da `main` (`1c58b36`) com o commit
+  de dependências do PR #39. Corrige o item 1.4 da auditoria das somas de
+  30/10: a parcela de empréstimo caía em "Taxas bancárias" e era 91% do mês.
+- Nova categoria `dividas`, com regra global para empréstimo, financiamento,
+  consignado, crédito pessoal, "débito por dívida" e renegociação. Prioridade
+  105: acima de telecom, porque o padrão `TIM` casava dentro de "EMPRESTIMO"
+  e mandava a parcela para Telecom. IOF e juros subiram para 106 e continuam
+  encargo, até na descrição de um empréstimo.
+- `agregar` devolve `consumoCents` e `dividasCents`, que somam o gasto real.
+  O Painel abre o tile do gasto real nessas duas linhas quando há dívida. Os
+  diagnósticos e a leitura "maior categoria" passam a medir o consumo.
+- **Sem migração:** o catálogo vive no código e `category_slug` é texto. O
+  histórico já salvo mantém a categoria antiga; regra nova vale para
+  importações futuras, e o que já está salvo se move pela recategorização em
+  lote da edição de uma transação.
+- Ficam para depois: Relatórios, Minha situação financeira e o PDF ainda
+  mostram só o gasto real total; o donut ainda desenha a dívida como fatia
+  (item U1).
+
 ## Migrações de vínculos e regras em produção — 2026-10-20
 
 - Após autorização explícita no chat, 0009–0011 foram aplicadas juntas na

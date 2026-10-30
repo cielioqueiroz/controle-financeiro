@@ -25,6 +25,7 @@ export const CATEGORIAS: Categoria[] = [
   { slug: 'papelaria', nome: 'Papelaria', icone: '✏️', cor: '#c084fc' },
   { slug: 'servicos', nome: 'Serviços', icone: '🔧', cor: '#94a3b8' },
   { slug: 'taxas', nome: 'Taxas bancárias', icone: '🏦', cor: '#64748b' },
+  { slug: 'dividas', nome: 'Dívidas', icone: '📉', cor: '#f87171' },
   { slug: 'rendimentos', nome: 'Rendimentos', icone: '📈', cor: '#34d399' },
   { slug: 'transferencia', nome: 'Transferências', icone: '↔️', cor: '#9ca3af' },
   { slug: 'agua', nome: 'Água', icone: '💧', cor: '#60a5fa' },
@@ -61,6 +62,7 @@ const NOMES_I18N: Record<string, { en: string; es: string }> = {
   papelaria: { en: 'Stationery', es: 'Papelería' },
   servicos: { en: 'Services', es: 'Servicios' },
   taxas: { en: 'Bank fees', es: 'Comisiones bancarias' },
+  dividas: { en: 'Debts', es: 'Deudas' },
   rendimentos: { en: 'Earnings', es: 'Rendimientos' },
   transferencia: { en: 'Transfers', es: 'Transferencias' },
   agua: { en: 'Water', es: 'Agua' },
@@ -122,6 +124,11 @@ export function todasCategorias(): Categoria[] {
   const outros = extras.get('outros') ?? CATEGORIAS.find((c) => c.slug === 'outros')!
   return [...embutidas, ...personalizadas, outros]
 }
+
+/** Dívida é gasto real, mas não é consumo: a parcela do empréstimo sai do
+ *  bolso sem dizer nada sobre como o mês foi vivido. Quem mede o consumo
+ *  deixa ela de fora; quem mede o gasto real, não. */
+export const ehDivida = (slug: string | null): boolean => slug === 'dividas'
 
 export const categoria = (slug: string): Categoria =>
   extras.get(slug) ?? porSlug.get(slug) ?? porSlug.get('outros')!

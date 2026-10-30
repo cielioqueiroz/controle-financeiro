@@ -1,4 +1,4 @@
-import { categoria, type Categoria } from './categorize/categorias'
+import { categoria, ehDivida, type Categoria } from './categorize/categorias'
 import { normalizeMerchant } from './normalize/merchant'
 import type { CategoriaResumo } from './insights'
 
@@ -82,6 +82,11 @@ export function filtrar<T extends TxAgrupavel>(txs: T[], periodo: Periodo, ref: 
 
 export type Resumo = {
   gastoCents: number
+  /** As duas parcelas do gasto real: `consumoCents + dividasCents ===
+   *  gastoCents`. Separar não esconde dinheiro, só impede que a parcela de
+   *  um empréstimo fale pelo mês inteiro. */
+  consumoCents: number
+  dividasCents: number
   entradasCents: number
   /** Entradas menos gasto. Positivo = sobrou. Vínculos não entram (não são
    *  gasto nem entrada), então o número é o que de fato sobrou no período. */
@@ -95,6 +100,7 @@ export type Resumo = {
  *  fora do gasto para não contar o mesmo dinheiro duas vezes. */
 export function agregar(txs: TxAgrupavel[]): Resumo {
   let gastoCents = 0
+  let dividasCents = 0
   let entradasCents = 0
   const mapa = new Map<string, CategoriaResumo & { cat: Categoria }>()
 
@@ -105,6 +111,7 @@ export function agregar(txs: TxAgrupavel[]): Resumo {
     }
     if (t.kind !== 'expense') continue
     gastoCents += t.amount_cents
+    if (ehDivida(t.category_slug)) dividasCents += t.amount_cents
     const slug = t.category_slug ?? 'outros'
     const atual = mapa.get(slug) ?? { cat: categoria(slug), totalCents: 0, contagem: 0 }
     atual.totalCents += t.amount_cents
@@ -114,6 +121,8 @@ export function agregar(txs: TxAgrupavel[]): Resumo {
 
   return {
     gastoCents,
+    consumoCents: gastoCents - dividasCents,
+    dividasCents,
     entradasCents,
     saldoCents: entradasCents - gastoCents,
     contagem: txs.length,
