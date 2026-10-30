@@ -188,8 +188,11 @@ Os documentos que sustentam os números do recorte — quantos, de que tipo e de
 quais bancos. É a promessa de o app ser retrospectivo, dita na tela: todo número
 veio de um documento. **Não é o mesmo que Filtros**: filtro é o que foi
 *escolhido*, procedência é o que foi *encontrado*, e os dois divergem sempre que
-o recorte cai num mês cuja fatura ninguém importou.
-_Em código_: `Procedencia`
+o recorte cai num mês cuja fatura ninguém importou. Ela também diz o que o
+recorte **sabe que falta**: a quitação de fatura, vinda de extrato, que não
+achou a fatura que pagou. A quitação sai do gasto real contra a dupla
+contagem, e sem a fatura as compras dela podem não estar no número.
+_Em código_: `Procedencia`, `quitacoesSemFatura`
 _Evitar_: origem, fonte, lastro, cobertura
 
 **Operador**:

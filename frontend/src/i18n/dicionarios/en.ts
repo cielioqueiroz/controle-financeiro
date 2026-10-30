@@ -764,6 +764,7 @@ export const en: Dicionario = {
   'proc.extrato1': '1 account statement',
   'proc.extratoN': '{n} account statements',
   'proc.e': 'and',
+  'proc.quitacaoSemFatura': '{valor} in card bill payments without the matching bill imported — its purchases may be missing from this spending.',
   'carimbo.confere': 'Checks out',
   'carimbo.diverge': 'Mismatch',
   'carimbo.semGabarito': 'No check figure',
