@@ -231,6 +231,8 @@ export const es: Dicionario = {
   'relatorios.mesesTitulo': 'Meses que respaldan el informe',
   'relatorios.comparacaoDisponivel': 'Ambos intervalos tienen la misma duración y transacciones en todos los meses.',
   'relatorios.comparacaoBloqueada': 'La comparación no está disponible mientras algún intervalo tenga meses sin transacciones.',
+  'relatorios.foraDaJanela': '{mes} quedó fuera de la ventana: falta {fontes}, que el mes anterior tiene. Importa el documento y vuelve.',
+  'relatorios.fonteDocumento': '{tipo} ({banco})',
   'relatorios.intervaloAtual': 'Intervalo actual',
   'relatorios.intervaloAnterior': 'Intervalo anterior',
   'relatorios.mesesContagem': '{n} de {total} meses con transacciones',

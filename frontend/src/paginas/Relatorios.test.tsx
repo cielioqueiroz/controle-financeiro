@@ -174,3 +174,19 @@ describe('Relatórios — estados e navegação', () => {
     expect(screen.getByText('0 de 3 meses com transações')).toBeVisible()
   })
 })
+
+describe('Relatórios — mês final incompleto', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('deixa fora o mês sem o extrato que o anterior tem e diz o que falta', async () => {
+    const extrato = { ...transacao, bank: 'bb' as const, doc_type: 'extrato' as const, kind: 'income', amount_cents: -50000 }
+    vi.mocked(puxarTudo).mockResolvedValue([
+      { ...transacao, id: 'f-out', document_id: 'f-out', competencia: '2026-10', date: '2026-10-05' },
+      { ...extrato, id: 'e-out', document_id: 'e-out', competencia: '2026-10', date: '2026-10-06' },
+      { ...transacao, id: 'f-nov', document_id: 'f-nov', competencia: '2026-11', date: '2026-10-25', amount_cents: 90000 },
+    ])
+    abrir('?janela=3')
+    expect(await screen.findByText(/nov 2026 ficou fora da janela: falta Extrato \(Banco do Brasil\)/i)).toBeVisible()
+    expect(screen.getAllByText(/ago 2026 — out 2026/i).length).toBeGreaterThan(0)
+  })
+})

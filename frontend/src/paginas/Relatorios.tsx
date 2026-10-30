@@ -153,7 +153,8 @@ export function Relatorios() {
       ) : (
         <>
           <Procedencia txs={txs} periodo={intervalo} />
-          <MesesRelatorio atual={relatorio.atual} anterior={relatorio.anterior} comparavel={relatorio.comparavel} />
+          <MesesRelatorio atual={relatorio.atual} anterior={relatorio.anterior} comparavel={relatorio.comparavel}
+            foraDaJanela={relatorio.foraDaJanela} />
           <section aria-label={t('relatorios.resumoAria')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Cartao as="article">
               <p className="rotulo">{t('relatorios.receitas')}</p>

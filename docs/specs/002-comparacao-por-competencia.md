@@ -33,6 +33,27 @@ as contas foram importados. A comparação descreve o histórico disponível. N�
 é uma conferência de completude bancária. Documentos sem transações não são
 inferidos por este cálculo, que recebe o mesmo histórico usado nos totais.
 
+## Mês final incompleto — 2026-10-30
+
+A fatura conta no mês do vencimento (ADR-0001), e a última importada costuma
+vencer no mês seguinte ao último extrato. Esse mês fechava a janela só com o
+gasto do cartão e sem as entradas. Com seis meses iguais (R$ 6.000 de entrada e
+R$ 4.000 de gasto) e uma fatura vencendo em novembro, a taxa de economia caía de
+33,3% para 4,2%, e a comparação ainda era dada como disponível.
+
+O histórico prova uma coisa só: **a fonte que sumiu**. Fonte é banco + tipo de
+documento. Se no último mês falta uma fonte que o mês imediatamente anterior
+tem, o último mês sai da janela, e o teste se repete um mês antes. O retorno
+`foraDaJanela` diz qual mês saiu e o que falta nele, e a tela pede para importar
+o documento.
+
+- Uma conta encerrada atrasa a janela só até o mês seguinte chegar: aí o mês
+  anterior também já não tem aquela fonte.
+- Através de uma lacuna de calendário não há com que comparar, e nada sai.
+- Com filtro de banco, só as fontes daquele banco contam.
+- Duas contas do mesmo banco e tipo são uma fonte só. A régua erra para o lado
+  de deixar o mês entrar, não de tirá-lo.
+
 ## Arquitetura
 
 `domain/relatorios.ts` contém a regra pura, sem React, persistência ou rede.
