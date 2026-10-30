@@ -1,5 +1,26 @@
 # Estado atual do projeto — retomada
 
+## Barras, meses recolhidos e um ranking só — 2026-10-30
+
+- Em `feat/ui-graficos-rankings`, a partir da `main` (`1c58b36`) com o
+  commit de dependências do PR #39. Itens U1, U5 e U6 da auditoria das somas
+  de 30/10.
+- **U1:** quando a maior categoria passa de dois terços do gasto, o donut sai
+  e a lista vira o gráfico. As barras usam a escala robusta dos outros
+  gráficos, e a que passa do teto ganha a serrilha de corte. O percentual
+  escrito continua sendo do total. A frase de cima diz por que o desenho
+  mudou. 60/40 continua donut.
+- **U5:** em Compromissos futuros, meses seguidos com as mesmas parcelas
+  (cartão, descrição, total de parcelas e valor) viram uma linha: "nov 2026 –
+  abr 2027 · 6 meses · R$ 450,00/mês". Aberta, mostra a faixa "4–9/10". O
+  gráfico ao lado continua abrindo o mês, e o grupo abre se o mês está nele.
+  A regra mora em `ui/compromissos-agrupados.ts`.
+- **U6:** "Maiores saídas" e "Onde mais saiu dinheiro" viraram um cartão,
+  "Para onde o dinheiro foi", com a alternância "Por estabelecimento / Por
+  compra". Por estabelecimento abre primeiro. A escolha não vai para a URL:
+  não muda o recorte. README, `gerar-prints.py` e AGENTS acompanham.
+- Os prints do README (`docs/img/print-rankings.png`) não foram regerados.
+
 ## Migrações de vínculos e regras em produção — 2026-10-20
 
 - Após autorização explícita no chat, 0009–0011 foram aplicadas juntas na

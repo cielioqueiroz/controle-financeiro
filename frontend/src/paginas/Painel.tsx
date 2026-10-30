@@ -30,8 +30,7 @@ import { ComparativoFinanceiro } from '../ui/graficos/ComparativoFinanceiro'
 import { LeiturasFinanceiras, type LeituraFinanceira } from '../ui/LeiturasFinanceiras'
 import { ProximosCompromissos } from '../ui/ProximosCompromissos'
 import { GraficoDiario } from '../ui/graficos/GraficoDiario'
-import { MaioresSaidas } from '../ui/listas/MaioresSaidas'
-import { TopEstabelecimentos } from '../ui/listas/TopEstabelecimentos'
+import { RankingGastos } from '../ui/listas/RankingGastos'
 import { Diagnosticos } from '../ui/Diagnosticos'
 import { diagnosticar } from '../domain/diagnosticos'
 import { SaldoConta } from '../ui/SaldoConta'
@@ -467,18 +466,14 @@ export function Painel({ onAprendeu }: Props) {
                   </motion.section>
                 )}
 
-                <motion.div {...entra(0.36)} className="grid gap-4 lg:grid-cols-2">
+                <motion.div {...entra(0.36)}>
                   <Cartao>
-                    <MaioresSaidas itens={maiores} onEditar={setEditando} />
-                    <Link
-                      to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
-                      className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"
-                    >
-                      {t('dash.lancamentos')} →
-                    </Link>
-                  </Cartao>
-                  <Cartao>
-                    <TopEstabelecimentos itens={estabelecimentos} onAbrir={irParaEstabelecimento} />
+                    <RankingGastos
+                      maiores={maiores}
+                      estabelecimentos={estabelecimentos}
+                      onEditar={setEditando}
+                      onAbrirEstabelecimento={irParaEstabelecimento}
+                    />
                     <Link
                       to={{ pathname: '/lancamentos', search: escreverFiltros(filtros) }}
                       className="mt-4 inline-block text-sm text-tinta-tenue transition-colors hover:text-tinta"

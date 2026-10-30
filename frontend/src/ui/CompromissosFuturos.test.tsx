@@ -111,6 +111,35 @@ describe('CompromissosFuturos', () => {
     expect(screen.queryByText('GELADEIRA')).not.toBeInTheDocument()
   })
 
+  // U5 da auditoria de 30/10: seis linhas "1× R$ 450,00" dizem a mesma coisa
+  // seis vezes. Meses seguidos com as mesmas parcelas viram uma linha só.
+  describe('meses iguais', () => {
+    const iguais = ['2026-11', '2026-12', '2027-01'].map((competencia, k) =>
+      mes({ competencia, totalCents: 45000, itens: [item({ parcela: 4 + k, amountCents: 45000 })] }))
+
+    it('recolhe numa linha com a faixa de meses e o valor por mês', () => {
+      render(<Card meses={iguais} />)
+      // `\s`: o Intl separa "R$" do valor com espaço não separável.
+      const linha = screen.getByRole('button', { name: /nov 2026 a jan 2027: 3 meses de R\$\s450,00/ })
+      expect(linha).toHaveTextContent('3 meses')
+      expect(linha).toHaveTextContent('/mês')
+      // O total do cartão continua sendo a soma de todos os meses.
+      expect(screen.getByText('R$ 1.350,00')).toBeInTheDocument()
+    })
+
+    it('aberto, mostra a faixa de parcelas da série', async () => {
+      const usuario = userEvent.setup()
+      render(<Card meses={iguais} />)
+      await usuario.click(screen.getByRole('button', { name: /3 meses/ }))
+      expect(await screen.findByText('4–6/10')).toBeInTheDocument()
+    })
+
+    it('abre quando o gráfico ao lado escolhe um mês do meio do grupo', () => {
+      render(<CompromissosFuturos meses={iguais} aberto="2026-12" onAlternar={() => {}} />)
+      expect(screen.getByText('GELADEIRA BRASTEMP')).toBeInTheDocument()
+    })
+  })
+
   it('conta quantas parcelas caem em cada mês', () => {
     render(<Card meses={[mes({ itens: [item(), item({ descricao: 'SOFÁ' })] })]} />)
     expect(screen.getByText('2×')).toBeInTheDocument()
