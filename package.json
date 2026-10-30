@@ -34,11 +34,16 @@
     "typescript": "~6.0.2"
   },
   "overrides": {
-    "@better-auth/api-key": "1.6.23",
-    "@better-auth/core": "1.6.23",
+    "better-auth": "1.7.14",
+    "better-call": "1.4.4",
+    "@better-auth/core": "1.7.14",
+    "@better-auth/api-key": "1.7.14",
+    "@better-auth/passkey": "1.7.14",
+    "zod": "4.6.7",
     "@daveyplate/better-auth-ui": {
-      "@better-auth/api-key": "1.6.23",
-      "@better-auth/core": "1.6.23"
+      "@better-auth/api-key": "1.7.14",
+      "@better-auth/core": "1.7.14",
+      "better-call": "1.4.4"
     }
   }
 }
