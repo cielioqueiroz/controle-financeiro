@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { buildLines } from '../pdf/lines'
-import { parseMercadoPagoFatura } from './mercadopago-fatura'
+import { parseMercadoPagoFatura, natureza } from './mercadopago-fatura'
 import { detectDocument } from '../pdf/detect'
 import { validar } from '../validate/checksum'
 import type { TextItem } from '../pdf/types'
@@ -101,5 +101,20 @@ describe('parseMercadoPagoFatura — conta e compromisso futuro', () => {
   // dali seria inventar. Mesmo caso do Bradesco.
   it('não inventa saldo em aberto', () => {
     expect(r.forward.totalOpenBalance).toBeNull()
+  })
+})
+
+// O fixture não traz estorno, então a regra é provada na função que decide.
+describe('natureza das linhas da fatura do Mercado Pago', () => {
+  it('estorno é compra negativa, não entrada', () => {
+    expect(natureza('Estorno de compra LOJA X', -5000)).toBe('compra')
+  })
+
+  it('outro crédito continua sendo pagamento', () => {
+    expect(natureza('Pagamento da fatura', -62134)).toBe('pagamento')
+  })
+
+  it('encargo nomeado continua sendo encargo', () => {
+    expect(natureza('Juros do rotativo', 1500)).toBe('encargo')
   })
 })

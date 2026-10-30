@@ -36,7 +36,8 @@ um deploy exige *Instant Rollback* no painel.
 ├── backend/db/migrations/   0001 schema · 0002 saldo e bancos ·
 │                            0003 integridade · 0004 Mercado Pago · 0005 dedupe ·
 │                            0006 privilégios · 0007 falhas · 0008 importação atômica ·
-│                            0009 vínculos históricos · 0010 regras com consulta · 0011 Caixa
+│                            0009 vínculos históricos · 0010 regras com consulta · 0011 Caixa ·
+│                            0012 estorno de fatura (dados)
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
@@ -170,6 +171,11 @@ que aconteceu.
 ⚠️ **A migração `0011` precisa estar aplicada antes do primeiro GovConta Caixa.**
 Ela amplia o CHECK de `accounts.bank`; escrever a migração no repositório não a
 aplica no Neon.
+
+⚠️ **A migração `0012` corrige dados, não esquema.** Converte em `expense` os
+estornos de fatura que o Bradesco e o Mercado Pago gravaram como `income`. O
+frontend novo já grava certo; sem ela, o histórico anterior segue inflando
+gasto real e entradas. Aplicar como proprietário das tabelas, como a `0009`.
 
 ⚠️ **Caixa aqui significa apenas GovConta comprovado.** Os fixtures cobrem duas
 numerações de conta e a continuação de período/layout testada; isso não autoriza

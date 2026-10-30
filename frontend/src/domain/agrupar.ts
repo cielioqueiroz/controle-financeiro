@@ -217,44 +217,45 @@ function somarMeses(comp: string, k: number): string {
  *  não foi importada (se tivesse, ela seria a mais recente), a projeção
  *  nunca colide com um lançamento real que chegar. */
 export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
-  // Uma entrada por série, mantendo a parcela de maior número (mais nova).
-  const series = new Map<
-    string,
-    { comp: string; current: number; total: number; cents: number; desc: string; bank: string }
-  >()
+  // A série é a mesma compra vista em várias faturas. A chave é o que não
+  // muda entre elas: banco, estabelecimento, número de parcelas e a
+  // competência da 1ª parcela. Fora dela ficam o rótulo, que nunca agrupa
+  // (CONTEXT.md), e o valor, porque a 1ª parcela costuma levar os centavos
+  // do arredondamento.
+  //
+  // Vence a parcela mais nova, e só ela projeta. Duas linhas com a mesma
+  // chave na mesma parcela são duas compras iguais, e as duas projetam. A
+  // série quitada (6/6) entra no agrupamento antes de ser descartada: se
+  // saísse antes, a 5/6 da fatura anterior projetaria de novo a 6/6.
+  const series = new Map<string, TxParcela[]>()
   for (const t of txs) {
     if (t.kind !== 'expense' || !t.installment) continue
     const { current, total } = t.installment
-    if (total <= current) continue
-    const desc = t.label ?? t.description
-    const chave = `${desc}|${total}`
+    const origem = somarMeses(t.competencia, 1 - current)
+    const chave = `${t.bank}|${normalizeMerchant(t.description)}|${total}|${origem}`
     const atual = series.get(chave)
-    if (!atual || current > atual.current) {
-      series.set(chave, {
-        comp: t.competencia,
-        current,
-        total,
-        cents: t.amount_cents,
-        desc,
-        bank: t.bank,
-      })
-    }
+    const maisNova = atual?.[0].installment?.current ?? 0
+    if (current > maisNova) series.set(chave, [t])
+    else if (atual && current === maisNova) atual.push(t)
   }
 
   const meses = new Map<string, MesFuturo>()
-  for (const s of series.values()) {
-    for (let k = 1; k <= s.total - s.current; k++) {
-      const comp = somarMeses(s.comp, k)
-      const mes = meses.get(comp) ?? { competencia: comp, totalCents: 0, itens: [], porBanco: [] }
-      mes.totalCents += s.cents
-      mes.itens.push({
-        descricao: s.desc,
-        parcela: s.current + k,
-        total: s.total,
-        amountCents: s.cents,
-        bank: s.bank,
-      })
-      meses.set(comp, mes)
+  for (const parcelas of series.values()) {
+    for (const t of parcelas) {
+      const { current, total } = t.installment!
+      for (let k = 1; k <= total - current; k++) {
+        const comp = somarMeses(t.competencia, k)
+        const mes = meses.get(comp) ?? { competencia: comp, totalCents: 0, itens: [], porBanco: [] }
+        mes.totalCents += t.amount_cents
+        mes.itens.push({
+          descricao: t.label ?? t.description,
+          parcela: current + k,
+          total,
+          amountCents: t.amount_cents,
+          bank: t.bank,
+        })
+        meses.set(comp, mes)
+      }
     }
   }
   for (const m of meses.values()) {

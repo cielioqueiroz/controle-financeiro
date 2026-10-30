@@ -271,6 +271,64 @@ describe('projecaoFutura', () => {
     const f = projecaoFutura([parcela({ bank: 'bradesco' })])
     expect(f[0].itens[0].bank).toBe('bradesco')
   })
+
+  // O rótulo nunca agrupa (CONTEXT.md). Renomear a 3/6 e não a 4/6 já fez a
+  // mesma compra virar duas séries, e cada uma projetava as suas parcelas.
+  it('rótulo numa parcela só não parte a série em duas', () => {
+    const f = projecaoFutura([
+      parcela({ competencia: '2026-06', label: 'Geladeira', installment: { current: 3, total: 6 } }),
+      parcela({ competencia: '2026-07', label: null, installment: { current: 4, total: 6 } }),
+    ])
+    expect(f.map((m) => m.totalCents)).toEqual([10000, 10000])
+    expect(f[0].itens[0].descricao).toBe('GELADEIRA LOJA X')
+  })
+
+  it('exibe o rótulo da parcela mais recente quando ela tem um', () => {
+    const f = projecaoFutura([
+      parcela({ competencia: '2026-06', installment: { current: 3, total: 6 } }),
+      parcela({ competencia: '2026-07', label: 'Geladeira', installment: { current: 4, total: 6 } }),
+    ])
+    expect(f[0].itens[0].descricao).toBe('Geladeira')
+  })
+
+  it('duas compras na mesma loja, com o mesmo número de parcelas, são duas séries', () => {
+    const f = projecaoFutura([
+      parcela({ competencia: '2026-09', description: 'AMAZON', amount_cents: 5000, installment: { current: 2, total: 10 } }),
+      parcela({ competencia: '2026-09', description: 'AMAZON', amount_cents: 8000, installment: { current: 5, total: 10 } }),
+    ])
+    expect(f[0].competencia).toBe('2026-10')
+    expect(f[0].totalCents).toBe(13000)
+  })
+
+  it('duas compras iguais no mesmo dia continuam sendo duas', () => {
+    const igual = { competencia: '2026-09', description: 'AMAZON', installment: { current: 2, total: 4 } }
+    const f = projecaoFutura([parcela(igual), parcela(igual)])
+    expect(f.map((m) => m.totalCents)).toEqual([20000, 20000])
+  })
+
+  it('a mesma descrição em dois cartões são duas séries', () => {
+    const f = projecaoFutura([
+      parcela({ bank: 'nubank' }),
+      parcela({ bank: 'bradesco' }),
+    ])
+    expect(f[0].totalCents).toBe(20000)
+  })
+
+  it('série quitada não volta a projetar a última parcela', () => {
+    const f = projecaoFutura([
+      parcela({ competencia: '2026-06', installment: { current: 5, total: 6 } }),
+      parcela({ competencia: '2026-07', installment: { current: 6, total: 6 } }),
+    ])
+    expect(f).toEqual([])
+  })
+
+  it('a parcela mais recente vence mesmo com centavos diferentes na primeira', () => {
+    const f = projecaoFutura([
+      parcela({ competencia: '2026-06', amount_cents: 10003, installment: { current: 1, total: 3 } }),
+      parcela({ competencia: '2026-07', amount_cents: 10000, installment: { current: 2, total: 3 } }),
+    ])
+    expect(f.map((m) => [m.competencia, m.totalCents])).toEqual([['2026-08', 10000]])
+  })
 })
 
 describe('porDia', () => {

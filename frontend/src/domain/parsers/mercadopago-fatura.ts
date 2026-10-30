@@ -89,9 +89,13 @@ function totalApos(lines: Line[], ancora: RegExp): number | null {
 
 /** Pagamento e estorno chegam com valor negativo; compra, positivo. O
  *  encargo do Mercado Pago vem nomeado ("Juros", "IOF", "Multa"), e é
- *  gasto seu — só não é consumo. */
-function natureza(descricao: string, cents: number): RawKind {
-  if (cents < 0) return /estorno/i.test(descricao) ? 'entrada' : 'pagamento'
+ *  gasto seu — só não é consumo.
+ *
+ *  Estorno é a compra voltando, não renda: fica `compra` negativa, que abate
+ *  o gasto da categoria e entra no total da fatura com o sinal dela — como
+ *  no Nubank. Como `entrada`, inflava o gasto real e as entradas juntos. */
+export function natureza(descricao: string, cents: number): RawKind {
+  if (cents < 0) return /estorno/i.test(descricao) ? 'compra' : 'pagamento'
   if (/\b(juros|iof|multa|anuidade|tarifa|encargo)/i.test(descricao)) return 'encargo'
   return 'compra'
 }

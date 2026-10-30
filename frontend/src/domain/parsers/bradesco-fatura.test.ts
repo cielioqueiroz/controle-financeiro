@@ -53,6 +53,14 @@ describe('parseBradescoFatura — sinais', () => {
     expect(estorno!.description).toMatch(/MERCADOLIVRE/)
   })
 
+  // Estorno é a compra voltando, não renda: como `entrada` ele virava
+  // `income` e inflava o gasto real e as entradas ao mesmo tempo. Como
+  // compra negativa, abate o gasto da categoria — igual ao Nubank.
+  it('estorno é compra negativa, não entrada', () => {
+    const estorno = r.transactions.find((t) => t.amountCents === -5679)
+    expect(estorno!.kind).toBe('compra')
+  })
+
   it('compra comum é positiva', () => {
     const compra = r.transactions.find((t) => /HAVAN/i.test(t.description))
     expect(compra).toBeDefined()
