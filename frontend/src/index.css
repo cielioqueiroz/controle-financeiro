@@ -335,6 +335,7 @@ body {
   button:focus-visible,
   a:focus-visible,
   [role="button"]:focus-visible,
+  [role="region"][tabindex="0"]:focus-visible,
   summary:focus-visible {
     outline: 2px solid var(--color-marca);
     outline-offset: 2px;

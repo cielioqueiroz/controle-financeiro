@@ -12,6 +12,15 @@
   faltava no teste de contas do #48, e a integração não compilava sem ele.
 - Verificado na integração: `npm run verificar` completo, `medir:login`
   (5 cenários, porque o #39 atualiza o better-auth), overflow e a11y.
+- O medidor de overflow pegou o que o CI não roda: desde o #40, quatro
+  jornadas da folha de provas perdiam o gatilho. Julho tinha a fatura e não
+  o extrato, e o #40 deixa esse mês final fora da janela, levando junto as
+  compras de supermercado e a comparação. A folha agora tem o extrato de
+  julho, como um histórico real teria.
+- O a11y pegou a grade do mapa de cobertura (#43) rolando sem foco em
+  390px. Ela calcula os meses a partir de `new Date()`, ganhou uma coluna
+  com a virada para novembro e deixou de caber. Agora é uma região nomeada
+  com `tabIndex={0}`, e o anel de foco da regra base vale para ela.
 - **Pendente no Neon:** a migração `0012_estorno_de_fatura.sql` NÃO foi
   aplicada. O frontend novo grava estorno como `expense` negativo sem
   depender dela; ela só corrige o histórico já salvo (estornos antigos do

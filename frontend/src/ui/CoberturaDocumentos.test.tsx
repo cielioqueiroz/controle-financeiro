@@ -34,6 +34,16 @@ describe('CoberturaDocumentos', () => {
     expect(within(linha).getByText('Mês em curso')).toBeInTheDocument()
   })
 
+  // A grade rola de lado quando os meses não cabem (em 390px, desde que o
+  // mês de novembro entrou na janela). Região rolável sem foco não rola pelo
+  // teclado — o axe reprova como `scrollable-region-focusable`.
+  it('a grade é uma região nomeada que recebe foco do teclado', () => {
+    render(<CoberturaDocumentos documentos={[doc('nubank', 'fatura', '2026-07-10')]} />)
+    const grade = screen.getByRole('region', { name: 'O que falta importar' })
+    expect(grade).toHaveAttribute('tabindex', '0')
+    expect(within(grade).getByRole('table')).toBeInTheDocument()
+  })
+
   it('não desenha nada sem documento com período', () => {
     const { container } = render(<CoberturaDocumentos documentos={[doc('nubank', 'fatura', null)]} />)
     expect(container).toBeEmptyDOMElement()

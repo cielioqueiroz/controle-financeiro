@@ -52,8 +52,14 @@ export function CoberturaDocumentos({ documentos }: Props) {
           em 375px, e encolher a coluna até caber tornaria o símbolo ilegível.
           O `relative` não é enfeite: o texto `sr-only` das células é
           absoluto, e sem um ancestral posicionado ele escapa do corte do
-          overflow e alarga a PÁGINA. */}
-      <div className="relative min-w-0 overflow-x-auto">
+          overflow e alarga a PÁGINA. Região com foco e nome porque rola:
+          sem `tabIndex`, quem usa teclado não alcança os meses de fora. */}
+      <div
+        role="region"
+        aria-label={t('cobertura.titulo')}
+        tabIndex={0}
+        className="relative min-w-0 overflow-x-auto"
+      >
         <table className="tabular text-xs">
           <thead>
             <tr>
