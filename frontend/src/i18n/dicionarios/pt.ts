@@ -778,6 +778,8 @@ export const pt = {
   'relatorios.mesesTitulo': 'Meses que sustentam o relatório',
   'relatorios.comparacaoDisponivel': 'Os dois intervalos têm a mesma duração e transações em todos os meses.',
   'relatorios.comparacaoBloqueada': 'A comparação fica indisponível enquanto houver meses sem transações em algum dos intervalos.',
+  'relatorios.foraDaJanela': '{mes} ficou fora da janela: falta {fontes}, que o mês anterior tem. Importe o documento e ele volta.',
+  'relatorios.fonteDocumento': '{tipo} ({banco})',
   'relatorios.intervaloAtual': 'Intervalo atual',
   'relatorios.intervaloAnterior': 'Intervalo anterior',
   'relatorios.mesesContagem': '{n} de {total} meses com transações',

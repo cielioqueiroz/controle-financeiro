@@ -124,7 +124,7 @@ export function SituacaoFinanceira() {
       ) : (
         <>
           <MesesRelatorio atual={relatorio.atual} anterior={relatorio.anterior} comparavel={relatorio.comparavel}
-            titulo={t('situacao.mesesTitulo')} />
+            foraDaJanela={relatorio.foraDaJanela} titulo={t('situacao.mesesTitulo')} />
           {comparar && (
             <Cartao>
               <div className="flex flex-wrap items-baseline justify-between gap-3">

@@ -1,5 +1,18 @@
 # Estado atual do projeto — retomada
 
+## Relatório sem o mês incompleto — 2026-10-30
+
+- Em `fix/relatorio-mes-incompleto`, a partir da `main` (`1c58b36`). É
+  independente do PR #39. Corrige o item 1.3 da auditoria das somas de 30/10,
+  cujo relatório chega à `main` com o PR #39.
+- `analisarRelatorio` tira do fim da janela o mês em que falta uma fonte
+  (banco + tipo de documento) que o mês anterior tem. Ele devolve
+  `foraDaJanela`, e Relatórios e Minha situação financeira dizem qual mês saiu
+  e que documento falta. Regra e limites estão na
+  [spec 002](./specs/002-comparacao-por-competencia.md#mês-final-incompleto--2026-10-30).
+- Com a fatura de novembro importada antes do extrato, a taxa de economia volta
+  a ser 33,3% em vez de 4,2%. O caso tem teste de domínio e de tela.
+
 ## Estorno de fatura e projeção de parcelas — 2026-10-30
 
 - Em `fix/estorno-e-parcelas`, a partir da `main` (`1c58b36`). Corrige os itens

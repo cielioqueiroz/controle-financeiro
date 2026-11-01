@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { analisarRelatorio } from './relatorios'
 import type { TxAgrupavel } from './agrupar'
 
-function tx(competencia: string, over: Partial<TxAgrupavel> = {}): TxAgrupavel {
+type TxComFonte = TxAgrupavel & { bank?: string; doc_type?: string }
+
+function tx(competencia: string, over: Partial<TxComFonte> = {}): TxComFonte {
   return { competencia, date: `${competencia}-10`, amount_cents: 10000,
     kind: 'expense', category_slug: 'outros', ...over }
 }
@@ -70,5 +72,66 @@ describe('Relatórios — janelas de calendário', () => {
     expect(r.comparavel).toBe(true)
     expect(r.variacaoGastoPct).toBeNull()
     expect(r.taxaEconomiaAnteriorPct).toBe(100)
+  })
+})
+
+// A fatura conta no mês do vencimento (ADR-0001), e a última importada
+// costuma vencer no mês seguinte ao último extrato. Esse mês entrava na
+// janela só com o gasto do cartão e sem as entradas: a economia "caía" de
+// 33% para 4% sem nada ter mudado.
+describe('Relatórios — mês final incompleto', () => {
+  const doc = (bank: string, doc_type: string) => ({ bank, doc_type })
+  const extrato = doc('bb', 'extrato')
+  const fatura = doc('nubank', 'fatura')
+
+  function seisMesesCompletos() {
+    return ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10'].flatMap((m) => [
+      tx(m, { amount_cents: 400000, ...fatura }),
+      tx(m, { kind: 'income', amount_cents: -600000, ...extrato }),
+    ])
+  }
+
+  it('deixa de fora o mês que só tem a fatura que vence adiante', () => {
+    const r = analisarRelatorio([...seisMesesCompletos(), tx('2026-11', { amount_cents: 350000, ...fatura })], 3)!
+    expect(r.atual.fim).toBe('2026-10')
+    expect(r.atual.inicio).toBe('2026-08')
+    expect(r.taxaEconomiaAtualPct).toBeCloseTo(33.33, 1)
+    expect(r.variacaoGastoPct).toBe(0)
+    expect(r.foraDaJanela).toEqual([{ competencia: '2026-11', faltam: [{ bank: 'bb', docType: 'extrato' }] }])
+  })
+
+  it('o mês volta para a janela quando o documento que faltava chega', () => {
+    const r = analisarRelatorio([
+      ...seisMesesCompletos(),
+      tx('2026-11', { amount_cents: 350000, ...fatura }),
+      tx('2026-11', { kind: 'income', amount_cents: -600000, ...extrato }),
+    ], 3)!
+    expect(r.atual.fim).toBe('2026-11')
+    expect(r.foraDaJanela).toEqual([])
+  })
+
+  it('conta encerrada atrasa só um mês: o seguinte já é comparado com o mês sem ela', () => {
+    const r = analisarRelatorio([
+      ...seisMesesCompletos(),
+      tx('2026-11', fatura),
+      tx('2026-12', fatura),
+    ], 3)!
+    expect(r.atual.fim).toBe('2026-12')
+    expect(r.foraDaJanela).toEqual([])
+  })
+
+  it('não julga através de uma lacuna de calendário', () => {
+    const r = analisarRelatorio([
+      tx('2026-08', extrato), tx('2026-08', fatura),
+      tx('2026-10', fatura),
+    ], 3)!
+    expect(r.atual.fim).toBe('2026-10')
+    expect(r.foraDaJanela).toEqual([])
+  })
+
+  it('sem banco e tipo de documento nada é deixado de fora', () => {
+    const r = analisarRelatorio([tx('2026-09'), tx('2026-10', { kind: 'income', amount_cents: -1 })], 3)!
+    expect(r.atual.fim).toBe('2026-10')
+    expect(r.foraDaJanela).toEqual([])
   })
 })

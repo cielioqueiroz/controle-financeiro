@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import type { PeriodoRelatorio } from '../domain/relatorios'
+import type { CompetenciaForaDaJanela, PeriodoRelatorio } from '../domain/relatorios'
+import { temaDoBanco } from '../domain/banks'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { mesAbrev } from '../domain/normalize/data'
 import { useDinheiro } from '../dados/DiscretoProvider'
@@ -10,6 +11,9 @@ type Props = {
   atual: PeriodoRelatorio<TransacaoSalva>
   anterior: PeriodoRelatorio<TransacaoSalva>
   comparavel: boolean
+  /** Competências do fim do histórico que ficaram fora porque falta nelas um
+   *  documento que o mês anterior tem. */
+  foraDaJanela?: CompetenciaForaDaJanela[]
   titulo?: string
 }
 
@@ -18,17 +22,27 @@ function rotuloMes(competencia: string) {
   return `${mesAbrev(new Date(ano, mes - 1, 1))} ${ano}`
 }
 
-export function MesesRelatorio({ atual, anterior, comparavel, titulo }: Props) {
+export function MesesRelatorio({ atual, anterior, comparavel, foraDaJanela = [], titulo }: Props) {
   const { t } = useT()
   const dinheiro = useDinheiro()
+  const fonte = ({ bank, docType }: { bank: string; docType: string }) =>
+    t('relatorios.fonteDocumento', {
+      tipo: t(docType === 'fatura' ? 'doc.fatura' : 'doc.extrato'),
+      banco: temaDoBanco(bank).nome,
+    })
   return (
     <Cartao>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-xl text-tinta">{titulo ?? t('relatorios.mesesTitulo')}</h3>
           <p className="mt-2 text-sm text-tinta-fraca">{t(comparavel ? 'relatorios.comparacaoDisponivel' : 'relatorios.comparacaoBloqueada')}</p>
+          {foraDaJanela.map((mes) => (
+            <p key={mes.competencia} className="mt-2 text-sm text-tinta-fraca">
+              {t('relatorios.foraDaJanela', { mes: rotuloMes(mes.competencia), fontes: mes.faltam.map(fonte).join(', ') })}
+            </p>
+          ))}
         </div>
-        {!comparavel && <Link to="/importar" className="acao-painel">{t('dash.importar')}</Link>}
+        {(!comparavel || foraDaJanela.length > 0) && <Link to="/importar" className="acao-painel">{t('dash.importar')}</Link>}
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {([{ titulo: 'relatorios.intervaloAtual', periodo: atual }, { titulo: 'relatorios.intervaloAnterior', periodo: anterior }] as const).map(({ titulo, periodo }) => (

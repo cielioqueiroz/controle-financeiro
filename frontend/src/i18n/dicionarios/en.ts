@@ -231,6 +231,8 @@ export const en: Dicionario = {
   'relatorios.mesesTitulo': 'Months behind this report',
   'relatorios.comparacaoDisponivel': 'Both intervals have the same duration and transactions in every month.',
   'relatorios.comparacaoBloqueada': 'Comparison is unavailable while either interval has months without transactions.',
+  'relatorios.foraDaJanela': '{mes} was left out of the window: {fontes} is missing, and the previous month has it. Import the document and it comes back.',
+  'relatorios.fonteDocumento': '{tipo} ({banco})',
   'relatorios.intervaloAtual': 'Current interval',
   'relatorios.intervaloAnterior': 'Previous interval',
   'relatorios.mesesContagem': '{n} of {total} months with transactions',
