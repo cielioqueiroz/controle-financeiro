@@ -577,9 +577,12 @@ function PreviaVinculos() {
 
 const telaPrevia = new URLSearchParams(window.location.search).get('tela')
 const amostraPrevia = new URLSearchParams(window.location.search).get('amostra')
+// Julho tem fatura (vencimento) e por isso precisa do extrato também: sem
+// ele, o relatório deixa o mês final de fora da janela (#40), e a folha
+// perdia as compras de julho e os dois intervalos comparáveis.
 const competenciasPrevia = amostraPrevia === 'lacunas' ? ['2026-05']
-  : amostraPrevia === 'comparavel' ? ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06']
-  : ['2026-05', '2026-06']
+  : amostraPrevia === 'comparavel' ? ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07']
+  : ['2026-05', '2026-06', '2026-07']
 const historicoPrevia = amostraPrevia === "grande" ? Array.from({ length: 10000 }, (_, i) => tx({ description: `MERCADO EXEMPLO ${i}`, amount_cents: 1000, document_id: "doc-demo" })) : telaPrevia ? [
   ...TUDO,
   ...competenciasPrevia.flatMap((competencia) => [
