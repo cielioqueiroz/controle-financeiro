@@ -75,6 +75,21 @@ parcelas. Responde uma pergunta **diferente** de *em aberto*, ainda que a tela u
 um rótulo só para os dois e desça a distinção para a linha de detalhe.
 _Evitar_: futuro, a vencer, pendente
 
+**Líquido de curto prazo**:
+A soma dos **saldos** menos o **em aberto** declarado pelos cartões. **Próximas
+faturas** não entram: parcela futura não vence agora. Cartão que só declara
+próximas faturas fica fora da conta, e a tela diz qual.
+_Em código_: `liquidoCurtoPrazo` (`domain/folego.ts`)
+_Evitar_: patrimônio, saldo líquido, disponível
+
+**Dias de fôlego**:
+Quantos dias o dinheiro de hoje dura no ritmo do **gasto real** médio dos
+últimos 90 dias, contados até a data do saldo mais recente. Parte do **líquido
+de curto prazo** quando ele existe; senão, do saldo. Com menos de 30 dias de
+histórico, cala.
+_Em código_: `diasDeFolego` (`domain/folego.ts`)
+_Evitar_: autonomia, reserva, runway (em código)
+
 ## Transação
 
 **Transação**:

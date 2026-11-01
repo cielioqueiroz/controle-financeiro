@@ -12,6 +12,7 @@ vi.mock('../persist/documentos', () => ({ puxarSaldos: vi.fn(() => Promise.resol
 vi.mock('../lib/relatorio-pdf', () => ({ gerarRelatorioPdf: vi.fn() }))
 
 import { puxarTudo } from '../persist/puxar'
+import { puxarSaldos } from '../persist/documentos'
 
 function tx(over: Partial<Record<string, unknown>> = {}) {
   return {
@@ -155,6 +156,29 @@ describe('Painel — os tiles respiram como cartões separados', () => {
     abrir([...JUNHO, SALARIO_CURTO], '/?ref=2026-06-15&p=mes')
     expect(await screen.findByText('Faltaram R$ 529,00: as saídas superaram as entradas em 529,0%.')).toBeInTheDocument()
     expect(screen.queryByText(/Sobrou -/)).not.toBeInTheDocument()
+  })
+
+  it('separa o que é seu do que você deve em Contas e compromissos', async () => {
+    vi.mocked(puxarSaldos).mockResolvedValueOnce([
+      {
+        id: 'e1', bank: 'bb', account_id: 'c1', doc_type: 'extrato', period_end: '2026-06-30',
+        end_balance_cents: 300000, total_open_balance: null, next_invoice_balance: null,
+        next_close_date: null, future_installments_total: null,
+      },
+      {
+        id: 'f1', bank: 'nubank', account_id: 'c2', doc_type: 'fatura', period_end: '2026-06-20',
+        end_balance_cents: null, total_open_balance: 120000, next_invoice_balance: null,
+        next_close_date: null, future_installments_total: null,
+      },
+    ])
+    abrir(JUNHO, '/?ref=2026-06-15&p=mes')
+    fireEvent.click(await screen.findByText('Contas e compromissos'))
+    const seu = screen.getByRole('region', { name: 'O que é seu' })
+    const deve = screen.getByRole('region', { name: 'O que você deve' })
+    expect(seu).toHaveTextContent('R$ 3.000,00')
+    expect(seu).not.toHaveTextContent('R$ 1.200,00')
+    expect(deve).toHaveTextContent('R$ 1.200,00')
+    expect(screen.getByText('Líquido de curto prazo')).toBeVisible()
   })
 
   it('mantém compromissos acessíveis quando o período escolhido não tem transações', async () => {
