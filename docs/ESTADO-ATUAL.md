@@ -1,5 +1,20 @@
 # Estado atual do projeto — retomada
 
+## Consumo e dívidas fora do Painel — 2026-11-01
+
+- Em `feat/consumo-dividas-telas`, a partir de `feat/categoria-dividas` (PR
+  #41). Completa o item 1.4 da auditoria das somas de 30/10: Relatórios,
+  Minha situação financeira e o PDF mostravam só o gasto real total.
+- `ui/DetalheGasto` é a abertura que o tile do Painel já tinha, agora usada
+  também no cartão "Despesas" dos Relatórios e na linha das despesas do
+  comparativo de Minha situação. Some sem dívida. O Painel não a repete no
+  comparativo, porque o tile acima já abre.
+- PDF: `montarDadosRelatorio` leva `consumoCents` e `dividasCents`, e uma
+  linha sob o bloco "Saídas" diz "Consumo R$ X · Dívidas R$ Y" quando há
+  dívida. O percentual por categoria continua sobre o gasto real inteiro.
+- Fica igual: "Mês mais caro" e as comparações entre janelas medem o gasto
+  real total.
+
 ## Gasto real em consumo e dívidas — 2026-10-30
 
 - Em `feat/categoria-dividas`, a partir da `main` (`1c58b36`) com o commit

@@ -174,3 +174,28 @@ describe('Relatórios — estados e navegação', () => {
     expect(screen.getByText('0 de 3 meses com transações')).toBeVisible()
   })
 })
+
+// Auditoria de 30/10, item 1.4: o Painel já abria o gasto real em consumo e
+// dívidas; os Relatórios mostravam só o total.
+describe('Relatórios — consumo e dívidas', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('abre as despesas em consumo e dívidas', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([
+      transacao,
+      { ...transacao, id: 'tx-2', description: 'PAGAMENTO EMPRESTIMO', amount_cents: 4165385, category_slug: 'dividas' },
+    ])
+    abrir('?janela=3')
+    const despesas = (await screen.findByText('Despesas')).closest('article')!
+    expect(despesas).toHaveTextContent('R$ 41.753,85')
+    expect(within(despesas).getByText('Consumo').parentElement).toHaveTextContent('R$ 100,00')
+    expect(within(despesas).getByText('Dívidas').parentElement).toHaveTextContent('R$ 41.653,85')
+  })
+
+  it('sem dívida, não abre nada', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([transacao])
+    abrir('?janela=3')
+    await screen.findByText('Despesas')
+    expect(screen.queryByText('Consumo')).not.toBeInTheDocument()
+  })
+})

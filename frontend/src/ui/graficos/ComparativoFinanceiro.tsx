@@ -3,11 +3,15 @@ import { motion, useReducedMotion } from 'motion/react'
 
 import { useDinheiro } from '../../dados/DiscretoProvider'
 import { useT } from '../../i18n/IdiomaProvider'
+import { DetalheGasto } from '../DetalheGasto'
 
 type Props = {
   gastoCents: number
   entradasCents: number
   saldoCents: number
+  /** Quando vem, a linha das despesas se abre em consumo e dívidas. O
+   *  Painel não passa: o tile do gasto real, acima, já abre. */
+  dividasCents?: number
 }
 
 /** Compara o que entrou e saiu no mesmo recorte.
@@ -17,7 +21,7 @@ type Props = {
  * escondido na tela. As barras usam a mesma escala para a comparação ser
  * honesta, e a régua de consumo responde quanto da renda foi comprometida.
  */
-export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }: Props) {
+export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents, dividasCents }: Props) {
   const dinheiro = useDinheiro()
   const { t } = useT()
   const semMovimento = useReducedMotion()
@@ -60,6 +64,9 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents }:
                 />
                 <span className="h-full flex-1" />
               </div>
+              {linha.chave === 'comparativo.gastos' && dividasCents !== undefined && (
+                <DetalheGasto consumoCents={gastoCents - dividasCents} dividasCents={dividasCents} />
+              )}
             </div>
           ))}
         </div>

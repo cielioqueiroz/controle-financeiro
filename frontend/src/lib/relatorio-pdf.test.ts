@@ -7,6 +7,7 @@ const entrada = {
   geradoEm: new Date('2026-07-24T12:00:00'),
   resumo: {
     gastoCents: 10000,
+    dividasCents: 0,
     entradasCents: 30000,
     porCategoria: [
       { cat: { nome: 'Supermercado' }, totalCents: 7000 },
@@ -33,10 +34,20 @@ describe('montarDadosRelatorio', () => {
   it('não divide por zero quando não há gasto', () => {
     const d = montarDadosRelatorio({
       ...entrada,
-      resumo: { gastoCents: 0, entradasCents: 0, porCategoria: [] },
+      resumo: { gastoCents: 0, dividasCents: 0, entradasCents: 0, porCategoria: [] },
     })
     expect(d.categorias).toEqual([])
     expect(d.saldoPeriodoCents).toBe(0)
+  })
+
+  // Auditoria de 30/10, item 1.4: o PDF mostrava só o gasto real total, e a
+  // parcela de um empréstimo falava pelo mês inteiro também no papel.
+  it('abre as saídas em consumo e dívidas, somando o mesmo total', () => {
+    const d = montarDadosRelatorio({
+      ...entrada,
+      resumo: { ...entrada.resumo, gastoCents: 4_195_385, dividasCents: 4_165_385 },
+    })
+    expect(d).toMatchObject({ saidasCents: 4_195_385, consumoCents: 30_000, dividasCents: 4_165_385 })
   })
 
   it('repassa os saldos por conta', () => {
@@ -52,5 +63,11 @@ describe('gerarRelatorioPdf', () => {
     expect(blob.type).toContain('pdf')
     const head = await blob.slice(0, 5).text()
     expect(head).toBe('%PDF-')
+  })
+
+  it('gera também com dívidas no período', async () => {
+    const dados = montarDadosRelatorio({ ...entrada, resumo: { ...entrada.resumo, dividasCents: 4000 } })
+    const blob = await gerarRelatorioPdf(dados)
+    expect(await blob.slice(0, 5).text()).toBe('%PDF-')
   })
 })

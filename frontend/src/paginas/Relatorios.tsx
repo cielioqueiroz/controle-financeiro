@@ -18,6 +18,7 @@ import { ErroCarregar } from '../ui/ErroCarregar'
 import { Procedencia } from '../ui/Procedencia'
 import { MesesRelatorio } from '../ui/MesesRelatorio'
 import { DetalheRelatorio } from '../ui/DetalheRelatorio'
+import { DetalheGasto } from '../ui/DetalheGasto'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import { normalizeMerchant } from '../domain/normalize/merchant'
 
@@ -166,6 +167,7 @@ export function Relatorios() {
               <p className="mt-1 text-xs text-tinta-fraca">
                 {variacaoGasto === null ? t(relatorio.comparavel ? 'relatorios.semBaseGasto' : 'relatorios.semComparacao') : t('relatorios.variacao', { valor: percentual(variacaoGasto) })}
               </p>
+              <DetalheGasto consumoCents={resumo.consumoCents} dividasCents={resumo.dividasCents} />
             </Cartao>
             <Cartao as="article">
               <p className="rotulo">{t('relatorios.resultado')}</p>
