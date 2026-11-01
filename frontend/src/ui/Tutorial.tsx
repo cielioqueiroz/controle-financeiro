@@ -61,7 +61,7 @@ export function Tutorial({ nome, onFechar }: Props) {
         <div className="relative px-8 pb-6 pt-9">
           <button
             onClick={onFechar}
-            className="absolute right-4 top-4 text-[11px] uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
+            className="absolute right-4 top-4 text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
           >
             {t('tutorial.pular')}
           </button>

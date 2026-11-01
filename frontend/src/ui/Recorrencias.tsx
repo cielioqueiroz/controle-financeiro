@@ -32,7 +32,7 @@ export function Recorrencias({ recorrencias, alertas }: Props) {
   return (
     <div className="screen-only cartao">
       <div className="border-b border-carvao-800 px-5 py-4">
-        <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
+        <p className="tabular text-xs uppercase tracking-widest text-tinta-tenue">
           {t('rec.titulo')}
         </p>
         <p className="text-xs text-tinta-fraca">
@@ -81,7 +81,7 @@ export function Recorrencias({ recorrencias, alertas }: Props) {
               animate={{ opacity: 1 }}
               className="flex items-center gap-3 px-5 py-2.5"
             >
-              <span className="tabular w-11 shrink-0 text-[10px] uppercase tracking-wide text-tinta-tenue">
+              <span className="tabular w-14 shrink-0 text-xs uppercase tracking-wide text-tinta-tenue">
                 {t('rec.dia', { d: r.diaTipico })}
               </span>
               <span className="min-w-0 flex-1">

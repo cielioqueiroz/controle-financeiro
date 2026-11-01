@@ -85,7 +85,7 @@ export function GraficoCompromissos({ meses, onSelecionar }: Props) {
           quando o mouse entra. Fora do foco, mostra o primeiro mês — o mais
           próximo, que é o que se quer saber primeiro. */}
       <div className="mb-2 flex h-9 items-center gap-3 rounded-sm bg-afundado px-3">
-        <span className="rotulo !text-[10px] capitalize">
+        <span className="rotulo capitalize">
           {rotuloMes(foco.competencia)} {foco.competencia.slice(0, 4)}
         </span>
         <span className="tabular text-xs text-tinta">{formatBRL(foco.totalCents)}</span>

@@ -74,7 +74,7 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents, d
 
         <div className="rounded-lg border border-carvao-700 bg-afundado p-4">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="rotulo !text-[10px]">{t('comparativo.consumoTitulo')}</span>
+            <span className="rotulo">{t('comparativo.consumoTitulo')}</span>
             <span className="tabular text-sm text-tinta">
               {consumo === null ? '—' : `${Math.round(consumo)}%`}
             </span>
@@ -110,13 +110,13 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents, d
           lado a lado, a taxa desce para a linha de baixo. */}
       <div className="mt-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-t border-carvao-800 pt-4">
         <div>
-          <p className="rotulo !text-[10px]">{t('comparativo.resultado')}</p>
+          <p className="rotulo">{t('comparativo.resultado')}</p>
           <p className={`tabular mt-1 whitespace-nowrap text-xl ${saldoCents >= 0 ? 'text-credito' : 'text-debito'}`}>
             {dinheiro(saldoCents)}
           </p>
         </div>
         <div className="ml-auto text-right">
-          <p className="rotulo !text-[10px]">{t('comparativo.taxaEconomia')}</p>
+          <p className="rotulo">{t('comparativo.taxaEconomia')}</p>
           <p className={`tabular mt-1 whitespace-nowrap text-xl ${economia !== null && economia >= 0 ? 'text-credito' : 'text-debito'}`}>
             {economia === null ? '—' : formatarPct(economia)}
           </p>

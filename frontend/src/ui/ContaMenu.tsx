@@ -146,7 +146,7 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
             }`}
           >
             <div className="border-b border-carvao-800 px-4 py-3">
-              <p className="text-[10px] uppercase tracking-widest text-tinta-tenue">{t('conta.conectadoComo')}</p>
+              <p className="text-xs uppercase tracking-widest text-tinta-tenue">{t('conta.conectadoComo')}</p>
               <p className="mt-0.5 truncate text-sm text-tinta" title={email ?? undefined}>
                 {email ?? '—'}
               </p>

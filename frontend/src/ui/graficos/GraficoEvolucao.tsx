@@ -78,7 +78,7 @@ export function GraficoEvolucao({ serie, ativo, onSelecionar }: Props) {
       <div className="mb-2 flex h-9 items-center gap-4 rounded-sm bg-afundado px-3">
         {ponto ? (
           <>
-            <span className="rotulo !text-[10px]">{rotulo(ponto.competencia)}</span>
+            <span className="rotulo">{rotulo(ponto.competencia)}</span>
             <span className="tabular text-xs text-credito">
               +{formatBRL(ponto.entradasCents).replace('R$', '').trim()}
             </span>

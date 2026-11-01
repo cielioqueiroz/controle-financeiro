@@ -64,7 +64,7 @@ export function Ajuda({ onFechar, onVerTutorial }: Props) {
               <h2 className="font-display text-xl text-tinta">{t('ajuda.titulo')}</h2>
               <button
                 onClick={onFechar}
-                className="tabular text-[11px] uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
+                className="tabular text-xs uppercase tracking-widest text-tinta-tenue transition-colors hover:text-tinta"
               >
                 {t('ajuda.fechar')} ✕
               </button>

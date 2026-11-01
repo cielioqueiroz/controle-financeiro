@@ -52,7 +52,7 @@ export function SaldoAberto({ bank, abertoCents, futurasCents, proximoFechamento
     <div className="rounded-xl border border-carvao-700 bg-carvao-900/80 px-4 py-3">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: tema.accent }} aria-hidden />
-        <span className="text-[10px] uppercase tracking-widest text-tinta-tenue">
+        <span className="text-xs uppercase tracking-widest text-tinta-tenue">
           {t('aberto.rotulo')}
         </span>
         <span className="truncate text-sm text-tinta">{tema.nome}</span>

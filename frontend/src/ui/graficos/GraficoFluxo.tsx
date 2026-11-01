@@ -126,7 +126,7 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
           <p className="mt-1 text-xs text-tinta-fraca">{t('fluxo.descricao')}</p>
         </div>
         <div className="flex flex-col items-start gap-1.5 sm:items-end">
-          <span className="rotulo !text-[9px]">{t('fluxo.modoRotulo')}</span>
+          <span className="rotulo">{t('fluxo.modoRotulo')}</span>
           <div role="group" aria-label={t('fluxo.modoRotulo')} className="inline-flex rounded-md border border-campo-borda bg-afundado p-1">
             {(['periodo', 'acumulado'] as const).map((opcao) => (
               <button
@@ -174,7 +174,7 @@ export function GraficoFluxo({ serie, competencias, ativo, onSelecionar }: Props
         <p className="mb-3 text-xs leading-relaxed text-tinta-fraca">{t('fluxo.lacunasAviso')}</p>
       )}
       <div className="mb-2 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-1 rounded-md bg-afundado px-3 py-2">
-        <span className="rotulo !text-[10px]">{rotulo(emLeitura.competencia)}</span>
+        <span className="rotulo">{rotulo(emLeitura.competencia)}</span>
         {emLeitura.dados ? <>
         <span className="tabular text-xs text-credito">+{valorCompacto(emLeitura.dados.entradasCents, formatBRL)}</span>
         <span className="tabular text-xs text-debito">−{valorCompacto(emLeitura.dados.gastoCents, formatBRL)}</span>

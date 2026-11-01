@@ -22,7 +22,7 @@ export function CarrosselBancos() {
 
   return (
     <div>
-      <p className="tabular mb-3 text-[10px] uppercase tracking-[0.3em] text-tinta-tenue">
+      <p className="tabular mb-3 text-xs uppercase tracking-[0.3em] text-tinta-tenue">
         {t('acesso.bancos')}
       </p>
       <div
