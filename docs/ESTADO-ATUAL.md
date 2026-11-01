@@ -1,5 +1,26 @@
 # Estado atual do projeto — retomada
 
+## Auditoria de 30/10 na main — 2026-11-01
+
+- Os PRs #39 a #49 entraram juntos na `main`, a pedido do dono, por uma
+  branch de integração (`integracao/auditoria-30-10`) mesclada em ordem e
+  verificada antes de um push só, com um deploy só.
+- Conflitos resolvidos: o topo deste diário (todas as entradas mantidas,
+  da mais nova para a mais antiga), dois `describe` novos no fim de
+  `Relatorios.test.tsx` (#40 e #46) e as amostras `alertas` (#45) e
+  `contas` (#48) na folha de provas. O `declared_total` que o #45 trouxe
+  faltava no teste de contas do #48, e a integração não compilava sem ele.
+- Verificado na integração: `npm run verificar` completo, `medir:login`
+  (5 cenários, porque o #39 atualiza o better-auth), overflow e a11y.
+- **Pendente no Neon:** a migração `0012_estorno_de_fatura.sql` NÃO foi
+  aplicada. O frontend novo grava estorno como `expense` negativo sem
+  depender dela; ela só corrige o histórico já salvo (estornos antigos do
+  Bradesco e do Mercado Pago ainda gravados como `income`). Aplicar só com
+  pedido.
+- **Pendente na conta:** mover o empréstimo já salvo para "Dívidas" pela
+  recategorização em lote. A regra nova vale para importações futuras.
+- O #37 (Dependabot) ficou de fora.
+
 ## Rótulos em caixa-alta com piso de 12px — 2026-11-01
 
 - Em `feat/legibilidade`, a partir de `feat/dias-de-folego` (PR #48). Item
