@@ -18,6 +18,9 @@ export type DadosRelatorio = {
   geradoEm: Date
   entradasCents: number
   saidasCents: number
+  /** As duas parcelas das saídas, como no tile do Painel. */
+  consumoCents: number
+  dividasCents: number
   saldoPeriodoCents: number
   saldos: SaldoLinha[]
   categorias: CategoriaLinha[]
@@ -29,6 +32,7 @@ export type EntradaRelatorio = {
   geradoEm?: Date
   resumo: {
     gastoCents: number
+    dividasCents: number
     entradasCents: number
     porCategoria: { cat: { nome: string }; totalCents: number }[]
   }
@@ -38,7 +42,7 @@ export type EntradaRelatorio = {
 /** Molda os números já em memória no dashboard para o relatório. Pura —
  *  separada da geração do PDF para poder ser testada sem jsPDF. */
 export function montarDadosRelatorio(e: EntradaRelatorio): DadosRelatorio {
-  const { gastoCents, entradasCents, porCategoria } = e.resumo
+  const { gastoCents, dividasCents, entradasCents, porCategoria } = e.resumo
   const categorias: CategoriaLinha[] = porCategoria.map((c) => ({
     nome: c.cat.nome,
     valorCents: c.totalCents,
@@ -50,6 +54,8 @@ export function montarDadosRelatorio(e: EntradaRelatorio): DadosRelatorio {
     geradoEm: e.geradoEm ?? new Date(),
     entradasCents,
     saidasCents: gastoCents,
+    consumoCents: gastoCents - dividasCents,
+    dividasCents,
     saldoPeriodoCents: entradasCents - gastoCents,
     saldos: e.saldos,
     categorias,
@@ -167,7 +173,20 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
     doc.setFont('helvetica', 'bold').setFontSize(15).setTextColor(...b.cor)
     doc.text(formatBRLCru(b.valor), x + 12, y + 42)
   })
-  y += ALT + 30
+  y += ALT
+
+  // As saídas em consumo e dívidas, sob o bloco delas. Só com dívida: sem
+  // ela, a linha repetiria o número de cima.
+  if (dados.dividasCents !== 0) {
+    y += 14
+    doc.setFont('helvetica', 'normal').setFontSize(8.5).setTextColor(...COR.tenue)
+    doc.text(
+      `${t('dash.consumo')} ${formatBRLCru(dados.consumoCents)} · ${t('dash.dividas')} ${formatBRLCru(dados.dividasCents)}`,
+      M + LARG + 8,
+      y,
+    )
+  }
+  y += 30
 
   const finalDe = () =>
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY

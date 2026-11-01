@@ -172,6 +172,7 @@ export function SituacaoFinanceira() {
               gastoCents={resumo.gastoCents}
               entradasCents={resumo.entradasCents}
               saldoCents={resumo.saldoCents}
+              dividasCents={resumo.dividasCents}
             />
           </section>
 

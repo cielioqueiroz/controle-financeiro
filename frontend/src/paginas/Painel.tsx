@@ -43,6 +43,7 @@ import { Cartao } from '../ui/Cartao'
 import { CarregandoPainel } from '../ui/CarregandoPainel'
 import { EstadoVazio } from '../ui/EstadoVazio'
 import { ValorAnimado } from '../ui/ValorAnimado'
+import { DetalheGasto } from '../ui/DetalheGasto'
 import { EditarCompra } from '../ui/EditarCompra'
 // Estático, e os três juntos. Havia `await import('../lib/compartilhar')`
 // dentro das funções, mas `podeCompartilharArquivo` já era importado aqui de
@@ -319,6 +320,7 @@ export function Painel({ onAprendeu }: Props) {
       agrupamento: t(agrupamentoDe(filtros.periodo)),
       resumo: {
         gastoCents: resumo.gastoCents,
+        dividasCents: resumo.dividasCents,
         entradasCents: resumo.entradasCents,
         porCategoria: resumo.porCategoria.map((c) => ({
           cat: { nome: nomeCategoria(c.cat) },
@@ -418,18 +420,7 @@ export function Painel({ onAprendeu }: Props) {
                     rotulo={t('dash.gastoRealTitulo')}
                     variacao={variacao.gasto}
                     subirEhRuim
-                    detalhe={resumo.dividasCents !== 0 && (
-                      <dl className="mt-2 space-y-0.5 text-[11px] text-tinta-tenue">
-                        <div className="flex justify-between gap-3">
-                          <dt>{t('dash.consumo')}</dt>
-                          <dd className="tabular">{dinheiro(resumo.consumoCents)}</dd>
-                        </div>
-                        <div className="flex justify-between gap-3">
-                          <dt>{t('dash.dividas')}</dt>
-                          <dd className="tabular">{dinheiro(resumo.dividasCents)}</dd>
-                        </div>
-                      </dl>
-                    )}
+                    detalhe={<DetalheGasto consumoCents={resumo.consumoCents} dividasCents={resumo.dividasCents} />}
                   >
                     <ValorAnimado valor={resumo.gastoCents} />
                   </Tile>

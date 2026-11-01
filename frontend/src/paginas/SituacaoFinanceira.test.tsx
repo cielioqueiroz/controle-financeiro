@@ -109,3 +109,20 @@ describe('Minha situação financeira — histórico por competência', () => {
     expect(screen.queryByText(/456,00/)).not.toBeInTheDocument()
   })
 })
+
+// Auditoria de 30/10, item 1.4: o comparativo de receitas e despesas
+// mostrava só o gasto real total.
+describe('Minha situação financeira — consumo e dívidas', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('abre as despesas do comparativo em consumo e dívidas', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([
+      tx('2026-07', 'jul'),
+      { ...tx('2026-07', 'emp'), description: 'PAGAMENTO EMPRESTIMO', amount_cents: 4165385, category_slug: 'dividas' },
+    ])
+    abrir('?janela=3')
+    const consumo = await screen.findByText('Consumo')
+    expect(consumo.parentElement).toHaveTextContent('R$ 100,00')
+    expect(screen.getByText('Dívidas', { selector: 'dt' }).parentElement).toHaveTextContent('R$ 41.653,85')
+  })
+})
