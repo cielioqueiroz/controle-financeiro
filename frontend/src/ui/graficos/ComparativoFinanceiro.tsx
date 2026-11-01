@@ -1,4 +1,5 @@
 import { taxasFinanceiras } from '../../domain/trajetoria'
+import { formatarPct } from '../../domain/normalize/percentual'
 import { motion, useReducedMotion } from 'motion/react'
 
 import { useDinheiro } from '../../dados/DiscretoProvider'
@@ -104,17 +105,20 @@ export function ComparativoFinanceiro({ gastoCents, entradasCents, saldoCents, d
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-carvao-800 pt-4">
+      {/* Flex, não duas metades: em 375px a metade tem 135px e "-R$ 33.469,65"
+          quebrava em três linhas. Valor nunca se parte; se os dois não cabem
+          lado a lado, a taxa desce para a linha de baixo. */}
+      <div className="mt-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-t border-carvao-800 pt-4">
         <div>
           <p className="rotulo !text-[10px]">{t('comparativo.resultado')}</p>
-          <p className={`tabular mt-1 text-xl ${saldoCents >= 0 ? 'text-credito' : 'text-debito'}`}>
+          <p className={`tabular mt-1 whitespace-nowrap text-xl ${saldoCents >= 0 ? 'text-credito' : 'text-debito'}`}>
             {dinheiro(saldoCents)}
           </p>
         </div>
-        <div className="text-right">
+        <div className="ml-auto text-right">
           <p className="rotulo !text-[10px]">{t('comparativo.taxaEconomia')}</p>
-          <p className={`tabular mt-1 text-xl ${economia !== null && economia >= 0 ? 'text-credito' : 'text-debito'}`}>
-            {economia === null ? '—' : `${economia.toFixed(1).replace('.', ',')}%`}
+          <p className={`tabular mt-1 whitespace-nowrap text-xl ${economia !== null && economia >= 0 ? 'text-credito' : 'text-debito'}`}>
+            {economia === null ? '—' : formatarPct(economia)}
           </p>
         </div>
       </div>

@@ -17,6 +17,7 @@ import { saldosPorConta } from '../domain/saldos'
 import { faturasAbertas } from '../domain/aberto'
 import { ehDivida, nomeCategoria } from '../domain/categorize/categorias'
 import { dataLongaDe } from '../domain/normalize/data'
+import { formatarDecimal } from '../domain/normalize/percentual'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
@@ -139,7 +140,7 @@ export function Painel({ onAprendeu }: Props) {
           valor: dinheiro(maiorCategoria.totalCents),
           pct: Math.round((maiorCategoria.totalCents / resumo.consumoCents) * 100),
         }),
-        tom: 'alerta',
+        tom: 'neutro',
         rotuloAcao: t('leituras.verLancamentos'),
         onAbrir: () => irParaCategoria(maiorCategoria.cat.slug),
       })
@@ -169,7 +170,7 @@ export function Painel({ onAprendeu }: Props) {
           data: dataLongaDe(new Date(ano, mes - 1, dia)),
           valor: dinheiro(pico.gastoCents),
         }),
-        tom: 'alerta',
+        tom: 'neutro',
         rotuloAcao: t('leituras.verDia'),
         onAbrir: () => irParaDia(pico.dia),
       })
@@ -180,9 +181,11 @@ export function Painel({ onAprendeu }: Props) {
       itens.push({
         id: 'taxa-economia',
         titulo: t('leituras.economia'),
-        texto: t('leituras.economiaTexto', {
-          pct: pct.toFixed(1).replace('.', ','),
-          valor: dinheiro(resumo.saldoCents),
+        // "Sobrou -R$ 500,00" é contradição: no vermelho, a frase diz o que
+        // faltou, com os dois números positivos.
+        texto: t(pct >= 0 ? 'leituras.economiaTexto' : 'leituras.faltouTexto', {
+          pct: formatarDecimal(Math.abs(pct)),
+          valor: dinheiro(Math.abs(resumo.saldoCents)),
         }),
         tom: pct >= 0 ? 'positivo' : 'alerta',
       })

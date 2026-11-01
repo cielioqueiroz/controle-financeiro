@@ -1,5 +1,29 @@
 # Estado atual do projeto — retomada
 
+## Ajustes pequenos de leitura — 2026-11-01
+
+- Em `feat/ajustes-pequenos`, a partir de `feat/consumo-dividas-telas`
+  (PR #46). Cinco correções que sobraram da revisão das telas da auditoria
+  de 30/10.
+- **Percentual por idioma.** Relatórios, Minha situação, o comparativo e o
+  Painel fixavam a vírgula com `toFixed(1).replace('.', ',')`. Agora passam
+  por `domain/normalize/percentual.ts`, que lê a locale ativa e que o PDF
+  também usa.
+- **Mês no vermelho.** A leitura de economia dizia "Sobrou -R$ 500,00". Com
+  resultado negativo, a frase passa a ser "Faltaram R$ 500,00: as saídas
+  superaram as entradas em X%", com os dois números positivos.
+- **Pontos de atenção.** "Maior categoria" e "Pico de gasto" existem em todo
+  mês com gasto e passam a ser leitura neutra, dentro de "Explorar o
+  período". A faixa de atenção fica só com o que alarma, e some quando não
+  há nada a apontar.
+- **`TIM` como palavra inteira.** O novo tipo de regra `palavra` existe só nas
+  regras globais, porque o CHECK de `merchant_rules.match_type` não o aceita.
+  Ele impede que "ULTIMO" e "ESTIMATIVA" caiam em Telecom.
+- **Resultado em 375px.** O rodapé do comparativo era uma grade de duas
+  metades de 135px, e "-R$ 33.469,65" quebrava em três linhas. Agora é um
+  flex que não parte valores: os dois cabem lado a lado, e a taxa desce de
+  linha se não couber.
+
 ## Consumo e dívidas fora do Painel — 2026-11-01
 
 - Em `feat/consumo-dividas-telas`, a partir de `feat/categoria-dividas` (PR

@@ -6,6 +6,7 @@ import { analisarTrajetoria, resultadoMensal as resultado, taxasFinanceiras } fr
 import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
 import { nomeCategoria } from '../domain/categorize/categorias'
 import { mesAbrev } from '../domain/normalize/data'
+import { formatarDecimal, formatarPct } from '../domain/normalize/percentual'
 import { saldosPorConta } from '../domain/saldos'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
@@ -155,7 +156,7 @@ export function SituacaoFinanceira() {
                     pontosPercentuais
                     atual={taxaAtual}
                     anterior={taxaAnterior}
-                    formatar={(valor) => (valor === null ? '—' : `${valor.toFixed(1).replace('.', ',')}%`)}
+                    formatar={(valor) => (valor === null ? '—' : formatarPct(valor))}
                   />
                 </div>
               ) : (
@@ -269,7 +270,7 @@ export function SituacaoFinanceira() {
                       <p className="rotulo !text-[9px]">{t('situacao.taxaEconomia')}</p>
                       <p className={`tabular mt-1 text-sm ${resultado(melhorMes) >= 0 ? 'text-credito' : 'text-debito'}`}>
                         {melhorMes.entradasCents > 0
-                          ? `${(taxasFinanceiras(melhorMes.entradasCents, melhorMes.gastoCents).economiaPct!).toFixed(1).replace('.', ',')}%`
+                          ? formatarPct(taxasFinanceiras(melhorMes.entradasCents, melhorMes.gastoCents).economiaPct!)
                           : '—'}
                       </p>
                     </div>
@@ -358,7 +359,7 @@ function ComparacaoCard({
     <article className="rounded-lg border border-carvao-700 bg-afundado p-4">
       <p className="rotulo !text-[10px]">{titulo}</p>
       <p className="tabular mt-2 text-xl text-tinta">{mostrar(atual)}</p>
-      <p className="mt-1 text-[11px] text-tinta-tenue">{mostrar(anterior)} {variacao === null ? '' : `· ${variacao >= 0 ? '+' : ''}${variacao.toFixed(1).replace('.', ',')}${pontosPercentuais ? ` ${t('grafico.pontosPercentuais')}` : '%'}`}</p>
+      <p className="mt-1 text-[11px] text-tinta-tenue">{mostrar(anterior)} {variacao === null ? '' : `· ${variacao >= 0 ? '+' : ''}${formatarDecimal(variacao)}${pontosPercentuais ? ` ${t('grafico.pontosPercentuais')}` : '%'}`}</p>
     </article>
   )
 }

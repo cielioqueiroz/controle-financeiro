@@ -48,6 +48,12 @@ const JUNHO = [
   tx({ date: '2026-06-21', amount_cents: 40000 }),
 ]
 
+/** Entrada menor que o gasto de JUNHO (R$ 629,00): o mês fecha no vermelho. */
+const SALARIO_CURTO = tx({
+  date: '2026-06-05', amount_cents: -10000, kind: 'income', description: 'SALARIO',
+  category_slug: 'salario', doc_type: 'extrato', document_id: 'd2',
+})
+
 async function expandirAnalise() {
   fireEvent.click(await screen.findByText('Explorar o período'))
 }
@@ -113,7 +119,7 @@ describe('Painel — os tiles respiram como cartões separados', () => {
   })
 
   it('mantém alertas visíveis e análises recolhidas até a pessoa abrir', async () => {
-    abrir(JUNHO, '/?ref=2026-06-15&p=mes')
+    abrir([...JUNHO, SALARIO_CURTO], '/?ref=2026-06-15&p=mes')
     const resumo = await screen.findByRole('group', { name: 'Resumo financeiro do período' })
     expect(resumo).toHaveTextContent('Entradas')
     expect(resumo).toHaveTextContent('Gasto real')
@@ -127,6 +133,28 @@ describe('Painel — os tiles respiram como cartões separados', () => {
     expect(screen.getByText('Saídas por dia')).toBeInTheDocument()
     fireEvent.click(screen.getByText('Explorar o período'))
     expect(secao).not.toHaveAttribute('open')
+  })
+
+  // Maior categoria e pico existem em todo mês com gasto: como alerta, a faixa
+  // "Pontos de atenção" nunca ficava vazia e deixava de chamar atenção.
+  it('maior categoria e pico de gasto são leitura, não ponto de atenção', async () => {
+    abrir([...JUNHO, SALARIO_CURTO], '/?ref=2026-06-15&p=mes')
+    const atencao = (await screen.findByText('Pontos de atenção')).closest('section')!
+    expect(atencao).toHaveTextContent('Taxa de economia')
+    expect(atencao).not.toHaveTextContent('Maior categoria')
+    expect(atencao).not.toHaveTextContent('Pico de gasto')
+  })
+
+  it('sem nada alarmante, não há faixa de pontos de atenção', async () => {
+    abrir(JUNHO, '/?ref=2026-06-15&p=mes')
+    await screen.findByText('Explorar o período')
+    expect(screen.queryByText('Pontos de atenção')).not.toBeInTheDocument()
+  })
+
+  it('mês no vermelho diz quanto faltou, sem "Sobrou -R$"', async () => {
+    abrir([...JUNHO, SALARIO_CURTO], '/?ref=2026-06-15&p=mes')
+    expect(await screen.findByText('Faltaram R$ 529,00: as saídas superaram as entradas em 529,0%.')).toBeInTheDocument()
+    expect(screen.queryByText(/Sobrou -/)).not.toBeInTheDocument()
   })
 
   it('mantém compromissos acessíveis quando o período escolhido não tem transações', async () => {

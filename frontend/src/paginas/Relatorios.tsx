@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
 import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
 import { mesAbrev } from '../domain/normalize/data'
+import { formatarPct } from '../domain/normalize/percentual'
 import { useDados } from '../dados/DadosProvider'
 import { useRecorte } from '../dados/useRecorte'
 import { useDinheiro } from '../dados/DiscretoProvider'
@@ -30,7 +31,7 @@ function rotuloMes(competencia: string): string {
 }
 
 function percentual(valor: number | null): string {
-  return valor === null ? '—' : `${valor.toFixed(1).replace('.', ',')}%`
+  return valor === null ? '—' : formatarPct(valor)
 }
 
 /** Relatório de leitura: concentra as perguntas mais profundas do Lovable,

@@ -122,6 +122,17 @@ describe('categoriaDe — dívidas', () => {
   })
 })
 
+describe('categoriaDe — TIM só como palavra inteira', () => {
+  it('a operadora continua telecom', () => {
+    expect(categoriaDe(tx('TIM S A'))).toBe('telecom')
+    expect(categoriaDe(tx('RECARGA*TIM'))).toBe('telecom')
+  })
+  it('"TIM" dentro de outra palavra não é telecom', () => {
+    expect(categoriaDe(tx('PAGTO ULTIMO BOLETO'))).not.toBe('telecom')
+    expect(categoriaDe(tx('ESTIMATIVA DE SERVICO'))).not.toBe('telecom')
+  })
+})
+
 describe('extrairCNPJ', () => {
   it('extrai CNPJ do extrato Nubank', () => {
     expect(extrairCNPJ('IFOOD COM ... - 14.380.200/0001-21 - ITAU')).toBe('14380200000121')
