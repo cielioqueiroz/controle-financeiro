@@ -163,12 +163,12 @@ describe('Painel — os tiles respiram como cartões separados', () => {
       {
         id: 'e1', bank: 'bb', account_id: 'c1', doc_type: 'extrato', period_end: '2026-06-30',
         end_balance_cents: 300000, total_open_balance: null, next_invoice_balance: null,
-        next_close_date: null, future_installments_total: null,
+        next_close_date: null, future_installments_total: null, declared_total: null,
       },
       {
         id: 'f1', bank: 'nubank', account_id: 'c2', doc_type: 'fatura', period_end: '2026-06-20',
         end_balance_cents: null, total_open_balance: 120000, next_invoice_balance: null,
-        next_close_date: null, future_installments_total: null,
+        next_close_date: null, future_installments_total: null, declared_total: 150000,
       },
     ])
     abrir(JUNHO, '/?ref=2026-06-15&p=mes')
