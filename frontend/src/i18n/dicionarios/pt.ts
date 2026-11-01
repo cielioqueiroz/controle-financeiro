@@ -229,6 +229,7 @@ export const pt = {
   'leituras.picoGastoTexto': 'O maior dia foi {data}, com {valor} em saídas.',
   'leituras.economia': 'Taxa de economia',
   'leituras.economiaTexto': 'Sobrou {valor}, equivalente a {pct}% das entradas.',
+  'leituras.faltouTexto': 'Faltaram {valor}: as saídas superaram as entradas em {pct}%.',
   'leituras.verLancamentos': 'Ver lançamentos',
   'leituras.verDia': 'Ver este dia',
   'leituras.verFaturas': 'Ver faturas',

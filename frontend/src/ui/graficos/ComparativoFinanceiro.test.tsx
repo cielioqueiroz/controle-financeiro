@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { definirLocale } from '../../domain/normalize/locale'
 import { ComparativoFinanceiro } from './ComparativoFinanceiro'
 
 describe('ComparativoFinanceiro', () => {
@@ -24,5 +25,15 @@ describe('ComparativoFinanceiro', () => {
     expect(screen.getByText('150% da renda consumida')).toBeInTheDocument()
     expect(screen.getByText('Sem renda restante')).toBeInTheDocument()
     expect(screen.getByText('Despesas ultrapassaram as receitas em 50%.')).toBeInTheDocument()
+  })
+
+  it('escreve a taxa de economia com o separador decimal do idioma', () => {
+    definirLocale('en-US')
+    try {
+      render(<ComparativoFinanceiro gastoCents={10000} entradasCents={30000} saldoCents={20000} />)
+      expect(screen.getByText('66.7%')).toBeInTheDocument()
+    } finally {
+      definirLocale('pt-BR')
+    }
   })
 })

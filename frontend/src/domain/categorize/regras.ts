@@ -4,7 +4,9 @@ import { analisarConsulta, casaConsulta, normalizar, type TxConsultavel } from '
 import { BANCOS } from '../banks'
 import { CATEGORIAS } from './categorias'
 
-export type MatchType = 'contains' | 'cnpj' | 'consulta'
+/** `palavra` existe só nas regras globais: o banco não aceita esse tipo
+ *  (CHECK de `merchant_rules.match_type`), e o usuário não cria regra assim. */
+export type MatchType = 'contains' | 'palavra' | 'cnpj' | 'consulta'
 
 export type Regra = {
   padrao: string
@@ -97,8 +99,11 @@ export const REGRAS_GLOBAIS: Regra[] = [
   ]),
   // Telecom
   ...contains('telecom', 100, [
-    'NORTE.NET', 'RECARGA PRE PAGO', 'VIVO', 'CLARO', 'TIM', 'OI ',
+    'NORTE.NET', 'RECARGA PRE PAGO', 'VIVO', 'CLARO', 'OI ',
   ]),
+  // Palavra inteira: como trecho, 'TIM' casava dentro de "ULTIMO" e
+  // "ESTIMATIVA".
+  ...palavras('telecom', 100, ['TIM']),
   // Viagem
   ...contains('viagem', 100, ['AIRBNB', 'BOOKING', 'DECOLAR', 'LATAM', 'GOL ']),
   // Delivery
@@ -155,8 +160,7 @@ export const REGRAS_GLOBAIS: Regra[] = [
   ...contains('agua', 100, ['SANEAGO', 'SABESP', 'COPASA', 'CAESB', 'AGUA E ESGOTO']),
   ...contains('luz', 100, ['ENEL', 'CEMIG', 'LIGHT', 'CELPE', 'COELBA', 'EQUATORIAL', 'ENERGIA']),
   // Dívidas: amortização de empréstimo e financiamento. Não é encargo nem
-  // consumo. Fica acima de telecom porque o 'TIM' casa dentro de
-  // "EMPRESTIMO".
+  // consumo.
   ...contains('dividas', 105, [
     'EMPRESTIMO', 'FINANCIAMENTO', 'CONSIGNADO', 'CREDITO PESSOAL',
     'DEBITO POR DIVIDA', 'RENEGOCIACAO',
@@ -178,6 +182,15 @@ export const REGRAS_GLOBAIS: Regra[] = [
 
 function contains(categoria: string, prioridade: number, padroes: string[]): Regra[] {
   return padroes.map((padrao) => ({ padrao, tipo: 'contains' as const, categoria, prioridade }))
+}
+
+function palavras(categoria: string, prioridade: number, padroes: string[]): Regra[] {
+  return padroes.map((padrao) => ({ padrao, tipo: 'palavra' as const, categoria, prioridade }))
+}
+
+function contemPalavra(texto: string, palavra: string): boolean {
+  const escapada = palavra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escapada}(?![\\p{L}\\p{N}])`, 'u').test(texto)
 }
 
 /** Extrai um CNPJ da descrição, quando presente (extratos Nubank trazem).
@@ -204,6 +217,9 @@ function casa(
   }
   if (regra.tipo === 'cnpj') {
     return cnpj !== null && regra.padrao.replace(/\D/g, '') === cnpj
+  }
+  if (regra.tipo === 'palavra') {
+    return contemPalavra(merchant, regra.padrao) || contemPalavra(description.toUpperCase(), regra.padrao)
   }
   return merchant.includes(regra.padrao) || description.toUpperCase().includes(regra.padrao)
 }

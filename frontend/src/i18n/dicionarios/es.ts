@@ -219,6 +219,7 @@ export const es: Dicionario = {
   'leituras.picoGastoTexto': 'El día de mayor gasto fue {data}, con {valor} en salidas.',
   'leituras.economia': 'Tasa de ahorro',
   'leituras.economiaTexto': 'Quedaron {valor}, equivalente al {pct}% de los ingresos.',
+  'leituras.faltouTexto': 'Faltaron {valor}: las salidas superaron los ingresos en un {pct}%.',
   'leituras.verLancamentos': 'Ver movimientos',
   'leituras.verDia': 'Ver este día',
   'leituras.verFaturas': 'Ver documentos',

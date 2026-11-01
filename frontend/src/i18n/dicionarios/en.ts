@@ -219,6 +219,7 @@ export const en: Dicionario = {
   'leituras.picoGastoTexto': 'The highest-spend day was {data}, with {valor} out.',
   'leituras.economia': 'Savings rate',
   'leituras.economiaTexto': '{valor} remained, equal to {pct}% of income.',
+  'leituras.faltouTexto': '{valor} short: spending exceeded income by {pct}%.',
   'leituras.verLancamentos': 'View entries',
   'leituras.verDia': 'View this day',
   'leituras.verFaturas': 'View documents',

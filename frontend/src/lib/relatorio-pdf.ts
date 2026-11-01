@@ -1,7 +1,7 @@
 import { formatBRLCru } from '../domain/normalize/money'
 import { mesAbrev, dataLongaDe } from '../domain/normalize/data'
 import { temaDoBanco } from '../domain/banks'
-import { localeAtual } from '../domain/normalize/locale'
+import { formatarPct } from '../domain/normalize/percentual'
 // ⚠️ `import type`, e só. Ele é APAGADO no build, então o jsPDF continua
 // entrando pelo import dinâmico lá embaixo — fora do bundle inicial, que
 // é o motivo de ele ser dinâmico (ver ADR-0007). Um import de valor aqui
@@ -60,19 +60,6 @@ export function montarDadosRelatorio(e: EntradaRelatorio): DadosRelatorio {
     saldos: e.saldos,
     categorias,
   }
-}
-
-/** Porcentagem na locale ativa.
- *
- *  `toFixed(1)` devolve "66.7", com PONTO — num relatório em português, ao
- *  lado de valores escritos "R$ 40.841,10", onde o ponto é separador de
- *  milhar. Duas convenções decimais na mesma linha é o tipo de detalhe que
- *  faz um documento financeiro parecer errado mesmo estando certo. */
-function pctFormatado(pct: number): string {
-  return `${pct.toLocaleString(localeAtual(), {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })}%`
 }
 
 function dataCurta(iso: string): string {
@@ -221,7 +208,7 @@ export async function gerarRelatorioPdf(dados: DadosRelatorio): Promise<Blob> {
       c.nome,
       '',
       formatBRLCru(c.valorCents),
-      pctFormatado(c.pct),
+      formatarPct(c.pct),
     ]),
     theme: 'plain',
     styles: { fontSize: 10, cellPadding: { top: 6, bottom: 6, left: 0, right: 0 } },
