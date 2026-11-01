@@ -811,6 +811,7 @@ export const pt = {
   'proc.extrato1': '1 extrato',
   'proc.extratoN': '{n} extratos',
   'proc.e': 'e',
+  'proc.quitacaoSemFatura': '{valor} em pagamento de fatura sem a fatura correspondente importada — as compras dela podem não estar neste gasto.',
   'carimbo.confere': 'Confere',
   'carimbo.diverge': 'Diverge',
   'carimbo.semGabarito': 'Sem gabarito',

@@ -1,5 +1,21 @@
 # Estado atual do projeto — retomada
 
+## Quitação sem fatura avisada na Procedência — 2026-10-30
+
+- Em `fix/quitacao-sem-fatura`, a partir da `main` (`1c58b36`) com o commit
+  de dependências do PR #39. Corrige o item 1.5 da auditoria das somas de
+  30/10: com só o extrato importado, a quitação sai do gasto real (certo,
+  contra a dupla contagem), mas as compras daquela fatura também não estão
+  nele, e a tela não dizia nada.
+- `quitacoesSemFatura` soma os `card_payment` de extrato sem
+  `vinculo_document_id`, a evidência que a 0009 grava quando acha a fatura
+  (ADR-0021). A Procedência mostra uma linha de ressalva com o valor no
+  Painel, em Relatórios e no detalhe do relatório.
+- A frase diz "podem não estar", não "não estão": pagamento parcial também
+  fica sem evidência, com a fatura importada e as compras contadas. O
+  pagamento registrado dentro da própria fatura não entra no aviso.
+- Sem migração: só leitura de colunas que já existem.
+
 ## Gasto real em consumo e dívidas — 2026-10-30
 
 - Em `feat/categoria-dividas`, a partir da `main` (`1c58b36`) com o commit

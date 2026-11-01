@@ -1,6 +1,8 @@
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
+import { quitacoesSemFatura } from '../domain/link/quitacao-sem-fatura'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 
 type Props = {
@@ -28,6 +30,7 @@ type Props = {
  *  totais ao lado, e duas contagens que discordam é pior que uma só. */
 export function Procedencia({ txs, periodo }: Props) {
   const { t } = useT()
+  const dinheiro = useDinheiro()
   if (txs.length === 0) return null
 
   const documentos = new Set(txs.map((x) => x.document_id))
@@ -48,31 +51,48 @@ export function Procedencia({ txs, periodo }: Props) {
     extratos > 0 ? t(extratos === 1 ? 'proc.extrato1' : 'proc.extratoN', { n: extratos }) : null,
   ].filter(Boolean)
 
+  // O outro lado da procedência: o que o recorte SABE que falta. A quitação
+  // sai do gasto real contra a dupla contagem, e sem a fatura as compras
+  // dela também não estão aqui.
+  const semFatura = quitacoesSemFatura(txs)
+
   return (
-    <p className="tabular mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-tinta-tenue">
-      {/* `first-letter:uppercase`, e nao `capitalize`: aquele maiusculiza
-          TODA palavra ("Julho De 2026"). Hoje `rotuloPeriodo` devolve uma
-          palavra so ("jul 2026") e os dois dariam no mesmo — este componente
-          recebe um rotulo pronto de fora, e nao manda no formato dele. */}
-      <span className="text-tinta-fraca first-letter:uppercase">{periodo}</span>
-      <span aria-hidden>·</span>
-      <span className="flex flex-wrap items-center gap-x-2">
-        {bancos.map((b) => (
-          <span key={b} className="flex items-center gap-1.5">
-            <span
-              aria-hidden
-              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ backgroundColor: BANCOS[b].accent }}
-            />
-            {BANCOS[b].nome}
-          </span>
-        ))}
-      </span>
-      <span aria-hidden>·</span>
-      {/* A contagem por extenso, e não só o total: "4 documentos" não diz se
-          a fatura do mês entrou, e é justamente a fatura que traz o detalhe
-          das compras. */}
-      <span>{partes.join(` ${t('proc.e')} `)}</span>
-    </p>
+    <div className="mb-4">
+      <p className="tabular flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-tinta-tenue">
+        {/* `first-letter:uppercase`, e nao `capitalize`: aquele maiusculiza
+            TODA palavra ("Julho De 2026"). Hoje `rotuloPeriodo` devolve uma
+            palavra so ("jul 2026") e os dois dariam no mesmo — este componente
+            recebe um rotulo pronto de fora, e nao manda no formato dele. */}
+        <span className="text-tinta-fraca first-letter:uppercase">{periodo}</span>
+        <span aria-hidden>·</span>
+        <span className="flex flex-wrap items-center gap-x-2">
+          {bancos.map((b) => (
+            <span key={b} className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: BANCOS[b].accent }}
+              />
+              {BANCOS[b].nome}
+            </span>
+          ))}
+        </span>
+        <span aria-hidden>·</span>
+        {/* A contagem por extenso, e não só o total: "4 documentos" não diz se
+            a fatura do mês entrou, e é justamente a fatura que traz o detalhe
+            das compras. */}
+        <span>{partes.join(` ${t('proc.e')} `)}</span>
+      </p>
+      {semFatura.contagem > 0 && (
+        <p role="note" className="mt-1.5 flex items-start gap-2 text-xs text-tinta-fraca">
+          <span
+            aria-hidden
+            className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ background: 'var(--color-ressalva)' }}
+          />
+          {t('proc.quitacaoSemFatura', { valor: dinheiro(semFatura.totalCents) })}
+        </p>
+      )}
+    </div>
   )
 }

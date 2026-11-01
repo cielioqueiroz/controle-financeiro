@@ -768,6 +768,7 @@ export const es: Dicionario = {
   'proc.extrato1': '1 extracto',
   'proc.extratoN': '{n} extractos',
   'proc.e': 'y',
+  'proc.quitacaoSemFatura': '{valor} en pagos de tarjeta sin el resumen correspondiente importado — sus compras pueden no estar en este gasto.',
   'carimbo.confere': 'Cuadra',
   'carimbo.diverge': 'No cuadra',
   'carimbo.semGabarito': 'Sin control',

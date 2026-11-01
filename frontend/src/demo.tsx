@@ -273,6 +273,9 @@ export function Folha() {
             tx({ document_id: 'nu-ext', doc_type: 'extrato', bank: 'nubank' }),
             tx({ document_id: 'bra-fat', doc_type: 'fatura', bank: 'bradesco' }),
             tx({ document_id: 'mp-ext', doc_type: 'extrato', bank: 'mercadopago' }),
+            // A quitação que não achou a fatura: a linha de ressalva.
+            tx({ document_id: 'mp-ext', doc_type: 'extrato', bank: 'mercadopago',
+              kind: 'card_payment', amount_cents: 184390, description: 'Pagamento de fatura' }),
           ]}
           periodo="jul 2026"
         />

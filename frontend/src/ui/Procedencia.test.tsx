@@ -99,6 +99,39 @@ describe('Procedencia', () => {
     expect(screen.getByText('junho de 2026')).toBeInTheDocument()
   })
 
+  // Auditoria de 30/10, item 1.5: a quitação sai do gasto real para não
+  // contar duas vezes, e sem a fatura as compras dela também não estão lá.
+  it('avisa a quitação de fatura sem a fatura correspondente', () => {
+    render(
+      <Procedencia
+        txs={[
+          tx({ doc_type: 'extrato', bank: 'bradesco', document_id: 'e1' }),
+          tx({
+            doc_type: 'extrato', bank: 'bradesco', document_id: 'e1',
+            kind: 'card_payment', amount_cents: 150000, description: 'PAGTO FATURA',
+          }),
+        ]}
+        periodo="junho de 2026"
+      />,
+    )
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'R$ 1.500,00 em pagamento de fatura sem a fatura correspondente importada',
+    )
+  })
+
+  it('cala quando a quitação achou a fatura', () => {
+    render(
+      <Procedencia
+        txs={[tx({
+          doc_type: 'extrato', document_id: 'e1', kind: 'card_payment',
+          vinculo_document_id: 'f1',
+        })]}
+        periodo="junho de 2026"
+      />,
+    )
+    expect(screen.queryByRole('note')).toBeNull()
+  })
+
   // Recorte vazio já tem tela própria no Painel; uma linha de procedência
   // dizendo "0 documentos" seria o zero que a regra do projeto proíbe.
   it('não desenha nada sem transação', () => {
