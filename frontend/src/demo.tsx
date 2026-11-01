@@ -97,7 +97,7 @@ const DIA_A_DIA: TransacaoSalva[] = [
   ['2026-07-12', 3200, 'padaria', 'LANCHONETE'],
   ['2026-07-14', 51600, 'educacao', 'MENSALIDADE CURSO'],
   ['2026-07-15', 9990, 'assinaturas', 'NETFLIX'],
-  ['2026-07-16', 4165385, 'taxas', 'PAGAMENTO EMPRESTIMO'],
+  ['2026-07-16', 4165385, 'dividas', 'PAGAMENTO EMPRESTIMO'],
   ['2026-07-17', 6540, 'supermercado', 'MERCADINHO'],
   ['2026-07-18', 2870, 'transporte', 'UBER TRIP'],
   ['2026-07-20', 18900, 'farmacia', 'FARMACIA POPULAR'],

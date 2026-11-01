@@ -154,8 +154,18 @@ export const REGRAS_GLOBAIS: Regra[] = [
   // Água e Luz (prontas para quando aparecerem)
   ...contains('agua', 100, ['SANEAGO', 'SABESP', 'COPASA', 'CAESB', 'AGUA E ESGOTO']),
   ...contains('luz', 100, ['ENEL', 'CEMIG', 'LIGHT', 'CELPE', 'COELBA', 'EQUATORIAL', 'ENERGIA']),
-  // Taxas bancárias
-  ...contains('taxas', 90, ['IOF', 'ANUIDADE', 'TARIFA', 'JUROS']),
+  // Dívidas: amortização de empréstimo e financiamento. Não é encargo nem
+  // consumo. Fica acima de telecom porque o 'TIM' casa dentro de
+  // "EMPRESTIMO".
+  ...contains('dividas', 105, [
+    'EMPRESTIMO', 'FINANCIAMENTO', 'CONSIGNADO', 'CREDITO PESSOAL',
+    'DEBITO POR DIVIDA', 'RENEGOCIACAO',
+  ]),
+  // Taxas bancárias. IOF e juros são encargo em qualquer descrição, até na
+  // de um empréstimo — por isso vencem as dívidas. Tarifa não sobe: pode
+  // ser passagem.
+  ...contains('taxas', 106, ['IOF', 'JUROS']),
+  ...contains('taxas', 90, ['ANUIDADE', 'TARIFA']),
   // Rendimentos
   ...contains('rendimentos', 100, ['RENDIMENTOS', 'POUP FACIL']),
   // Transferências (baixa prioridade — genérico)

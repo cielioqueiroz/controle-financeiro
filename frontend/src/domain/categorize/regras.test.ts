@@ -101,6 +101,27 @@ describe('categoriaDe — assinatura vence marketplace (prioridade)', () => {
   })
 })
 
+describe('categoriaDe — dívidas', () => {
+  // Amortização não é encargo (IOF, anuidade, tarifa, juros) nem consumo.
+  const casos: Array<[string, string]> = [
+    ['PAGAMENTO EMPRESTIMO', 'dividas'],
+    ['Débito por dívida Empréstimos Mercado Pago', 'dividas'],
+    ['CONSIGNADO SICOOB', 'dividas'],
+    ['PARCELA FINANCIAMENTO VEICULO', 'dividas'],
+    ['PARC CREDITO PESSOAL', 'dividas'],
+  ]
+  for (const [desc, esperado] of casos) {
+    it(`"${desc}" → ${esperado}`, () => {
+      expect(categoriaDe(tx(desc))).toBe(esperado)
+    })
+  }
+
+  it('encargo do empréstimo continua sendo taxa', () => {
+    expect(categoriaDe(tx('IOF EMPRESTIMO'))).toBe('taxas')
+    expect(categoriaDe(tx('JUROS FINANCIAMENTO'))).toBe('taxas')
+  })
+})
+
 describe('extrairCNPJ', () => {
   it('extrai CNPJ do extrato Nubank', () => {
     expect(extrairCNPJ('IFOOD COM ... - 14.380.200/0001-21 - ITAU')).toBe('14380200000121')

@@ -15,7 +15,7 @@ import { taxasFinanceiras } from '../domain/trajetoria'
 import { TransacoesDoMes } from '../ui/TransacoesDoMes'
 import { saldosPorConta } from '../domain/saldos'
 import { faturasAbertas } from '../domain/aberto'
-import { nomeCategoria } from '../domain/categorize/categorias'
+import { ehDivida, nomeCategoria } from '../domain/categorize/categorias'
 import { dataLongaDe } from '../domain/normalize/data'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { useDados } from '../dados/DadosProvider'
@@ -123,18 +123,20 @@ export function Painel({ onAprendeu }: Props) {
   )
 
   const leituras: LeituraFinanceira[] = (() => {
-    const maiorCategoria = resumo.porCategoria[0]
+    // A maior categoria de CONSUMO: a parcela de um empréstimo ganharia
+    // todo mês e não diria nada sobre onde o dinheiro do dia a dia foi.
+    const maiorCategoria = resumo.porCategoria.find((c) => !ehDivida(c.cat.slug))
     const maiorEstabelecimento = estabelecimentos[0]
     const itens: LeituraFinanceira[] = []
 
-    if (maiorCategoria && resumo.gastoCents > 0) {
+    if (maiorCategoria && resumo.consumoCents > 0) {
       itens.push({
         id: 'maior-categoria',
         titulo: t('leituras.maiorCategoria'),
         texto: t('leituras.maiorCategoriaTexto', {
           categoria: nomeCategoria(maiorCategoria.cat),
           valor: dinheiro(maiorCategoria.totalCents),
-          pct: Math.round((maiorCategoria.totalCents / resumo.gastoCents) * 100),
+          pct: Math.round((maiorCategoria.totalCents / resumo.consumoCents) * 100),
         }),
         tom: 'alerta',
         rotuloAcao: t('leituras.verLancamentos'),
@@ -354,7 +356,23 @@ export function Painel({ onAprendeu }: Props) {
                   </Tile>
                 </motion.div>
                 <motion.div {...entra(0.12)} className="cartao overflow-hidden">
-                  <Tile rotulo={t('dash.gastoRealTitulo')} variacao={variacao.gasto} subirEhRuim>
+                  <Tile
+                    rotulo={t('dash.gastoRealTitulo')}
+                    variacao={variacao.gasto}
+                    subirEhRuim
+                    detalhe={resumo.dividasCents !== 0 && (
+                      <dl className="mt-2 space-y-0.5 text-[11px] text-tinta-tenue">
+                        <div className="flex justify-between gap-3">
+                          <dt>{t('dash.consumo')}</dt>
+                          <dd className="tabular">{dinheiro(resumo.consumoCents)}</dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <dt>{t('dash.dividas')}</dt>
+                          <dd className="tabular">{dinheiro(resumo.dividasCents)}</dd>
+                        </div>
+                      </dl>
+                    )}
+                  >
                     <ValorAnimado valor={resumo.gastoCents} />
                   </Tile>
                 </motion.div>
@@ -582,6 +600,7 @@ function Tile({
   variacao,
   /** `true` quando subir é RUIM (gasto). Entradas invertem: subir é bom. */
   subirEhRuim,
+  detalhe,
   children,
 }: {
   rotulo: string
@@ -589,6 +608,7 @@ function Tile({
   destaque?: boolean
   variacao?: number | null
   subirEhRuim?: boolean
+  detalhe?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -603,6 +623,7 @@ function Tile({
       {variacao !== undefined && variacao !== null && (
         <ComparacaoPeriodo pct={variacao} subirEhRuim={subirEhRuim} />
       )}
+      {detalhe}
     </div>
   )
 }

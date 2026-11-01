@@ -83,6 +83,25 @@ describe('diagnosticar', () => {
     })
   })
 
+  describe('dívidas ficam fora da conta', () => {
+    // A parcela do empréstimo é gasto real, mas não é consumo: medir o mês
+    // contra ela esconderia todo o resto atrás de um número só.
+    const comEmprestimo = [...saudavel, tx(41_653_85, 'dividas', 'PAGAMENTO EMPRESTIMO')]
+
+    it('não vira concentração', () => {
+      expect(tipos(comEmprestimo)).not.toContain('concentracao')
+    })
+
+    it('não dilui a fatia das taxas', () => {
+      const d = diagnosticar([...comEmprestimo, tx(120_00, 'taxas', 'Anuidade Diferenciada')])
+      expect(d.find((x) => x.tipo === 'taxas-altas')).toMatchObject({ totalCents: 120_00 })
+    })
+
+    it('só dívida não diagnostica nada', () => {
+      expect(diagnosticar([tx(41_653_85, 'dividas', 'PAGAMENTO EMPRESTIMO')])).toEqual([])
+    })
+  })
+
   describe('taxas e encargos', () => {
     it('acusa quando o banco leva uma fatia grande', () => {
       const d = diagnosticar([...saudavel, tx(120_00, 'taxas', 'Anuidade Diferenciada')])
