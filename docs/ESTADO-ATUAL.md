@@ -1,5 +1,29 @@
 # Estado atual do projeto — retomada
 
+## Dias de fôlego e o que é seu × o que você deve — 2026-11-01
+
+- Em `feat/dias-de-folego`, a partir de `feat/ajustes-pequenos` (PR #47).
+  Itens 2.4 e U4 da auditoria das somas de 30/10.
+- `domain/folego.ts`: o **líquido de curto prazo** soma os saldos e tira o em
+  aberto declarado pelos cartões. As parcelas futuras ficam de fora, e o
+  cartão que só declara essas parcelas é nomeado na tela. Os **dias de
+  fôlego** dividem o líquido (ou o saldo, sem em aberto) pelo gasto real
+  médio diário dos últimos 90 dias até a data do saldo.
+- A janela usa a data real e encolhe para o histórico que existe: dividir
+  por 90 dias que ninguém importou faria o fôlego parecer maior. Com menos
+  de 30 dias de histórico, ou sem gasto, o fôlego não aparece.
+- O fôlego parte do líquido porque a média de gasto já conta as compras no
+  cartão. Partir do saldo cheio contaria duas vezes o em aberto, que ainda
+  vai sair das contas.
+- Painel, "Contas e compromissos": saldo e fatura em grupos separados ("O
+  que é seu" e "O que você deve"), com uma coluna abaixo de 420px. Em 375px
+  os cartões de fatura tinham 143px e o valor quebrava no meio. Abaixo deles
+  ficam o líquido e o fôlego (`ui/Folego.tsx`).
+- Folha de provas: `?tela=painel&amostra=contas`, com duas jornadas novas
+  no medidor de overflow e no a11y.
+- Fica de fora: "Próximos compromissos" ainda quebra "4 parcelas a vencer"
+  letra a letra em 375px. Já era assim, e o #44 mexe nessa peça.
+
 ## Ajustes pequenos de leitura — 2026-11-01
 
 - Em `feat/ajustes-pequenos`, a partir de `feat/consumo-dividas-telas`

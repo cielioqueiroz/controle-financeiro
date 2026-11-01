@@ -37,6 +37,7 @@ import { Diagnosticos } from '../ui/Diagnosticos'
 import { diagnosticar } from '../domain/diagnosticos'
 import { SaldoConta } from '../ui/SaldoConta'
 import { SaldoAberto } from '../ui/SaldoAberto'
+import { Folego } from '../ui/Folego'
 import { ErroCarregar } from '../ui/ErroCarregar'
 import { Cartao } from '../ui/Cartao'
 import { CarregandoPainel } from '../ui/CarregandoPainel'
@@ -79,7 +80,7 @@ export function Painel({ onAprendeu }: Props) {
   const { t } = useT()
   const dinheiro = useDinheiro()
   const navigate = useNavigate()
-  const { docsSaldo, recarregar, aplicarEdicao } = useDados()
+  const { todas, docsSaldo, recarregar, aplicarEdicao } = useDados()
   const { txs, resumo, variacao, visiveis, filtros, setFiltros, compAtiva, carregando, erro, vazio } =
     useRecorte()
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
@@ -510,27 +511,42 @@ export function Painel({ onAprendeu }: Props) {
       {!carregando && !erro && (saldos.length > 0 || abertos.length > 0 || futuros.length > 0) && (
         <div className="mt-4">
           <SecaoExpansivel titulo={t('dash.contasCompromissos')}>
-            {(saldos.length > 0 || abertos.length > 0) && (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                {saldos.map((s) => (
-                  <SaldoConta
-                    key={`saldo-${s.bank}-${s.accountId ?? 'sem-conta'}`}
-                    bank={s.bank}
-                    balanceCents={s.balanceCents}
-                    date={s.date}
-                  />
-                ))}
-                {abertos.map((a) => (
-                  <SaldoAberto
-                    key={`aberto-${a.bank}-${a.accountId ?? 'sem-conta'}`}
-                    bank={a.bank}
-                    abertoCents={a.abertoCents}
-                    futurasCents={a.futurasCents}
-                    proximoFechamento={a.proximoFechamento}
-                  />
-                ))}
-              </div>
+            {/* Saldo e fatura em grupos separados: na mesma fileira, com o
+                mesmo peso, o que é seu e o que você deve se liam como uma
+                coisa só. Uma coluna abaixo de 420px: em 375px o cartão tinha
+                143px e "R$ 4.180,00" quebrava no meio do número. */}
+            {saldos.length > 0 && (
+              <section aria-labelledby="contas-seu">
+                <p id="contas-seu" className="rotulo !text-[10px]">{t('contas.seu')}</p>
+                <div className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                  {saldos.map((s) => (
+                    <SaldoConta
+                      key={`saldo-${s.bank}-${s.accountId ?? 'sem-conta'}`}
+                      bank={s.bank}
+                      balanceCents={s.balanceCents}
+                      date={s.date}
+                    />
+                  ))}
+                </div>
+              </section>
             )}
+            {abertos.length > 0 && (
+              <section aria-labelledby="contas-deve">
+                <p id="contas-deve" className="rotulo !text-[10px]">{t('contas.deve')}</p>
+                <div className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                  {abertos.map((a) => (
+                    <SaldoAberto
+                      key={`aberto-${a.bank}-${a.accountId ?? 'sem-conta'}`}
+                      bank={a.bank}
+                      abertoCents={a.abertoCents}
+                      futurasCents={a.futurasCents}
+                      proximoFechamento={a.proximoFechamento}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+            <Folego saldos={saldos} abertos={abertos} txs={todas ?? []} />
             <ProximosCompromissos meses={futuros} href={`/recorrencias${escreverFiltros(filtros)}`} />
           </SecaoExpansivel>
         </div>

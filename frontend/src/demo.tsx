@@ -569,7 +569,16 @@ const saldosPrevia = amostraPrevia === 'saldo' ? [
   { id: 'doc-demo', account_id: 'conta-demo-1', bank: 'nubank', period_end: '2026-07-31', end_balance_cents: 125000 },
   { id: 'demo-2026-06', account_id: 'conta-demo-2', bank: 'bradesco', period_end: '2026-06-30', end_balance_cents: -2400000 },
   { id: 'demo-2026-05', account_id: 'conta-demo-3', bank: 'bb', period_end: '2026-05-31', end_balance_cents: 300334 },
-].map((doc) => ({ ...doc, doc_type: 'extrato', total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null })) : undefined
+].map((doc) => ({ ...doc, doc_type: 'extrato', total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null }))
+  // O que é seu × o que você deve, com o líquido e os dias de fôlego. O
+  // Bradesco só declara parcelas futuras: fica fora do líquido, nomeado.
+  : amostraPrevia === 'contas' ? [
+    { id: 'demo-2026-06', bank: 'bb', account_id: 'conta-demo-1', doc_type: 'extrato', period_end: '2026-06-30', end_balance_cents: 1250000, total_open_balance: null, future_installments_total: null },
+    { id: 'demo-2026-05', bank: 'sicredi', account_id: 'conta-demo-2', doc_type: 'extrato', period_end: '2026-06-30', end_balance_cents: 320000, total_open_balance: null, future_installments_total: null },
+    { id: 'doc-demo', bank: 'nubank', account_id: 'conta-demo-3', doc_type: 'fatura', period_end: '2026-06-20', end_balance_cents: null, total_open_balance: 418000, future_installments_total: null },
+    { id: 'doc-demo-2', bank: 'bradesco', account_id: 'conta-demo-4', doc_type: 'fatura', period_end: '2026-06-15', end_balance_cents: null, total_open_balance: null, future_installments_total: 96000 },
+  ].map((doc) => ({ ...doc, next_invoice_balance: null, next_close_date: null }))
+  : undefined
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
