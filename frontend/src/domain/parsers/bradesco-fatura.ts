@@ -143,8 +143,11 @@ export function parseBradescoFatura(lines: Line[]): ParseResult {
 
     const { installment, clean } = extractInstallment(descBruta)
 
+    // Crédito que não é pagamento é estorno: a compra voltando, que abate o
+    // gasto. A conferência do Bradesco é por sinal (créditos × débitos), então
+    // a natureza não muda o que é conferido.
     const kind: RawKind =
-      amountCents < 0 ? (PAGAMENTO.test(descBruta) ? 'pagamento' : 'entrada') : 'compra'
+      amountCents < 0 && PAGAMENTO.test(descBruta) ? 'pagamento' : 'compra'
 
     transactions.push({
       date,

@@ -1,5 +1,27 @@
 # Estado atual do projeto — retomada
 
+## Estorno de fatura e projeção de parcelas — 2026-10-30
+
+- Em `fix/estorno-e-parcelas`, a partir da `main` (`1c58b36`). Corrige os itens
+  1.1 e 1.2 da [auditoria das somas](./validacoes/2026-10-30-auditoria-somas-e-melhorias.md),
+  ambos reproduzidos antes por testes que falhavam.
+- **Estorno:** o Bradesco e o Mercado Pago gravavam o estorno como `income`, e
+  ele inflava o gasto real e as entradas juntos. Agora ele é `compra` negativa,
+  como no Nubank (termo **Estorno** no `CONTEXT.md`). O estorno real do fixture
+  do Bradesco (−R$ 56,79) continua conferindo, porque a conferência dele é por
+  sinal. No Mercado Pago o fixture não tem estorno: incluí-lo no total da
+  fatura com sinal negativo segue a fórmula do Nubank e **não foi provado
+  contra um PDF real com estorno**.
+- **Migração `0012` (dados), NÃO aplicada no Neon.** Converte os estornos já
+  gravados. Ensaiada num PostgreSQL 18.1 descartável (0001–0012, 9 cenários):
+  converte os estornos do Bradesco e do Mercado Pago de todos os usuários;
+  preserva o PAGTO desligado à mão, o crédito do Mercado Pago que não é estorno,
+  o PIX de extrato e a escolha manual; reaplicar não muda nada.
+- **Projeção de parcelas:** a série agora é banco + estabelecimento + número de
+  parcelas + competência da 1ª parcela. O rótulo deixou de partir a série (a
+  conta de outubro dobrava), duas compras na mesma loja deixaram de se fundir,
+  e a série quitada (6/6) não reprojeta mais a última parcela a partir da 5/6.
+
 ## Migrações de vínculos e regras em produção — 2026-10-20
 
 - Após autorização explícita no chat, 0009–0011 foram aplicadas juntas na

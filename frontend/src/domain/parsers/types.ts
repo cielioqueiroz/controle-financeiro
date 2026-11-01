@@ -4,7 +4,8 @@ import type { Bank } from '../pdf/detect'
 /** Natureza da linha dentro do documento. Distingue o que é gasto real
  *  do que é encargo ou quitação — sem isso os totais mentem. */
 export type RawKind =
-  /** Compra no cartão ou débito em conta. */
+  /** Compra no cartão ou débito em conta. Com valor negativo é estorno de
+   *  fatura: a compra voltando, que abate o gasto — nunca `entrada`. */
   | 'compra'
   /** IOF, anuidade, juros: gasto cuja contraparte é o próprio banco. É gasto
    *  seu — compõe o "Total a pagar" e cai na categoria `taxas`. Separado de
@@ -12,7 +13,7 @@ export type RawKind =
   | 'encargo'
   /** Pagamento de fatura, quitação. Não é despesa nova. */
   | 'pagamento'
-  /** Entrada: PIX recebido, rendimento, estorno. */
+  /** Entrada: PIX recebido, rendimento, devolução creditada na conta. */
   | 'entrada'
 
 export type Fx = {

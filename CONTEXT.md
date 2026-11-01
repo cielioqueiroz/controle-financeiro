@@ -98,6 +98,14 @@ Gasto cuja contraparte é o próprio banco — IOF, anuidade, tarifa, juros. **�
 seu**: compõe o "Total a pagar" da fatura e cai na categoria `taxas`.
 _Evitar_: taxa (ambíguo com o nome da categoria), custo bancário, tarifa
 
+**Estorno**:
+O crédito na fatura que devolve uma compra. É a compra voltando, não renda:
+fica como `compra` com valor negativo (`expense` depois de salvo), abate o gasto
+da categoria e entra no "Total a pagar" com o sinal dele. Como `entrada`, inflaria
+o gasto real e as entradas ao mesmo tempo — foi o defeito do Bradesco e do
+Mercado Pago até 2026-10-30, corrigido no histórico pela migração `0012`.
+_Evitar_: reembolso, devolução, crédito (sozinho)
+
 **Vínculo**:
 Marca que tira uma transação da contagem de gastos porque o dinheiro só mudou de
 lugar, não foi consumido. Três causas: quitação de fatura, transferência entre
