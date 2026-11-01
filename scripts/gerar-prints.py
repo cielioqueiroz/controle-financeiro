@@ -40,8 +40,7 @@ ALVOS = [
     # aparecem lado a lado.
     ("print-carimbo.png", "/demo.html", '[data-prova="carimbo-conferencia"]', 1100, None),
     ("print-compromissos.png", "/demo.html", '[data-prova="compromissos"]', 1280, None),
-    # Os dois rankings lado a lado. A largura importa aqui: abaixo de 1024 o
-    # grid empilha, e o print perderia justamente a comparacao entre eles.
+    # O ranking unico, na visao por estabelecimento (a que abre primeiro).
     ("print-rankings.png", "/demo.html", '[data-prova="rankings"]', 1440, None),
     # Aberto: o print precisa mostrar o CAMPO do codigo, que e a razao de a
     # faixa existir. Fechada, ela nao conta a historia toda.

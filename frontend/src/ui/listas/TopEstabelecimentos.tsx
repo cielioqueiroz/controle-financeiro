@@ -10,6 +10,8 @@ type Props = {
   /** Abre os lançamentos daquele estabelecimento. Recebe a CHAVE
    *  normalizada, não o rótulo exibido — ver o comentário no clique. */
   onAbrir: (merchant: string) => void
+  /** Dentro do `RankingGastos`, quem titula é a alternância. */
+  semTitulo?: boolean
 }
 
 /** Onde o dinheiro saiu, somando as compras repetidas.
@@ -23,14 +25,14 @@ type Props = {
  *
  *  Desenha pela mesma `LinhaRanking` da irmã: perguntas diferentes, caixa
  *  igual. Sem isso as duas colunas do painel não alinham. */
-export function TopEstabelecimentos({ itens, onAbrir }: Props) {
+export function TopEstabelecimentos({ itens, onAbrir, semTitulo }: Props) {
   const formatBRL = useDinheiro()
   const { t } = useT()
   if (itens.length === 0) return null
 
   return (
     <div>
-      <p className="rotulo mb-3">{t('estab.titulo')}</p>
+      {!semTitulo && <p className="rotulo mb-3">{t('estab.titulo')}</p>}
       <ul>
         {itens.map((item, i) => (
           <LinhaRanking

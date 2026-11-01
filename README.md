@@ -54,14 +54,15 @@ Bradesco — as cores institucionais, as mesmas em toda a tela):
 
 ![Compromissos futuros](docs/img/print-compromissos.png)
 
-**Dois rankings que respondem perguntas diferentes** — e é a diferença que importa:
+**Um ranking, duas perguntas** — "por estabelecimento" ou "por compra", numa alternância:
 
-![Maiores saídas e onde mais saiu dinheiro](docs/img/print-rankings.png)
+![Para onde o dinheiro foi](docs/img/print-rankings.png)
 
-> Repare no **ATACADAO**: à esquerda ele aparece duas vezes, em 3º e 5º, como duas
-> compras de R$ 456 e R$ 321. À direita, somado, ele sobe para **2º com R$ 777**. A
-> lista da esquerda acha a compra única e grande; a da direita acha o ralo que só
-> existe somado — e é justamente esse que passa despercebido.
+> Repare no **ATACADAO**: por compra ele aparece duas vezes, em 3º e 5º, como duas
+> compras de R$ 456 e R$ 321. Por estabelecimento, somado, ele sobe para **2º com
+> R$ 777**. A visão por compra acha a compra única e grande; a por estabelecimento,
+> que é a que abre primeiro, acha o ralo que só existe somado — e é justamente esse
+> que passa despercebido.
 
 ### 📈 Minha situação financeira
 
@@ -121,7 +122,7 @@ regras dessa comparação na [spec dos relatórios](docs/specs/002-comparacao-po
 | 📈 **Minha situação financeira** | histórico de 3/6/12 meses, melhor e pior mês, fluxo acumulado e categorias do mês mais caro |
 | 📊 **Relatórios financeiros** | receitas, despesas, resultado, economia, categorias, maiores saídas e comparações por janela |
 | 💡 **Leituras do período** | maior categoria, maior estabelecimento, pico diário e taxa de economia, com links para o detalhe |
-| 🏪 **Onde mais saiu dinheiro** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra |
+| 🏪 **Para onde o dinheiro foi** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra —, com a alternância para a maior compra |
 | 📈 **Compara com o período anterior** | "12% acima do mês passado" nos tiles; some quando não há base de comparação, em vez de inventar um "+100%" |
 | 🔮 **Compromissos futuros** | resume os próximos meses no Painel e projeta todas as parcelas por mês e cartão em Recorrências, sem duplicar quando a fatura chegar |
 | 🔁 **Recorrências e alertas** | detecta assinaturas pelo histórico e avisa quando o valor muda ou a cobrança some |

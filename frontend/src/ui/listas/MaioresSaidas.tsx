@@ -11,6 +11,8 @@ type Props = {
   /** Já vem cortado e ordenado por `maioresSaidas`. */
   itens: TransacaoSalva[]
   onEditar: (t: TransacaoSalva) => void
+  /** Dentro do `RankingGastos`, quem titula é a alternância. */
+  semTitulo?: boolean
 }
 
 /** Ranking das maiores despesas do período — a compra única e grande.
@@ -18,14 +20,14 @@ type Props = {
  *  Irmã de `TopEstabelecimentos`, com quem divide a linha (`LinhaRanking`)
  *  para que as duas colunas alinhem. A diferença entre elas é a pergunta,
  *  não o desenho: esta acha o empréstimo e a geladeira. */
-export function MaioresSaidas({ itens, onEditar }: Props) {
+export function MaioresSaidas({ itens, onEditar, semTitulo }: Props) {
   const formatBRL = useDinheiro()
   const { t } = useT()
   if (itens.length === 0) return null
 
   return (
     <div>
-      <p className="rotulo mb-3">{t('maiores.titulo')}</p>
+      {!semTitulo && <p className="rotulo mb-3">{t('maiores.titulo')}</p>}
       <ul>
         {itens.map((item, i) => {
           const cat = categoria(item.category_slug ?? 'outros')

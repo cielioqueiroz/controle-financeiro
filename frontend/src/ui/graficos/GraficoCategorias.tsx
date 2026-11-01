@@ -10,6 +10,7 @@ import { useT } from '../../i18n/IdiomaProvider'
 import { MarcaCategoria } from '../MarcaCategoria'
 import { corCategoria } from '../corCategoria'
 import { useDinheiro } from '../../dados/DiscretoProvider'
+import { escalaRobusta, alturaPct } from './escala-barras'
 
 type Props = {
   categorias: CategoriaResumo[]
@@ -22,6 +23,14 @@ const CIRC = 2 * Math.PI * R
 /** Vão de 2px entre fatias. Sem ele, duas categorias de cor parecida viram
  *  um bloco só — o vão é o que separa as fatias antes da cor. */
 const VAO = 2
+
+/** A partir de que fatia o donut deixa de responder.
+ *
+ *  Acima de dois terços, todas as outras categorias juntas dividem menos de
+ *  um terço do círculo e as pequenas viram fiapos. O caso que motivou isto
+ *  (U1 da auditoria de 30/10) era um empréstimo com 91% do mês. Abaixo do
+ *  limiar o donut fica: 60/40 é perfeitamente legível. */
+const DOMINANCIA = 2 / 3
 
 /** A geometria do donut: cada fatia começa onde a anterior terminou.
  *
@@ -78,15 +87,32 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir }: Props) {
 
   const fatias = geometriaDonut(topo, totalCents)
 
+  // Com uma categoria dominando, a lista vira o gráfico: as barras deixam de
+  // ser fração do total (onde a dominante esmaga todas) e passam à escala
+  // robusta dos outros gráficos, com a serrilha em quem passa do teto. O
+  // percentual escrito continua sendo do total, então nada mente.
+  const dominante = topo[0].totalCents / totalCents > DOMINANCIA
+  const escala = dominante ? escalaRobusta(topo.map((c) => c.totalCents)) : null
+  const largura = (c: CategoriaResumo) => escala
+    ? alturaPct(c.totalCents, escala)
+    : Math.min((c.totalCents / totalCents) * 100, 100)
+
   return (
     <div>
       <div className="mb-5">
         <p className="rotulo">{t('dash.porCategoria')}</p>
-        <p className="mt-1 text-xs text-tinta-fraca">{t('grafico.categoriasDescricao')}</p>
+        <p className="mt-1 text-xs text-tinta-fraca">
+          {dominante
+            ? t('grafico.categoriasDominante', {
+                categoria: nomeCategoria(topo[0].cat),
+                pct: Math.round((topo[0].totalCents / totalCents) * 100),
+              })
+            : t('grafico.categoriasDescricao')}
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-6">
-      <div className="relative shrink-0">
+      {!dominante && <div className="relative shrink-0">
         <svg
           viewBox="0 0 130 130"
           className="h-40 w-40 -rotate-90"
@@ -130,7 +156,7 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir }: Props) {
             </p>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* A lista É a legenda, e é obrigatória — ver o comentário do topo. */}
       <ul className="min-w-0 basis-64 flex-1 space-y-2">
@@ -166,19 +192,40 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir }: Props) {
               </span>
               </span>
             </button>
-            <div aria-hidden className="ml-9 mr-12 h-1 overflow-hidden rounded-full bg-afundado">
+            <div aria-hidden className={`ml-9 mr-12 ${dominante ? 'h-2' : 'h-1'} overflow-hidden rounded-full bg-afundado`}>
               <motion.span
-                className="block h-full rounded-full"
+                className="relative block h-full rounded-full"
                 style={{ backgroundColor: corCategoria(c.cat) }}
                 initial={semMovimento ? false : { width: 0 }}
-                animate={{ width: `${Math.min((c.totalCents / totalCents) * 100, 100)}%` }}
+                animate={{ width: `${largura(c)}%` }}
                 transition={{ duration: 0.55, delay: 0.1 + i * 0.04, ease: suave }}
-              />
+              >
+                {escala && c.totalCents > escala.teto && (
+                  // Serrilha na ponta: a barra continua fora do desenho, a
+                  // mesma convenção do eixo quebrado do ritmo diário.
+                  <span
+                    data-cortada
+                    className="absolute inset-y-0 right-0 w-2"
+                    style={{
+                      backgroundImage:
+                        'repeating-linear-gradient(45deg, var(--color-carvao-900) 0 2px, transparent 2px 4px)',
+                    }}
+                  />
+                )}
+              </motion.span>
             </div>
           </motion.li>
         ))}
       </ul>
     </div>
+      {escala && escala.cortados > 0 && (
+        <p className="tabular mt-3 text-[10px] text-tinta-tenue">
+          {t('diario.escala', { teto: formatBRL(escala.teto) })} ·{' '}
+          {t(escala.cortados === 1 ? 'grafico.categoriaAcima1' : 'grafico.categoriasAcima', {
+            n: escala.cortados,
+          })}
+        </p>
+      )}
     </div>
   )
 }

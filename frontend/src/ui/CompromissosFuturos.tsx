@@ -6,6 +6,7 @@ import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import type { MesFuturo } from '../domain/agrupar'
 import { useDinheiro } from '../dados/DiscretoProvider'
+import { agruparMesesIguais } from './compromissos-agrupados'
 
 type Props = {
   meses: MesFuturo[]
@@ -53,19 +54,30 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
       </div>
 
       <ul className="divide-y divide-carvao-800">
-        {meses.map((m) => {
-          const open = aberto === m.competencia
+        {agruparMesesIguais(meses).map((g) => {
+          // O gráfico ao lado abre um MÊS; o grupo abre se o mês está nele.
+          const open = g.meses.some((m) => m.competencia === aberto)
+          const varios = g.meses.length > 1
+          const porMes = g.meses[0].totalCents
           return (
-            <li key={m.competencia}>
+            <li key={g.inicio}>
               <button
-                onClick={() => onAlternar(open ? null : m.competencia)}
+                onClick={() => onAlternar(open ? null : g.inicio)}
                 className="flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-carvao-850"
+                aria-label={varios ? t('comp.grupoRotulo', {
+                  inicio: rotuloMes(g.inicio), fim: rotuloMes(g.fim), n: g.meses.length, valor: formatBRL(porMes),
+                }) : undefined}
               >
                 <span className="min-w-0 flex-1 truncate text-sm capitalize text-tinta">
-                  {rotuloMes(m.competencia)}
+                  {varios ? `${rotuloMes(g.inicio)} – ${rotuloMes(g.fim)}` : rotuloMes(g.inicio)}
                 </span>
-                <span className="tabular text-[11px] text-tinta-tenue">{m.itens.length}×</span>
-                <span className="tabular text-sm text-tinta">{formatBRL(m.totalCents)}</span>
+                <span className="tabular text-[11px] text-tinta-tenue">
+                  {varios ? t('comp.nMeses', { n: g.meses.length }) : `${g.itens.length}×`}
+                </span>
+                <span className="tabular text-sm text-tinta">
+                  {formatBRL(porMes)}
+                  {varios && <span className="text-[11px] text-tinta-tenue">{t('comp.porMes')}</span>}
+                </span>
                 <motion.span animate={{ rotate: open ? 90 : 0 }} className="text-tinta-tenue" aria-hidden>
                   ›
                 </motion.span>
@@ -79,7 +91,7 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
                     transition={{ duration: 0.22 }}
                     className="overflow-hidden bg-carvao-950/40 px-5 py-1"
                   >
-                    {m.itens.map((it, i) => (
+                    {g.itens.map((it, i) => (
                       <li key={i} className="flex items-center gap-3 py-1.5 text-sm">
                         {/* Mesmo ponto colorido do filtro e do gráfico ao
                             lado: de qual cartão é esta parcela. */}
@@ -89,7 +101,7 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
                           style={{ background: (BANCOS[it.bank as Bank] ?? BANCOS.desconhecido).accent }}
                         />
                         <span className="tabular shrink-0 rounded-sm bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">
-                          {it.parcela}/{it.total}
+                          {it.de === it.ate ? it.de : `${it.de}–${it.ate}`}/{it.total}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-tinta-fraca">{it.descricao}</span>
                         <span className="tabular shrink-0 text-tinta">{formatBRL(it.amountCents)}</span>

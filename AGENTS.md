@@ -55,7 +55,7 @@ um deploy exige *Instant Rollback* no painel.
 | `paginas/` | As oito telas **roteadas e autenticadas**. |
 | `ui/acesso/` | As telas de **anônimo** (entrar, criar conta, recuperar, confirmar) e o que só elas usam — inclusive o `FundoAcesso`, a atmosfera em camada `fixed`. |
 | `ui/graficos/` | Os quatro gráficos e a escala robusta de barras. |
-| `ui/listas/` | Quem desenha linhas sobre transações: os dois rankings e as três listas. |
+| `ui/listas/` | Quem desenha linhas sobre transações: o ranking único (`RankingGastos`, com as duas visões) e as três listas. |
 | `ui/` (raiz) | O que não pertence a um grupo só — primitivos (`Portal`, `ValorAnimado`), marca (`Marca`, `MoedaLogo`), casco (`Cabecalho`, `Rodape`) e peças usadas por mais de um grupo (`MarcaCategoria`, `CarimboConferencia`). |
 | `lib/` | Cliente do Neon, perfil, erros, PDF de relatório e utilidades de plataforma. |
 | `i18n/`, `navegacao/` | Dicionários (pt, en, es) e rotas. `navegacao/` tem **duas** navegações sobre a mesma `ROTAS`: `NavLateral` (a calha, `lg`+) e `NavPrincipal` (a barra horizontal, abaixo de `lg`). |
