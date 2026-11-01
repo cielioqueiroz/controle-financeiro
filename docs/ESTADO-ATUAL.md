@@ -1,5 +1,20 @@
 # Estado atual do projeto — retomada
 
+## Mapa do que falta importar — 2026-10-30
+
+- Em `feat/mapa-cobertura`, a partir da `main` (`1c58b36`) com o commit de
+  dependências do PR #39. É o item 2.1 da auditoria das somas de 30/10.
+- `coberturaDocumentos` monta a grade fonte (banco + tipo de documento) ×
+  competência (mês do fim do período) dos últimos 12 meses. Cada célula está
+  importada, faltando, em curso ou antes da primeira importação da fonte. O
+  mês corrente nunca "falta": o extrato dele pode nem existir ainda, que é o
+  caso do relatório de 30/10.
+- A página Faturas abre com "O que falta importar": a grade, a legenda e o
+  número de documentos faltando nos meses já fechados. A grade rola dentro do
+  cartão em telas estreitas; a página não.
+- Limite conhecido: uma conta encerrada aparece faltando até sair da janela,
+  porque o histórico não sabe que ela fechou. Sem migração.
+
 ## Quitação sem fatura avisada na Procedência — 2026-10-30
 
 - Em `fix/quitacao-sem-fatura`, a partir da `main` (`1c58b36`) com o commit

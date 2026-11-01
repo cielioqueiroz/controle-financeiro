@@ -24,6 +24,7 @@ import { diagnosticar } from './domain/diagnosticos'
 import { NavLateral } from './navegacao/NavLateral'
 import { CarimboConferencia } from './ui/CarimboConferencia'
 import { Procedencia } from './ui/Procedencia'
+import { CoberturaDocumentos } from './ui/CoberturaDocumentos'
 import { Painel } from './paginas/Painel'
 import { Relatorios } from './paginas/Relatorios'
 import { SituacaoFinanceira } from './paginas/SituacaoFinanceira'
@@ -279,6 +280,27 @@ export function Folha() {
           ]}
           periodo="jul 2026"
         />
+      </Secao>
+
+      {/* Os quatro estados de uma vez: um mês faltando no meio, o extrato do
+          mês em curso e uma conta que começou depois das outras. */}
+      <Secao titulo="cobertura">
+        <div className="cartao">
+          <CoberturaDocumentos
+            documentos={[
+              { bank: 'nubank', doc_type: 'fatura', period_end: '2026-05-10' },
+              { bank: 'nubank', doc_type: 'fatura', period_end: '2026-07-10' },
+              { bank: 'nubank', doc_type: 'fatura', period_end: '2026-08-10' },
+              { bank: 'bradesco', doc_type: 'fatura', period_end: '2026-09-10' },
+              { bank: 'bradesco', doc_type: 'fatura', period_end: '2026-10-10' },
+              { bank: 'bradesco', doc_type: 'extrato', period_end: '2026-05-31' },
+              { bank: 'bradesco', doc_type: 'extrato', period_end: '2026-06-30' },
+              { bank: 'bradesco', doc_type: 'extrato', period_end: '2026-07-31' },
+              { bank: 'bradesco', doc_type: 'extrato', period_end: '2026-08-31' },
+              { bank: 'bradesco', doc_type: 'extrato', period_end: '2026-09-30' },
+            ]}
+          />
+        </div>
       </Secao>
 
       <Secao titulo="saldos">
