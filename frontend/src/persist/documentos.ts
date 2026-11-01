@@ -1,6 +1,7 @@
 import { obterNeon } from '../lib/neon'
 import type { DocParaSaldo } from '../domain/saldos'
 import type { DocParaAberto } from '../domain/aberto'
+import type { DocParaQuitacao } from '../domain/link/quitacao-parcial'
 import { lerConferenciaSalva, type ConferenciaSalva } from '../domain/validate/conferencia-salva'
 
 export type DocumentoSalvo = {
@@ -31,8 +32,9 @@ export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
 }
 
 /** Uma linha de `documents` com tudo que o painel deriva dela: o saldo final
- *  do extrato (`saldos.ts`) e o saldo em aberto da fatura (`aberto.ts`). */
-export type DocDoPainel = DocParaSaldo & DocParaAberto
+ *  do extrato (`saldos.ts`), o saldo em aberto da fatura (`aberto.ts`) e o
+ *  total que a quitação precisa alcançar (`quitacao-parcial.ts`). */
+export type DocDoPainel = DocParaSaldo & DocParaAberto & DocParaQuitacao
 
 /** Documentos que sustentam saldos e valores em aberto. Falhas sobem ao
  * provider, que pode mostrar o histórico e avisar que esta parte falhou. */
@@ -42,7 +44,7 @@ export async function puxarSaldos(): Promise<DocDoPainel[]> {
   const { data, error } = await neon
       .from('documents')
       .select(
-        'id, bank, account_id, doc_type, period_end, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
+        'id, bank, account_id, doc_type, period_end, declared_total, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
       )
   if (error) throw error
   return (data ?? []) as DocDoPainel[]

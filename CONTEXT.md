@@ -145,6 +145,31 @@ A projeção das parcelas que ainda vão cair, mês a mês. Nunca é salvo no ba
 sempre cálculo, feito a partir da parcela mais recente conhecida de cada série.
 _Evitar_: previsão, agendado, conta a pagar
 
+**Comprometimento de renda**:
+Quanto das entradas do recorte foi para parcelas e dívidas: (parcelas +
+dívidas) ÷ entradas. Mede o que já saiu, no mesmo recorte das entradas; a
+dívida que vem com número de parcela conta uma vez só. As faixas (até 30%,
+até 40%, acima) são referência de educação financeira, **não norma do Banco
+Central**, e a tela diz isso. Sem entradas não há fração.
+_Em código_: `comprometimentoDeRenda` (`domain/comprometimento.ts`)
+_Evitar_: endividamento (é o estoque da dívida, não a parcela do mês), consumo da renda
+
+**Fatura paga a menor**:
+Fatura cujo pagamento encontrado nos documentos ficou abaixo do "Total a
+pagar"; a diferença vai para o rotativo. O pagamento vem do registro na fatura
+seguinte do mesmo cartão ou, sem ele, do extrato, com a mesma unicidade da
+quitação. Sem pagamento nenhum, o app cala: não sabe se a conta que pagou foi
+importada.
+_Em código_: `faturasPagasAMenor` (`domain/link/quitacao-parcial.ts`)
+_Evitar_: inadimplência, pagamento mínimo (o valor pode estar acima dele)
+
+**Juros de atraso**:
+O **encargo** que só existe porque uma conta não foi paga inteira até o
+vencimento: juros e IOF do rotativo, juros do cheque especial, mora e multa.
+Continua em `taxas`; o diagnóstico próprio só o separa do "taxas altas".
+_Em código_: tipo `juros-atraso` em `diagnosticar`
+_Evitar_: taxas (sozinho), tarifa
+
 **Estabelecimento**:
 Quem recebeu o dinheiro, reduzido a uma chave estável a partir da descrição do
 banco — sem prefixo de adquirente, sem cidade, sem parcela.

@@ -1,5 +1,29 @@
 # Estado atual do projeto — retomada
 
+## Alertas que o documento já permite — 2026-11-01
+
+- Em `feat/alertas-documento`, a partir de `feat/categoria-dividas` (PR #41),
+  porque o comprometimento usa a categoria `dividas`. Item 2.3 da auditoria
+  das somas de 30/10. Entra depois do #41.
+- **Fatura paga a menor** (`domain/link/quitacao-parcial.ts`): a fatura com
+  "Total a pagar" cujo pagamento encontrado ficou abaixo dele. Primeiro lê o
+  pagamento registrado na fatura seguinte do mesmo cartão; sem ele, o extrato,
+  com a unicidade da 0009 (um pagamento na janela de duas faturas em aberto
+  não é de nenhuma) e só se o extrato cobre o vencimento. Janela de 15 dias
+  antes do vencimento e 7 depois. Sem pagamento nenhum, cala. Nada é gravado.
+- Para isso `puxarSaldos` passa a ler `declared_total` (coluna que já existe,
+  sem migração).
+- **Juros de atraso:** diagnóstico `juros-atraso`, separado de "taxas altas",
+  sem limiar. Pede cobrança (juros, multa, IOF, encargo) e motivo (rotativo,
+  mora, atraso, cheque especial) em palavra inteira; "multa" sozinha só vale
+  dentro da fatura. "Juros" sem qualificativo não acusa.
+- **Comprometimento de renda** (`domain/comprometimento.ts`): (parcelas +
+  dívidas) ÷ entradas do mesmo recorte, só em Mês e Ano e só com parcela ou
+  dívida no recorte. Até 30% vai para as leituras como positivo; acima, para
+  "Pontos de atenção". O texto diz que a faixa não é norma do Banco Central.
+- Demo: `?tela=painel&amostra=alertas&ref=2026-07-15&p=mes`, e duas jornadas
+  novas nos medidores (`alertas-painel` e a clara).
+
 ## Gasto real em consumo e dívidas — 2026-10-30
 
 - Em `feat/categoria-dividas`, a partir da `main` (`1c58b36`) com o commit

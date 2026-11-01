@@ -13,7 +13,7 @@ import { useDinheiro } from '../dados/DiscretoProvider'
 type Props = {
   itens: Diagnostico[]
   /** Abre os lançamentos sem categoria na lista. Só o diagnóstico de
-   *  "Outros" é acionável: os outros dois descrevem um fato do mês, e um
+   *  "Outros" é acionável: os outros descrevem um fato do mês, e um
    *  botão que não leva a lugar nenhum ensina a não clicar. */
   onVerSemCategoria?: () => void
 }
@@ -61,8 +61,9 @@ function frase(
   t: ReturnType<typeof useT>['t'],
   dinheiro: (cents: number) => string,
 ): string {
-  const pct = Math.round(d.pct * 100)
   const valor = dinheiro(d.totalCents)
+  if (d.tipo === 'juros-atraso') return t('diag.jurosAtraso', { valor })
+  const pct = Math.round(d.pct * 100)
   if (d.tipo === 'muito-em-outros') return t('diag.outros', { pct, valor })
   if (d.tipo === 'concentracao') return t('diag.concentracao', { rotulo: d.rotulo, pct, valor })
   return t('diag.taxas', { pct, valor })

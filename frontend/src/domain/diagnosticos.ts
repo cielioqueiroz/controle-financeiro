@@ -1,5 +1,6 @@
 import { ehDivida } from './categorize/categorias'
 import { normalizeMerchant } from './normalize/merchant'
+import { normalizar } from './consulta'
 
 /** Diagnósticos do recorte: o que o histórico já importado denuncia sozinho.
  *
@@ -18,12 +19,15 @@ export type TxDiagnosticavel = {
   category_slug: string | null
   description: string
   label: string | null
+  /** Só a multa precisa dele: ver `ehJurosDeAtraso`. */
+  doc_type?: string
 }
 
 export type Diagnostico =
   | { tipo: 'muito-em-outros'; pct: number; totalCents: number }
   | { tipo: 'concentracao'; rotulo: string; pct: number; totalCents: number }
   | { tipo: 'taxas-altas'; pct: number; totalCents: number }
+  | { tipo: 'juros-atraso'; totalCents: number; contagem: number }
 
 /** Todo limiar tem DUAS condições, percentual e absoluta, e as duas juntas.
  *
@@ -52,6 +56,21 @@ const LIMIARES = {
  *  parcela de R$ 41 mil seria a concentração de todo mês e reduziria a
  *  fatia das taxas a nada. Os diagnósticos falam do CONSUMO. */
 const ehConsumo = (t: TxDiagnosticavel) => t.kind === 'expense' && !ehDivida(t.category_slug)
+
+/** Juros e multa que só existem porque uma conta não foi paga inteira:
+ *  rotativo do cartão, cheque especial, mora e atraso.
+ *
+ *  Pede as duas metades: a cobrança (juros, multa, IOF, encargo) e o motivo.
+ *  "Juros de parcelamento" e "IOF de compra internacional" têm a primeira e
+ *  não a segunda. A multa sozinha só vale dentro da fatura: no extrato pode
+ *  ser a de trânsito. Palavra inteira sempre, que "MORA" casa em "AMORA" e
+ *  "MORADA" — a lição do `TIM` dentro de "EMPRESTIMO". */
+function ehJurosDeAtraso(t: TxDiagnosticavel): boolean {
+  const d = normalizar(t.description)
+  const motivo = /\b(rotativo|mora|atraso)\b|cheque especial/.test(d)
+    || (t.doc_type === 'fatura' && /\bmulta\b/.test(d))
+  return motivo && /\b(juros|multa|iof|encargos?)\b/.test(d)
+}
 
 export function diagnosticar(txs: TxDiagnosticavel[]): Diagnostico[] {
   const gastos = txs.filter(ehConsumo)
@@ -107,6 +126,19 @@ export function diagnosticar(txs: TxDiagnosticavel[]): Diagnostico[] {
     .reduce((a, t) => a + t.amount_cents, 0)
   if (passa(taxasCents, LIMIARES.taxas)) {
     achados.push({ tipo: 'taxas-altas', pct: taxasCents / totalCents, totalCents: taxasCents })
+  }
+
+  // 4. Juros e multa de atraso. Sem limiar: R$ 2 de juros de rotativo já
+  //    dizem que uma fatura ficou sem pagar inteira, e é esse o fato. O
+  //    estorno abate, para que juros devolvidos no mesmo mês não acusem.
+  const atraso = gastos.filter(ehJurosDeAtraso)
+  const atrasoCents = atraso.reduce((a, t) => a + t.amount_cents, 0)
+  if (atrasoCents > 0) {
+    achados.push({
+      tipo: 'juros-atraso',
+      totalCents: atrasoCents,
+      contagem: atraso.filter((t) => t.amount_cents > 0).length,
+    })
   }
 
   // Pelo tamanho do problema em dinheiro: o que move mais real primeiro.

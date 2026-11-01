@@ -16,6 +16,9 @@ import { TransacoesDoMes } from '../ui/TransacoesDoMes'
 import { saldosPorConta } from '../domain/saldos'
 import { faturasAbertas } from '../domain/aberto'
 import { ehDivida, nomeCategoria } from '../domain/categorize/categorias'
+import { comprometimentoDeRenda } from '../domain/comprometimento'
+import { faturasPagasAMenor } from '../domain/link/quitacao-parcial'
+import { temaDoBanco } from '../domain/banks'
 import { dataLongaDe } from '../domain/normalize/data'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { useDados } from '../dados/DadosProvider'
@@ -77,7 +80,7 @@ export function Painel({ onAprendeu }: Props) {
   const { t } = useT()
   const dinheiro = useDinheiro()
   const navigate = useNavigate()
-  const { docsSaldo, recarregar, aplicarEdicao } = useDados()
+  const { todas, docsSaldo, recarregar, aplicarEdicao } = useDados()
   const { txs, resumo, variacao, visiveis, filtros, setFiltros, compAtiva, carregando, erro, vazio } =
     useRecorte()
   const [editando, setEditando] = useState<TransacaoSalva | null>(null)
@@ -94,6 +97,22 @@ export function Painel({ onAprendeu }: Props) {
   const diagnosticos = useMemo(() => diagnosticar(txs), [txs])
   const serie = useMemo(() => (visiveis ? evolucaoMensal(visiveis) : []), [visiveis])
   const futuros = useMemo(() => (visiveis ? projecaoFutura(visiveis) : []), [visiveis])
+
+  /** Comprometimento e fatura paga a menor são perguntas de mês: numa
+   *  semana, o salário ter caído ou não decide a fração inteira, e a fatura
+   *  vence uma vez por mês. */
+  const porMes = filtros.periodo === 'mes' || filtros.periodo === 'ano'
+  const comprometimento = useMemo(() => (porMes ? comprometimentoDeRenda(txs) : null), [porMes, txs])
+  // O histórico INTEIRO, e não o do banco escolhido: a fatura do Nubank pode
+  // ter sido paga pela conta do Bradesco. O filtro de banco vale para a
+  // fatura acusada, não para o pagamento.
+  const pagasAMenor = useMemo(() => {
+    if (!porMes || !todas) return []
+    const ref = isoLocal(filtros.ref)
+    return faturasPagasAMenor(todas, docsSaldo).filter((f) =>
+      (filtros.banco === 'geral' || f.bank === filtros.banco)
+      && (filtros.periodo === 'mes' ? f.competencia === ref.slice(0, 7) : f.competencia.startsWith(ref.slice(0, 4))))
+  }, [porMes, todas, docsSaldo, filtros.banco, filtros.periodo, filtros.ref])
 
   /** O ritmo diário desenha o MÊS quando o recorte é Dia ou Semana.
    *
@@ -128,6 +147,46 @@ export function Painel({ onAprendeu }: Props) {
     const maiorCategoria = resumo.porCategoria.find((c) => !ehDivida(c.cat.slug))
     const maiorEstabelecimento = estabelecimentos[0]
     const itens: LeituraFinanceira[] = []
+
+    for (const f of pagasAMenor) {
+      const [ano, mes, dia] = f.vencimento.split('-').map(Number)
+      itens.push({
+        id: `paga-a-menor-${f.faturaId}`,
+        titulo: t('leituras.pagaAMenor'),
+        texto: t('leituras.pagaAMenorTexto', {
+          banco: temaDoBanco(f.bank).nome,
+          vencimento: dataLongaDe(new Date(ano, mes - 1, dia)),
+          total: dinheiro(f.totalCents),
+          pago: dinheiro(f.pagoCents),
+          restante: dinheiro(f.restanteCents),
+        }),
+        tom: 'alerta',
+        rotuloAcao: t('leituras.verFaturas'),
+        onAbrir: () => navigate('/faturas'),
+      })
+    }
+
+    // Só com parcela ou dívida no recorte: "0% comprometido" num mês sem
+    // nenhuma das duas é verdade que não informa nada.
+    if (comprometimento && comprometimento.parcelasCents + comprometimento.dividasCents > 0) {
+      const faixa = {
+        saudavel: t('leituras.faixaSaudavel'),
+        atencao: t('leituras.faixaAtencao'),
+        elevado: t('leituras.faixaElevado'),
+      }[comprometimento.faixa]
+      itens.push({
+        id: 'comprometimento',
+        titulo: t('leituras.comprometimento'),
+        texto: `${t('leituras.comprometimentoTexto', {
+          parcelas: dinheiro(comprometimento.parcelasCents),
+          dividas: dinheiro(comprometimento.dividasCents),
+          pct: Math.round(comprometimento.pct * 100),
+          entradas: dinheiro(comprometimento.entradasCents),
+          faixa,
+        })} ${t('leituras.comprometimentoNota')}`,
+        tom: comprometimento.faixa === 'saudavel' ? 'positivo' : 'alerta',
+      })
+    }
 
     if (maiorCategoria && resumo.consumoCents > 0) {
       itens.push({

@@ -113,6 +113,64 @@ describe('diagnosticar', () => {
     })
   })
 
+  // Auditoria de 30/10, item 2.3: juros de rotativo e multa de atraso só
+  // existem quando uma conta não foi paga inteira. É outro fato que "taxas
+  // altas", e por isso outro aviso.
+  describe('juros e multa de atraso', () => {
+    const naFatura = (amount_cents: number, description: string): TxDiagnosticavel => ({
+      ...tx(amount_cents, 'taxas', description),
+      doc_type: 'fatura',
+    })
+
+    it('acusa juros de rotativo, de mora e multa de atraso, somados', () => {
+      const d = diagnosticar([
+        ...saudavel,
+        naFatura(48_90, 'Juros de rotativo'),
+        naFatura(12_30, 'IOF de rotativo'),
+        naFatura(7_15, 'JUROS DE MORA'),
+        naFatura(5_00, 'Multa por atraso'),
+      ])
+      expect(d.find((x) => x.tipo === 'juros-atraso')).toEqual({
+        tipo: 'juros-atraso', totalCents: 73_35, contagem: 4,
+      })
+    })
+
+    // O piso que os outros diagnósticos têm não vale aqui: R$ 2 de juros de
+    // rotativo já dizem que uma fatura não foi paga inteira.
+    it('acusa mesmo valor pequeno', () => {
+      expect(tipos([...saudavel, naFatura(2_00, 'ENCARGOS ROTATIVO')])).toContain('juros-atraso')
+    })
+
+    it('acusa os juros do cheque especial', () => {
+      expect(tipos([...saudavel, { ...tx(31_00, 'taxas', 'JUROS CHEQUE ESPECIAL'), doc_type: 'extrato' }]))
+        .toContain('juros-atraso')
+    })
+
+    // Na fatura, "Multa" sozinha só pode ser do atraso. No extrato pode ser
+    // a de trânsito, paga pelo próprio titular.
+    it('multa sem qualificativo só conta dentro da fatura', () => {
+      expect(tipos([...saudavel, naFatura(10_00, 'Multa')])).toContain('juros-atraso')
+      expect(tipos([...saudavel, { ...tx(130_00, 'impostos', 'PAGTO MULTA DETRAN'), doc_type: 'extrato' }]))
+        .not.toContain('juros-atraso')
+    })
+
+    it('não confunde IOF de compra, juros de parcelamento ou palavra parecida', () => {
+      const d = tipos([
+        ...saudavel,
+        naFatura(3_50, 'IOF de compra internacional'),
+        naFatura(20_00, 'Juros de parcelamento'),
+        tx(40_00, 'restaurante', 'AMORA DOCES'),
+        tx(40_00, 'casa', 'MORADA NOVA MATERIAIS'),
+      ])
+      expect(d).not.toContain('juros-atraso')
+    })
+
+    it('estorno de juros não acusa', () => {
+      expect(tipos([...saudavel, { ...naFatura(-48_90, 'Estorno juros de rotativo'), kind: 'income' }]))
+        .not.toContain('juros-atraso')
+    })
+  })
+
   describe('o que NÃO entra na conta', () => {
     it('vínculo não é gasto e não pode disparar concentração', () => {
       // A quitação da fatura é o maior valor do mês, todo mês. Se contasse,
