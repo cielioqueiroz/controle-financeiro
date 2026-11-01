@@ -103,7 +103,7 @@ export function GraficoDiario({ dias, onSelecionar, destaque, contexto }: Props)
           mouse entra. Fora do foco, mostra o dia de maior saída — o que
           alguém procuraria primeiro num gráfico de picos. */}
       <div className="mb-2 flex h-9 items-center gap-4 rounded-sm bg-afundado px-3">
-        <span className="rotulo !text-[10px]">{rotuloDia(emLeitura.dia)}</span>
+        <span className="rotulo">{rotuloDia(emLeitura.dia)}</span>
         <span className="tabular text-xs text-debito">
           −{formatBRL(emLeitura.gastoCents).replace('R$', '').trim()}
         </span>

@@ -116,7 +116,7 @@ export function ResultadoImport({
               decisão é tomada — quem vai clicar "salvar" pela terceira vez
               precisa saber que faltam duas. */}
           {progresso && progresso.total > 1 && (
-            <span className="tabular text-[11px] uppercase tracking-widest text-tinta-tenue">
+            <span className="tabular text-xs uppercase tracking-widest text-tinta-tenue">
               {t('fila.progresso', { n: progresso.atual, total: progresso.total })}
             </span>
           )}

@@ -15,7 +15,7 @@ export function SeletorIdioma() {
           onClick={() => setIdioma(id)}
           aria-label={NOME[id]}
           aria-pressed={idioma === id}
-          className={`rounded-full px-2.5 py-1 text-[11px] uppercase tracking-wider transition-colors ${
+          className={`rounded-full px-2.5 py-1 text-xs uppercase tracking-wider transition-colors ${
             idioma === id ? 'bg-tinta text-carvao-950' : 'text-tinta-tenue hover:text-tinta'
           }`}
         >

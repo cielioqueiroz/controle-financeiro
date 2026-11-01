@@ -121,7 +121,7 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
             <h2 className="font-display text-2xl capitalize text-tinta">
               {rotuloPeriodo(filtros.periodo, filtros.ref)}
             </h2>
-            <p className="tabular mt-0.5 text-[10px] uppercase tracking-widest text-tinta-tenue">
+            <p className="tabular mt-0.5 text-xs uppercase tracking-widest text-tinta-tenue">
               {t(agrupamentoDe(filtros.periodo))}
             </p>
           </motion.div>

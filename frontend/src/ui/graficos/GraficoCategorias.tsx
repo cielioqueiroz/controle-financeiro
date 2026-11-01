@@ -124,7 +124,7 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir }: Props) {
             não herdaria os tokens. */}
         <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
           <div>
-            <p className="rotulo max-w-[7rem] truncate !text-[9px]">{rotuloCentro}</p>
+            <p className="rotulo max-w-[7rem] truncate">{rotuloCentro}</p>
             <p className="tabular mt-0.5 text-base font-semibold text-tinta">
               {formatBRL(valorCentro).replace('R$', '').trim()}
             </p>

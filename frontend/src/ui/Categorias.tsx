@@ -169,7 +169,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
 
       {erro ? <ErroCarregar mensagem={t(erro)} onTentar={carregar} /> : <div className="px-3 py-2">
             {/* Categorias padrão e personalizadas */}
-            <p className="px-3 pb-1 pt-2 text-[10px] uppercase tracking-widest text-tinta-tenue">
+            <p className="px-3 pb-1 pt-2 text-xs uppercase tracking-widest text-tinta-tenue">
               {t('cats.suas')}
             </p>
             <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)}
@@ -265,7 +265,7 @@ export function ConteudoCategorias({ onMudou, usoPorSlug }: Props) {
 
             {cats !== null && encontradas.length === 0 && <p role="status" className="px-3 py-6 text-center text-sm text-tinta-fraca">{t('cats.semResultado')}</p>}
             {/* Regras aprendidas */}
-            <p className="px-3 pb-1 pt-5 text-[10px] uppercase tracking-widest text-tinta-tenue">
+            <p className="px-3 pb-1 pt-5 text-xs uppercase tracking-widest text-tinta-tenue">
               {t('regrasOp.titulo')}
             </p>
             <p className="px-3 pb-2 text-[11px] text-tinta-tenue">{t('regrasOp.descricao')}</p>

@@ -329,7 +329,7 @@ export function Painel({ onAprendeu }: Props) {
 
       {/* Cabeçalho que só aparece no PDF impresso */}
       <div className="somente-impressao mb-6">
-        <p className="tabular text-[11px] uppercase tracking-[0.3em] text-tinta-tenue">
+        <p className="tabular text-xs uppercase tracking-[0.3em] text-tinta-tenue">
           Capital Financeiro
         </p>
         <h1 className="font-display text-3xl text-tinta">
@@ -517,7 +517,7 @@ export function Painel({ onAprendeu }: Props) {
                 143px e "R$ 4.180,00" quebrava no meio do número. */}
             {saldos.length > 0 && (
               <section aria-labelledby="contas-seu">
-                <p id="contas-seu" className="rotulo !text-[10px]">{t('contas.seu')}</p>
+                <p id="contas-seu" className="rotulo">{t('contas.seu')}</p>
                 <div className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
                   {saldos.map((s) => (
                     <SaldoConta
@@ -532,7 +532,7 @@ export function Painel({ onAprendeu }: Props) {
             )}
             {abertos.length > 0 && (
               <section aria-labelledby="contas-deve">
-                <p id="contas-deve" className="rotulo !text-[10px]">{t('contas.deve')}</p>
+                <p id="contas-deve" className="rotulo">{t('contas.deve')}</p>
                 <div className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
                   {abertos.map((a) => (
                     <SaldoAberto
@@ -623,7 +623,7 @@ function Tile({
 }) {
   return (
     <div className="bg-carvao-900 px-6 py-5">
-      <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">{rotulo}</p>
+      <p className="tabular text-xs uppercase tracking-widest text-tinta-tenue">{rotulo}</p>
       <p
         className={`tabular mt-1.5 ${destaque ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'} text-tinta`}
         style={cor ? { color: cor } : undefined}

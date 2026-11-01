@@ -47,7 +47,7 @@ export function LeiturasFinanceiras({ itens, semCabecalho = false, titulo }: Pro
         {itens.map((item, index) => {
           const conteudo = (
             <>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-tinta-tenue">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-tinta-tenue">
                 {item.titulo}
               </p>
               <p className="mt-2 text-[13px] leading-relaxed text-tinta-fraca">{item.texto}</p>

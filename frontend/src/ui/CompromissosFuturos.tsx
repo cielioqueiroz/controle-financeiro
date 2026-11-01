@@ -39,7 +39,7 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
     <div className="screen-only min-w-0 cartao">
       <div className="flex items-baseline justify-between border-b border-carvao-800 px-5 py-4">
         <div>
-          <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
+          <p className="rotulo">
             {t('comp.titulo')}
           </p>
           <p className="text-xs text-tinta-fraca">

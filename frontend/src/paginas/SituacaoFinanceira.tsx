@@ -246,28 +246,28 @@ export function SituacaoFinanceira() {
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {melhorMes && (
                 <article className="rounded-lg border border-carvao-700 bg-afundado p-4">
-                  <p className="rotulo !text-[10px]">{t('situacao.melhorMes')}</p>
+                  <p className="rotulo">{t('situacao.melhorMes')}</p>
                   <p className="mt-2 text-lg font-medium text-tinta">{rotuloMes(melhorMes.competencia)}</p>
                   <p className="mt-2 text-sm text-tinta-fraca">
                     {t('situacao.melhorMesTexto', { valor: dinheiro(resultado(melhorMes)) })}
                   </p>
                   <div className="mt-5 grid grid-cols-2 gap-3 border-t border-carvao-700 pt-4 sm:grid-cols-4">
                     <div>
-                      <p className="rotulo !text-[9px]">{t('situacao.receitas')}</p>
+                      <p className="rotulo">{t('situacao.receitas')}</p>
                       <p className="tabular mt-1 text-sm text-tinta">{dinheiro(melhorMes.entradasCents)}</p>
                     </div>
                     <div>
-                      <p className="rotulo !text-[9px]">{t('situacao.despesas')}</p>
+                      <p className="rotulo">{t('situacao.despesas')}</p>
                       <p className="tabular mt-1 text-sm text-tinta">{dinheiro(melhorMes.gastoCents)}</p>
                     </div>
                     <div>
-                      <p className="rotulo !text-[9px]">{t('situacao.economia')}</p>
+                      <p className="rotulo">{t('situacao.economia')}</p>
                       <p className={`tabular mt-1 text-sm ${resultado(melhorMes) >= 0 ? 'text-credito' : 'text-debito'}`}>
                         {dinheiro(resultado(melhorMes))}
                       </p>
                     </div>
                     <div>
-                      <p className="rotulo !text-[9px]">{t('situacao.taxaEconomia')}</p>
+                      <p className="rotulo">{t('situacao.taxaEconomia')}</p>
                       <p className={`tabular mt-1 text-sm ${resultado(melhorMes) >= 0 ? 'text-credito' : 'text-debito'}`}>
                         {melhorMes.entradasCents > 0
                           ? formatarPct(taxasFinanceiras(melhorMes.entradasCents, melhorMes.gastoCents).economiaPct!)
@@ -279,14 +279,14 @@ export function SituacaoFinanceira() {
               )}
               {piorMes && (
                 <article className="rounded-lg border border-carvao-700 bg-afundado p-4">
-                  <p className="rotulo !text-[10px]">{t('situacao.mesMaisCaro')}</p>
+                  <p className="rotulo">{t('situacao.mesMaisCaro')}</p>
                   <p className="mt-2 text-lg font-medium text-tinta">{rotuloMes(piorMes.competencia)}</p>
                   <p className="mt-2 text-sm text-tinta-fraca">
                     {t('situacao.mesMaisCaroTexto', { valor: dinheiro(piorMes.gastoCents) })}
                   </p>
                   {categoriasPiorMes.length > 0 && (
                     <div className="mt-5 border-t border-carvao-700 pt-4">
-                      <p className="rotulo !text-[9px]">{t('situacao.mesMaisCaroCategorias')}</p>
+                      <p className="rotulo">{t('situacao.mesMaisCaroCategorias')}</p>
                       <ul className="mt-3 space-y-2.5">
                         {categoriasPiorMes.map((item) => (
                           <li key={item.cat.slug} className="flex items-center gap-2 text-xs">
@@ -357,7 +357,7 @@ function ComparacaoCard({
   const variacao = pontosPercentuais && atual !== null && anterior !== null ? atual - anterior : fracao === null ? null : fracao * 100
   return (
     <article className="rounded-lg border border-carvao-700 bg-afundado p-4">
-      <p className="rotulo !text-[10px]">{titulo}</p>
+      <p className="rotulo">{titulo}</p>
       <p className="tabular mt-2 text-xl text-tinta">{mostrar(atual)}</p>
       <p className="mt-1 text-[11px] text-tinta-tenue">{mostrar(anterior)} {variacao === null ? '' : `· ${variacao >= 0 ? '+' : ''}${formatarDecimal(variacao)}${pontosPercentuais ? ` ${t('grafico.pontosPercentuais')}` : '%'}`}</p>
     </article>

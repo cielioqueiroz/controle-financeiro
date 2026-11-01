@@ -42,7 +42,7 @@ export function Folego({ saldos, abertos, txs }: Props) {
     <div className="grid gap-2 sm:grid-cols-2">
       {liquido && (
         <div className="rounded-xl border border-carvao-700 bg-afundado px-4 py-3">
-          <p className="text-[10px] uppercase tracking-widest text-tinta-tenue">{t('folego.liquido')}</p>
+          <p className="text-xs uppercase tracking-widest text-tinta-tenue">{t('folego.liquido')}</p>
           <p className={`tabular mt-1 text-lg ${liquido.liquidoCents < 0 ? 'text-falha' : 'text-tinta'}`}>
             {dinheiro(liquido.liquidoCents)}
           </p>
@@ -60,7 +60,7 @@ export function Folego({ saldos, abertos, txs }: Props) {
       )}
       {folego && (
         <div className="rounded-xl border border-carvao-700 bg-afundado px-4 py-3">
-          <p className="text-[10px] uppercase tracking-widest text-tinta-tenue">{t('folego.titulo')}</p>
+          <p className="text-xs uppercase tracking-widest text-tinta-tenue">{t('folego.titulo')}</p>
           <p className={`tabular mt-1 text-lg ${folego.dias === 0 ? 'text-falha' : 'text-tinta'}`}>
             {t(folego.dias === 1 ? 'folego.dia1' : 'folego.dias', { n: folego.dias })}
           </p>

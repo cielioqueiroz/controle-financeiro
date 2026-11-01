@@ -24,7 +24,7 @@ export function Rodape({ className = '' }: Props) {
     <footer className={`space-y-4 ${className}`.trim()}>
       <div className="screen-only flex items-center gap-3">
         <span className="h-px flex-1 bg-carvao-800" />
-        <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
+        <p className="tabular text-xs uppercase tracking-widest text-tinta-tenue">
           {t('rodape.lema')}
         </p>
         <span className="h-px flex-1 bg-carvao-800" />

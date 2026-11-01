@@ -62,7 +62,7 @@ export function Lancamentos({ onAprendeu }: Props) {
         ) : (
           <>
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-carvao-800 px-4 py-2 sm:px-5 sm:py-3">
-              <p className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">
+              <p className="tabular text-xs uppercase tracking-widest text-tinta-tenue">
                 {t('dash.lancamentos')}
               </p>
               <div className="flex gap-0.5 rounded-full border border-carvao-700 bg-carvao-900 p-0.5">

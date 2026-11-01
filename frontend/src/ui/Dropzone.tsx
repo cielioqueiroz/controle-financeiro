@@ -87,7 +87,7 @@ export function Dropzone({ onArquivos, ocupado }: Props) {
           </span>
           {/* Arrastar só é dica onde arrastar existe. */}
           {!ocupado && (
-            <span className="tabular hidden text-[11px] uppercase tracking-[0.2em] text-tinta-tenue sm:inline">
+            <span className="tabular hidden text-xs uppercase tracking-[0.2em] text-tinta-tenue sm:inline">
               {t('drop.ouArraste')}
             </span>
           )}

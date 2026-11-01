@@ -100,7 +100,7 @@ export function LinhaTransacao({ t, onEditar, onVerDocumento, semIcone, mostrarC
 export function CabecalhoLancamentos({ mostrarCategoria }: { mostrarCategoria?: boolean }) {
   const { t } = useT()
   return (
-    <div className="flex items-center gap-2 border-b border-carvao-800 bg-carvao-900 px-2 py-2 text-[10px] uppercase tracking-widest text-tinta-tenue sm:gap-3 sm:px-3">
+    <div className="flex items-center gap-2 border-b border-carvao-800 bg-carvao-900 px-2 py-2 text-xs uppercase tracking-widest text-tinta-tenue sm:gap-3 sm:px-3">
       <span className="w-11 shrink-0 sm:w-12">{t('lista.data')}</span>
       <span className="min-w-0 flex-1">{t('lista.descricao')}</span>
       {mostrarCategoria && <span className="hidden w-32 shrink-0 lg:block">{t('lista.categoria')}</span>}

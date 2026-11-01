@@ -300,7 +300,7 @@ export function Auth({ onAutenticado, tokenReset, onRecuperacaoConcluida }: Prop
 
           <div className="my-3 flex items-center gap-3">
             <span className="h-px flex-1 bg-carvao-800" />
-            <span className="tabular text-[10px] uppercase tracking-widest text-tinta-tenue">{t('auth.ou')}</span>
+            <span className="tabular text-xs uppercase tracking-widest text-tinta-tenue">{t('auth.ou')}</span>
             <span className="h-px flex-1 bg-carvao-800" />
           </div>
 

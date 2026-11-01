@@ -227,7 +227,7 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
                 {/* O cabeçalho do mês é `sticky`: numa lista longa, rolar
                     sem ele faz a pessoa perder de vista em que mês está —
                     que é justamente a queixa que originou o agrupamento. */}
-                <p className="tabular sticky top-0 z-10 bg-carvao-900 px-3 pt-3 pb-1 text-[10px] uppercase tracking-[0.2em] text-tinta-tenue first-letter:uppercase">
+                <p className="tabular sticky top-0 z-10 bg-carvao-900 px-3 pt-3 pb-1 text-xs uppercase tracking-[0.2em] text-tinta-tenue first-letter:uppercase">
                   {tituloCompetencia(comp, t('docs.semPeriodo'))}
                 </p>
                 <ul className="space-y-3 py-2">

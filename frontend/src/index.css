@@ -373,7 +373,6 @@ body {
   }
 
   .cartao .rotulo {
-    font-size: 0.75rem;
     line-height: 1.5;
     letter-spacing: 0.06em;
   }
@@ -411,7 +410,7 @@ body {
   /* Rótulo de coluna, no capricho de um cabeçalho de formulário bancário. */
   .rotulo {
     font-family: var(--font-condensada);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;

@@ -1,5 +1,28 @@
 # Estado atual do projeto — retomada
 
+## Rótulos em caixa-alta com piso de 12px — 2026-11-01
+
+- Em `feat/legibilidade`, a partir de `feat/dias-de-folego` (PR #48). Item
+  U2 da auditoria das somas de 30/10.
+- A `.rotulo` tinha 11px (12px dentro de cartão), e 18 usos a forçavam para
+  10px ou 9px com `!text-[10px]` e `!text-[9px]`. Outros 26 rótulos em
+  caixa-alta e cor tênue estavam escritos à mão com 9 a 11px. Agora todos
+  têm 12px: a `.rotulo` nasce com `0.75rem`, e os rótulos escritos à mão
+  usam `text-xs`.
+- `ui/legibilidade.test.ts` varre `ui/`, `paginas/` e `navegacao/` e
+  reprova `.rotulo` encolhida e caixa-alta abaixo de 12px. Cada tela nova
+  copiava o tamanho da vizinha; sem o teste, o piso voltaria.
+- Ajustes que o tamanho novo pediu: o dia das Recorrências passou de `w-11`
+  para `w-14` ("DIA 28" não cabia), e o título de Compromissos futuros usa a
+  `.rotulo` condensada, porque em mono com espaçamento máximo quebrava em
+  duas linhas em 375px.
+- Conferido em 375px contra o estado anterior: a folha de provas já rolava
+  13px de lado por causa do carimbo girado da conferência, e as quebras de
+  "Confere", "Próximas faturas" e do cabeçalho da lista também já
+  existiam. O medidor roda em 390px e não vê o carimbo.
+- Contraste: só o tamanho mudou, nenhuma cor. WCAG pede 4,5:1 para todo
+  texto abaixo de 18px, então subir de 10 para 12px não muda a régua.
+
 ## Dias de fôlego e o que é seu × o que você deve — 2026-11-01
 
 - Em `feat/dias-de-folego`, a partir de `feat/ajustes-pequenos` (PR #47).
