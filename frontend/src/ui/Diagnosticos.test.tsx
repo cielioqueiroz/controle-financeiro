@@ -38,6 +38,12 @@ describe('Diagnosticos', () => {
     expect(screen.getByText(/^31% do consumo/)).toBeInTheDocument()
   })
 
+  // Não tem percentual: o fato é a cobrança existir, não a fatia dela.
+  it('escreve os juros de atraso só com o valor', () => {
+    render(<Diagnosticos itens={[{ tipo: 'juros-atraso', totalCents: 4890, contagem: 1 }]} />)
+    expect(screen.getByText(/^R\$ 48,90 em juros e multa de atraso/)).toBeInTheDocument()
+  })
+
   it('desenha uma linha por achado', () => {
     render(<Diagnosticos itens={[outros, concentracao, taxas]} />)
     expect(screen.getAllByRole('listitem')).toHaveLength(3)

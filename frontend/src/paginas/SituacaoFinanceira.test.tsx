@@ -95,6 +95,7 @@ describe('Minha situação financeira — histórico por competência', () => {
         .map((mes, i) => tx(mes, `bra-${i}`, 'bradesco')),
     ])
     vi.mocked(puxarSaldos).mockResolvedValue(['nubank', 'bradesco'].map((bank, i) => ({
+      id: `doc-${i}`, declared_total: null,
       bank, account_id: `conta-${i}`, doc_type: 'extrato', period_end: '2026-07-31',
       end_balance_cents: i === 0 ? 12300 : 45600, total_open_balance: null,
       next_invoice_balance: null, next_close_date: null, future_installments_total: null,

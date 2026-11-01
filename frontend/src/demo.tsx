@@ -586,13 +586,24 @@ const historicoPrevia = amostraPrevia === "grande" ? Array.from({ length: 10000 
     tx({ date: `${competencia}-10`, competencia, document_id: `demo-${competencia}`, doc_type: 'extrato', amount_cents: 185000 }),
     tx({ date: `${competencia}-05`, competencia, document_id: `demo-${competencia}`, doc_type: 'extrato', description: 'SALARIO', kind: 'income', amount_cents: -300000 }),
   ]),
+  // Fatura do Nubank de R$ 2.000 paga com R$ 800 pelo Bradesco, e os juros
+  // de rotativo que isso traz: os alertas do item 2.3.
+  ...(amostraPrevia === 'alertas' ? [
+    tx({ date: '2026-07-09', description: 'Juros de rotativo', category_slug: 'taxas', amount_cents: 4890 }),
+    tx({ date: '2026-07-10', description: 'PAGTO FATURA NUBANK', kind: 'card_payment', category_slug: 'transferencia', amount_cents: 80000, bank: 'bradesco', doc_type: 'extrato', document_id: 'ext-alertas' }),
+  ] : []),
 ] : TUDO
 
 const saldosPrevia = amostraPrevia === 'saldo' ? [
   { id: 'doc-demo', account_id: 'conta-demo-1', bank: 'nubank', period_end: '2026-07-31', end_balance_cents: 125000 },
   { id: 'demo-2026-06', account_id: 'conta-demo-2', bank: 'bradesco', period_end: '2026-06-30', end_balance_cents: -2400000 },
   { id: 'demo-2026-05', account_id: 'conta-demo-3', bank: 'bb', period_end: '2026-05-31', end_balance_cents: 300334 },
-].map((doc) => ({ ...doc, doc_type: 'extrato', total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null })) : undefined
+].map((doc) => ({ ...doc, doc_type: 'extrato', declared_total: null, total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null }))
+  : amostraPrevia === 'alertas' ? [
+    { id: 'doc-demo', account_id: 'cartao-alertas', bank: 'nubank', doc_type: 'fatura', period_end: '2026-07-10', declared_total: 200000 },
+    { id: 'ext-alertas', account_id: 'conta-alertas', bank: 'bradesco', doc_type: 'extrato', period_end: '2026-07-31', declared_total: null },
+  ].map((doc) => ({ ...doc, end_balance_cents: null, total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null }))
+  : undefined
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
