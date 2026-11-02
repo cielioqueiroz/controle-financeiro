@@ -28,6 +28,7 @@ import { CoberturaDocumentos } from './ui/CoberturaDocumentos'
 import { Painel } from './paginas/Painel'
 import { Relatorios } from './paginas/Relatorios'
 import { SituacaoFinanceira } from './paginas/SituacaoFinanceira'
+import { Recorrencias } from './paginas/Recorrencias'
 import { CarregandoPainel } from './ui/CarregandoPainel'
 import { EstadoVazio } from './ui/EstadoVazio'
 import { ErroCarregar } from './ui/ErroCarregar'
@@ -444,6 +445,7 @@ function Previa() {
       <h1 className="mb-8 font-display text-2xl text-tinta">Capital Financeiro · dados fictícios</h1>
       {tela === 'painel' ? <Painel /> : tela === 'relatorios' ? <Relatorios />
         : tela === 'situacao' ? <SituacaoFinanceira />
+        : tela === 'recorrencias' ? <Recorrencias />
         : tela === 'conferencia' ? <PreviaConferencia />
         : tela === 'documentos' ? <PreviaDocumento />
         : tela === 'lancamentos' ? <Lancamentos /> : (

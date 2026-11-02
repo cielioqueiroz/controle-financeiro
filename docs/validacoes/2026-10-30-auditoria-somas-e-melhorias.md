@@ -189,6 +189,9 @@ novembro". O Monarch oferece um calendário de recorrências parecido
 ([Monarch](https://www.monarchmoney.com/whats-new/track-recurring-bills-and-subscriptions)).
 É projeção, nunca gravada, como o **Compromisso futuro**.
 
+> **Feito em `feat/calendario-proximo-mes`** (`domain/calendario.ts`, termo
+> **Calendário do próximo mês** no `CONTEXT.md`), na página de Recorrências.
+
 ### 2.7 Mais formatos de importação (opcional)
 
 OFX e CSV que o próprio banco exporta continuam sendo "documento do banco" e

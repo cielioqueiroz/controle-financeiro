@@ -178,6 +178,15 @@ A projeção das parcelas que ainda vão cair, mês a mês. Nunca é salvo no ba
 sempre cálculo, feito a partir da parcela mais recente conhecida de cada série.
 _Evitar_: previsão, agendado, conta a pagar
 
+**Calendário do próximo mês**:
+O que deve cair, dia a dia, no mês seguinte à competência mais recente com
+dado: as **recorrências** ativas no dia típico delas (de saída e de entrada)
+e as parcelas do **compromisso futuro**, somadas por cartão no dia de
+vencimento da última fatura dele. É projeção, nunca gravada. A régua é o
+histórico, não o relógio: quem importou até agosto vê setembro.
+_Em código_: `calendarioDoProximoMes` (`domain/calendario.ts`)
+_Evitar_: agenda (em código), previsão, contas a pagar
+
 **Comprometimento de renda**:
 Quanto das entradas do recorte foi para parcelas e dívidas: (parcelas +
 dívidas) ÷ entradas. Mede o que já saiu, no mesmo recorte das entradas; a

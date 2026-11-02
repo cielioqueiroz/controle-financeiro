@@ -125,6 +125,13 @@ JORNADAS = [
     ("painel-sem-atipicos-claro", "/demo.html?tela=painel&tema=claro",
      [("expandir", "Explorar o período"), ("clicar", "Sem atípicos")],
      [("ver-secao", "atipicos"), ("pressionado", "Sem atípicos")], 6),
+    # 2.6: o calendario do proximo mes, com as parcelas de um cartao abertas.
+    ("recorrencias-calendario", "/demo.html?tela=recorrencias",
+     [("expandir", "Parcelas na fatura Bradesco")],
+     [("ver-secao", "calendario"), ("ver-texto", "Nenhuma fatura deste cartão foi importada, então o vencimento é desconhecido.")], 6),
+    ("recorrencias-calendario-claro", "/demo.html?tela=recorrencias&tema=claro",
+     [("expandir", "Parcelas na fatura Bradesco")],
+     [("ver-secao", "calendario"), ("ver-texto", "Nenhuma fatura deste cartão foi importada, então o vencimento é desconhecido.")], 6),
     ("fluxo-destaque", "/demo.html?tela=painel",
      [("expandir", "Explorar o período"), ("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
     ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",

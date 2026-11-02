@@ -403,6 +403,16 @@ export const pt = {
 
   // Compromissos futuros
   'comp.titulo': 'Compromissos futuros',
+  'cal.titulo': 'O que deve cair em {mes}',
+  'cal.descricao': 'Projeção a partir do que já foi importado: recorrências no dia em que costumam cair e parcelas no vencimento da fatura do cartão. Nada aqui é gravado.',
+  'cal.sai': 'Deve sair',
+  'cal.entra': 'Deve entrar',
+  'cal.semDia': 'Sem dia',
+  'cal.semFatura': 'Nenhuma fatura deste cartão foi importada, então o vencimento é desconhecido.',
+  'cal.parcelas': 'Parcelas na fatura {banco}',
+  'cal.nParcelas1': '{n} parcela',
+  'cal.nParcelasN': '{n} parcelas',
+  'cal.variavel': 'Valor típico: varia de mês a mês.',
   'comp.aVencerSing': '{n} parcela a vencer',
   'comp.aVencerPlur': '{n} parcelas a vencer',
   'comp.somaVencer': 'soma a vencer',
