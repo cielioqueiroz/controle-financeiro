@@ -21,8 +21,8 @@
 - **Sincronizar exigiu tabela nossa.** `neon_auth.user` não tem campo livre
   e o Auth é gerenciado, então o apelido não cabe "na metadata do Auth" como
   a proposta dizia. Migração `0013_preferencias.sql`, ADR-0023, termo
-  **Preferências** no glossário. **Não aplicada**: sem ela o perfil grava no
-  aparelho e avisa "salvo só neste aparelho".
+  **Preferências** no glossário. Sem ela o perfil grava no aparelho e avisa
+  "salvo só neste aparelho".
 - No login, `SincronizarPreferencias` (no `App`) traz a conta, aplica no
   idioma, no tema e no discreto e passa a levar de volta qualquer mudança
   desses três, venha do perfil ou dos botões do cabeçalho. A primeira
@@ -40,7 +40,15 @@
   perfil quem muda o tema. `DiscretoProvider` ganhou `definir(b)`.
 - Folha de provas: `?tela=perfil`. Medidor: ação `aba`, prova `aba-ativa` e
   cinco jornadas `perfil-*`. Roteiro manual: §7.
-- Falta: aplicar a 0013 (pedido explícito) e rodar o §7 com conta de teste.
+- Mesclado como #57 (`a8e9efb`), com deploy de produção no ar. A 0013 foi
+  aplicada na produção a pedido do dono, como `neondb_owner`, numa transação.
+  Conferido depois: RLS ligado, `authenticated` com SELECT, INSERT, UPDATE e
+  DELETE, nenhum outro papel além do dono, duas políticas, zero linhas.
+- **A tabela nova não aparece na Data API até recarregar o cache de schema**
+  (armadilha nova no AGENTS.md §4.3). O recarregamento pela API do Neon foi
+  negado pelo modo automático, por mexer em recurso compartilhado; fica para
+  o dono, no console. Até lá o perfil segue em "salvo só neste aparelho".
+- Falta: recarregar o cache da Data API e rodar o §7 com conta de teste.
   Saber se o Neon liga o `deleteUser` só dá contra o servidor real.
 
 ## Calendário do próximo mês — 2026-11-02

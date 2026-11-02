@@ -15,7 +15,11 @@ no banco** é a fronteira de segurança (cada usuário só vê o que é dele).
 - Projeto Neon `controle-financeiro` (região São Paulo), Data API e Neon
   Auth ativos.
 - Schema e migrações até `0011` em [`backend/db/migrations/`](../backend/db/migrations/)
-  aplicados na produção, com RLS + policies por tabela.
+  aplicados na produção, com RLS + policies por tabela. A `0013`
+  (preferências) também, em 2026-11-02; a `0012` (dados) continua pendente.
+- Depois de criar tabela ou mudar coluna, **recarregar o cache de schema da
+  Data API** (*Console → Data API → Refresh schema cache*): sem isso a API
+  não enxerga a mudança.
 - Código usando `@neondatabase/neon-js` (cliente único: auth + queries).
 
 As migrações 0009–0011 desta branch foram aplicadas e ensaiadas pela Data API
