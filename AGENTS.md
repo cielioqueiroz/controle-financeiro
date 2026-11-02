@@ -182,7 +182,7 @@ gasto real e entradas. Aplicar como proprietário das tabelas, como a `0009`.
 ⚠️ **A migração `0013` cria a tabela `preferencias`, e o app NÃO depende
 dela.** Sem ela, o perfil grava no aparelho e diz "salvo só neste aparelho";
 com ela, apelido, cor, idioma, tema, discreto e período valem em todo
-aparelho. Aplicar não exige ordem com o frontend.
+aparelho. Aplicada na produção em 2026-11-02, depois do merge do #57.
 
 ⚠️ **Caixa aqui significa apenas GovConta comprovado.** Os fixtures cobrem duas
 numerações de conta e a continuação de período/layout testada; isso não autoriza
@@ -666,6 +666,16 @@ o que vale é a diferença entre dois builds medidos na mesma.
   tira** o que veio de graça — em tabela nova, `revoke` explicitamente o que
   não deve existir, e confira com
   `select privilege_type from information_schema.role_table_grants where table_name='…' and grantee='authenticated'`.
+- ⚠️ **Tabela nova é INVISÍVEL para a Data API até recarregar o cache.** A
+  Data API guarda o schema em cache, e criar tabela (ou mudar coluna) pelo
+  SQL não o invalida: a tabela existe no Postgres e a API responde como se
+  não existisse. Depois de aplicar migração que mexe em estrutura: *Console →
+  Postgres database → Data API → Refresh schema cache* (ou `neon data-api
+  refresh-schema --database neondb`). Pela API do Neon, o `PATCH` também
+  recarrega, mas um corpo com `settings` SUBSTITUI as configurações inteiras —
+  o que faltar volta ao padrão. Sem token, a Data API recusa antes de olhar a
+  tabela (400 "missing authentication credentials"), então uma sonda anônima
+  não diz se o cache já a enxerga. Apareceu com a `0013`, em 2026-11-02.
 - ⚠️ **O servidor do Neon Auth reflete QUALQUER `Origin` com
   `Access-Control-Allow-Credentials: true`.** Medido em 2026-09-06: um `Origin`
   inventado volta em `Access-Control-Allow-Origin`, na resposta real e no

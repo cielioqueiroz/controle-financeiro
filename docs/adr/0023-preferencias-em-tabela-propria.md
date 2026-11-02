@@ -1,7 +1,8 @@
 # ADR-0023 — Preferências em tabela própria, com o aparelho de cache
 
-Data: 2026-11-02. Status: implementada na branch `feat/editar-perfil`;
-migração 0013 ainda não aplicada em produção.
+Data: 2026-11-02. Status: em produção desde o #57; migração 0013
+aplicada em 2026-11-02 (o cache de schema da Data API precisa ser recarregado
+pelo console para a tabela ficar visível — ver AGENTS.md §4.3).
 
 ## Contexto
 
