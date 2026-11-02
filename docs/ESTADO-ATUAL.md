@@ -1,5 +1,29 @@
 # Estado atual do projeto — retomada
 
+## Pacote de 375px — 2026-11-02
+
+- Em `fix/layout-375`, a partir da `main` (já com o U3, #51).
+- **Medidores em 375px.** `medir-overflow.py` e `medir-a11y.py` rodavam em
+  390px e passaram a rodar em 375px, a largura do celular mais estreito em
+  uso. O que cabe em 375 cabe em 390.
+- **Lista de transações.** Em 375px, a vista "Todos" de Lançamentos dava
+  19px para o nome ("C…"): data, ícone, os dois botões de 44px e o valor
+  levavam o resto dos 325px da linha. Abaixo de `sm`, o nome vai para uma
+  segunda linha com a largura inteira (310px), e a primeira fica com data,
+  ícone, botões e valor. A ordem no DOM não muda, então o leitor de tela lê
+  data, nome, botões e valor como antes. No desktop a linha é a mesma.
+- **Próximos compromissos.** Em três colunas, o mês (5.5rem) e o valor
+  deixavam 48px para "4 parcelas a vencer", uma palavra por linha. Agora
+  mês, contagem e "competência prevista" ficam empilhados à esquerda, com o
+  valor à direita.
+- **Carimbo da folha de provas.** Os 13px de lado eram só da entrada: o
+  carimbo começa em `scale(1.4)`, e no primeiro quadro o "Diverge", o mais
+  largo da galeria, ia de −13 a 388px. Com a animação terminada, nenhuma
+  tela rola de lado em 375px. A galeria ganhou `overflow-x-clip`. Na tela
+  real da conferência o carimbo fica dentro da linha (0–295px), e por isso
+  ela não mudou. O medidor mede depois de a entrada de 0,45s terminar, então
+  não vê esse caso.
+
 ## Descrição do banco em caixa de título — 2026-11-02
 
 - Em `feat/descricao-caixa-titulo`, a partir da `main`. Item U3 da auditoria

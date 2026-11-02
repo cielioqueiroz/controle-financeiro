@@ -29,7 +29,9 @@ import sys
 from playwright.sync_api import sync_playwright, expect, Page
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5173").rstrip("/")
-VIEWPORTS = [(1280, 800), (390, 844)]
+# 375 e nao 390: o celular mais estreito em uso. Em 390 o carimbo girado da
+# conferencia cabia e o defeito de 375 passava verde (2026-11-02).
+VIEWPORTS = [(1280, 800), (375, 812)]
 INTERVALO_MS = 500
 
 # (nome, rota, passos, PROVAS, amostras)
