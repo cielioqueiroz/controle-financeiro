@@ -50,6 +50,10 @@ O preenchimento do cartão não deve cortar tooltip ou anel de foco.
 - Fluxo usa a mesma posição proporcional para pontos, meses e áreas de interação.
   SVG sem texto pode preencher a largura; os rótulos HTML não são deformados.
   No celular, janelas longas espaçam os rótulos sem remover os controles dos meses.
+- O fluxo do período (Relatórios) é SVG sem texto, como o donut: as listas
+  "De onde veio" e "Para onde foi" são a legenda e o equivalente acessível.
+  Banco usa a cor do catálogo `BANCOS`; categoria, a de `corCategoria`;
+  "Faltou" é hachurado, porque toda cor lisa já é de alguma categoria.
 - Nomes de categoria e estabelecimento podem quebrar linha, sem depender de hover.
 - Relatórios abrem a composição do gasto real no intervalo inteiro, por documento,
   com retorno de foco ao controle acionado. O detalhe não promete disponibilizar o

@@ -178,6 +178,20 @@ A projeção das parcelas que ainda vão cair, mês a mês. Nunca é salvo no ba
 sempre cálculo, feito a partir da parcela mais recente conhecida de cada série.
 _Evitar_: previsão, agendado, conta a pagar
 
+**Fluxo do período**:
+O caminho do dinheiro no período do relatório, em dois lados que fecham no
+mesmo total. À esquerda, as **origens**: as entradas por banco, os
+**estornos** das categorias que terminaram negativas e, se o gasto passou
+das entradas, o que **faltou**. À direita, os **destinos**: as oito maiores
+categorias de gasto, as outras juntas e, se as entradas passaram do gasto, o
+que **sobrou**. Entradas + estornos + faltou = categorias positivas +
+sobrou, e o sobrou é o resultado do relatório. Não diz qual banco pagou qual
+categoria: o documento não sabe, e o desenho passa tudo por um total no
+meio. **Não é o mesmo que o gráfico "Fluxo financeiro"**, que compara
+entradas e saídas mês a mês.
+_Em código_: `fluxoDoPeriodo` (`domain/fluxo-periodo.ts`)
+_Evitar_: sankey (em código de domínio), DRE, fluxo de caixa, orçamento
+
 **Calendário do próximo mês**:
 O que deve cair, dia a dia, no mês seguinte à competência mais recente com
 dado: as **recorrências** ativas no dia típico delas (de saída e de entrada)
