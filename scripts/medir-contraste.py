@@ -135,6 +135,20 @@ if __name__ == "__main__":
         print(f"  [{'OK  ' if ok else 'FALHA'}] {nome:<18} {r:5.2f}:1  (minimo 4.5)")
         if not ok:
             falhas.append(('AVATAR', nome, r, 'inicial branca', 4.5))
+    # Botão de perigo: `bg-falha` com `text-carvao-950`, que é a cor da página.
+    # As duas INVERTEM por tema, então o par se mede em cada um. O branco não
+    # serve aqui (2,6:1 no coral do escuro) — o `contraste-perigo.test.ts`
+    # barra a classe; este bloco garante que o par certo continua passando.
+    print(f"\n{'=' * 62}\n  BOTAO DE PERIGO (texto da pagina sobre falha)\n{'=' * 62}")
+    for nome, trecho, tokens in (("CLARO", claro, CLARO), ("ESCURO", escuro, ESCURO)):
+        falha = re.search(r'--color-falha:\s*(#[\da-fA-F]{6})', trecho)
+        if not falha:
+            raise ValueError(f'Token --color-falha ausente no tema {nome}')
+        r = contraste(tokens['pagina'], falha.group(1))
+        ok = r >= 4.5
+        print(f"  [{'OK  ' if ok else 'FALHA'}] {nome:<18} {r:5.2f}:1  (minimo 4.5)")
+        if not ok:
+            falhas.append((nome, 'perigo', r, 'falha', 4.5))
     print(f"\n{'=' * 62}")
     if falhas:
         print(f"  {len(falhas)} PAR(ES) REPROVAM — corrigir antes de aplicar:")
