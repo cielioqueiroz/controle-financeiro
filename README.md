@@ -89,6 +89,15 @@ marcados no gráfico, sem virarem zero. **Ver meses e documentos** detalha o
 gasto real e a quantidade de documentos por competência. Essa presença não
 garante que todos os documentos de todas as contas foram importados.
 
+**Para onde foram as entradas** é o fluxo do período: à esquerda, as entradas de
+cada banco; à direita, as oito maiores categorias de gasto, as outras juntas e o
+que sobrou. Quando o gasto passa das entradas, o que faltou entra hachurado à
+esquerda; categoria que o estorno deixou negativa entra como **Estornos**. Os
+dois lados fecham no mesmo total, e tudo passa por ele no meio — o documento
+não diz qual conta pagou qual categoria, e o desenho não inventa.
+
+![Para onde foram as entradas](docs/img/print-fluxo-periodo.png)
+
 Os gráficos usam cores distintas para entradas, saídas e resultado, com destaque
 por mouse, teclado ou toque. As categorias mantêm a mesma cor ao mudar de posição
 no ranking. Nos relatórios, clicar numa categoria, estabelecimento ou maior saída
@@ -118,9 +127,9 @@ regras dessa comparação na [spec dos relatórios](docs/specs/002-comparacao-po
 | 🏷️ **Categoriza e aprende** | 30 categorias embutidas; corrigir uma compra ensina o app para as próximas |
 | 🔗 **Não conta o mesmo dinheiro duas vezes** | cruza fatura × extrato e marca quitação e transferência entre contas próprias |
 | 📅 **Dia / Semana / Mês / Ano** | Mês e Ano agrupam por **competência da fatura**; Dia e Semana, pela data da compra |
-| 📊 **Gráficos próprios em SVG** | donut por categoria, saídas por dia, entradas × saídas, parcelas por mês |
+| 📊 **Gráficos próprios em SVG** | donut por categoria, saídas por dia, entradas × saídas, parcelas por mês, fluxo das entradas às categorias |
 | 📈 **Minha situação financeira** | histórico de 3/6/12 meses, melhor e pior mês, fluxo acumulado e categorias do mês mais caro |
-| 📊 **Relatórios financeiros** | receitas, despesas, resultado, economia, categorias, maiores saídas e comparações por janela |
+| 📊 **Relatórios financeiros** | receitas, despesas, resultado, economia, fluxo das entradas às categorias, maiores saídas e comparações por janela |
 | 💡 **Leituras do período** | maior categoria, maior estabelecimento, pico diário e taxa de economia, com links para o detalhe |
 | 🏪 **Para onde o dinheiro foi** | ranking por estabelecimento, somando as compras repetidas — o gasto que nenhuma lista de "maior compra" mostra —, com a alternância para a maior compra |
 | 📈 **Compara com o período anterior** | "12% acima do mês passado" nos tiles; some quando não há base de comparação, em vez de inventar um "+100%" |

@@ -42,6 +42,9 @@ ALVOS = [
     ("print-compromissos.png", "/demo.html", '[data-prova="compromissos"]', 1280, None),
     # O ranking unico, na visao por estabelecimento (a que abre primeiro).
     ("print-rankings.png", "/demo.html", '[data-prova="rankings"]', 1440, None),
+    # O fluxo do periodo dos Relatorios. A amostra tem o emprestimo maior que
+    # as entradas, entao o print mostra o "Faltou" hachurado a esquerda.
+    ("print-fluxo-periodo.png", "/demo.html?tela=relatorios", '[data-prova="fluxo-periodo"]', 1280, None),
     # Aberto: o print precisa mostrar o CAMPO do codigo, que e a razao de a
     # faixa existir. Fechada, ela nao conta a historia toda.
     ("print-aviso-email.png", "/demo.html", '[data-prova="aviso-email"]', 1100, "Confirmar agora"),

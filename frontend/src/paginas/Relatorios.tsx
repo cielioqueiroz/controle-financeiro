@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
 import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
+import { fluxoDoPeriodo } from '../domain/fluxo-periodo'
 import { mesAbrev } from '../domain/normalize/data'
 import { formatarPct } from '../domain/normalize/percentual'
 import { useDados } from '../dados/DadosProvider'
@@ -11,6 +12,7 @@ import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
 import { GraficoCategorias } from '../ui/graficos/GraficoCategorias'
 import { GraficoFluxo } from '../ui/graficos/GraficoFluxo'
+import { GraficoFluxoPeriodo } from '../ui/graficos/GraficoFluxoPeriodo'
 import { TransacoesDoMes } from '../ui/TransacoesDoMes'
 import { Cartao } from '../ui/Cartao'
 import { CarregandoPainel } from '../ui/CarregandoPainel'
@@ -24,7 +26,9 @@ import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import { normalizeMerchant } from '../domain/normalize/merchant'
 import { caixaDeTitulo, nomeExibido } from '../domain/normalize/descricao'
 
-type Detalhe = { tipo: 'categoria' | 'estabelecimento' | 'transacao'; chave: string }
+/** `categorias` é a lista de slugs separada por vírgula: o "Outras" e os
+ *  estornos do fluxo do período abrem mais de uma categoria de uma vez. */
+type Detalhe = { tipo: 'categoria' | 'categorias' | 'estabelecimento' | 'transacao'; chave: string }
 
 function rotuloMes(competencia: string): string {
   const [ano, mes] = competencia.split('-').map(Number)
@@ -47,7 +51,7 @@ export function Relatorios() {
   const navigate = useNavigate()
   const tipoDetalhe = search.get('detalhe')
   const chaveDetalhe = search.get('item')
-  const detalhe: Detalhe | null = chaveDetalhe && (tipoDetalhe === 'categoria' || tipoDetalhe === 'estabelecimento' || tipoDetalhe === 'transacao')
+  const detalhe: Detalhe | null = chaveDetalhe && (tipoDetalhe === 'categoria' || tipoDetalhe === 'categorias' || tipoDetalhe === 'estabelecimento' || tipoDetalhe === 'transacao')
     ? { tipo: tipoDetalhe, chave: chaveDetalhe } : null
   const gatilhoDetalhe = useRef<HTMLElement | null>(null)
   const tituloRelatorio = useRef<HTMLHeadingElement>(null)
@@ -95,16 +99,19 @@ export function Relatorios() {
   const resumo = relatorio?.atual.resumo
   const maiores = useMemo(() => maioresSaidas(txs, 6), [txs])
   const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
+  const fluxo = useMemo(() => fluxoDoPeriodo(txs), [txs])
   const intervalo = relatorio ? `${rotuloMes(relatorio.atual.inicio)} — ${rotuloMes(relatorio.atual.fim)}` : ''
   const taxaAtual = relatorio?.taxaEconomiaAtualPct ?? null
   const taxaAnterior = relatorio?.taxaEconomiaAnteriorPct ?? null
   const variacaoGasto = relatorio?.variacaoGastoPct ?? null
   const transacoesDetalhe = txs.filter((tx) => tx.kind === 'expense' && detalhe && (
     detalhe.tipo === 'categoria' ? (tx.category_slug ?? 'outros') === detalhe.chave :
+    detalhe.tipo === 'categorias' ? detalhe.chave.split(',').includes(tx.category_slug ?? 'outros') :
     detalhe.tipo === 'estabelecimento' ? normalizeMerchant(tx.description) === detalhe.chave : tx.id === detalhe.chave
   ))
   const tituloDetalhe = detalhe && transacoesDetalhe.length > 0
     ? detalhe.tipo === 'categoria' ? nomeCategoria(categoria(detalhe.chave))
+      : detalhe.tipo === 'categorias' ? detalhe.chave.split(',').map((slug) => nomeCategoria(categoria(slug))).join(', ')
       : detalhe.tipo === 'estabelecimento' ? estabelecimentos.find((item) => item.merchant === detalhe.chave)?.rotulo ?? caixaDeTitulo(normalizeMerchant(transacoesDetalhe[0].description))
         : nomeExibido(transacoesDetalhe[0])
     : ''
@@ -192,6 +199,13 @@ export function Relatorios() {
             <GraficoFluxo serie={serie} competencias={competencias} ativo={compAtiva} onSelecionar={selecionarMes} />
             {serie.some((ponto) => ponto.competencia === compAtiva) && <TransacoesDoMes competencia={compAtiva} />}
           </Cartao>
+
+          {fluxo && (
+            <Cartao>
+              <GraficoFluxoPeriodo fluxo={fluxo} onAbrir={(slugs) => abrirDetalhe(slugs.length === 1
+                ? { tipo: 'categoria', chave: slugs[0] } : { tipo: 'categorias', chave: slugs.join(',') })} />
+            </Cartao>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-2">
             {resumo.porCategoria.length > 0 && (

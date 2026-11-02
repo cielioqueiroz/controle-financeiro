@@ -1,5 +1,37 @@
 # Estado atual do projeto — retomada
 
+## Fluxo do período nos Relatórios — 2026-11-02
+
+- Em `feat/sankey-relatorios`, a partir da `main` (`fc2056a`). Item 2.5 da
+  auditoria das somas de 30/10, com o desenho decidido pelo dono.
+- `domain/fluxo-periodo.ts`: `fluxoDoPeriodo(txs)` sobre o mesmo período do
+  relatório (`relatorio.atual`), com a regra de `agregar`. Origens: entradas
+  por banco, **Estornos** (a soma das categorias que terminaram negativas,
+  conferência 1.6) e **Faltou**. Destinos: as oito maiores categorias,
+  **Outras** e **Sobrou**. Os dois lados fecham no mesmo total, e o sobrou é
+  o `saldoCents`. Termo **Fluxo do período** no glossário.
+- "Outras" só aparece com duas categorias ou mais: com nove categorias, a
+  nona aparece pelo nome, porque juntar uma só esconderia o nome sem
+  economizar linha.
+- O desenho passa por um **total no meio**. Ligar cada banco a cada
+  categoria afirmaria qual conta pagou o quê, e o documento não diz.
+- `ui/graficos/GraficoFluxoPeriodo.tsx`, SVG próprio sem texto (em 375px
+  não haveria onde pôr). Como no donut, as duas listas são a legenda e o
+  equivalente acessível; categoria, "Outras" e "Estornos" abrem o detalhe
+  (tipo novo `categorias`, slugs separados por vírgula). O nome dos botões
+  começa pelo texto visível, sem `aria-label` (WCAG 2.5.3). Faltou é
+  hachurado: toda cor lisa já é de alguma categoria. Nó que existe mostra
+  "<1%", nunca "0%".
+- Teste de domínio com 13 casos (sobra, falta, empate, categoria negativa,
+  estorno que só abate, mais de 8, exatamente 9, sem entradas, só entradas,
+  vínculos, vazio); passou de primeira, e 8 mutações morreram todas.
+- Medidor: jornadas `relatorios-fluxo` e `-claro` (clicam "Outras 2
+  categorias" e provam o detalhe e o "Faltou"). Overflow e a11y verdes em
+  1280 e 375px; `npm run verificar` completo verde.
+- README: parágrafo e print novo (`docs/img/print-fluxo-periodo.png`, alvo
+  novo no `gerar-prints.py`). Os prints foram todos regerados, e com isso o
+  `print-rankings.png` deixou de mostrar caixa alta.
+
 ## Editar perfil mais completo — 2026-11-02
 
 - Em `feat/editar-perfil`, a partir da `main` (`1aadffd`, já com o #56).
@@ -48,8 +80,11 @@
   (armadilha nova no AGENTS.md §4.3). O recarregamento pela API do Neon foi
   negado pelo modo automático, por mexer em recurso compartilhado; fica para
   o dono, no console. Até lá o perfil segue em "salvo só neste aparelho".
-- Falta: recarregar o cache da Data API e rodar o §7 com conta de teste.
-  Saber se o Neon liga o `deleteUser` só dá contra o servidor real.
+- Cache da Data API recarregado no console (sincronização conferida).
+- §7 rodado pelo dono em 2026-11-02, numa conta de teste: o aviso foi
+  "Conta e dados excluídos", então **o Neon liga o `deleteUser`**. O banco
+  não guardou rastro nenhum do teste — conta, sessões e linhas saíram
+  juntas, que é o resultado certo. Registrado no ADR-0023.
 
 ## Calendário do próximo mês — 2026-11-02
 

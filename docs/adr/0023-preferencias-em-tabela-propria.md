@@ -49,6 +49,11 @@ ela recusa, a tela diz que os dados foram apagados e o login continua. A
 ordem é deliberada: apagar o login antes deixaria linhas no banco que mais
 ninguém poderia apagar.
 
+**O Neon liga o `deleteUser`.** No §7 do roteiro manual, em 2026-11-02, o
+dono viu "Conta e dados excluídos". O banco confirma: nenhuma conta, sessão
+ou linha órfã daquele teste sobrou — a conta de teste saiu inteira. O ramo
+"o login continua" fica no código para o dia em que o servidor mudar.
+
 ## Limites
 
 - A suíte mocka o SDK do Neon (ADR-0008): trocar senha, `listAccounts` e

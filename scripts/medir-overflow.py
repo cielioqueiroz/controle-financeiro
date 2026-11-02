@@ -183,6 +183,14 @@ JORNADAS = [
      [("clicar", "3 meses")], [("ver-botao", "6 meses")], 6),
     ("relatorios-claro", "/demo.html?tela=relatorios&tema=claro",
      [("clicar", "6 meses")], [("ver-botao", "3 meses")], 6),
+    # O fluxo do periodo: "Outras" abre varias categorias de uma vez, e a
+    # amostra (emprestimo maior que as entradas) mostra o "Faltou".
+    ("relatorios-fluxo", "/demo.html?tela=relatorios",
+     [("clicar-parcial", "Outras 2 categorias")],
+     [("ver-secao", "detalhe-relatorio"), ("ver-texto", "Faltou")], 6),
+    ("relatorios-fluxo-claro", "/demo.html?tela=relatorios&tema=claro",
+     [("clicar-parcial", "Outras 2 categorias")],
+     [("ver-secao", "detalhe-relatorio"), ("ver-texto", "Faltou")], 6),
     ("painel-claro", "/demo.html?tela=painel&tema=claro",
      [("expandir", "Contas e compromissos"), ("expandir", "Explorar o período")],
      [("ver-texto", "Fluxo financeiro"), ("ver-texto", "Próximos compromissos")], 6),

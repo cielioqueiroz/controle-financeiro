@@ -65,7 +65,7 @@ describe('Relatórios — estados e navegação', () => {
       { ...transacao, id: 'antiga', document_id: 'doc-antigo', competencia: '2025-12' },
     ])
     abrir('?janela=3&banco=nubank')
-    const gatilho = await screen.findByRole('button', { name: /Supermercado.*300,00.*Ver lançamentos/ })
+    const gatilho = await screen.findByRole('button', { name: /Supermercado: .*300,00.*Ver lançamentos/ })
     await userEvent.click(gatilho)
     const detalhe = screen.getByRole('region', { name: 'Supermercado' })
     expect(within(detalhe).getByRole('heading', { name: 'Supermercado' })).toHaveFocus()
@@ -79,6 +79,27 @@ describe('Relatórios — estados e navegação', () => {
     await userEvent.click(within(detalhe).getByRole('button', { name: 'Voltar ao gráfico' }))
     expect(screen.queryByRole('region', { name: 'Supermercado' })).not.toBeInTheDocument()
     expect(gatilho).toHaveFocus()
+  })
+
+  it('o fluxo do período abre a categoria, e "outras" abre várias de uma vez', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([
+      transacao,
+      { ...transacao, id: 'tx-transporte', category_slug: 'transporte', description: 'UBER', amount_cents: 5000 },
+    ])
+    abrir('?janela=3')
+    const destinos = await screen.findByRole('region', { name: 'Para onde foi' })
+    await userEvent.click(within(destinos).getByRole('button', { name: /^Supermercado/ }))
+    expect(screen.getByRole('region', { name: 'Supermercado' })).toBeInTheDocument()
+  })
+
+  it('o detalhe de várias categorias junta as transações delas', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([
+      transacao,
+      { ...transacao, id: 'tx-transporte', category_slug: 'transporte', description: 'UBER', amount_cents: 5000 },
+    ])
+    abrir('?janela=3&detalhe=categorias&item=supermercado,transporte')
+    const detalhe = await screen.findByRole('region', { name: 'Supermercado, Transporte' })
+    expect(detalhe).toHaveTextContent('Uber')
   })
 
   it('anuncia o carregamento sem exibir valores ou estado vazio', () => {
