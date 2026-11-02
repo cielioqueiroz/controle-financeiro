@@ -146,6 +146,10 @@ de um valor) do recorrente. O donut e a média diária ganham a opção "sem
 atípicos". É o que faz um mês com um empréstimo de R$ 41 mil voltar a dizer
 alguma coisa sobre o supermercado.
 
+> **Feito em `feat/atipicos`** (`domain/atipicos.ts`, termo **Gasto atípico**
+> no `CONTEXT.md`): a alternância "Sem atípicos" no donut e no ritmo diário
+> do Painel.
+
 ### 2.3 Alertas que o documento já permite
 
 - **Fatura paga a menor:** o valor da quitação é menor que o "Total a pagar" →

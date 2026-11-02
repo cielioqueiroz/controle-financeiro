@@ -11,8 +11,10 @@ import {
   doMesCalendario,
   isoLocal,
   composicaoDoNumero,
+  agregar,
   type NumeroDoResumo,
 } from '../domain/agrupar'
+import { gastosAtipicos } from '../domain/atipicos'
 import { taxasFinanceiras } from '../domain/trajetoria'
 import { TransacoesDoMes } from '../ui/TransacoesDoMes'
 import { saldosPorConta } from '../domain/saldos'
@@ -153,7 +155,25 @@ export function Painel({ onAprendeu }: Props) {
     () => porDia(ampliado && visiveis ? doMesCalendario(visiveis, filtros.ref) : txs),
     [ampliado, visiveis, filtros.ref, txs],
   )
-  const temRitmo = dias.some((d) => d.gastoCents > 0)
+  /** Gasto atípico (2.2 da auditoria de 30/10): a régua é o histórico
+   *  inteiro, e a alternância "Sem atípicos" tira as compras atípicas só dos
+   *  dois gráficos do período. O gasto real do topo, os diagnósticos e o pico
+   *  das leituras continuam com elas: atípico é leitura, não exclusão. */
+  const atipicos = useMemo(() => gastosAtipicos(visiveis ?? [], todas ?? []), [visiveis, todas])
+  const idsAtipicos = useMemo(() => new Set(atipicos.map((tx) => tx.id)), [atipicos])
+  const atipicosNoRecorte = useMemo(() => txs.filter((tx) => idsAtipicos.has(tx.id)), [txs, idsAtipicos])
+  const semAtipicos = search.get('atipicos') === 'fora' && atipicosNoRecorte.length > 0
+  const resumoDoGrafico = useMemo(
+    () => (semAtipicos ? agregar(txs.filter((tx) => !idsAtipicos.has(tx.id))) : resumo),
+    [semAtipicos, txs, idsAtipicos, resumo],
+  )
+  const diasDoGrafico = useMemo(
+    () => (semAtipicos
+      ? porDia((ampliado && visiveis ? doMesCalendario(visiveis, filtros.ref) : txs).filter((tx) => !idsAtipicos.has(tx.id)))
+      : dias),
+    [semAtipicos, ampliado, visiveis, filtros.ref, txs, idsAtipicos, dias],
+  )
+
   const pico = useMemo(
     () =>
       dias.reduce<(typeof dias)[number] | null>(
@@ -307,6 +327,13 @@ export function Painel({ onAprendeu }: Props) {
   function fecharComposicao() {
     setSearch(semComposicao(), { replace: true })
     if (gatilhoComposicao.current?.isConnected) gatilhoComposicao.current.focus()
+  }
+
+  function alternarAtipicos() {
+    const proxima = new URLSearchParams(search)
+    if (semAtipicos) proxima.delete('atipicos')
+    else proxima.set('atipicos', 'fora')
+    setSearch(proxima, { replace: true })
   }
 
   function abrirDocumento(id: string) {
@@ -576,20 +603,47 @@ export function Painel({ onAprendeu }: Props) {
                     próxima de uma leitura analítica, e um gráfico não parece
                     continuação acidental do outro. O conteúdo continua sendo
                     alimentado pelos mesmos agregadores puros do domínio. */}
+                {atipicosNoRecorte.length > 0 && (
+                  <div className="screen-only flex flex-wrap items-center gap-x-4 gap-y-2" data-prova="atipicos">
+                    <button
+                      type="button"
+                      aria-pressed={semAtipicos}
+                      onClick={alternarAtipicos}
+                      className={`acao-painel gap-2 border px-4 text-sm text-tinta ${semAtipicos ? 'border-tinta bg-carvao-850' : 'border-carvao-700'}`}
+                    >
+                      {semAtipicos && <span aria-hidden>✓</span>}
+                      {t('atipicos.sem')}
+                    </button>
+                    <p className="min-w-0 basis-60 flex-1 text-xs leading-relaxed text-tinta-fraca">
+                      {t(
+                        semAtipicos
+                          ? atipicosNoRecorte.length === 1 ? 'atipicos.fora1' : 'atipicos.foraN'
+                          : atipicosNoRecorte.length === 1 ? 'atipicos.dentro1' : 'atipicos.dentroN',
+                        {
+                          n: atipicosNoRecorte.length,
+                          valor: dinheiro(atipicosNoRecorte.reduce((soma, tx) => soma + tx.amount_cents, 0)),
+                        },
+                      )}{' '}
+                      {t('atipicos.criterio')}
+                    </p>
+                  </div>
+                )}
+
                 <motion.div {...entra(0.28)} className="screen-only grid gap-4 lg:grid-cols-2">
                   <Cartao>
-                    {resumo.porCategoria.length > 0 && (
+                    {resumoDoGrafico.porCategoria.length > 0 && (
                       <GraficoCategorias
-                        categorias={resumo.porCategoria}
-                        totalCents={resumo.gastoCents}
+                        categorias={resumoDoGrafico.porCategoria}
+                        totalCents={resumoDoGrafico.gastoCents}
+                        rotuloTotal={semAtipicos ? t('atipicos.rotina') : undefined}
                       />
                     )}
                   </Cartao>
 
                   <Cartao>
-                    {temRitmo ? (
+                    {diasDoGrafico.some((d) => d.gastoCents > 0) ? (
                       <GraficoDiario
-                        dias={dias}
+                        dias={diasDoGrafico}
                         onSelecionar={irParaDia}
                         destaque={filtros.periodo === 'dia' ? isoLocal(filtros.ref) : null}
                         contexto={ampliado ? rotuloPeriodo('mes', filtros.ref) : null}
