@@ -158,6 +158,16 @@ comparativo, é outra conta — gasto real ÷ entradas — e é frase de tela.)
 _Em código_: `consumoCents`
 _Evitar_: gasto do dia a dia, despesa corrente
 
+**Gasto atípico**:
+A compra avulsa de consumo que destoa da rotina da própria categoria: vale
+pelo menos 5× a mediana das outras compras avulsas da categoria no histórico
+inteiro **e** pelo menos R$ 300. Com menos de cinco outras compras na
+categoria, nada é atípico. Parcela, recorrência, dívida, estorno, entrada e
+vínculo nunca são. Atípico é leitura, não exclusão: sai dos gráficos do
+período quando a pessoa pede, e o gasto real continua com ele.
+_Em código_: `gastosAtipicos`, `LIMIAR_ATIPICO` (`domain/atipicos.ts`)
+_Evitar_: outlier (em código), extraordinário, fora da curva, pontual
+
 **installment**:
 Uma das cobranças de uma compra dividida, com o número e o total (`03/10`).
 _Em português_: parcela

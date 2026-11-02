@@ -1,5 +1,35 @@
 # Estado atual do projeto — retomada
 
+## Gasto atípico × rotina — 2026-11-02
+
+- Em `feat/atipicos`, empilhada sobre `feat/origem-cabecalho` (PR #53),
+  porque as duas mexem no Painel. Item 2.2 da auditoria das somas de 30/10.
+- `domain/atipicos.ts`: `gastosAtipicos(recorte, historico)` devolve as
+  compras do recorte que são atípicas. A régua de cada uma é a mediana das
+  OUTRAS compras avulsas da mesma categoria no histórico inteiro, e não só
+  no recorte, que num mês pode ter duas. São duas condições juntas, como em
+  `diagnosticos.ts`: pelo menos 5× a mediana **e** pelo menos R$ 300. Só a
+  proporção faria a farmácia de R$ 60 gritar contra uma mediana de R$ 10, e
+  só o valor marcaria toda compra grande de quem gasta muito. Com menos de
+  cinco outras compras na categoria, cala.
+- Nunca é atípico: parcela (é compromisso futuro), recorrência (o aluguel é
+  rotina por definição, por maior que seja perto do material de
+  construção), dívida, estorno, entrada e vínculo. Parcela e dívida também
+  ficam fora da régua: com elas, a mediana subiria e esconderia a compra
+  grande.
+- No Painel, em "Explorar o período": a alternância "Sem atípicos"
+  (`aria-pressed`, `?atipicos=fora` na URL), só quando o recorte tem algum
+  atípico. Ela tira as compras atípicas do gráfico de categorias e do
+  ritmo diário. A linha ao lado diz quantas são, quanto somam e o critério.
+  O centro do donut passa a dizer "sem atípicos", e não "gasto real".
+- O gasto real do topo, os diagnósticos e o pico das leituras continuam com
+  as compras atípicas: atípico é leitura, não exclusão.
+- Na folha de provas, o Atacadão de R$ 456,00 já é atípico contra o
+  supermercado. Duas jornadas novas no medidor (`painel-sem-atipicos` e
+  `-claro`), com uma prova nova, `pressionado`, que confere o
+  `aria-pressed`: o rótulo de uma alternância não muda com o clique.
+- Não entrou: o donut dos Relatórios e a média diária fora do Painel.
+
 ## De onde vem cada número do cabeçalho — 2026-11-02
 
 - Em `feat/origem-cabecalho`, a partir da `main`. Item U7 da auditoria das
