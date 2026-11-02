@@ -133,6 +133,30 @@ describe('categoriaDe — TIM só como palavra inteira', () => {
   })
 })
 
+// O espaço final em 'OI ', 'GOL ', 'UCI ' e 'TED ' fazia de fronteira só de
+// um lado: casava no fim de outra palavra e falhava quando a sigla fechava a
+// descrição.
+describe('categoriaDe — siglas curtas só como palavra inteira', () => {
+  it('casam no fim da descrição', () => {
+    expect(categoriaDe(tx('RECARGA OI'))).toBe('telecom')
+    expect(categoriaDe(tx('PASSAGEM GOL'))).toBe('viagem')
+    expect(categoriaDe(tx('SESSAO UCI'))).toBe('lazer')
+    expect(categoriaDe(tx('ENVIO TED'))).toBe('transferencia')
+  })
+  it('continuam casando no começo e no meio', () => {
+    expect(categoriaDe(tx('OI FIBRA'))).toBe('telecom')
+    expect(categoriaDe(tx('GOL LINHAS AEREAS'))).toBe('viagem')
+    expect(categoriaDe(tx('UCI KINOPLEX'))).toBe('lazer')
+    expect(categoriaDe(tx('TED RECEBIDA'))).toBe('transferencia')
+  })
+  it('não casam no fim de outra palavra', () => {
+    expect(categoriaDe(tx('ACOUGUE BOI GORDO'))).not.toBe('telecom')
+    expect(categoriaDe(tx('MONGOL GRILL'))).not.toBe('viagem')
+    expect(categoriaDe(tx('SALAO LUCI BELEZA'))).not.toBe('lazer')
+    expect(categoriaDe(tx('UNITED AIRLINES'))).not.toBe('transferencia')
+  })
+})
+
 describe('extrairCNPJ', () => {
   it('extrai CNPJ do extrato Nubank', () => {
     expect(extrairCNPJ('IFOOD COM ... - 14.380.200/0001-21 - ITAU')).toBe('14380200000121')

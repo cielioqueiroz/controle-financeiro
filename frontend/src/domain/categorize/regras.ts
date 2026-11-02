@@ -99,13 +99,15 @@ export const REGRAS_GLOBAIS: Regra[] = [
   ]),
   // Telecom
   ...contains('telecom', 100, [
-    'NORTE.NET', 'RECARGA PRE PAGO', 'VIVO', 'CLARO', 'OI ',
+    'NORTE.NET', 'RECARGA PRE PAGO', 'VIVO', 'CLARO',
   ]),
   // Palavra inteira: como trecho, 'TIM' casava dentro de "ULTIMO" e
-  // "ESTIMATIVA".
-  ...palavras('telecom', 100, ['TIM']),
+  // "ESTIMATIVA". As siglas curtas abaixo (OI, GOL, UCI, TED) eram trecho
+  // com espaço final, que casava em "BOI GORDO" e falhava em "RECARGA OI".
+  ...palavras('telecom', 100, ['TIM', 'OI']),
   // Viagem
-  ...contains('viagem', 100, ['AIRBNB', 'BOOKING', 'DECOLAR', 'LATAM', 'GOL ']),
+  ...contains('viagem', 100, ['AIRBNB', 'BOOKING', 'DECOLAR', 'LATAM']),
+  ...palavras('viagem', 100, ['GOL']),
   // Delivery
   ...contains('delivery', 110, ['IFOOD', 'RAPPI', 'UBER EATS']),
   // Transporte
@@ -118,9 +120,10 @@ export const REGRAS_GLOBAIS: Regra[] = [
   ]),
   // Lazer
   ...contains('lazer', 100, [
-    'CINEMARK', 'CINEMA', 'INGRESSO.COM', 'INGRESSOCOM', 'KINOPLEX', 'UCI ',
+    'CINEMARK', 'CINEMA', 'INGRESSO.COM', 'INGRESSOCOM', 'KINOPLEX',
     'TEATRO', 'CERVEJARIA', 'BOATE', 'BALADA',
   ]),
+  ...palavras('lazer', 100, ['UCI']),
   // Vestuário
   ...contains('vestuario', 100, [
     'RENNER', 'RIACHUELO', 'C&A', 'ZARA', 'HERING', 'MARISA', 'PERNAMBUCANAS',
@@ -174,10 +177,11 @@ export const REGRAS_GLOBAIS: Regra[] = [
   ...contains('rendimentos', 100, ['RENDIMENTOS', 'POUP FACIL']),
   // Transferências (baixa prioridade — genérico)
   ...contains('transferencia', 50, [
-    'PIX ENVIADO', 'PIX RECEBIDO', 'PIX QR CODE', 'TED ', 'TRANSFERENCIA',
+    'PIX ENVIADO', 'PIX RECEBIDO', 'PIX QR CODE', 'TRANSFERENCIA',
     'PAGAMENTO DE FATURA', 'PAGTO', 'GASTOS CARTAO', 'VALOR ADICIONADO',
     'PAY2M', 'MERCADO PAGO', 'PAGAMENTOS - IP', 'NU PAGAMENTOS',
   ]),
+  ...palavras('transferencia', 50, ['TED']),
 ]
 
 function contains(categoria: string, prioridade: number, padroes: string[]): Regra[] {

@@ -1,5 +1,22 @@
 # Estado atual do projeto — retomada
 
+## Siglas curtas como palavra inteira — 2026-11-02
+
+- Em `fix/regras-palavra`, a partir da `main`. Pendência deixada pelo #47,
+  que fez o mesmo com `TIM`.
+- `OI`, `GOL`, `UCI` e `TED` eram regras `contains` com espaço no fim
+  (`'OI '`). O espaço só delimita um lado: a regra casava no fim de outra
+  palavra ("ACOUGUE BOI GORDO" virava telecom, "SALAO LUCI" virava lazer,
+  "UNITED AIRLINES" virava transferência) e falhava quando a sigla fechava
+  a descrição ("RECARGA OI" ficava em `outros`). Agora são regras
+  `palavra`, com a mesma categoria e a mesma prioridade, cada uma logo
+  depois do bloco de onde saiu: nenhum desempate entre categorias muda.
+- Comparado nos 12 fixtures, as 448 transações antes e depois: só mudaram
+  as quatro "ENVIO TED" do extrato GovConta da Caixa, que caíam em `outros`
+  e agora caem em `transferencia`, como "PIX ENVIADO".
+- Vale para importações futuras; o que já está gravado não é
+  recategorizado.
+
 ## Pacote de 375px — 2026-11-02
 
 - Em `fix/layout-375`, a partir da `main` (já com o U3, #51).
