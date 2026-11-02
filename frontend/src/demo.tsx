@@ -21,6 +21,7 @@ import { Lancamentos } from './paginas/Lancamentos'
 import { DadosProvider } from './dados/DadosProvider'
 import { DiscretoProvider } from './dados/DiscretoProvider'
 import { diagnosticar } from './domain/diagnosticos'
+import { EditarPerfil } from './ui/EditarPerfil'
 import { NavLateral } from './navegacao/NavLateral'
 import { CarimboConferencia } from './ui/CarimboConferencia'
 import { Procedencia } from './ui/Procedencia'
@@ -448,7 +449,11 @@ function Previa() {
         : tela === 'recorrencias' ? <Recorrencias />
         : tela === 'conferencia' ? <PreviaConferencia />
         : tela === 'documentos' ? <PreviaDocumento />
-        : tela === 'lancamentos' ? <Lancamentos /> : (
+        : tela === 'lancamentos' ? <Lancamentos />
+        : tela === 'perfil' ? (
+          <EditarPerfil nomeAtual="Célio Queiroz" emailAtual="celio@exemplo.com" apelidoAtual="Célio"
+            onFechar={() => {}} onSalvo={() => {}} />
+        ) : (
         <div data-prova="estados-painel" className="pilha-paineis">
           <CarregandoPainel />
           <EstadoVazio titulo="Nada por aqui ainda" descricao="Importe uma fatura ou extrato para começar."

@@ -181,6 +181,7 @@ export function Cabecalho({
           {logado && neonConfigurado && (
             <span className="lg:hidden">
               <ContaMenu
+                nome={usuario?.nome ?? null}
                 onEditarPerfil={onEditarPerfil}
                 onVerTutorial={onVerTutorial}
                 onSair={onSair}

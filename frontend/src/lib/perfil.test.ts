@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { guardarEmailReset, lerEmailReset, esquecerEmailReset } from './perfil'
+import { guardarEmailReset, lerEmailReset, esquecerEmailReset, iniciais } from './perfil'
 
 beforeEach(() => {
   localStorage.clear()
@@ -73,5 +73,18 @@ describe('expiração do e-mail de reset (F2)', () => {
   it('JSON válido mas sem os campos esperados é tratado como ausente', () => {
     localStorage.setItem('cf:email-reset', JSON.stringify({ foo: 'bar' }))
     expect(lerEmailReset()).toBeNull()
+  })
+})
+
+describe('iniciais', () => {
+  it('duas letras do nome, mesmo com espaço sobrando', () => {
+    expect(iniciais('  célio   queiroz silva ', 'x@y.z')).toBe('CQ')
+  })
+  it('sem nome, a primeira do e-mail', () => {
+    expect(iniciais('', 'ana@x.com')).toBe('A')
+    expect(iniciais(null, 'ana@x.com')).toBe('A')
+  })
+  it('sem nada, interrogação', () => {
+    expect(iniciais(null, null)).toBe('?')
   })
 })

@@ -19,12 +19,18 @@ const PERIODOS: readonly Periodo[] = ['dia', 'semana', 'mes', 'ano']
  *
  *  O caso do período é o que mais importa: `filtrar()` faz um switch sobre
  *  ele, e um valor fora da lista cairia sem caso correspondente devolvendo
- *  undefined — o painel renderizaria vazio sem dizer por quê. */
-export function lerFiltros(search: string): Filtros {
+ *  undefined — o painel renderizaria vazio sem dizer por quê.
+ *
+ *  `padrao` é o período escolhido no perfil, e só vale para a URL **nua**,
+ *  sem `p` nem `ref`. Um link com `ref` e sem `p` é um link de MÊS — é assim
+ *  que `escreverFiltros` o escreve, omitindo o `p` do mês —, e precisa abrir
+ *  igual para quem escolheu "ano" como padrão. */
+export function lerFiltros(search: string, padrao: Periodo = 'mes'): Filtros {
   const p = new URLSearchParams(search)
   const periodo = p.get('p')
+  const semPeriodo = p.has('ref') ? 'mes' : padrao
   return {
-    periodo: PERIODOS.includes(periodo as Periodo) ? (periodo as Periodo) : 'mes',
+    periodo: PERIODOS.includes(periodo as Periodo) ? (periodo as Periodo) : semPeriodo,
     ref: lerRef(p.get('ref')),
     banco: p.get('banco') || 'geral',
     categoria: p.get('cat') || null,

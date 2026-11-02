@@ -132,6 +132,21 @@ JORNADAS = [
     ("recorrencias-calendario-claro", "/demo.html?tela=recorrencias&tema=claro",
      [("expandir", "Parcelas na fatura Bradesco")],
      [("ver-secao", "calendario"), ("ver-texto", "Nenhuma fatura deste cartão foi importada, então o vencimento é desconhecido.")], 6),
+    # Item 0: o perfil em tres abas. A de dados mede o painel de exclusao
+    # aberto, que e o estado mais largo (campo + dois botoes).
+    ("perfil-conta", "/demo.html?tela=perfil", [],
+     [("aba-ativa", "Conta"), ("ver-botao", "Trocar senha"), ("ver-botao", "Vinho")], 6),
+    ("perfil-conta-claro", "/demo.html?tela=perfil&tema=claro", [],
+     [("aba-ativa", "Conta"), ("ver-botao", "Trocar senha")], 6),
+    ("perfil-preferencias", "/demo.html?tela=perfil",
+     [("aba", "Preferências")],
+     [("aba-ativa", "Preferências"), ("ver-texto", "Período ao abrir")], 6),
+    ("perfil-dados", "/demo.html?tela=perfil",
+     [("aba", "Seus dados"), ("clicar", "Quero excluir")],
+     [("aba-ativa", "Seus dados"), ("ver-botao", "Excluir tudo para sempre")], 6),
+    ("perfil-dados-claro", "/demo.html?tela=perfil&tema=claro",
+     [("aba", "Seus dados"), ("clicar", "Quero excluir")],
+     [("aba-ativa", "Seus dados"), ("ver-botao", "Excluir tudo para sempre")], 6),
     ("fluxo-destaque", "/demo.html?tela=painel",
      [("expandir", "Explorar o período"), ("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
     ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",
@@ -239,6 +254,8 @@ def executar(pagina: Page, passos: list[tuple[str, str]]) -> None:
             pagina.locator('[data-prova="detalhe-relatorio"] summary').first.click()
         elif acao == "focar":
             pagina.get_by_label(alvo, exact=True).first.focus()
+        elif acao == "aba":
+            pagina.get_by_role("tab", name=alvo, exact=True).click()
         else:
             raise ValueError(f"acao desconhecida: {acao}")
         pagina.wait_for_timeout(400)  # a peca entra com mola; espera assentar
@@ -262,6 +279,8 @@ def conferir(pagina: Page, provas: list[tuple[str, str]]) -> None:
             expect(resumo).to_be_focused()
         elif acao == "ver-secao":
             expect(pagina.locator(f'[data-prova="{alvo}"]')).to_be_visible()
+        elif acao == "aba-ativa":
+            expect(pagina.get_by_role("tab", name=alvo, exact=True, selected=True)).to_be_visible()
         elif acao == "ver-path":
             rota = pagina.locator("main").get_attribute("data-rota-demo")
             if not rota or not rota.startswith(alvo):

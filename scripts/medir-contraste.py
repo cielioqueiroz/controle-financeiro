@@ -123,6 +123,18 @@ if __name__ == "__main__":
         tokens.update(cores)
     CONTORNO.extend(sorted(cores))
     falhas = medir("CLARO", CLARO) + medir("ESCURO", ESCURO)
+    # Avatar: a inicial é SEMPRE branca sobre a cor escolhida, nos dois temas.
+    # O par é inicial × fundo, não fundo × página — daí ficar fora do laço.
+    avatares = dict(re.findall(r'--color-(avatar-[\w-]+):\s*(#[\da-fA-F]{6})', claro))
+    if not avatares:
+        raise ValueError('Tokens de avatar ausentes no CSS')
+    print(f"\n{'=' * 62}\n  AVATAR (inicial branca)\n{'=' * 62}")
+    for nome, cor in sorted(avatares.items()):
+        r = contraste('#ffffff', cor)
+        ok = r >= 4.5
+        print(f"  [{'OK  ' if ok else 'FALHA'}] {nome:<18} {r:5.2f}:1  (minimo 4.5)")
+        if not ok:
+            falhas.append(('AVATAR', nome, r, 'inicial branca', 4.5))
     print(f"\n{'=' * 62}")
     if falhas:
         print(f"  {len(falhas)} PAR(ES) REPROVAM — corrigir antes de aplicar:")

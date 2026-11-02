@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { lerFiltros, escreverFiltros, type Filtros } from './filtros'
+import { lerPeriodoPadrao } from '../lib/preferencias'
 
 /** Liga os filtros da tela à barra de endereços.
  *
@@ -14,17 +15,20 @@ import { lerFiltros, escreverFiltros, type Filtros } from './filtros'
 export function useFiltros() {
   const [search, setSearch] = useSearchParams()
 
-  const filtros = useMemo(() => lerFiltros(`?${search.toString()}`), [search])
+  // O padrão é lido a cada pintura: a sincronização do login pode trocá-lo
+  // depois que a tela já abriu, e o `App` repinta quando isso acontece.
+  const padrao = lerPeriodoPadrao()
+  const filtros = useMemo(() => lerFiltros(`?${search.toString()}`, padrao), [search, padrao])
 
   const setFiltros = useCallback(
     (mudanca: Partial<Filtros>) => {
-      const alvo = { ...lerFiltros(`?${search.toString()}`), ...mudanca }
+      const alvo = { ...lerFiltros(`?${search.toString()}`, padrao), ...mudanca }
       const proxima = new URLSearchParams(search)
       for (const chave of ['p', 'ref', 'banco', 'cat', 'q']) proxima.delete(chave)
       new URLSearchParams(escreverFiltros(alvo)).forEach((valor, chave) => proxima.set(chave, valor))
       setSearch(proxima, { replace: true })
     },
-    [search, setSearch],
+    [search, setSearch, padrao],
   )
 
   return { filtros, setFiltros }

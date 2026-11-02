@@ -1,5 +1,48 @@
 # Estado atual do projeto — retomada
 
+## Editar perfil mais completo — 2026-11-02
+
+- Em `feat/editar-perfil`, a partir da `main` (`1aadffd`, já com o #56).
+  Pedido do dono: "muito simples, quero mais opções". Itens escolhidos por
+  ele: conta, preferências, apelido sincronizado e dados (LGPD).
+- O modal virou três abas (`ui/EditarPerfil.tsx` é a moldura; as abas moram
+  em `ui/perfil/`):
+  - **Conta**: avatar com cor escolhida (8 tokens `--color-avatar-*`, todos
+    acima de 5,4:1 com a inicial branca, cobrados pelo `medir-contraste.py`),
+    apelido, nome, e-mail só leitura e trocar senha com a atual
+    (`changePassword` com `revokeOtherSessions`). Conta só do Google ganha
+    o link que cria a senha, o mesmo da recuperação.
+  - **Preferências**: idioma, tema claro/escuro, modo discreto e o período
+    com que as telas abrem. Valem na hora, sem "Salvar". Sem "Sistema" no
+    tema: a regra de 04/09 continua.
+  - **Seus dados**: CSV de todas as transações (`lib/exportar-csv.ts`: `;`,
+    vírgula decimal, BOM e neutralização de fórmula) e excluir conta e dados
+    com a palavra digitada.
+- **Sincronizar exigiu tabela nossa.** `neon_auth.user` não tem campo livre
+  e o Auth é gerenciado, então o apelido não cabe "na metadata do Auth" como
+  a proposta dizia. Migração `0013_preferencias.sql`, ADR-0023, termo
+  **Preferências** no glossário. **Não aplicada**: sem ela o perfil grava no
+  aparelho e avisa "salvo só neste aparelho".
+- No login, `SincronizarPreferencias` (no `App`) traz a conta, aplica no
+  idioma, no tema e no discreto e passa a levar de volta qualquer mudança
+  desses três, venha do perfil ou dos botões do cabeçalho. A primeira
+  conversa de um aparelho sobe o que só ele sabia; depois, nulo no servidor
+  é escolha (o apelido apagado noutro aparelho não volta do cache).
+- Período padrão: `lerFiltros(search, padrao)` só usa o padrão na URL nua.
+  Link com `ref` e sem `p` continua sendo mês, que é como `escreverFiltros`
+  o escreve.
+- Excluir apaga as sete tabelas pela Data API (documentos primeiro) e só
+  depois tenta `deleteUser`. Se o servidor recusar (o better-auth só abre a
+  rota com `deleteUser.enabled`), a tela diz que o login continua. Se apagar
+  os dados falhar, o login não é tocado.
+- O tema saiu do `ThemeToggle` para `lib/tema.ts`, com `useTema()` lendo o
+  próprio `data-theme`: o botão do cabeçalho troca de ícone quando é o
+  perfil quem muda o tema. `DiscretoProvider` ganhou `definir(b)`.
+- Folha de provas: `?tela=perfil`. Medidor: ação `aba`, prova `aba-ativa` e
+  cinco jornadas `perfil-*`. Roteiro manual: §7.
+- Falta: aplicar a 0013 (pedido explícito) e rodar o §7 com conta de teste.
+  Saber se o Neon liga o `deleteUser` só dá contra o servidor real.
+
 ## Calendário do próximo mês — 2026-11-02
 
 - Em `feat/calendario-proximo-mes`, a partir da `main`. Item 2.6 da
