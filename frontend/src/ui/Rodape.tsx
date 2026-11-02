@@ -18,6 +18,11 @@ type Props = {
  *  muda com o modo: antes esta linha explicava a privacidade e tinha uma
  *  versão para cada modo (com e sem Neon), o que fazia o rodapé depender de
  *  configuração para dizer a mesma coisa. */
+/** O ano do copyright, lido uma vez quando a página carrega. Ler a data
+ *  durante a pintura é impuro (o oxlint 1.90 recusa), e uma aba aberta na
+ *  virada do ano mostrar o ano anterior não engana ninguém. */
+const ANO = new Date().getFullYear()
+
 export function Rodape({ className = '' }: Props) {
   const { t } = useT()
   return (
@@ -30,7 +35,7 @@ export function Rodape({ className = '' }: Props) {
         <span className="h-px flex-1 bg-carvao-800" />
       </div>
       <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-tinta-tenue">
-        <span className="tabular">© {new Date().getFullYear()}</span>
+        <span className="tabular">© {ANO}</span>
         <span aria-hidden>·</span>
         <span>{t('rodape.criadoPor')}</span>
         {/* A assinatura é o único nome próprio da página: ganha corpo,

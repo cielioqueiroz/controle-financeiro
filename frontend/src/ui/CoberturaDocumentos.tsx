@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { coberturaDocumentos, type DocParaCobertura, type EstadoCobertura } from '../domain/cobertura'
 import { isoLocal } from '../domain/agrupar'
 import { temaDoBanco } from '../domain/banks'
@@ -33,10 +33,10 @@ function rotuloMes(competencia: string): string {
  *  número do Painel. */
 export function CoberturaDocumentos({ documentos }: Props) {
   const { t } = useT()
-  const cobertura = useMemo(
-    () => coberturaDocumentos(documentos, isoLocal(new Date()).slice(0, 7)),
-    [documentos],
-  )
+  // O mês de hoje é lido UMA vez, na montagem: ler a data dentro da pintura
+  // (mesmo num useMemo) é impuro, e o oxlint 1.90 recusa.
+  const [mesAtual] = useState(() => isoLocal(new Date()).slice(0, 7))
+  const cobertura = useMemo(() => coberturaDocumentos(documentos, mesAtual), [documentos, mesAtual])
   if (!cobertura) return null
 
   const resumo = cobertura.faltando === 0
