@@ -210,9 +210,11 @@ export function Folha() {
       </Secao>
 
       {/* Os tres estados lado a lado: e a unica tela onde da para comparar
-          o peso visual deles, e o carimbo so aparece depois de ler um PDF. */}
+          o peso visual deles, e o carimbo so aparece depois de ler um PDF.
+          O `overflow-x-clip` e pela entrada em scale(1.4): no primeiro quadro
+          o "Diverge", o mais largo, passava 13px da tela de 375px. */}
       <Secao titulo="carimbo-conferencia">
-        <div className="flex flex-wrap items-center gap-10 bg-cartao px-6 py-8">
+        <div className="flex flex-wrap items-center gap-10 overflow-x-clip bg-cartao px-6 py-8">
           <CarimboConferencia
             conf={{ status: 'confere', contagem: 21, somaExtraida: 4101225, diferenca: 0 }}
             data={new Date(2026, 5, 30)}

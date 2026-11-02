@@ -54,7 +54,7 @@ executar = _mod.executar
 conferir = _mod.conferir
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:5173').rstrip('/')
-VIEWPORTS = [(1280, 800), (390, 844)]
+VIEWPORTS = [(1280, 800), (375, 812)]  # as mesmas larguras do medir-overflow
 GRAVES = ('critical', 'serious')
 
 

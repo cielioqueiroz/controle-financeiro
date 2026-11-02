@@ -37,19 +37,24 @@ export function LinhaTransacao({ t, onEditar, onVerDocumento, semIcone, mostrarC
   const interno = ehVinculo(t.kind)
   return (
     <li
-      className={`group flex items-center gap-2 px-2 py-1.5 text-sm transition-colors even:bg-carvao-950/25 hover:bg-carvao-850 sm:gap-3 sm:px-3 ${
+      className={`group flex flex-wrap items-center gap-x-2 px-2 py-1.5 text-sm transition-colors even:bg-carvao-950/25 hover:bg-carvao-850 sm:flex-nowrap sm:gap-3 sm:px-3 ${
         interno ? 'opacity-55' : ''
       }`}
     >
-      <span className="tabular w-11 shrink-0 text-xs text-tinta-tenue sm:w-12">
-        {t.date.slice(8, 10)}/{t.date.slice(5, 7)}
-      </span>
-      {!semIcone && (
-        <span className="shrink-0 text-base" title={nomeCategoria(cat)}>
-          {cat.icone}
+      <span className="mr-auto flex shrink-0 items-center gap-2 sm:mr-0 sm:gap-3">
+        <span className="tabular w-11 shrink-0 text-xs text-tinta-tenue sm:w-12">
+          {t.date.slice(8, 10)}/{t.date.slice(5, 7)}
         </span>
-      )}
-      <span className="min-w-0 flex-1 truncate text-tinta">
+        {!semIcone && (
+          <span className="shrink-0 text-base" title={nomeCategoria(cat)}>
+            {cat.icone}
+          </span>
+        )}
+      </span>
+      {/* Abaixo de `sm` o nome vai para uma segunda linha, com a largura
+          inteira: os dois botões de 44px e o valor levam quase toda a linha
+          de 375px, e lado a lado sobravam 19px para o nome ("C…"). */}
+      <span className="order-last -mt-2 min-w-0 basis-full truncate pb-1 text-tinta sm:order-none sm:mt-0 sm:flex-1 sm:basis-auto sm:pb-0">
         {nomeExibido(t)}
         {t.installment && (
           <span className="tabular ml-2 rounded-sm bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">

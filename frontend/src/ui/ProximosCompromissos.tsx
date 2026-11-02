@@ -45,12 +45,12 @@ export function ProximosCompromissos({ meses, href }: Props) {
 
       <ul className="mt-4 divide-y divide-carvao-800 border-y border-carvao-800">
         {meses.slice(0, 3).map((mes) => (
-          <li key={mes.competencia} className="flex items-center gap-3 py-3">
-            <span className="min-w-[5.5rem] text-sm capitalize text-tinta">
-              {rotuloMes(mes.competencia)}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm text-tinta-fraca">
+          // Mês e contagem empilhados: em três colunas, o mês (5.5rem) e o
+          // valor deixavam 48px para "4 parcelas a vencer", uma palavra por linha.
+          <li key={mes.competencia} className="flex items-center justify-between gap-3 py-3">
+            <span className="min-w-0">
+              <span className="block text-sm capitalize text-tinta">{rotuloMes(mes.competencia)}</span>
+              <span className="block text-xs text-tinta-fraca">
                 {t(mes.itens.length === 1 ? 'comp.aVencerSing' : 'comp.aVencerPlur', {
                   n: mes.itens.length,
                 })}
