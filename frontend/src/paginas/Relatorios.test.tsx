@@ -215,3 +215,14 @@ describe('Relatórios — consumo e dívidas', () => {
     expect(screen.queryByText('Consumo')).not.toBeInTheDocument()
   })
 })
+
+describe('Relatórios — descrição na tela', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('mostra a descrição em caixa de título e mantém a crua na vista de auditoria', async () => {
+    vi.mocked(puxarTudo).mockResolvedValue([{ ...transacao, description: 'SUPERMERCADO BOM PRECO' }])
+    abrir('?janela=3&ref=2026-07&detalhe=transacao&item=tx-1')
+    const detalhe = await screen.findByRole('region', { name: 'Supermercado Bom Preco' })
+    expect(within(detalhe).getByText('SUPERMERCADO BOM PRECO')).toBeInTheDocument()
+  })
+})

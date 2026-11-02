@@ -1,5 +1,33 @@
 # Estado atual do projeto — retomada
 
+## Descrição do banco em caixa de título — 2026-11-02
+
+- Em `feat/descricao-caixa-titulo`, a partir da `main`. Item U3 da auditoria
+  das somas de 30/10.
+- `domain/normalize/descricao.ts`: `caixaDeTitulo` desce a caixa só do texto
+  sem nenhuma minúscula ("SUPERMERCADO SAO LUIZ" → "Supermercado Sao Luiz").
+  Deixa conectivos em minúscula ("Oficina do Carro") e mantém sem mexer as
+  palavras sem vogal ("MP", "SP", "BR"), as siglas com vogal (`TED`, `IOF`…)
+  e as palavras com dígito, que costumam ser código. `nomeExibido` usa o
+  rótulo do usuário como ele escreveu e, sem rótulo, a descrição em caixa de
+  título.
+- Mora em `domain/normalize/`, ao lado de `formatBRL` e do percentual, porque
+  o domínio já escolhe o nome a exibir nos agregados: compromissos,
+  recorrências (e seus alertas), ranking de estabelecimentos e o diagnóstico
+  de concentração. Aplicar na UI depois dessa escolha não distinguiria o
+  rótulo da descrição, e um rótulo escrito em caixa alta seria reescrito.
+- Nada muda no que é gravado: a Descrição, a chave do estabelecimento, as
+  regras e o hash de dedupe leem o texto cru. A busca continua casando sem
+  diferença de caixa.
+- A descrição crua continua à vista onde se audita: no detalhe "transações e
+  documentos deste valor" (linha abaixo do nome, quando ele difere), na
+  prévia da importação e no editor da compra.
+- O PDF do relatório não lista descrições; ele não muda.
+- Achado fora do escopo: em 375px a vista "Todos" de Lançamentos deixa um
+  caractere para a descrição ("C…"), porque os botões de documento e de
+  edição e o valor ocupam a linha. Já era assim antes; o U3 só não aparece
+  ali no celular.
+
 ## Auditoria de 30/10 na main — 2026-11-01
 
 - Os PRs #39 a #49 entraram juntos na `main`, a pedido do dono, por uma

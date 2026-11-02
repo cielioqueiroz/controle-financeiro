@@ -1,4 +1,5 @@
 import { normalizeMerchant } from './normalize/merchant'
+import { nomeExibido } from './normalize/descricao'
 
 /** Recorrências detectadas: o que se repete mês a mês sem ninguém cadastrar.
  *
@@ -142,7 +143,7 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
 
     recorrencias.push({
       chave: g.chave,
-      descricao: maisNova.label ?? maisNova.description,
+      descricao: nomeExibido(maisNova),
       categoriaSlug: maisNova.category_slug ?? 'outros',
       tipo: g.tipo,
       valorTipicoCents: mediana(somas),

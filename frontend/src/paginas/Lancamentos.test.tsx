@@ -68,8 +68,8 @@ describe('Lançamentos — os filtros da URL', () => {
   it('chegando com ?cat, abre já filtrado por aquela categoria', async () => {
     abrir('/lancamentos?ref=2026-06&cat=transporte')
 
-    expect(await screen.findByText('UBER TRIP')).toBeInTheDocument()
-    expect(screen.queryByText('DROGASIL')).not.toBeInTheDocument()
+    expect(await screen.findByText('Uber Trip')).toBeInTheDocument()
+    expect(screen.queryByText('Drogasil')).not.toBeInTheDocument()
     expect(screen.getByText(/^1 lançamento/)).toBeInTheDocument()
     // E o <select> mostra a categoria: o que se vê e o que se filtra iguais.
     expect(screen.getByLabelText('Filtrar por categoria')).toHaveValue('transporte')
@@ -78,8 +78,8 @@ describe('Lançamentos — os filtros da URL', () => {
   it('chegando com ?q, abre já com a busca aplicada', async () => {
     abrir('/lancamentos?ref=2026-06&q=drogasil')
 
-    expect(await screen.findByText('DROGASIL')).toBeInTheDocument()
-    expect(screen.queryByText('UBER TRIP')).not.toBeInTheDocument()
+    expect(await screen.findByText('Drogasil')).toBeInTheDocument()
+    expect(screen.queryByText('Uber Trip')).not.toBeInTheDocument()
   })
 
   // Sem isto o recorte não sobrevive ao F5 nem cabe num link — as duas coisas
@@ -92,7 +92,7 @@ describe('Lançamentos — os filtros da URL', () => {
     await userEvent.type(campo, 'uber')
 
     await waitFor(() => expect(screen.getByTestId('url')).toHaveTextContent('q=uber'))
-    expect(screen.getByText('UBER TRIP')).toBeInTheDocument()
+    expect(screen.getByText('Uber Trip')).toBeInTheDocument()
   })
 
   it('escolher categoria no seletor escreve na URL', async () => {
@@ -103,7 +103,7 @@ describe('Lançamentos — os filtros da URL', () => {
     await userEvent.selectOptions(screen.getByLabelText('Filtrar por categoria'), 'supermercado')
 
     await waitFor(() => expect(screen.getByTestId('url')).toHaveTextContent('cat=supermercado'))
-    expect(screen.getByText('CARREFOUR')).toBeInTheDocument()
+    expect(screen.getByText('Carrefour')).toBeInTheDocument()
   })
 
   it('sem cat nem q, abre na vista por categoria, como sempre', async () => {

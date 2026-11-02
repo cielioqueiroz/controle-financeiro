@@ -201,7 +201,9 @@ _Evitar_: loja, fornecedor, comerciante
 
 **Descrição**:
 O texto original do banco para a transação. Imutável — é o que permite auditar
-contra o PDF, e é por ela que o ranking de estabelecimentos agrupa.
+contra o PDF, e é por ela que o ranking de estabelecimentos agrupa. Na tela,
+quando vem toda em caixa alta, aparece em caixa de título; gravada, não muda.
+_Em código_: `caixaDeTitulo`, `nomeExibido` (`domain/normalize/descricao.ts`)
 _Evitar_: título, nome da compra, histórico
 
 **Rótulo**:

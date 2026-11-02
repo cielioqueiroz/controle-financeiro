@@ -57,7 +57,7 @@ describe('diagnosticar', () => {
     it('acusa quando um lugar domina o mês', () => {
       const d = diagnosticar([...saudavel, tx(2000_00, 'casa', 'Leroy Merlin')])
       expect(d.find((x) => x.tipo === 'concentracao')).toMatchObject({
-        rotulo: 'LEROY MERLIN',
+        rotulo: 'Leroy Merlin',
         totalCents: 2000_00,
       })
     })

@@ -94,8 +94,8 @@ describe('ListaPorDia', () => {
 
     const dias = screen.getAllByRole('listitem')
     expect(dias).toHaveLength(2)
-    expect(within(dias[0]).getByText('PADARIA DO ZE')).toBeInTheDocument()
-    expect(within(dias[1]).getByText('FARMACIA')).toBeInTheDocument()
+    expect(within(dias[0]).getByText('Padaria do Ze')).toBeInTheDocument()
+    expect(within(dias[1]).getByText('Farmacia')).toBeInTheDocument()
   })
 
   it('leva a transação clicada para a edição', async () => {

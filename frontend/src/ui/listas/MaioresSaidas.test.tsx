@@ -23,7 +23,7 @@ const tx = (over: Partial<TransacaoSalva>): TransacaoSalva => ({
 describe('MaioresSaidas', () => {
   it('lista os itens com posição e valor', () => {
     render(<MaioresSaidas itens={[tx({})]} onEditar={() => {}} />)
-    expect(screen.getByText('ALUGUEL JUNHO')).toBeInTheDocument()
+    expect(screen.getByText('Aluguel Junho')).toBeInTheDocument()
     expect(screen.getByText(/420,00/)).toBeInTheDocument()
     expect(screen.getByText('1')).toBeInTheDocument()
   })
@@ -31,7 +31,7 @@ describe('MaioresSaidas', () => {
   it('prefere o rótulo do usuário à descrição do banco', () => {
     render(<MaioresSaidas itens={[tx({ label: 'Aluguel da casa' })]} onEditar={() => {}} />)
     expect(screen.getByText('Aluguel da casa')).toBeInTheDocument()
-    expect(screen.queryByText('ALUGUEL JUNHO')).not.toBeInTheDocument()
+    expect(screen.queryByText('Aluguel Junho')).not.toBeInTheDocument()
   })
 
   it('mostra o nome da categoria', () => {
@@ -43,7 +43,7 @@ describe('MaioresSaidas', () => {
     const onEditar = vi.fn()
     const item = tx({ id: 'clicavel' })
     render(<MaioresSaidas itens={[item]} onEditar={onEditar} />)
-    await userEvent.click(screen.getByRole('button', { name: /ALUGUEL JUNHO/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Aluguel Junho/ }))
     expect(onEditar).toHaveBeenCalledWith(item)
   })
 
@@ -58,8 +58,8 @@ describe('MaioresSaidas', () => {
       />,
     )
     const linhas = screen.getAllByRole('button')
-    expect(linhas[0]).toHaveTextContent('MAIOR')
-    expect(linhas[1]).toHaveTextContent('MENOR')
+    expect(linhas[0]).toHaveTextContent('Maior')
+    expect(linhas[1]).toHaveTextContent('Menor')
   })
 
   it('não renderiza nada quando não há itens', () => {

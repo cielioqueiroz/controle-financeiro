@@ -22,6 +22,7 @@ import { DetalheRelatorio } from '../ui/DetalheRelatorio'
 import { DetalheGasto } from '../ui/DetalheGasto'
 import { categoria, nomeCategoria } from '../domain/categorize/categorias'
 import { normalizeMerchant } from '../domain/normalize/merchant'
+import { caixaDeTitulo, nomeExibido } from '../domain/normalize/descricao'
 
 type Detalhe = { tipo: 'categoria' | 'estabelecimento' | 'transacao'; chave: string }
 
@@ -104,8 +105,8 @@ export function Relatorios() {
   ))
   const tituloDetalhe = detalhe && transacoesDetalhe.length > 0
     ? detalhe.tipo === 'categoria' ? nomeCategoria(categoria(detalhe.chave))
-      : detalhe.tipo === 'estabelecimento' ? estabelecimentos.find((item) => item.merchant === detalhe.chave)?.rotulo ?? normalizeMerchant(transacoesDetalhe[0].description)
-        : transacoesDetalhe[0].label ?? transacoesDetalhe[0].description
+      : detalhe.tipo === 'estabelecimento' ? estabelecimentos.find((item) => item.merchant === detalhe.chave)?.rotulo ?? caixaDeTitulo(normalizeMerchant(transacoesDetalhe[0].description))
+        : nomeExibido(transacoesDetalhe[0])
     : ''
 
   function selecionarMes(competencia: string) {
@@ -229,7 +230,7 @@ export function Relatorios() {
                     <button type="button" className="flex min-h-11 w-full flex-wrap items-center gap-3 rounded-md py-3 text-left hover:bg-afundado"
                       onClick={() => abrirDetalhe({ tipo: 'transacao', chave: item.id })}>
                     <span className="tabular w-6 text-xs text-tinta-tenue">{maiores.indexOf(item) + 1}</span>
-                    <span className="min-w-0 basis-32 flex-1 break-words text-sm text-tinta-fraca">{item.label ?? item.description}</span>
+                    <span className="min-w-0 basis-32 flex-1 break-words text-sm text-tinta-fraca">{nomeExibido(item)}</span>
                     <span className="tabular text-sm text-debito">{dinheiro(item.amount_cents)}</span>
                     </button>
                   </li>
