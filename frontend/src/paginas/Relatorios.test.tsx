@@ -70,7 +70,7 @@ describe('Relatórios — estados e navegação', () => {
     const detalhe = screen.getByRole('region', { name: 'Supermercado' })
     expect(within(detalhe).getByRole('heading', { name: 'Supermercado' })).toHaveFocus()
     expect(detalhe.querySelectorAll('details')).toHaveLength(2)
-    const documentoJunho = within(detalhe).getByText(/Nubank.*2026-06/)
+    const documentoJunho = within(detalhe).getByText((_, el) => el?.tagName === 'SUMMARY' && /Nubank.*2026-06/.test(el.textContent ?? ''))
     await userEvent.click(documentoJunho)
     expect(within(documentoJunho.closest('details')!).getByRole('button', { name: 'Ver documento importado' })).toBeVisible()
     expect(within(detalhe).getByText('12/06/2026')).toBeVisible()

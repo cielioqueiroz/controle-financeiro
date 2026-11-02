@@ -13,6 +13,7 @@ import {
   variacaoPct,
   doMesCalendario,
   isoLocal,
+  composicaoDoNumero,
   type TxAgrupavel,
   type TxComEstabelecimento,
   type TxParcela,
@@ -539,5 +540,53 @@ describe('isoLocal', () => {
     const ref = new Date(2026, 6, 14)
     const t = tx({ date: isoLocal(ref) })
     expect(pertence(t, 'dia', ref)).toBe(true)
+  })
+})
+
+describe('composicaoDoNumero', () => {
+  const recorte = [
+    tx({ kind: 'income', amount_cents: -600000, category_slug: null }),
+    tx({ kind: 'income', amount_cents: -50000, category_slug: null }),
+    tx({ kind: 'expense', amount_cents: 30000 }),
+    // Estorno: compra voltando, abate o gasto e não vira entrada.
+    tx({ kind: 'expense', amount_cents: -5000 }),
+    tx({ kind: 'expense', amount_cents: 4165385, category_slug: 'dividas' }),
+    // Vínculos: dinheiro que só mudou de lugar não compõe número nenhum.
+    tx({ kind: 'card_payment', amount_cents: 120000, category_slug: null }),
+    tx({ kind: 'internal_transfer', amount_cents: 80000, category_slug: null }),
+  ]
+  const resumo = agregar(recorte)
+
+  it('entradas: só as transações income, somando o que o tile mostra', () => {
+    const composicao = composicaoDoNumero(recorte, 'entradas')
+    expect(composicao.itens.map((t) => t.kind)).toEqual(['income', 'income'])
+    expect(composicao.totalCents).toBe(resumo.entradasCents)
+    expect(composicao.itens.map(composicao.contribuicao)).toEqual([600000, 50000])
+  })
+
+  it('gasto real: só as despesas, com o estorno abatendo', () => {
+    const composicao = composicaoDoNumero(recorte, 'gasto')
+    expect(composicao.itens).toHaveLength(3)
+    expect(composicao.itens.every((t) => t.kind === 'expense')).toBe(true)
+    expect(composicao.totalCents).toBe(resumo.gastoCents)
+    expect(composicao.itens.map(composicao.contribuicao)).toEqual([30000, -5000, 4165385])
+  })
+
+  it('resultado: entradas somam e despesas subtraem', () => {
+    const composicao = composicaoDoNumero(recorte, 'resultado')
+    expect(composicao.itens).toHaveLength(5)
+    expect(composicao.totalCents).toBe(resumo.saldoCents)
+    expect(composicao.itens.map(composicao.contribuicao)).toEqual([600000, 50000, -30000, 5000, -4165385])
+  })
+
+  it('a soma das contribuições fecha com o total, para qualquer número', () => {
+    for (const numero of ['entradas', 'gasto', 'resultado'] as const) {
+      const composicao = composicaoDoNumero(recorte, numero)
+      expect(composicao.itens.reduce((soma, t) => soma + composicao.contribuicao(t), 0)).toBe(composicao.totalCents)
+    }
+  })
+
+  it('recorte sem transações devolve composicao vazia e total zero', () => {
+    expect(composicaoDoNumero([], 'gasto')).toMatchObject({ itens: [], totalCents: 0 })
   })
 })
