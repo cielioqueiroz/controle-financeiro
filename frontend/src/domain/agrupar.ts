@@ -131,6 +131,32 @@ export function agregar(txs: TxAgrupavel[]): Resumo {
   }
 }
 
+/** Os três números do cabeçalho do Painel. */
+export type NumeroDoResumo = 'entradas' | 'gasto' | 'resultado'
+
+export type ComposicaoDoNumero<T> = {
+  itens: T[]
+  /** Quanto cada transação soma ao número, no sinal dele: no resultado, a
+   *  despesa subtrai e a entrada soma. É o que o detalhe do número mostra
+   *  ao lado de cada linha, para que a coluna feche com o total. */
+  contribuicao: (tx: TxAgrupavel) => number
+  totalCents: number
+}
+
+/** As transações que compõem um número do resumo, pela mesma regra de
+ *  `agregar`: vínculos não entram em nenhum dos três. `totalCents` é o
+ *  número que o tile mostra. */
+export function composicaoDoNumero<T extends TxAgrupavel>(txs: T[], numero: NumeroDoResumo): ComposicaoDoNumero<T> {
+  const contribuicao = (tx: TxAgrupavel): number =>
+    tx.kind === 'income' ? Math.abs(tx.amount_cents)
+      : numero === 'resultado' ? -tx.amount_cents : tx.amount_cents
+  const itens = txs.filter((tx) =>
+    numero === 'entradas' ? tx.kind === 'income'
+      : numero === 'gasto' ? tx.kind === 'expense'
+        : tx.kind === 'income' || tx.kind === 'expense')
+  return { itens, contribuicao, totalCents: itens.reduce((soma, tx) => soma + contribuicao(tx), 0) }
+}
+
 export type GrupoCategoria<T> = {
   slug: string
   cat: Categoria

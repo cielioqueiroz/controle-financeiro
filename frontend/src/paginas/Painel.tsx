@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   maioresSaidas,
   porEstabelecimento,
@@ -10,6 +10,8 @@ import {
   porDia,
   doMesCalendario,
   isoLocal,
+  composicaoDoNumero,
+  type NumeroDoResumo,
 } from '../domain/agrupar'
 import { taxasFinanceiras } from '../domain/trajetoria'
 import { TransacoesDoMes } from '../ui/TransacoesDoMes'
@@ -46,6 +48,7 @@ import { CarregandoPainel } from '../ui/CarregandoPainel'
 import { EstadoVazio } from '../ui/EstadoVazio'
 import { ValorAnimado } from '../ui/ValorAnimado'
 import { DetalheGasto } from '../ui/DetalheGasto'
+import { DetalheRelatorio } from '../ui/DetalheRelatorio'
 import { EditarCompra } from '../ui/EditarCompra'
 // Estático, e os três juntos. Havia `await import('../lib/compartilhar')`
 // dentro das funções, mas `podeCompartilharArquivo` já era importado aqui de
@@ -91,6 +94,23 @@ export function Painel({ onAprendeu }: Props) {
   // cada render. Some no desktop sem Web Share — lá só existe baixar.
   const [podeCompartilhar] = useState(podeCompartilharArquivo)
   const semMovimento = useReducedMotion()
+
+  /** O número do cabeçalho com a composição aberta mora na URL
+   *  (`composicao`), como o detalhe dos Relatórios: recarregar mantém e
+   *  Voltar desfaz. Trocar o recorte com ela aberta mostra a composição do
+   *  número novo. */
+  const [search, setSearch] = useSearchParams()
+  const parametroComposicao = search.get('composicao')
+  const numeroAberto: NumeroDoResumo | null =
+    parametroComposicao === 'entradas' || parametroComposicao === 'gasto' || parametroComposicao === 'resultado'
+      ? parametroComposicao : null
+  const composicoes = useMemo(() => ({
+    entradas: composicaoDoNumero(txs, 'entradas'),
+    gasto: composicaoDoNumero(txs, 'gasto'),
+    resultado: composicaoDoNumero(txs, 'resultado'),
+  }), [txs])
+  const composicaoAberta = numeroAberto ? composicoes[numeroAberto] : null
+  const gatilhoComposicao = useRef<HTMLElement | null>(null)
 
   const saldos = useMemo(() => saldosPorConta(docsSaldo), [docsSaldo])
   const abertos = useMemo(() => faturasAbertas(docsSaldo), [docsSaldo])
@@ -268,6 +288,33 @@ export function Painel({ onAprendeu }: Props) {
           transition: { duration: 0.45, delay, ease: suave },
         }
 
+  function semComposicao() {
+    const proxima = new URLSearchParams(search)
+    proxima.delete('composicao')
+    return proxima
+  }
+
+  /** O mesmo botão abre e fecha. Ao fechar pelo botão, o foco já está nele. */
+  function alternarComposicao(numero: NumeroDoResumo) {
+    const proxima = semComposicao()
+    if (numeroAberto !== numero) {
+      gatilhoComposicao.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      proxima.set('composicao', numero)
+    }
+    setSearch(proxima, { replace: true })
+  }
+
+  function fecharComposicao() {
+    setSearch(semComposicao(), { replace: true })
+    if (gatilhoComposicao.current?.isConnected) gatilhoComposicao.current.focus()
+  }
+
+  function abrirDocumento(id: string) {
+    const proxima = semComposicao()
+    proxima.set('documento', id)
+    navigate(`/faturas?${proxima.toString()}`)
+  }
+
   function irParaMes(competencia: string) {
     const [y, m] = competencia.split('-').map(Number)
     setFiltros({ periodo: 'mes', ref: new Date(y, m - 1, 1) })
@@ -415,7 +462,12 @@ export function Painel({ onAprendeu }: Props) {
             <div className="pilha-paineis">
               <div role="group" aria-label={t('relatorios.resumoAria')} className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:gap-4">
                 <motion.div {...entra(0.05)} className="cartao overflow-hidden">
-                  <Tile rotulo={t('dash.entradas')} variacao={variacao.entradas}>
+                  <Tile
+                    rotulo={t('dash.entradas')}
+                    variacao={variacao.entradas}
+                    composicao={composicoes.entradas.itens.length > 0
+                      ? { aberta: numeroAberto === 'entradas', onAlternar: () => alternarComposicao('entradas') } : undefined}
+                  >
                     <ValorAnimado valor={resumo.entradasCents} />
                   </Tile>
                 </motion.div>
@@ -425,6 +477,8 @@ export function Painel({ onAprendeu }: Props) {
                     variacao={variacao.gasto}
                     subirEhRuim
                     detalhe={<DetalheGasto consumoCents={resumo.consumoCents} dividasCents={resumo.dividasCents} />}
+                    composicao={composicoes.gasto.itens.length > 0
+                      ? { aberta: numeroAberto === 'gasto', onAlternar: () => alternarComposicao('gasto') } : undefined}
                   >
                     <ValorAnimado valor={resumo.gastoCents} />
                   </Tile>
@@ -434,11 +488,29 @@ export function Painel({ onAprendeu }: Props) {
                     rotulo={t('dash.resultado')}
                     destaque
                     cor={resumo.saldoCents < 0 ? 'var(--color-falha)' : undefined}
+                    composicao={composicoes.resultado.itens.length > 0
+                      ? { aberta: numeroAberto === 'resultado', onAlternar: () => alternarComposicao('resultado') } : undefined}
                   >
                     <ValorAnimado valor={resumo.saldoCents} />
                   </Tile>
                 </motion.div>
               </div>
+
+              {numeroAberto && composicaoAberta && composicaoAberta.itens.length > 0 && (
+                <div className="screen-only">
+                  <DetalheRelatorio
+                    key={numeroAberto}
+                    titulo={t(({ entradas: 'dash.entradas', gasto: 'dash.gastoRealTitulo', resultado: 'dash.resultado' } as const)[numeroAberto])}
+                    txs={composicaoAberta.itens}
+                    periodo={rotuloPeriodo(filtros.periodo, filtros.ref)}
+                    contribuicao={composicaoAberta.contribuicao}
+                    descricao={t(({ entradas: 'dash.composicaoEntradas', gasto: 'dash.composicaoGasto', resultado: 'dash.composicaoResultado' } as const)[numeroAberto])}
+                    rotuloFechar={t('geral.fechar')}
+                    onFechar={fecharComposicao}
+                    onVerDocumento={abrirDocumento}
+                  />
+                </div>
+              )}
 
               <Diagnosticos itens={diagnosticos} onVerSemCategoria={irParaSemCategoria} />
 
@@ -665,6 +737,7 @@ function Tile({
   /** `true` quando subir é RUIM (gasto). Entradas invertem: subir é bom. */
   subirEhRuim,
   detalhe,
+  composicao,
   children,
 }: {
   rotulo: string
@@ -673,8 +746,11 @@ function Tile({
   variacao?: number | null
   subirEhRuim?: boolean
   detalhe?: React.ReactNode
+  /** O botão "de onde vem": abre as transações e os documentos do número. */
+  composicao?: { aberta: boolean; onAlternar: () => void }
   children: React.ReactNode
 }) {
+  const { t } = useT()
   return (
     <div className="bg-carvao-900 px-6 py-5">
       <p className="tabular text-xs uppercase tracking-widest text-tinta-tenue">{rotulo}</p>
@@ -688,6 +764,21 @@ function Tile({
         <ComparacaoPeriodo pct={variacao} subirEhRuim={subirEhRuim} />
       )}
       {detalhe}
+      {composicao && (
+        <button
+          type="button"
+          onClick={composicao.onAlternar}
+          aria-expanded={composicao.aberta}
+          aria-label={t('dash.deOndeVemAria', { numero: rotulo })}
+          data-prova="composicao-numero"
+          className="screen-only -ml-2 mt-1 inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-sm text-tinta-tenue underline-offset-4 transition-colors hover:text-tinta hover:underline"
+        >
+          {t('dash.deOndeVem')}
+          <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 transition-transform ${composicao.aberta ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }

@@ -206,7 +206,7 @@ Avaliada na folha de provas (`/demo.html`, dados fictícios) e nos prints do
 | U4 | Saldo de conta e "Próximas faturas" com o mesmo peso, na mesma fileira | Separar o que é seu (saldo) do que você deve (fatura) e mostrar o líquido de curto prazo (2.4). |
 | U5 | Compromissos repetem seis linhas iguais ("1× R$ 450,00") | Recolher meses consecutivos iguais: "nov/26 – abr/27 · 6× R$ 450,00". |
 | U6 | Os dois rankings lado a lado repetem o mesmo primeiro lugar | Um ranking só, com a alternância "por compra / por estabelecimento". |
-| U7 | O detalhe "transações e documentos deste valor" é o ponto forte do app | Levar o mesmo botão de origem para cada número do cabeçalho (gasto real, entradas, sobra). |
+| U7 | O detalhe "transações e documentos deste valor" é o ponto forte do app | Levar o mesmo botão de origem para cada número do cabeçalho (gasto real, entradas, sobra). **Feito em `feat/origem-cabecalho`** ("De onde vem"; no código, **Composição**). |
 
 Os comparativos citam [Copilot e Monarch](https://getfinny.app/blog/copilot-money-vs-monarch-money-2026)
 como referência de interface e de detecção de recorrência. Sobre conciliação,

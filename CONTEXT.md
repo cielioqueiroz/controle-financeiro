@@ -261,6 +261,16 @@ contagem, e sem a fatura as compras dela podem não estar no número.
 _Em código_: `Procedencia`, `quitacoesSemFatura`
 _Evitar_: origem, fonte, lastro, cobertura
 
+**Composição**:
+As transações que formam **um** número do resumo — entradas, gasto real ou
+resultado — e quanto cada uma contribui para ele, no sinal do número: no
+resultado, a entrada soma e a despesa subtrai. Segue a regra de `agregar`, e
+por isso nenhum vínculo entra. **Não é o mesmo que Procedência**: a
+procedência descreve o recorte inteiro; a composição abre um número só, e é
+ela que a tela mostra em "De onde vem".
+_Em código_: `composicaoDoNumero`, `contribuicao` (`domain/agrupar.ts`)
+_Evitar_: origem, detalhamento, parcela (parcela é `installment`)
+
 **Cobertura**:
 A grade **fonte × competência** do histórico inteiro: para cada banco e tipo
 de documento, mês a mês, se o documento foi importado, falta, é do mês em curso

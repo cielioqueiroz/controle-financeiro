@@ -1,5 +1,43 @@
 # Estado atual do projeto — retomada
 
+## De onde vem cada número do cabeçalho — 2026-11-02
+
+- Em `feat/origem-cabecalho`, a partir da `main`. Item U7 da auditoria das
+  somas de 30/10.
+- Entradas, gasto real e resultado, no topo do Painel, ganham o botão "De
+  onde vem". Ele abre o mesmo detalhe "transações e documentos deste valor"
+  dos Relatórios (`DetalheRelatorio`), com as transações agrupadas por
+  documento e o botão que leva ao documento importado.
+- `domain/agrupar.ts`: `composicaoDoNumero` diz quais transações formam cada
+  número e quanto cada uma **contribui** para ele, no sinal do número. Nas
+  entradas o valor aparece positivo, como no tile. No resultado, a entrada
+  soma e a despesa subtrai, e a coluna fecha com o total. A regra é a de
+  `agregar`: vínculo não entra em nenhum dos três. O teste confere que o
+  total de cada composição é o número que o `agregar` dá.
+- O termo novo é **Composição** no `CONTEXT.md`. "Origem" ficou fora do
+  código porque o glossário a reserva contra a confusão com Procedência, e
+  "parcela" porque é `installment`.
+- O número aberto mora na URL (`?composicao=gasto`), como o detalhe dos
+  Relatórios: recarregar mantém, e trocar o recorte mostra a composição do
+  número novo. O mesmo botão abre e fecha (`aria-expanded`); "Fechar" devolve
+  o foco ao botão. O nome acessível é "De onde vem: Gasto real", que contém o
+  texto visível.
+- Sem entradas no recorte, o tile das entradas não ganha botão: abrir um
+  detalhe vazio seria um clique que não leva a nada.
+- O `DetalheRelatorio` aceita a contribuição, o texto explicativo e o rótulo
+  de fechar. Sem eles, faz o que fazia nos Relatórios.
+- Visto em 375px: o resumo de cada documento quebrava a linha no hífen,
+  com "2026-" numa linha e "07" na outra, e com o "-" de um valor negativo
+  separado de "R$ 35.769,65". A competência já quebrava assim nos
+  Relatórios; o valor negativo só existe na composição do resultado. Os dois
+  ganharam `whitespace-nowrap`. O `<span>` da competência parte o texto do
+  `<summary>`, e o `getByText` olha só os nós de texto diretos: dois testes
+  (`Relatorios.test`, `origem-documento.test`) passaram a achar o resumo
+  pelo texto inteiro do `<summary>`. O texto na tela é o mesmo.
+- Três jornadas novas no medidor de overflow, e por isso no a11y:
+  `painel-composicao-gasto`, `painel-composicao-resultado-claro` e
+  `painel-composicao-documento`.
+
 ## Pacote de 375px — 2026-11-02
 
 - Em `fix/layout-375`, a partir da `main` (já com o U3, #51).

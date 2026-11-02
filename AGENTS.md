@@ -609,6 +609,10 @@ o que vale é a diferença entre dois builds medidos na mesma.
 - **Editar arquivo versionado com `io.open(..., 'w')` no Python, no Windows,
   converte todo `\n` em `\r\n` em silêncio.** O README inteiro já virou CRLF assim,
   e o validador passou a achar zero blocos mermaid. Use `newline=''`.
+- **O `sed -i` do Git Bash faz o contrário: grava o arquivo inteiro em LF.**
+  Em 02/11 uma renomeação com `sed -i` virou sete arquivos de CRLF para LF
+  sem aviso. Confira com `git ls-files --eol -m` depois de qualquer edição
+  em lote, ou faça a troca em Python com `newline=''`.
 - **Nunca commitar PDF real** (`*.pdf` no `.gitignore`): contém CPF, conta e nomes
   de terceiros. `scripts/diagnostico.ts` também é local e git-ignored.
 
