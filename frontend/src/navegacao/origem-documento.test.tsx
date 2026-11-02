@@ -66,7 +66,7 @@ describe('procedência entre Relatórios e Faturas', () => {
     </MemoryRouter>)
     await usuario.click(await screen.findByRole('button', { name: /Supermercado.*100,00.*Ver lançamentos/ }))
     const detalhe = screen.getByRole('region', { name: 'Supermercado' })
-    await usuario.click(within(detalhe).getByText(/Nubank.*2026-07/))
+    await usuario.click(within(detalhe).getByText((_, el) => el?.tagName === 'SUMMARY' && /Nubank.*2026-07/.test(el.textContent ?? '')))
     await usuario.click(within(detalhe).getByRole('button', { name: 'Ver documento importado' }))
     expect(await screen.findByText('fatura-origem.pdf')).toBeVisible()
     expect(screen.getByText('Conferência original')).toBeVisible()

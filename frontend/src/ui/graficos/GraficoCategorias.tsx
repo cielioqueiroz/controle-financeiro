@@ -16,6 +16,9 @@ type Props = {
   categorias: CategoriaResumo[]
   totalCents: number
   onAbrir?: (slug: string) => void
+  /** O nome do total no centro do donut. Sem ele, "gasto real" — que deixa
+   *  de ser verdade quando a página tira os atípicos do desenho. */
+  rotuloTotal?: string
 }
 
 const R = 52
@@ -56,7 +59,7 @@ function geometriaDonut(topo: CategoriaResumo[], totalCents: number) {
  *
  *  Interativo: passar o mouse (ou focar pelo teclado) destaca a fatia e
  *  mostra o valor dela no centro; clicar abre os lançamentos da categoria. */
-export function GraficoCategorias({ categorias, totalCents, onAbrir }: Props) {
+export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal }: Props) {
   const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const navigate = useNavigate()
@@ -70,7 +73,7 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir }: Props) {
   const suave = [0.22, 1, 0.36, 1] as const
 
   const emFoco = ativa !== null ? topo[ativa] : null
-  const rotuloCentro = emFoco ? nomeCategoria(emFoco.cat) : t('dash.gastoReal')
+  const rotuloCentro = emFoco ? nomeCategoria(emFoco.cat) : rotuloTotal ?? t('dash.gastoReal')
   const valorCentro = emFoco ? emFoco.totalCents : totalCents
 
   /** Abre os lançamentos da categoria SEM perder o recorte atual.

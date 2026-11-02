@@ -108,6 +108,23 @@ JORNADAS = [
     ("lancamento-origem-documento", "/demo.html?tela=lancamentos",
      [("clicar", "Ver documento importado")],
      [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
+    # U7: o detalhe "deste valor" aberto por um numero do cabecalho do Painel.
+    ("painel-composicao-gasto", "/demo.html?tela=painel",
+     [("clicar", "De onde vem: Gasto real"), ("expandir-documento", "")],
+     [("ver-secao", "detalhe-relatorio"), ("ver-botao", "Ver documento importado")], 6),
+    ("painel-composicao-resultado-claro", "/demo.html?tela=painel&tema=claro",
+     [("clicar", "De onde vem: Resultado"), ("expandir-documento", "")],
+     [("ver-secao", "detalhe-relatorio"), ("ver-botao", "Fechar")], 6),
+    ("painel-composicao-documento", "/demo.html?tela=painel",
+     [("clicar", "De onde vem: Entradas"), ("expandir-documento", ""), ("clicar", "Ver documento importado")],
+     [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
+    # 2.2: a alternancia "Sem atipicos" tira a compra atipica dos graficos.
+    ("painel-sem-atipicos", "/demo.html?tela=painel",
+     [("expandir", "Explorar o período"), ("clicar", "Sem atípicos")],
+     [("ver-secao", "atipicos"), ("pressionado", "Sem atípicos")], 6),
+    ("painel-sem-atipicos-claro", "/demo.html?tela=painel&tema=claro",
+     [("expandir", "Explorar o período"), ("clicar", "Sem atípicos")],
+     [("ver-secao", "atipicos"), ("pressionado", "Sem atípicos")], 6),
     ("fluxo-destaque", "/demo.html?tela=painel",
      [("expandir", "Explorar o período"), ("clicar", "Entradas")], [("ver-botao", "Entradas")], 6),
     ("relatorios-lacunas", "/demo.html?tela=relatorios&amostra=lacunas&janela=3",
@@ -225,6 +242,10 @@ def conferir(pagina: Page, provas: list[tuple[str, str]]) -> None:
     for acao, alvo in provas:
         if acao == "ver-botao":
             expect(pagina.get_by_role("button", name=alvo, exact=True).first).to_be_visible()
+        elif acao == "pressionado":
+            # O rotulo de uma alternancia nao muda com o clique; o aria-pressed
+            # e a prova de que ela mudou de estado.
+            expect(pagina.get_by_role("button", name=alvo, exact=True, pressed=True).first).to_be_visible()
         elif acao == "ver-texto":
             expect(pagina.get_by_text(alvo, exact=True).first).to_be_visible()
         elif acao == "oculto-texto":

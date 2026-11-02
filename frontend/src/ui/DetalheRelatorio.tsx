@@ -8,11 +8,24 @@ import { useT } from '../i18n/IdiomaProvider'
 import { Cartao } from './Cartao'
 import { Procedencia } from './Procedencia'
 
-type Props = { titulo: string; txs: TransacaoSalva[]; periodo: string; onFechar: () => void; onVerDocumento?: (id: string) => void }
+type Props = {
+  titulo: string
+  txs: TransacaoSalva[]
+  periodo: string
+  onFechar: () => void
+  onVerDocumento?: (id: string) => void
+  /** Quanto cada transação soma ao valor, no sinal dele. Sem ela, o valor é
+   *  um gasto e a contribuição é o próprio `amount_cents`. */
+  contribuicao?: (tx: TransacaoSalva) => number
+  descricao?: string
+  rotuloFechar?: string
+}
 
 /** Recebe exatamente as transações que compõem o valor clicado, sem refazer
  * o recorte pela URL de mês (um relatório pode atravessar dois anos). */
-export function DetalheRelatorio({ titulo, txs, periodo, onFechar, onVerDocumento }: Props) {
+export function DetalheRelatorio({
+  titulo, txs, periodo, onFechar, onVerDocumento, contribuicao = (tx) => tx.amount_cents, descricao, rotuloFechar,
+}: Props) {
   const { t } = useT()
   const dinheiro = useDinheiro()
   const id = useId()
@@ -30,20 +43,22 @@ export function DetalheRelatorio({ titulo, txs, periodo, onFechar, onVerDocument
         <div className="min-w-0">
           <p className="rotulo">{t('relatorios.detalheTitulo')}</p>
           <h3 id={id} ref={cabecalho} tabIndex={-1} className="mt-1 break-words text-lg font-semibold">{titulo}</h3>
-          <p className="tabular mt-2 text-xl">{dinheiro(txs.reduce((soma, tx) => soma + tx.amount_cents, 0))}</p>
+          <p className="tabular mt-2 text-xl">{dinheiro(txs.reduce((soma, tx) => soma + contribuicao(tx), 0))}</p>
         </div>
-        <button type="button" className="acao-painel" onClick={onFechar}>{t('relatorios.voltarGrafico')}</button>
+        <button type="button" className="acao-painel" onClick={onFechar}>{rotuloFechar ?? t('relatorios.voltarGrafico')}</button>
       </div>
       <Procedencia txs={txs} periodo={periodo} />
-      <p className="mb-4 text-sm text-tinta-fraca">{t('relatorios.detalheDescricao')}</p>
+      <p className="mb-4 text-sm text-tinta-fraca">{descricao ?? t('relatorios.detalheDescricao')}</p>
       <div className="space-y-3">
         {[...documentos].map(([documento, transacoes]) => {
           const primeira = transacoes[0]
           return (
             <details key={documento} className="rounded-lg border border-borda p-3">
               <summary className="min-h-11 cursor-pointer text-sm leading-relaxed">
-                {BANCOS[primeira.bank as Bank]?.nome ?? primeira.bank} · {t(primeira.doc_type === 'fatura' ? 'proc.fatura1' : 'proc.extrato1')} · {primeira.competencia}
-                <span className="tabular ml-2">{dinheiro(transacoes.reduce((soma, tx) => soma + tx.amount_cents, 0))}</span>
+                {/* nowrap: o navegador quebra a linha depois de hífen — o da
+                    competência ("2026-" / "07") e o de um valor negativo. */}
+                {BANCOS[primeira.bank as Bank]?.nome ?? primeira.bank} · {t(primeira.doc_type === 'fatura' ? 'proc.fatura1' : 'proc.extrato1')} · <span className="whitespace-nowrap">{primeira.competencia}</span>
+                <span className="tabular ml-2 whitespace-nowrap">{dinheiro(transacoes.reduce((soma, tx) => soma + contribuicao(tx), 0))}</span>
               </summary>
               {onVerDocumento && <button type="button" className="acao-painel my-3" onClick={() => onVerDocumento(documento)}>
                 {t('relatorios.verDocumento')}
@@ -57,7 +72,7 @@ export function DetalheRelatorio({ titulo, txs, periodo, onFechar, onVerDocument
                       {/* A descrição crua fica à vista aqui: é a vista de auditoria contra o PDF. */}
                       {nomeExibido(tx) !== tx.description && <p className="break-words text-xs text-tinta-fraca">{tx.description}</p>}
                     </div>
-                    <span className="tabular">{dinheiro(tx.amount_cents)}</span>
+                    <span className="tabular whitespace-nowrap">{dinheiro(contribuicao(tx))}</span>
                   </li>
                 ))}
               </ul>
