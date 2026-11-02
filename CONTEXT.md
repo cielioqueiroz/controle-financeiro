@@ -252,6 +252,17 @@ Ver [ADR-0015](./docs/adr/0015-registro-de-falhas-do-cliente.md).
 _Em código_: `registrarFalha`, `ContextoFalha` (`persist/falhas.ts`)
 _Evitar_: telemetria, log, evento, monitoramento, crash
 
+**Preferências**:
+As escolhas da pessoa sobre como o app se comporta e a chama: apelido, cor do
+avatar, idioma, tema, modo discreto e o período com que as telas abrem. Valem
+em todo aparelho: a conta guarda (tabela `preferencias`) e o aparelho tem uma
+cópia, porque o tema precisa valer antes da primeira pintura. No login vence a
+conta. Nulo é "não escolheu", e o app cai no padrão dele. Ver
+[ADR-0023](./docs/adr/0023-preferencias-em-tabela-propria.md).
+_Em código_: `Preferencias`, `sincronizarPreferencias`, `gravarPreferencias`
+(`lib/preferencias.ts`, `aplicacao/comandos/preferencias.ts`)
+_Evitar_: configurações, settings, ajustes, opções
+
 **Integridade do recorte**:
 A garantia de que o recorte contém **tudo** o que o histórico tem para aquele
 filtro — nem uma transação a menos. É irmã da **Conferência** e responde a outra

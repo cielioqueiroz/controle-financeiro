@@ -178,6 +178,18 @@
   --color-categoria-petroleo: #247c86;
   --color-categoria-oliva: #657a30;
   --color-categoria-neutro: #657184;
+
+  /* Fundo do avatar, escolhido no perfil. A inicial vai sempre em branco
+     (`--color-tinta-viva`), então as oito NÃO invertem por tema e cada uma
+     passa 4.5:1 contra o branco — o `medir-contraste.py` cobra. */
+  --color-avatar-grafite: #4a5562;
+  --color-avatar-oceano: #1b5e8f;
+  --color-avatar-floresta: #237852;
+  --color-avatar-ambar: #8a5a00;
+  --color-avatar-terracota: #a8432f;
+  --color-avatar-vinho: #8e2f4b;
+  --color-avatar-ameixa: #6a4c93;
+  --color-avatar-petroleo: #1f6f78;
 }
 
 /* ---------- Tema ESCURO ----------

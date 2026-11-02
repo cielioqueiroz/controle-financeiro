@@ -7,9 +7,12 @@ type Discreto = {
   /** Valores em dinheiro saem mascarados na tela. */
   discreto: boolean
   alternar: () => void
+  /** Liga ou desliga sem depender do estado atual — é o que o perfil e a
+   *  sincronização do login usam. */
+  definir: (discreto: boolean) => void
 }
 
-const Ctx = createContext<Discreto>({ discreto: false, alternar: () => {} })
+const Ctx = createContext<Discreto>({ discreto: false, alternar: () => {}, definir: () => {} })
 
 /** Modo discreto: esconde todo valor em dinheiro da TELA, mantendo as
  *  formas — as barras, as fatias e os percentuais continuam lá. Para abrir
@@ -38,14 +41,19 @@ export function DiscretoProvider({ children }: { children: ReactNode }) {
     return salvo
   })
 
-  const alternar = useCallback(() => {
-    const novo = !discreto
+  const definir = useCallback((novo: boolean) => {
     definirDiscreto(novo)
-    localStorage.setItem(CHAVE, novo ? '1' : '0')
+    try {
+      localStorage.setItem(CHAVE, novo ? '1' : '0')
+    } catch {
+      /* vale até o F5 */
+    }
     setDiscreto(novo)
-  }, [discreto])
+  }, [])
 
-  const valor = useMemo(() => ({ discreto, alternar }), [discreto, alternar])
+  const alternar = useCallback(() => definir(!discreto), [definir, discreto])
+
+  const valor = useMemo(() => ({ discreto, alternar, definir }), [discreto, alternar, definir])
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>
 }
 

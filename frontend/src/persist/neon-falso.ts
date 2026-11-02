@@ -25,7 +25,7 @@ export type Filtro = { tipo: 'eq' | 'in' | 'not' | 'is'; coluna: string; valor: 
  *  precisa estar. */
 export type Chamada = {
   tabela: string
-  op: 'select' | 'insert' | 'update' | 'delete'
+  op: 'select' | 'insert' | 'upsert' | 'update' | 'delete'
   colunas: string | null
   filtros: Filtro[]
   linhas: Record<string, unknown>[] | null
@@ -97,6 +97,11 @@ class ConsultaFalsa implements PromiseLike<RespostaFalsa> {
   }
   insert(linhas: Record<string, unknown> | Record<string, unknown>[]): this {
     this.chamada.op = 'insert'
+    this.chamada.linhas = Array.isArray(linhas) ? linhas : [linhas]
+    return this
+  }
+  upsert(linhas: Record<string, unknown> | Record<string, unknown>[], _opcoes?: { onConflict?: string }): this {
+    this.chamada.op = 'upsert'
     this.chamada.linhas = Array.isArray(linhas) ? linhas : [linhas]
     return this
   }

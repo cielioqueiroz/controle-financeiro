@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
@@ -41,6 +41,9 @@ import { Rodape } from './ui/Rodape'
 import { Auth } from './ui/acesso/Auth'
 import { comoChamar, marcarTutorialVisto, reabrirTutorial, lerApelido } from './lib/perfil'
 import { useT } from './i18n/IdiomaProvider'
+import { useDiscreto } from './dados/DiscretoProvider'
+import { aplicarTema, useTema } from './lib/tema'
+import { gravarPreferencias, sincronizarPreferencias } from './aplicacao/comandos/preferencias'
 import { aquecerNeon, neonConfigurado, obterNeon } from './lib/neon'
 import { lerTokenDaUrl } from './lib/url-token'
 import { avisarSaida, ouvirSaida } from './lib/sessao-canal'
@@ -71,6 +74,9 @@ export default function App() {
   const [mostrarPerfil, setMostrarPerfil] = useState(false)
   const [mostrarAjuda, setMostrarAjuda] = useState(false)
   const [mostrarComandos, setMostrarComandos] = useState(false)
+  /** O apelido e a cor do avatar são lidos do aparelho a cada pintura; quando
+   *  a sincronização do login os troca, alguém precisa pedir a pintura. */
+  const [, repintar] = useReducer((n: number) => n + 1, 0)
 
   // Quem decide abrir o tutorial sozinho é o `<AberturaTutorial/>`, lá
   // dentro do DadosProvider — a regra passou a depender de a conta ter ou
@@ -123,6 +129,23 @@ export default function App() {
     } catch (err) {
       toast.error(t(chaveDeErro(err, 'erro.sair')))
     }
+  }
+
+  /** Os dados saíram pelo perfil. Com o login junto, é uma saída da conta
+   *  como qualquer outra (e as outras abas caem também). Sem ele, a conta
+   *  continua e recarregar é o jeito honesto de mostrá-la vazia: o histórico
+   *  em memória, as regras e os providers ainda guardam o que foi apagado. */
+  function dadosExcluidos(loginExcluido: boolean) {
+    if (!loginExcluido) {
+      window.location.assign('/')
+      return
+    }
+    setLogado(false)
+    setUsuario(null)
+    void obterNeon()
+      .then((neon) => neon?.auth.signOut())
+      .catch(() => {})
+    avisarSaida()
   }
 
   /** ## Duas perguntas na montagem, e a mais rápida decide a tela
@@ -303,6 +326,8 @@ export default function App() {
           <Notificacoes />
           <AvisoVersaoNova />
 
+          {logado && <SincronizarPreferencias onAplicadas={repintar} />}
+
           {logado && (
             <NavLateral
               usuario={usuario}
@@ -430,9 +455,11 @@ export default function App() {
             {mostrarPerfil && logado && (
               <EditarPerfil
                 nomeAtual={usuario?.nome ?? ''}
+                emailAtual={usuario?.email ?? null}
                 apelidoAtual={lerApelido() ?? ''}
                 onFechar={() => setMostrarPerfil(false)}
                 onSalvo={checarSessao}
+                onDadosExcluidos={dadosExcluidos}
               />
             )}
           </AnimatePresence>
@@ -446,4 +473,52 @@ function AvisosDoHistorico() {
   const { errosParciais, carregando, erro, recarregar } = useDados()
   if (carregando || erro) return null
   return <AvisoDadosParciais falhas={errosParciais} onTentar={() => void recarregar()} />
+}
+
+/** Traz as preferências da conta no login e leva de volta o que mudar.
+ *
+ *  Observa o idioma, o tema e o modo discreto **venham de onde vierem** — o
+ *  perfil, o seletor e os dois botões do cabeçalho —, em vez de cada controle
+ *  lembrar de gravar: o próximo botão que mexer nisso já sincroniza sem
+ *  ninguém saber que este componente existe.
+ *
+ *  ⚠️ Nada sobe antes de a sincronização do login terminar. Subir antes
+ *  escreveria o estado do APARELHO por cima do da conta, e a conta perderia
+ *  exatamente o que o login veio buscar. A aplicação do que chegou também
+ *  não sobe de volta: `enviado` guarda o que acabou de ser aplicado. */
+function SincronizarPreferencias({ onAplicadas }: { onAplicadas: () => void }) {
+  const { idioma, setIdioma } = useT()
+  const { discreto, definir } = useDiscreto()
+  const tema = useTema()
+  const enviado = useRef<string | null>(null)
+
+  useEffect(() => {
+    let vivo = true
+    void sincronizarPreferencias().then((p) => {
+      if (!vivo) return
+      if (p.idioma) setIdioma(p.idioma)
+      // Tema nulo é "não escolheu": vale o escuro, e o aparelho não guarda
+      // nada — guardar o padrão o transformaria em escolha.
+      if (p.tema) aplicarTema(p.tema)
+      else document.documentElement.dataset.theme = 'dark'
+      if (p.discreto !== null) definir(p.discreto)
+      enviado.current = [p.idioma ?? idioma, p.tema ?? 'dark', p.discreto ?? discreto].join('|')
+      onAplicadas()
+    })
+    return () => {
+      vivo = false
+    }
+    // Uma vez por login: o componente monta com o galho logado.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (enviado.current === null) return
+    const agora = [idioma, tema, discreto].join('|')
+    if (agora === enviado.current) return
+    enviado.current = agora
+    void gravarPreferencias({ idioma, tema, discreto })
+  }, [idioma, tema, discreto])
+
+  return null
 }

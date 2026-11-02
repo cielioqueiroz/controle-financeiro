@@ -37,7 +37,7 @@ um deploy exige *Instant Rollback* no painel.
 │                            0003 integridade · 0004 Mercado Pago · 0005 dedupe ·
 │                            0006 privilégios · 0007 falhas · 0008 importação atômica ·
 │                            0009 vínculos históricos · 0010 regras com consulta · 0011 Caixa ·
-│                            0012 estorno de fatura (dados)
+│                            0012 estorno de fatura (dados) · 0013 preferências
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
@@ -126,8 +126,10 @@ persist/puxar.ts + documentos.ts + categoriasUsuario.ts
 
 ## 1.4 Modelo de dados (Neon Postgres)
 
-Seis tabelas, **todas com RLS por `user_id`**: `accounts`, `documents`,
-`categories`, `merchant_rules`, `transactions`, `client_errors`. As políticas comparam
+Sete tabelas, **todas com RLS por `user_id`**: `accounts`, `documents`,
+`categories`, `merchant_rules`, `transactions`, `client_errors` e
+`preferencias` (0013, uma linha por pessoa — ver
+[ADR-0023](./docs/adr/0023-preferencias-em-tabela-propria.md)). As políticas comparam
 `(select auth.user_id())::uuid = user_id`; `categories` é a exceção, porque lê
 também as globais (`user_id is null`).
 
@@ -176,6 +178,11 @@ aplica no Neon.
 estornos de fatura que o Bradesco e o Mercado Pago gravaram como `income`. O
 frontend novo já grava certo; sem ela, o histórico anterior segue inflando
 gasto real e entradas. Aplicar como proprietário das tabelas, como a `0009`.
+
+⚠️ **A migração `0013` cria a tabela `preferencias`, e o app NÃO depende
+dela.** Sem ela, o perfil grava no aparelho e diz "salvo só neste aparelho";
+com ela, apelido, cor, idioma, tema, discreto e período valem em todo
+aparelho. Aplicar não exige ordem com o frontend.
 
 ⚠️ **Caixa aqui significa apenas GovConta comprovado.** Os fixtures cobrem duas
 numerações de conta e a continuação de período/layout testada; isso não autoriza

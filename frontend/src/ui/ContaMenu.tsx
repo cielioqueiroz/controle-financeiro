@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import { obterNeon } from '../lib/neon'
 import { Confirmacao } from './acesso/Confirmacao'
 import { useT } from '../i18n/IdiomaProvider'
+import { lerCorAvatar } from '../lib/preferencias'
+import { Avatar } from './Avatar'
 
 type Props = {
   onSair: () => void
@@ -74,19 +76,9 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
     }
   }, [aberto, confirmando])
 
-  const inicial = (email?.[0] ?? '?').toUpperCase()
-
-  /** Duas iniciais quando há nome ("Célio Queiroz" → "CQ"), uma quando só
-   *  há e-mail. `trim` antes do split: nome com espaço sobrando geraria uma
-   *  terceira "inicial" vazia e o avatar sairia com um buraco. */
-  const iniciais = nome?.trim()
-    ? nome
-        .trim()
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((p) => p[0]?.toUpperCase() ?? '')
-        .join('')
-    : inicial
+  // Lida a cada pintura, e de propósito: o perfil grava a cor e o `App`
+  // repinta a árvore ao salvar — não há outro estado para manter em dia.
+  const cor = lerCorAvatar()
 
   const lateral = variante === 'lateral'
 
@@ -99,9 +91,7 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
           aria-expanded={aberto}
           className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-carvao-850"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-carvao-700 bg-carvao-850 text-xs font-medium text-tinta-fraca">
-            {iniciais}
-          </span>
+          <Avatar nome={nome} email={email} cor={cor} />
           {/* `min-w-0` no filho do flex: sem isto o `truncate` não trunca —
               o item recusa ficar menor que o texto e a faixa estoura a
               calha de 16rem. Mesma armadilha do `min-width: auto`. */}
@@ -124,9 +114,9 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
           onClick={() => setAberto((v) => !v)}
           aria-label={t('conta.aria')}
           title={t('conta.aria')}
-          className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 bg-carvao-850 text-sm font-medium text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
+          className="rounded-full transition-opacity hover:opacity-90"
         >
-          {inicial}
+          <Avatar nome={nome} email={email} cor={cor} className="h-11 w-11 text-sm" />
         </button>
       )}
 

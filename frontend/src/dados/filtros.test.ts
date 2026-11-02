@@ -33,6 +33,18 @@ describe('lerFiltros', () => {
     expect(lerFiltros('?p=').periodo).toBe('mes')
   })
 
+  it('URL nua abre no período padrão escolhido no perfil', () => {
+    expect(lerFiltros('', 'ano').periodo).toBe('ano')
+    expect(lerFiltros('?banco=nubank', 'semana').periodo).toBe('semana')
+  })
+
+  /** `escreverFiltros` omite o `p` do mês: um link com `ref` e sem `p` é um
+   *  link de mês, e quem escolheu "ano" como padrão tem que vê-lo como mês. */
+  it('link com referência e sem período continua sendo mês', () => {
+    const link = escreverFiltros({ ...lerFiltros('?ref=2026-03'), periodo: 'mes' })
+    expect(lerFiltros(link, 'ano').periodo).toBe('mes')
+  })
+
   it('lê a referência como AAAA-MM', () => {
     const f = lerFiltros('?ref=2026-09')
     expect(f.ref.getFullYear()).toBe(2026)

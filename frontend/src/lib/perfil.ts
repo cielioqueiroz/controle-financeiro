@@ -38,6 +38,15 @@ export function comoChamar(nome?: string | null, email?: string | null): string 
   return prefixo ? capitalizar(prefixo) : 'você'
 }
 
+/** As letras do avatar: duas quando há nome ("Célio Queiroz" → "CQ"), a
+ *  primeira do e-mail quando não há, "?" sem nenhum dos dois. `trim` antes
+ *  do split: nome com espaço sobrando geraria uma "inicial" vazia. */
+export function iniciais(nome?: string | null, email?: string | null): string {
+  const partes = nome?.trim() ? nome.trim().split(/\s+/).slice(0, 2) : []
+  if (partes.length) return partes.map((p) => p[0]?.toUpperCase() ?? '').join('')
+  return (email?.trim()[0] ?? '?').toUpperCase()
+}
+
 export function tutorialPendente(): boolean {
   return localStorage.getItem(CHAVE_TUTORIAL) !== '1'
 }

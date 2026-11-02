@@ -168,6 +168,28 @@ por si só a Data API/JWT do Neon.
    resultado, IDs dos documentos de teste e migrações aplicadas, sem anexar
    extratos, tokens ou dados de conta ao repositório.
 
+## §7 — Perfil: senha, preferências e exclusão (migração 0013)
+
+⚠️ **Os passos 4 e 5 apagam dados de verdade.** Use uma conta de teste criada
+para isso, nunca a sua.
+
+1. Perfil → Conta → trocar a senha com a atual. Numa segunda aba (ou outro
+   navegador) logada antes da troca, a sessão tem de cair: o pedido vai com
+   `revokeOtherSessions`. Entrar com a senha nova.
+2. Conta que entra só pelo Google: a seção de senha mostra "Enviar link para o
+   e-mail". Concluir o link e conferir que a senha passa a funcionar junto do
+   Google.
+3. Com a 0013 aplicada: escolher apelido, cor, tema claro, inglês, discreto e
+   "Ano" num aparelho; entrar noutro e ver tudo chegar. Apagar o apelido no
+   segundo e conferir que ele não volta do primeiro no próximo login.
+   Sem a 0013: salvar tem de avisar "salvo só neste aparelho".
+4. Seus dados → Baixar CSV: abrir no Excel em pt-BR. Colunas separadas,
+   acentos certos, valores com vírgula, nenhuma célula virando fórmula.
+5. Seus dados → excluir com a palavra. Anotar o aviso: "Conta e dados
+   excluídos" (o Neon liga o `deleteUser`) ou "O login continua existindo"
+   (não liga). No console do Neon, conferir que as sete tabelas não têm mais
+   linhas daquele `user_id`.
+
 ---
 
 **Deu tudo certo?** Anote a data na rodada corrente do
