@@ -14,6 +14,8 @@ import { Recorrencias as ListaRecorrencias } from '../ui/Recorrencias'
 import { CompromissosFuturos } from '../ui/CompromissosFuturos'
 import { GraficoCompromissos } from '../ui/graficos/GraficoCompromissos'
 import { projecaoFutura } from '../domain/agrupar'
+import { calendarioDoProximoMes } from '../domain/calendario'
+import { CalendarioProximoMes } from '../ui/CalendarioProximoMes'
 
 /** Séries que se repetem e os alertas sobre elas.
  *
@@ -24,7 +26,7 @@ import { projecaoFutura } from '../domain/agrupar'
  *  a evidência. */
 export function Recorrencias() {
   const { visiveis, carregando, erro } = useRecorte()
-  const { recarregar } = useDados()
+  const { recarregar, docsSaldo } = useDados()
   const { t } = useT()
 
   const recorrencias = useMemo(
@@ -36,6 +38,10 @@ export function Recorrencias() {
     [recorrencias, visiveis],
   )
   const futuros = useMemo(() => (visiveis ? projecaoFutura(visiveis) : []), [visiveis])
+  const calendario = useMemo(
+    () => (visiveis ? calendarioDoProximoMes(visiveis, docsSaldo) : null),
+    [visiveis, docsSaldo],
+  )
   // Um estado só para as duas peças: clicar numa barra do gráfico abre
   // aquele mês na lista ao lado. Com o estado dentro da lista, as duas
   // discordariam sobre qual mês está aberto.
@@ -58,6 +64,7 @@ export function Recorrencias() {
           trunca nome de estabelecimento. */}
       {carregando ? <CarregandoPainel /> : erro ? <ErroCarregar mensagem={t(erro)} onTentar={recarregar} /> : <div className="mx-auto max-w-6xl space-y-6">
         <ListaRecorrencias recorrencias={recorrencias} alertas={alertas} />
+        {calendario && <CalendarioProximoMes calendario={calendario} />}
         {futuros.length > 0 && (
           <div className="grid gap-6 lg:grid-cols-2">
             <CompromissosFuturos

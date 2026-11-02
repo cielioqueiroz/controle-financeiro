@@ -1,5 +1,33 @@
 # Estado atual do projeto — retomada
 
+## Calendário do próximo mês — 2026-11-02
+
+- Em `feat/calendario-proximo-mes`, a partir da `main`. Item 2.6 da
+  auditoria das somas de 30/10.
+- `domain/calendario.ts`: `calendarioDoProximoMes(txs, docs)` junta as duas
+  projeções que o app já fazia. As recorrências ativas entram no dia típico,
+  e o dia 31 vira o último dia de um mês curto. As parcelas do mês entram
+  somadas por cartão, no dia de vencimento da última fatura daquele banco.
+  Recorrência exclui parcela, então nada aparece duas vezes.
+- O mês é o seguinte à competência mais recente com dado, a régua dos
+  alertas de recorrência, e não o relógio: o resultado não muda na virada
+  do mês, que é o que desarranjou o mapa de cobertura nos medidores.
+- Recorrência ativa: apareceu na competência mais recente ou na anterior.
+  A tolerância de um mês existe porque a competência mais recente costuma
+  ser a da fatura, que vence no mês seguinte ao último extrato. Com dois
+  meses de falta, já é o alerta de "sumiu" falando.
+- Cartão sem fatura importada: as parcelas ficam num grupo "sem dia", no
+  fim, com a explicação.
+- Na tela, na página de Recorrências, logo abaixo da lista: uma agenda que
+  mostra só os dias com alguma coisa, e não uma grade de sete colunas, que
+  em 375px daria 45px por dia. O cabeçalho mostra o total que deve sair e o
+  que deve entrar. As parcelas de cada cartão abrem num `<details>`.
+- A folha de provas ganhou `?tela=recorrencias`, e o medidor ganhou duas
+  jornadas (`recorrencias-calendario` e `-claro`).
+- Quatro casos antigos de `Recorrencias.test.tsx` procuravam os nomes
+  ("Netflix", "Spotify", "GELADEIRA") com `getByText`. Agora o nome aparece
+  na lista e no calendário, e eles passam a usar `getAllByText`.
+
 ## Siglas curtas como palavra inteira — 2026-11-02
 
 - Em `fix/regras-palavra`, a partir da `main`. Pendência deixada pelo #47,

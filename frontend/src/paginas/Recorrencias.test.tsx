@@ -55,8 +55,8 @@ describe('Recorrências', () => {
 
   it('detecta as séries dos dois bancos quando não há filtro', async () => {
     abrir('/recorrencias?ref=2026-06')
-    expect(await screen.findByText(/Netflix/i)).toBeInTheDocument()
-    expect(screen.getByText(/Spotify/i)).toBeInTheDocument()
+    expect((await screen.findAllByText(/Netflix/i)).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Spotify/i).length).toBeGreaterThan(0)
   })
 
   // A página obedece ao filtro de banco (usa `visiveis`). Desde que a barra
@@ -67,7 +67,7 @@ describe('Recorrências', () => {
   it('obedecendo ao filtro de banco, MOSTRA o filtro de banco', async () => {
     abrir('/recorrencias?ref=2026-06&banco=nubank')
 
-    expect(await screen.findByText(/Netflix/i)).toBeInTheDocument()
+    expect((await screen.findAllByText(/Netflix/i)).length).toBeGreaterThan(0)
     expect(screen.queryByText(/Spotify/i)).not.toBeInTheDocument()
 
     // O controle está na tela, com o banco ativo — dá para ver e para desfazer.
@@ -106,7 +106,7 @@ describe('Recorrências', () => {
 
     // A lista ao lado abre no mês clicado, sem que ninguém precise procurá-lo.
     await usuario.click(julho)
-    expect(await screen.findByText(/GELADEIRA/i)).toBeInTheDocument()
+    expect((await screen.findAllByText(/GELADEIRA/i)).length).toBeGreaterThan(0)
   })
 
   // O contrário da mentira acima: mostrar um controle que a página ignora.
@@ -114,7 +114,7 @@ describe('Recorrências', () => {
   // de um mês), então período aqui não faria nada.
   it('não oferece seletor de período, que esta página ignora', async () => {
     abrir('/recorrencias?ref=2026-06')
-    await screen.findByText(/Netflix/i)
+    await screen.findAllByText(/Netflix/i)
     expect(screen.queryByRole('button', { name: 'Mês' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Próximo período')).not.toBeInTheDocument()
   })
