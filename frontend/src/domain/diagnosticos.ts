@@ -1,5 +1,6 @@
 import { ehDivida } from './categorize/categorias'
 import { normalizeMerchant } from './normalize/merchant'
+import { caixaDeTitulo } from './normalize/descricao'
 import { normalizar } from './consulta'
 
 /** Diagnósticos do recorte: o que o histórico já importado denuncia sozinho.
@@ -99,7 +100,7 @@ export function diagnosticar(txs: TxDiagnosticavel[]): Diagnostico[] {
   for (const t of gastos) {
     const merchant = normalizeMerchant(t.description)
     if (!merchant) continue
-    const g = porLugar.get(merchant) ?? { totalCents: 0, rotulo: merchant, maiorRotulado: -1 }
+    const g = porLugar.get(merchant) ?? { totalCents: 0, rotulo: caixaDeTitulo(merchant), maiorRotulado: -1 }
     g.totalCents += t.amount_cents
     // O rótulo da MAIOR compra rotulada vence, como em `porEstabelecimento`:
     // com duas notas no mesmo lugar, a da compra maior descreve o grupo.

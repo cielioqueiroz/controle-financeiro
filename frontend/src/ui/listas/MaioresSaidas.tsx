@@ -1,5 +1,6 @@
 
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
+import { nomeExibido } from '../../domain/normalize/descricao'
 import { useT } from '../../i18n/IdiomaProvider'
 import { LinhaRanking } from './LinhaRanking'
 import { MarcaCategoria } from '../MarcaCategoria'
@@ -36,7 +37,7 @@ export function MaioresSaidas({ itens, onEditar, semTitulo }: Props) {
               key={item.id}
               ordem={i}
               posicao={i + 1}
-              titulo={item.label ?? item.description}
+              titulo={nomeExibido(item)}
               meta={
                 <>
                   <MarcaCategoria cor={corCategoria(cat)} />

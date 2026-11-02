@@ -299,7 +299,7 @@ describe('projecaoFutura', () => {
       parcela({ competencia: '2026-07', label: null, installment: { current: 4, total: 6 } }),
     ])
     expect(f.map((m) => m.totalCents)).toEqual([10000, 10000])
-    expect(f[0].itens[0].descricao).toBe('GELADEIRA LOJA X')
+    expect(f[0].itens[0].descricao).toBe('Geladeira Loja X')
   })
 
   it('exibe o rótulo da parcela mais recente quando ela tem um', () => {
@@ -455,6 +455,16 @@ describe('porEstabelecimento', () => {
     expect(g).toHaveLength(1)
     expect(g[0].rotulo).toBe('iFood')
     expect(g[0].totalCents).toBe(12000)
+  })
+
+  // A chave segue crua (é ela que a busca recebe no clique); só o nome a
+  // exibir desce a caixa. O rótulo do usuário fica como ele escreveu.
+  it('exibe a chave em caixa de título, mas o rótulo como o usuário escreveu', () => {
+    const [sem] = porEstabelecimento([compra({ description: 'SUPERMERCADO BOM PRECO' })])
+    expect(sem.merchant).toBe('SUPERMERCADO BOM PRECO')
+    expect(sem.rotulo).toBe('Supermercado Bom Preco')
+    const [com] = porEstabelecimento([compra({ description: 'NETFLIX.COM', label: 'NETFLIX DA CASA' })])
+    expect(com.rotulo).toBe('NETFLIX DA CASA')
   })
 
   it('sem nada gasto, devolve lista vazia', () => {

@@ -1,5 +1,6 @@
 import { categoria, nomeCategoria } from '../../domain/categorize/categorias'
 import { ehVinculo } from '../../domain/link/vinculos'
+import { nomeExibido } from '../../domain/normalize/descricao'
 
 import { useT } from '../../i18n/IdiomaProvider'
 import type { TransacaoSalva } from '../../aplicacao/consultas/historico'
@@ -49,7 +50,7 @@ export function LinhaTransacao({ t, onEditar, onVerDocumento, semIcone, mostrarC
         </span>
       )}
       <span className="min-w-0 flex-1 truncate text-tinta">
-        {t.label ?? t.description}
+        {nomeExibido(t)}
         {t.installment && (
           <span className="tabular ml-2 rounded-sm bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">
             {t.installment.current}/{t.installment.total}

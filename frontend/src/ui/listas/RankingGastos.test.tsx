@@ -42,14 +42,14 @@ describe('RankingGastos', () => {
     desenhar()
     expect(screen.getByRole('button', { name: 'Por estabelecimento' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('PADARIA CENTRAL')).toBeInTheDocument()
-    expect(screen.queryByText('GELADEIRA')).not.toBeInTheDocument()
+    expect(screen.queryByText('Geladeira')).not.toBeInTheDocument()
   })
 
   it('alterna para a maior compra', async () => {
     desenhar()
     await userEvent.click(screen.getByRole('button', { name: 'Por compra' }))
     expect(screen.getByRole('button', { name: 'Por compra' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('GELADEIRA')).toBeInTheDocument()
+    expect(screen.getByText('Geladeira')).toBeInTheDocument()
     expect(screen.queryByText('PADARIA CENTRAL')).not.toBeInTheDocument()
   })
 

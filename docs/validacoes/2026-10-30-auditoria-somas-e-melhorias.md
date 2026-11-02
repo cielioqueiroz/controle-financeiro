@@ -202,7 +202,7 @@ Avaliada na folha de provas (`/demo.html`, dados fictícios) e nos prints do
 |---|---|---|
 | U1 | O donut fica inútil quando um item tem 91% | Barras horizontais ordenadas como vista principal, com a opção "sem atípicos" (2.2). |
 | U2 | Rótulos de seção (`PROCEDÊNCIA`, `SALDOS`, `COMPROMISSOS`) em mono caixa-alta com espaçamento largo, pequenos e claros | Subir para ≥ 12px e medir com `scripts/medir-contraste.py`. |
-| U3 | Descrição crua do banco em CAIXA ALTA domina as listas | Exibir em caixa de título só na tela, sem tocar a **Descrição** gravada nem a chave do estabelecimento. |
+| U3 | Descrição crua do banco em CAIXA ALTA domina as listas | Exibir em caixa de título só na tela, sem tocar a **Descrição** gravada nem a chave do estabelecimento. **Feito em `feat/descricao-caixa-titulo`.** |
 | U4 | Saldo de conta e "Próximas faturas" com o mesmo peso, na mesma fileira | Separar o que é seu (saldo) do que você deve (fatura) e mostrar o líquido de curto prazo (2.4). |
 | U5 | Compromissos repetem seis linhas iguais ("1× R$ 450,00") | Recolher meses consecutivos iguais: "nov/26 – abr/27 · 6× R$ 450,00". |
 | U6 | Os dois rankings lado a lado repetem o mesmo primeiro lugar | Um ranking só, com a alternância "por compra / por estabelecimento". |

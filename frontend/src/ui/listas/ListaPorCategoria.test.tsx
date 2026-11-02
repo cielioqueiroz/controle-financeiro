@@ -104,8 +104,8 @@ describe('ListaPorCategoria', () => {
       />,
     )
 
-    expect(screen.getByText('SUPERMERCADO BH')).toBeInTheDocument()
-    expect(screen.queryByText('DROGARIA SP')).not.toBeInTheDocument()
+    expect(screen.getByText('Supermercado BH')).toBeInTheDocument()
+    expect(screen.queryByText('Drogaria SP')).not.toBeInTheDocument()
   })
 
   it('abre a categoria clicada sem fechar a que já estava aberta', async () => {
@@ -123,8 +123,8 @@ describe('ListaPorCategoria', () => {
 
     await usuario.click(screen.getByRole('button', { name: /Farmácia/i }))
 
-    expect(await screen.findByText('DROGARIA SP')).toBeInTheDocument()
-    expect(screen.getByText('SUPERMERCADO BH')).toBeInTheDocument()
+    expect(await screen.findByText('Drogaria SP')).toBeInTheDocument()
+    expect(screen.getByText('Supermercado BH')).toBeInTheDocument()
   })
 
   it('fecha a categoria aberta ao clicar de novo', async () => {
@@ -137,12 +137,12 @@ describe('ListaPorCategoria', () => {
       />,
     )
 
-    expect(screen.getByText('SUPERMERCADO BH')).toBeInTheDocument()
+    expect(screen.getByText('Supermercado BH')).toBeInTheDocument()
 
     await usuario.click(screen.getByRole('button', { name: /Supermercado/i }))
 
     // A animação pode terminar durante o clique; conferimos o estado final.
-    await waitFor(() => expect(screen.queryByText('SUPERMERCADO BH')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByText('Supermercado BH')).not.toBeInTheDocument())
   })
 
   it('leva a transação clicada para a edição', async () => {
@@ -157,7 +157,7 @@ describe('ListaPorCategoria', () => {
       />,
     )
 
-    const linha = screen.getByText('SUPERMERCADO BH').closest('li')!
+    const linha = screen.getByText('Supermercado BH').closest('li')!
     await usuario.click(within(linha).getByRole('button'))
 
     expect(editar).toHaveBeenCalledWith(alvo)

@@ -1,5 +1,6 @@
 import { categoria, ehDivida, type Categoria } from './categorize/categorias'
 import { normalizeMerchant } from './normalize/merchant'
+import { caixaDeTitulo, nomeExibido } from './normalize/descricao'
 import type { CategoriaResumo } from './insights'
 
 export type Periodo = 'dia' | 'semana' | 'mes' | 'ano'
@@ -257,7 +258,7 @@ export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
         const mes = meses.get(comp) ?? { competencia: comp, totalCents: 0, itens: [], porBanco: [] }
         mes.totalCents += t.amount_cents
         mes.itens.push({
-          descricao: t.label ?? t.description,
+          descricao: nomeExibido(t),
           parcela: current + k,
           total,
           amountCents: t.amount_cents,
@@ -337,7 +338,7 @@ export function porEstabelecimento<T extends TxComEstabelecimento>(
     const merchant = normalizeMerchant(t.description)
     const atual = mapa.get(merchant) ?? {
       merchant,
-      rotulo: merchant,
+      rotulo: caixaDeTitulo(merchant),
       totalCents: 0,
       contagem: 0,
       maiorRotulado: -1,

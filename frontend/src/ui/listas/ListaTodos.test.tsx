@@ -57,21 +57,21 @@ describe('ListaTodos', () => {
     expect(screen.getByRole('status')).toHaveTextContent('51–100 de 120')
     await usuario.type(screen.getByRole('searchbox', { name: 'Procurar lançamento' }), 'COMPRA 119')
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
-    expect(screen.getByText('COMPRA 119')).toBeVisible()
+    expect(screen.getByText('Compra 119')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Próxima' })).not.toBeInTheDocument()
   })
   it('lista tudo por padrão, mais recente primeiro', () => {
     render(<Lista txs={lista} onEditar={() => {}} />)
     expect(screen.getByText(/^3 lançamentos/)).toBeInTheDocument()
     const linhas = screen.getAllByRole('listitem')
-    expect(linhas[0]).toHaveTextContent('UBER TRIP')
+    expect(linhas[0]).toHaveTextContent('Uber Trip')
   })
 
   it('filtra pela busca de texto', async () => {
     render(<Lista txs={lista} onEditar={() => {}} />)
     await userEvent.type(screen.getByLabelText('Procurar lançamento'), 'droga')
     expect(screen.getByText(/^2 lançamentos/)).toBeInTheDocument()
-    expect(screen.queryByText('UBER TRIP')).not.toBeInTheDocument()
+    expect(screen.queryByText('Uber Trip')).not.toBeInTheDocument()
   })
 
   it('busca ignora acento e caixa', async () => {
@@ -85,7 +85,7 @@ describe('ListaTodos', () => {
     render(<Lista txs={lista} onEditar={() => {}} />)
     await userEvent.selectOptions(screen.getByLabelText('Filtrar por categoria'), 'transporte')
     expect(screen.getByText(/^1 lançamento/)).toBeInTheDocument()
-    expect(screen.getByText('UBER TRIP')).toBeInTheDocument()
+    expect(screen.getByText('Uber Trip')).toBeInTheDocument()
   })
 
   it('só oferece as categorias presentes nas transações', () => {
@@ -122,7 +122,7 @@ describe('ListaTodos', () => {
     rerender(<Lista txs={outroMes} onEditar={() => {}} />)
 
     expect(screen.getByText(/^1 lançamento/)).toBeInTheDocument()
-    expect(screen.getByText('DROGASIL')).toBeInTheDocument()
+    expect(screen.getByText('Drogasil')).toBeInTheDocument()
     expect(screen.getByLabelText('Filtrar por categoria')).toHaveValue('')
   })
 

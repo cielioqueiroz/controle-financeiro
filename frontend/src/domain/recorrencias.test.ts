@@ -193,7 +193,7 @@ describe('alertasDe', () => {
         tipo: 'valor-mudou',
         chave: 'NETFLIX.COM',
         origem: 'saida',
-        descricao: 'NETFLIX.COM',
+        descricao: 'Netflix.com',
         deCents: 3990,
         paraCents: 5590,
       },
@@ -235,7 +235,7 @@ describe('alertasDe', () => {
         tipo: 'sumiu',
         chave: 'ACADEMIA SMART',
         origem: 'saida',
-        descricao: 'ACADEMIA SMART',
+        descricao: 'Academia Smart',
         desdeCompetencia: '2026-05',
       },
     ])

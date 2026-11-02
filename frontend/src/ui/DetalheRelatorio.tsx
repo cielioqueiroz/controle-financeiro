@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
+import { nomeExibido } from '../domain/normalize/descricao'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
 import { Cartao } from './Cartao'
@@ -52,8 +53,9 @@ export function DetalheRelatorio({ titulo, txs, periodo, onFechar, onVerDocument
                   <li key={tx.id} className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
                     <div className="min-w-0 basis-40 flex-1">
                       <time className="tabular text-xs text-tinta-tenue" dateTime={tx.date}>{tx.date.split('-').reverse().join('/')}</time>
-                      <p className="break-words">{tx.label ?? tx.description}</p>
-                      {tx.label && <p className="break-words text-xs text-tinta-fraca">{tx.description}</p>}
+                      <p className="break-words">{nomeExibido(tx)}</p>
+                      {/* A descrição crua fica à vista aqui: é a vista de auditoria contra o PDF. */}
+                      {nomeExibido(tx) !== tx.description && <p className="break-words text-xs text-tinta-fraca">{tx.description}</p>}
                     </div>
                     <span className="tabular">{dinheiro(tx.amount_cents)}</span>
                   </li>
