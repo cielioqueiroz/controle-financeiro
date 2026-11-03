@@ -419,6 +419,7 @@ export const en: Dicionario = {
   'cal.nParcelas1': '{n} installment',
   'cal.nParcelasN': '{n} installments',
   'cal.variavel': 'Typical amount: it varies from month to month.',
+  'cal.valorMudou': 'New amount from last month; it used to be {valor}.',
   'comp.aVencerSing': '{n} installment due',
   'comp.aVencerPlur': '{n} installments due',
   'comp.somaVencer': 'total due',

@@ -419,6 +419,7 @@ export const es: Dicionario = {
   'cal.nParcelas1': '{n} cuota',
   'cal.nParcelasN': '{n} cuotas',
   'cal.variavel': 'Valor típico: varía de un mes a otro.',
+  'cal.valorMudou': 'Valor nuevo del último mes; antes era {valor}.',
   'comp.aVencerSing': '{n} cuota por vencer',
   'comp.aVencerPlur': '{n} cuotas por vencer',
   'comp.somaVencer': 'suma por vencer',
