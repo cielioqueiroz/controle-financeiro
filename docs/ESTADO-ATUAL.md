@@ -1,5 +1,25 @@
 # Estado atual do projeto — retomada
 
+## "Sem atípicos" nos Relatórios — 2026-11-03
+
+- Em `feat/relatorios-sem-atipicos`, a partir da `main` (`9fcd46f`). Item 1
+  da retomada: levar o "Sem atípicos" do Painel (#55) aos Relatórios.
+- **Decisão do dono (03/11): só o donut.** O fluxo do período promete que o
+  "Sobrou" é o card de Resultado, e a compra atípica é dinheiro que saiu de
+  verdade; tirá-la exigiria outro rótulo ("Sobrou sem atípicos"). Despesas,
+  maiores saídas e estabelecimentos também continuam com ela.
+- Mesmo `?atipicos=fora` do Painel, então a escolha atravessa as duas telas.
+  A régua é o histórico inteiro (`todas`), como no Painel; o recorte é o
+  intervalo do relatório. O donut recebe `rotuloTotal` ("sem atípicos") e o
+  texto ao lado da alternância diz o que continua com a compra
+  (`atipicos.foraDonut1`/`N`, nos três dicionários) — o "Fora dos gráficos"
+  do Painel seria falso aqui, porque o fluxo segue com ela.
+- O detalhe de uma categoria continua listando todas as transações dela,
+  inclusive a atípica: o detalhe abre também pelo fluxo, que a conta.
+- `paginas/Relatorios.atipicos.test.tsx`, 4 casos; 5 mutações (donut ignora
+  o pedido, fluxo também sem atípicos, sem `rotuloTotal`, URL vale sem
+  atípicos, texto do Painel) morreram todas.
+
 ## WCAG 2.5.3 e axe-core 4.14 — 2026-11-02
 
 - Em `fix/wcag-253`, a partir da `main` (`df74d93`, já com o #61). Item

@@ -164,7 +164,9 @@ pelo menos 5× a mediana das outras compras avulsas da categoria no histórico
 inteiro **e** pelo menos R$ 300. Com menos de cinco outras compras na
 categoria, nada é atípico. Parcela, recorrência, dívida, estorno, entrada e
 vínculo nunca são. Atípico é leitura, não exclusão: sai dos gráficos do
-período quando a pessoa pede, e o gasto real continua com ele.
+período quando a pessoa pede, e o gasto real continua com ele. Nos
+Relatórios sai só do gráfico de categorias: o **Fluxo do período** fecha no
+Resultado, e o Resultado conta a compra atípica.
 _Em código_: `gastosAtipicos`, `LIMIAR_ATIPICO` (`domain/atipicos.ts`)
 _Evitar_: outlier (em código), extraordinário, fora da curva, pontual
 

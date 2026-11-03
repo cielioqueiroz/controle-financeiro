@@ -215,6 +215,8 @@ export const pt = {
   'atipicos.dentroN': '{n} compras atípicas somam {valor} neste período.',
   'atipicos.fora1': 'Fora dos gráficos: {n} compra atípica, {valor}. O gasto real do topo continua com ela.',
   'atipicos.foraN': 'Fora dos gráficos: {n} compras atípicas, {valor}. O gasto real do topo continua com elas.',
+  'atipicos.foraDonut1': 'Fora do gráfico de categorias: {n} compra atípica, {valor}. As despesas, o fluxo do período e as maiores saídas continuam com ela.',
+  'atipicos.foraDonutN': 'Fora do gráfico de categorias: {n} compras atípicas, {valor}. As despesas, o fluxo do período e as maiores saídas continuam com elas.',
   'atipicos.criterio': 'Atípica é a compra avulsa de pelo menos 5× o valor típico da categoria e de R$ 300 ou mais. Parcelas, recorrências e dívidas nunca são atípicas.',
   'grafico.diarioDescricao': 'Picos de gasto pela data real',
   'grafico.evolucaoDescricao': 'Comparação por competência',

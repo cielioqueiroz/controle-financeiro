@@ -1,7 +1,8 @@
 import { useMemo, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
+import { agregar, evolucaoMensal, maioresSaidas, porEstabelecimento } from '../domain/agrupar'
+import { gastosAtipicos } from '../domain/atipicos'
 import { analisarRelatorio, type JanelaRelatorio } from '../domain/relatorios'
 import { fluxoDoPeriodo } from '../domain/fluxo-periodo'
 import { mesAbrev } from '../domain/normalize/data'
@@ -100,6 +101,17 @@ export function Relatorios() {
   const maiores = useMemo(() => maioresSaidas(txs, 6), [txs])
   const estabelecimentos = useMemo(() => porEstabelecimento(txs, 5), [txs])
   const fluxo = useMemo(() => fluxoDoPeriodo(txs), [txs])
+  /** O mesmo `?atipicos=fora` do Painel, mas aqui só o donut obedece. O
+   *  fluxo do período promete que o "Sobrou" é o Resultado, e a compra
+   *  atípica é dinheiro que saiu de verdade; despesas e maiores saídas
+   *  também continuam com ela. */
+  const atipicos = useMemo(() => gastosAtipicos(txs, todas ?? []), [txs, todas])
+  const semAtipicos = search.get('atipicos') === 'fora' && atipicos.length > 0
+  const resumoDoDonut = useMemo(() => {
+    if (!semAtipicos) return resumo
+    const ids = new Set(atipicos.map((tx) => tx.id))
+    return agregar(txs.filter((tx) => !ids.has(tx.id)))
+  }, [semAtipicos, atipicos, txs, resumo])
   const intervalo = relatorio ? `${rotuloMes(relatorio.atual.inicio)} — ${rotuloMes(relatorio.atual.fim)}` : ''
   const taxaAtual = relatorio?.taxaEconomiaAtualPct ?? null
   const taxaAnterior = relatorio?.taxaEconomiaAnteriorPct ?? null
@@ -115,6 +127,13 @@ export function Relatorios() {
       : detalhe.tipo === 'estabelecimento' ? estabelecimentos.find((item) => item.merchant === detalhe.chave)?.rotulo ?? caixaDeTitulo(normalizeMerchant(transacoesDetalhe[0].description))
         : nomeExibido(transacoesDetalhe[0])
     : ''
+
+  function alternarAtipicos() {
+    const proxima = new URLSearchParams(search)
+    if (semAtipicos) proxima.delete('atipicos')
+    else proxima.set('atipicos', 'fora')
+    setSearch(proxima, { replace: true })
+  }
 
   function selecionarMes(competencia: string) {
     const [ano, mes] = competencia.split('-').map(Number)
@@ -207,10 +226,37 @@ export function Relatorios() {
             </Cartao>
           )}
 
+          {atipicos.length > 0 && (
+            <div className="screen-only flex flex-wrap items-center gap-x-4 gap-y-2" data-prova="atipicos">
+              <button
+                type="button"
+                aria-pressed={semAtipicos}
+                onClick={alternarAtipicos}
+                className={`acao-painel gap-2 border px-4 text-sm text-tinta ${semAtipicos ? 'border-tinta bg-carvao-850' : 'border-carvao-700'}`}
+              >
+                {semAtipicos && <span aria-hidden>✓</span>}
+                {t('atipicos.sem')}
+              </button>
+              <p className="min-w-0 basis-60 flex-1 text-xs leading-relaxed text-tinta-fraca">
+                {t(
+                  semAtipicos
+                    ? atipicos.length === 1 ? 'atipicos.foraDonut1' : 'atipicos.foraDonutN'
+                    : atipicos.length === 1 ? 'atipicos.dentro1' : 'atipicos.dentroN',
+                  {
+                    n: atipicos.length,
+                    valor: dinheiro(atipicos.reduce((soma, tx) => soma + tx.amount_cents, 0)),
+                  },
+                )}{' '}
+                {t('atipicos.criterio')}
+              </p>
+            </div>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-2">
-            {resumo.porCategoria.length > 0 && (
+            {resumoDoDonut && resumoDoDonut.porCategoria.length > 0 && (
               <Cartao>
-                <GraficoCategorias categorias={resumo.porCategoria} totalCents={resumo.gastoCents}
+                <GraficoCategorias categorias={resumoDoDonut.porCategoria} totalCents={resumoDoDonut.gastoCents}
+                  rotuloTotal={semAtipicos ? t('atipicos.rotina') : undefined}
                   onAbrir={(slug) => abrirDetalhe({ tipo: 'categoria', chave: slug })} />
               </Cartao>
             )}
