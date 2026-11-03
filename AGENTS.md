@@ -37,7 +37,8 @@ um deploy exige *Instant Rollback* no painel.
 │                            0003 integridade · 0004 Mercado Pago · 0005 dedupe ·
 │                            0006 privilégios · 0007 falhas · 0008 importação atômica ·
 │                            0009 vínculos históricos · 0010 regras com consulta · 0011 Caixa ·
-│                            0012 estorno de fatura (dados) · 0013 preferências
+│                            0012 estorno de fatura (dados) · 0013 preferências ·
+│                            0014 quitação por PIX ao emissor
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
