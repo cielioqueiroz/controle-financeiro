@@ -1,5 +1,33 @@
 # Estado atual do projeto — retomada
 
+## Fatura do Mercado Pago com pagamento anterior — 2026-11-03
+
+- Em `fix/mercadopago-pagamento-fatura`, a partir da `main` (`4fc1ab5`).
+  O dono importou a fatura de outubro/2026 e a conferência divergiu em
+  R$ 820,76: as 16 compras somavam exatamente o "Total a pagar" (R$ 867,79),
+  e a sobra era a linha "16/09 Pagamento da fatura de setembro/2026
+  R$ 820,76", lida como compra.
+- **Causa:** a fatura que paga a anterior abre a tabela com um bloco
+  "Movimentações na fatura", ANTES do bloco "Cartão Visa [****]", e o
+  pagamento vem ali SEM sinal. O parser decidia pagamento por valor
+  negativo (`natureza`), e o fixture é a primeira fatura, que não tem
+  pagamento anterior — o caso nunca tinha aparecido.
+- **Correção:** o sinal vem do bloco. Entre o título "Movimentações na
+  fatura" e o cabeçalho do cartão, todo lançamento é crédito (`-|valor|`);
+  `natureza` o classifica como `pagamento` (ou estorno, compra negativa).
+  O resumo da fatura chama o bloco de "Pagamentos e créditos devolvidos".
+- **Setembro tinha o mesmo defeito:** o PDF de setembro tem o mesmo bloco
+  (pagamento de agosto, R$ 621,34). Com o parser da `main`, ele diverge
+  pelo mesmo valor; com a correção, confere. Agosto (primeira fatura) e o
+  extrato de setembro seguem conferindo.
+- Teste com as linhas da fatura de outubro (nome e cartão trocados, compras
+  resumidas), não fixture novo: o gerador regera todos os documentos de
+  referência de uma vez e precisa de todos os PDFs originais. 3 casos;
+  das 4 mutações, 3 morreram — a que sobreviveu (bloco aberto desde o
+  início) é equivalente nos layouts reais, em que o título do bloco ou o
+  cabeçalho do cartão vem antes da primeira linha.
+- Conferido contra os PDFs reais de agosto, setembro e outubro.
+
 ## "Sem atípicos" nos Relatórios — 2026-11-03
 
 - Em `feat/relatorios-sem-atipicos`, a partir da `main` (`9fcd46f`). Item 1

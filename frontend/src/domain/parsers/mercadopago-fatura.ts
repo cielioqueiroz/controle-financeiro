@@ -44,6 +44,8 @@ const CONSUMOS = /Consumos de (\d{2})\/(\d{2}) a (\d{2})\/(\d{2})/i
 const PROXIMO_FECHAMENTO = /Pr[óo]ximo fechamento\s*(\d{2})\/(\d{2})\/(\d{4})/i
 /** `Cartão Visa [************1465]` */
 const CARTAO = /Cart[ãa]o\s+\w+\s*\[[*\s]*(\d{4})\]/i
+/** O título do bloco de pagamentos e créditos, acima do bloco do cartão. */
+const MOVIMENTACOES_NA_FATURA = /^Movimenta[çc][õo]es na fatura$/i
 
 /** Ponto decimal, não vírgula: a linha de câmbio vem em formato
  *  americano ("R$ 5.09", "USD 5.00"), ao contrário do resto da fatura. */
@@ -117,18 +119,29 @@ export function parseMercadoPagoFatura(lines: Line[]): ParseResult {
   const transactions: RawTransaction[] = []
   const cartao = lines.find((l) => CARTAO.test(l.text))?.text.match(CARTAO)?.[1] ?? null
 
+  // Desde que a fatura anterior foi paga, a tabela abre com um bloco
+  // "Movimentações na fatura" ANTES do bloco do cartão, e é nele que vem o
+  // "Pagamento da fatura de setembro/2026 R$ 820,76" — SEM sinal. O que mora
+  // ali é crédito (o resumo o chama de "Pagamentos e créditos devolvidos"),
+  // e o sinal vem do bloco, não do texto. Até 16/10/2026 só existia a
+  // primeira fatura, sem pagamento anterior, e o parser contava o pagamento
+  // como compra: a fatura divergia exatamente pelo valor dele.
+  let emCreditos = false
+
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i]
     // A tabela de consumo mora da página 2 em diante. Varrer a 1 traria
     // "Consumos de 11/07 a 11/08 R$ 621,34" como se fosse lançamento.
     if (l.page < 2) continue
+    if (MOVIMENTACOES_NA_FATURA.test(l.text)) emCreditos = true
+    else if (CARTAO.test(l.text)) emCreditos = false
 
     const m = l.text.match(LANCAMENTO)
     if (!m) continue
 
     const bruto = m[3].trim()
     const { installment, clean } = extractInstallment(bruto)
-    const cents = parseBRL(m[4])
+    const cents = emCreditos ? -Math.abs(parseBRL(m[4])) : parseBRL(m[4])
     const mes = Number(m[2])
     const date = new Date(anoDe(mes, mesFechamento, anoFechamento), mes - 1, Number(m[1]))
 

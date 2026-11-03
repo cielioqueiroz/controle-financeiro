@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { buildLines } from '../pdf/lines'
+import { buildLines, type Line } from '../pdf/lines'
 import { parseMercadoPagoFatura, natureza } from './mercadopago-fatura'
 import { detectDocument } from '../pdf/detect'
 import { validar } from '../validate/checksum'
@@ -101,6 +101,46 @@ describe('parseMercadoPagoFatura — conta e compromisso futuro', () => {
   // dali seria inventar. Mesmo caso do Bradesco.
   it('não inventa saldo em aberto', () => {
     expect(r.forward.totalOpenBalance).toBeNull()
+  })
+})
+
+/** A fatura de outubro/2026, a primeira com a fatura anterior paga: o
+ *  pagamento vem num bloco próprio, ANTES do cartão, e com valor POSITIVO.
+ *  As linhas são as do PDF real, com nome e cartão trocados e as compras
+ *  resumidas em duas. */
+describe('parseMercadoPagoFatura — o pagamento da fatura anterior', () => {
+  const linha = (page: number, y: number, text: string): Line => ({ cells: [], text, y, page })
+  const outubro = parseMercadoPagoFatura([
+    linha(1, 799, 'Maria Aparecida Santoss'),
+    linha(1, 362, 'Resumo da fatura'),
+    linha(1, 324, 'Consumos de 12/09 a 11/10 R$ 160,00 Juros do mês anterior R$ 0,00'),
+    linha(1, 296, 'Tarifas e encargos R$ 0,00 Pagamentos e créditos devolvidos R$ 820,76'),
+    linha(1, 241, 'Total da fatura de setembro R$ 820,76'),
+    linha(1, 209, 'Total R$ 160,00'),
+    linha(2, 776, 'Vencimento: 16/10/2026'),
+    linha(2, 731, 'Detalhes de consumo'),
+    linha(2, 689, 'Movimentações na fatura'),
+    linha(2, 653, 'Data Movimentações Valor em R$'),
+    linha(2, 614, '16/09 Pagamento da fatura de setembro/2026 R$ 820,76'),
+    linha(2, 567, 'Cartão Visa [************9012]'),
+    linha(2, 531, 'Data Movimentações Valor em R$'),
+    linha(2, 492, '11/09 MERCADOLIVRE*MERCADOLIVRE Parcela 2 de 2 R$ 100,00'),
+    linha(2, 460, '13/09 MP*MP R$ 60,00'),
+    linha(2, 430, 'Total R$ 160,00'),
+  ])
+
+  it('o pagamento é crédito, não compra: a fatura confere', () => {
+    expect(validar(outubro)).toEqual(expect.objectContaining({ status: 'confere', diferenca: 0 }))
+  })
+
+  it('vira pagamento negativo, na data dele', () => {
+    const pagamento = outubro.transactions.find((t) => /Pagamento da fatura/.test(t.description))!
+    expect(pagamento).toEqual(expect.objectContaining({ kind: 'pagamento', amountCents: -82076 }))
+    expect(pagamento.date.toISOString().slice(0, 10)).toBe('2026-09-16')
+  })
+
+  it('as compras do cartão seguem compras, com o sinal delas', () => {
+    expect(outubro.transactions.filter((t) => t.kind === 'compra').map((t) => t.amountCents)).toEqual([10000, 6000])
   })
 })
 

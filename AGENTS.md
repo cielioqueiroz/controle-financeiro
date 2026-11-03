@@ -189,7 +189,7 @@ numerações de conta e a continuação de período/layout testada; isso não au
 outros extratos ou investimentos da Caixa. O BB antigo é o layout A; o parser
 identifica o cabeçalho e mantém também o layout 2023.
 
-**Duas coisas que só o Mercado Pago faz**, e que qualquer mexida nesses parsers
+**Três coisas que só o Mercado Pago faz**, e que qualquer mexida nesses parsers
 precisa preservar:
 
 - **No extrato, a descrição pode ficar ACIMA e ABAIXO da linha do valor ao
@@ -200,6 +200,11 @@ precisa preservar:
   com sentidos diferentes — o total da fatura (p. 1 e 2) e o dos lançamentos
   futuros (p. 4). Cada leitura é ancorada num título; confundi-las faria o
   gabarito conferir contra o número errado, que é pior que não conferir.
+- ⚠️ **Na fatura, o pagamento da fatura anterior vem POSITIVO**, num bloco
+  "Movimentações na fatura" acima do bloco do cartão. O sinal vem do BLOCO,
+  não do texto. O fixture é a primeira fatura, sem pagamento anterior, e por
+  isso o parser contou o pagamento como compra em setembro e outubro de 2026
+  — a fatura divergia exatamente pelo valor pago.
 
 ---
 
