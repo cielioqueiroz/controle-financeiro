@@ -1,5 +1,6 @@
 import type { ParseResult } from '../domain/parsers/types'
 import { compararGabaritos, validar } from '../domain/validate/checksum'
+import { linhasSuspeitas } from '../domain/validate/suspeitas'
 import { useT } from '../i18n/IdiomaProvider'
 import { CarimboConferencia } from './CarimboConferencia'
 import { ComparacoesConferencia } from './ComparacoesConferencia'
@@ -8,6 +9,7 @@ export function ConferenciaDocumento({ result }: { result: ParseResult }) {
   const { t } = useT()
   const conf = validar(result)
   const comparacoes = compararGabaritos(result)
+  const suspeitas = Object.fromEntries(comparacoes.map((c) => [c.criterio, linhasSuspeitas(result, c)]))
 
   return (
     <section className="px-5 py-6 sm:px-8" aria-label={t('conferencia.titulo')}>
@@ -25,7 +27,7 @@ export function ConferenciaDocumento({ result }: { result: ParseResult }) {
         {t(conf.status === 'confere' ? 'conferencia.confereAjuda'
           : conf.status === 'diverge' ? 'conferencia.divergeAjuda' : 'conferencia.semGabaritoAjuda')}
       </p>
-      <ComparacoesConferencia comparacoes={comparacoes} />
+      <ComparacoesConferencia comparacoes={comparacoes} suspeitas={suspeitas} />
     </section>
   )
 }

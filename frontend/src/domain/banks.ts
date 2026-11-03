@@ -7,6 +7,9 @@ export type BankTheme = {
   accent: string
   /** Versão suave, para fundos. */
   wash: string
+  /** O texto SOBRE o `accent` (selo do banco e botão de salvar na prévia).
+   *  Claro ou escuro conforme o accent: o claro dava 2,7:1 no azul do
+   *  Mercado Pago, e o `medir-contraste.py` cobra 4,5:1 de todos. */
   tinta: string
 }
 
@@ -33,19 +36,19 @@ export const BANCOS: Record<Bank, BankTheme> = {
     nome: 'Sicredi',
     accent: '#3FA110',
     wash: 'rgba(63, 161, 16, 0.12)',
-    tinta: '#F5F3EF',
+    tinta: '#0d1319',
   },
   sicoob: {
     nome: 'Sicoob',
     accent: '#00AE9D',
     wash: 'rgba(0, 174, 157, 0.12)',
-    tinta: '#F5F3EF',
+    tinta: '#0d1319',
   },
   mercadopago: {
     nome: 'Mercado Pago',
     accent: '#009EE3',
     wash: 'rgba(0, 158, 227, 0.12)',
-    tinta: '#F5F3EF',
+    tinta: '#0d1319',
   },
   caixa: {
     nome: 'Caixa',
@@ -57,7 +60,7 @@ export const BANCOS: Record<Bank, BankTheme> = {
     nome: 'Documento',
     accent: '#8A857C',
     wash: 'rgba(138, 133, 124, 0.12)',
-    tinta: '#F5F3EF',
+    tinta: '#0d1319',
   },
 }
 

@@ -149,6 +149,21 @@ if __name__ == "__main__":
         print(f"  [{'OK  ' if ok else 'FALHA'}] {nome:<18} {r:5.2f}:1  (minimo 4.5)")
         if not ok:
             falhas.append((nome, 'perigo', r, 'falha', 4.5))
+    # Selo do banco e botão de salvar na prévia: `tinta` sobre `accent`. As
+    # cores são do banco, não do tema. Até 03/11/2026 todos tinham texto
+    # claro, e quatro reprovavam (Mercado Pago 2,7:1).
+    bancos = re.findall(
+        r"(\w+): \{\s*nome: '([^']+)',\s*accent: '(#[\da-fA-F]{6})',[^}]*?tinta: '(#[\da-fA-F]{6})'",
+        (Path(__file__).resolve().parents[1] / 'frontend/src/domain/banks.ts').read_text(encoding='utf-8'))
+    if not bancos:
+        raise ValueError('Temas de banco ausentes em banks.ts')
+    print(f"\n{'=' * 62}\n  SELO DO BANCO (tinta sobre accent)\n{'=' * 62}")
+    for slug, nome, accent, tinta in bancos:
+        r = contraste(tinta, accent)
+        ok = r >= 4.5
+        print(f"  [{'OK  ' if ok else 'FALHA'}] {nome:<18} {r:5.2f}:1  (minimo 4.5)")
+        if not ok:
+            falhas.append(('BANCO', slug, r, 'accent', 4.5))
     print(f"\n{'=' * 62}")
     if falhas:
         print(f"  {len(falhas)} PAR(ES) REPROVAM — corrigir antes de aplicar:")

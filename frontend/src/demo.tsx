@@ -480,8 +480,22 @@ function PreviaConferencia() {
     account: { bank: 'nubank', type: 'checking', last4: null, agency: null, number: null, holderName: null },
     forward: { nextCloseDate: null, nextInvoiceBalance: null, totalOpenBalance: null, futureInstallmentsTotal: null },
   }
-  return <ResultadoImport kind={{ bank: 'nubank', docType: 'extrato' }} result={result}
-    regras={[]} podeSalvar salvando={false} onSalvar={() => {}} onLimpar={() => {}} />
+  // A fatura que diverge pelo valor exato de uma linha: o pagamento da
+  // fatura anterior lido como compra (Mercado Pago, outubro/2026).
+  const linha: ParseResult = {
+    ...result,
+    transactions: [
+      { date: new Date(2026, 8, 20), description: 'MERCADOLIVRE*LOJA EXEMPLO', amountCents: 86779, kind: 'compra', raw: '', installment: null, card: null, fx: null },
+      { date: new Date(2026, 8, 16), description: 'Pagamento da fatura de setembro/2026', amountCents: 82076, kind: 'compra', raw: '', installment: null, card: null, fx: null },
+    ],
+    declaredTotal: 86779, declaredIncome: null, declaredExpense: null,
+    account: { ...result.account, bank: 'mercadopago', type: 'credit_card' },
+  }
+  return amostra === 'linha'
+    ? <ResultadoImport kind={{ bank: 'mercadopago', docType: 'fatura' }} result={linha}
+      regras={[]} podeSalvar salvando={false} onSalvar={() => {}} onLimpar={() => {}} />
+    : <ResultadoImport kind={{ bank: 'nubank', docType: 'extrato' }} result={result}
+      regras={[]} podeSalvar salvando={false} onSalvar={() => {}} onLimpar={() => {}} />
 }
 
 function PreviaDocumento() {
