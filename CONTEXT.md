@@ -52,6 +52,16 @@ possíveis: `confere`, `diverge`, `sem-gabarito`. É o mecanismo de confiança d
 sistema — divergir faz o app avisar em vez de mostrar número errado.
 _Evitar_: validação, checagem, verificação
 
+**Linha suspeita**:
+Na **conferência** que diverge, a linha que explicaria sozinha a diferença:
+o valor dela é exatamente a diferença (entrou numa soma em que não devia) ou
+a metade dela (entrou com o sinal trocado). Só aponta — quem decide é a
+pessoa, com o PDF. Diferença para menos em entradas ou saídas é linha que não
+foi lida, e não tem o que apontar; mais de três candidatas é chute, e a tela
+cala.
+_Em código_: `linhasSuspeitas`, `LinhaSuspeita` (`domain/validate/suspeitas.ts`)
+_Evitar_: erro, culpada, linha errada
+
 ## Conta e saldo
 
 **Conta**:

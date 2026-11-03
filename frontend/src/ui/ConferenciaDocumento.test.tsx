@@ -32,6 +32,28 @@ it('sem gabarito não fabrica uma comparação com zero', () => {
   expect(screen.queryByText('No documento')).not.toBeInTheDocument()
 })
 
+// O caso de 03/11/2026: a fatura do Mercado Pago divergia em R$ 820,76, o
+// valor exato do pagamento da fatura anterior, lido como compra.
+it('aponta a linha cujo valor é exatamente a diferença', () => {
+  render(<ConferenciaDocumento result={{
+    ...resultado, declaredIncome: null, declaredExpense: null, declaredTotal: 86779,
+    transactions: [
+      { ...transacao, amountCents: 86779 },
+      { ...transacao, date: new Date(2026, 8, 16), description: 'Pagamento da fatura de setembro/2026', amountCents: 82076 },
+    ],
+  }} />)
+  const total = screen.getByRole('heading', { name: 'Total da fatura' }).closest('li')!
+  expect(within(total).getByText(/A diferença é exatamente o valor desta linha/)).toBeVisible()
+  const linha = within(total).getByText(/Pagamento da fatura de setembro\/2026/).closest('li')!
+  expect(linha).toHaveTextContent('16/09/2026')
+  expect(linha).toHaveTextContent('R$ 820,76')
+})
+
+it('sem linha que explique a diferença, não aponta nenhuma', () => {
+  render(<ConferenciaDocumento result={resultado} />)
+  expect(screen.queryByText(/A diferença é/)).not.toBeInTheDocument()
+})
+
 it('explica o alcance de uma conferência que bateu', () => {
   render(<ConferenciaDocumento result={{ ...resultado, declaredIncome: 11000, declaredExpense: 9000 }} />)
   expect(screen.getByText('Confere com o banco')).toBeVisible()

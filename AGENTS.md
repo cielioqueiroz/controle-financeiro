@@ -16,6 +16,7 @@ um deploy exige *Instant Rollback* no painel.
 |---|---|
 | [`CONTEXT.md`](./CONTEXT.md) | Glossário do domínio. **Leia antes de nomear qualquer coisa.** |
 | [`docs/adr/`](./docs/adr/) | As decisões que um leitor acharia erradas sem contexto. |
+| [`docs/RETOMADA.md`](./docs/RETOMADA.md) | **Comece por aqui ao retomar:** regras do dono, estado, fila de trabalho e rotina. Versionado, para qualquer agente ler. |
 | [`docs/ESTADO-ATUAL.md`](./docs/ESTADO-ATUAL.md) | Diário de rodadas: o que foi feito, quando e por quê. |
 | [`docs/VALIDACAO-MANUAL.md`](./docs/VALIDACAO-MANUAL.md) | O que só o usuário, com conta real, consegue conferir. |
 | [`docs/SETUP-NEON.md`](./docs/SETUP-NEON.md) | Como o banco e o Auth foram configurados. |
@@ -379,7 +380,8 @@ espalhado por cinquenta arquivos de componente deixa de ser reversível e vira
 reescrita.
 
 **Cor é medida, não opinada.** `python scripts/medir-contraste.py` depois de
-mexer em qualquer cor. Texto sobre GRADIENTE passa nas duas pontas, não na
+mexer em qualquer cor — inclusive banco novo em `domain/banks.ts`: o script
+mede a `tinta` sobre o `accent` de cada um (selo e botão de salvar da prévia). Texto sobre GRADIENTE passa nas duas pontas, não na
 média — o ciano da referência dava 3.94:1 no tema claro e foi recusado por isso.
 
 ---

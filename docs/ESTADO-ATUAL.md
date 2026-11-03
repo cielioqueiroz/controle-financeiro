@@ -1,5 +1,36 @@
 # Estado atual do projeto — retomada
 
+## A divergência aponta a linha suspeita — 2026-11-03
+
+- Em `feat/divergencia-aponta-linha-2`, a partir da `main` (`97fa842`, já com
+  tudo até o #69). Primeira melhoria do relatório de 03/11, escolhida pelo
+  dono. Nasceu da fatura do Mercado Pago de outubro: a prévia dizia "O total
+  não fechou" e a diferença (R$ 820,76) era exatamente o valor de uma linha —
+  com a linha na tela, o dono teria achado o problema sozinho.
+- `domain/validate/suspeitas.ts`: `linhasSuspeitas(result, comparacao)`.
+  Entre as linhas que ENTRAM naquela soma (o espelho de `compararGabaritos`),
+  aponta a de valor igual à diferença (`igual`) e, só no total da fatura e
+  na variação do saldo, a de valor igual à metade (`dobro`: sinal trocado).
+  Mais de três candidatas é chute e não aponta nada; diferença para menos em
+  entradas ou saídas é linha não lida, e também não. Termo **Linha
+  suspeita** no `CONTEXT.md`.
+- A prévia (`ConferenciaDocumento`) mostra um quadro por tipo, com data,
+  descrição como está no PDF e valor (`conferencia.suspeitaIgual1/N` e
+  `suspeitaDobro1/N`, três dicionários). O documento já salvo não tem as
+  linhas, então não mostra.
+- 12 casos de domínio e 2 de tela; 9 mutações morreram (duas sobreviveram
+  na primeira rodada por defeito do teste: um caso sem candidata nenhuma e
+  outro sem a linha de R$ 0,00 — corrigidos).
+- Folha de provas: `?tela=conferencia&amostra=linha`, e jornadas
+  `conferencia-linha-suspeita` e `-claro`.
+- **Achado do medidor:** a amostra é a primeira prévia do Mercado Pago que
+  o `medir:a11y` viu, e ele reprovou o selo do banco (`color-contrast`,
+  2,71:1). O texto claro `#F5F3EF` sobre o `accent` reprovava em quatro
+  bancos — Mercado Pago, Sicoob (2,51), Sicredi (3,0) e "Documento" (3,31) —
+  e pinta também o botão "Salvar no histórico" da prévia. Os quatro passaram
+  a `tinta: '#0d1319'` (o `carvao-950` do tema escuro): 5,09 a 6,71:1. O
+  `medir-contraste.py` agora mede o selo de todos os bancos; com o claro de
+  volta no Mercado Pago, ele reprova.
 ## O PIX que paga a fatura nomeando o emissor — 2026-11-03
 
 - Em `feat/vinculo-pix-emissor`, a partir da `main` (`98ebb38`, já com o

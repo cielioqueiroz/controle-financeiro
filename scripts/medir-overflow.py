@@ -92,6 +92,11 @@ JORNADAS = [
      [("ver-texto", "Confere com o banco")], 6),
     ("conferencia-sem-gabarito", "/demo.html?tela=conferencia&amostra=sem-gabarito", [],
      [("ver-texto", "Lido, sem total para conferir")], 6),
+    # A divergencia que aponta a linha cujo valor e a diferenca.
+    ("conferencia-linha-suspeita", "/demo.html?tela=conferencia&amostra=linha", [],
+     [("ver-secao", "linha-suspeita")], 6),
+    ("conferencia-linha-suspeita-claro", "/demo.html?tela=conferencia&amostra=linha&tema=claro", [],
+     [("ver-secao", "linha-suspeita")], 6),
     ("documentos-detalhes", "/demo.html?tela=documentos&tema=claro",
      [("expandir", "Ver dados do documento")], [("ver-texto", "Valores declarados pelo documento")], 6),
     ("documentos-sem-transacoes", "/demo.html?tela=documentos&amostra=sem-transacoes",

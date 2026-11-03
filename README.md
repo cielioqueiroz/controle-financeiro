@@ -503,10 +503,15 @@ O backend próprio foi **descartado**, conforme a
 com a Data API sob RLS; `backend/` guarda as migrações SQL. O upgrade do SDK
 para `^0.7.0-beta` já consta no manifesto.
 
-Em execução na rodada de 18/10/2026: vínculos com documentos do histórico,
-explicação das duas pontas na tela e regras de categoria com operadores. A
-[spec da rodada](docs/superpowers/specs/2026-10-18-pendencias-design.md) e os
-planos registram escopo e critérios; implementação local não significa publicação.
+Entregue até 03/11/2026 (todos com CI verde e em produção): vínculos com
+documentos do histórico e regras de categoria com operadores; fluxo do período;
+"Sem atípicos" nos gráficos; calendário do próximo mês, que já prevê o valor
+reajustado; meses recolhíveis na lista de documentos; a **migração `0014`**, que
+faz o PIX que paga a fatura pelo nome do emissor do cartão contar como quitação,
+não como gasto; e a **janela dos relatórios**, que mantém o mês quando há
+documento importado, mesmo sem transações. A conferência que diverge passa a
+apontar a **linha suspeita** — a que explica sozinha a diferença. O que vem
+a seguir está em [`docs/RETOMADA.md`](docs/RETOMADA.md).
 
 Ainda dependem de prova ou recurso externo:
 
@@ -530,8 +535,8 @@ A confirmação de e-mail funciona por **código de seis dígitos**; confirmaç�
 por link não é uma pendência do fluxo atual.
 
 O histórico completo, com o porquê de cada decisão, está em
-[`docs/ESTADO-ATUAL.md`](docs/ESTADO-ATUAL.md) — é o arquivo para ler antes de retomar
-o trabalho.
+[`docs/ESTADO-ATUAL.md`](docs/ESTADO-ATUAL.md); para **retomar o trabalho**, comece por
+[`docs/RETOMADA.md`](docs/RETOMADA.md) (regras, estado, fila e rotina de verificação).
 
 ---
 
