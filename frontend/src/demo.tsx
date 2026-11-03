@@ -37,7 +37,7 @@ import { Cartao } from './ui/Cartao'
 import { ResultadoImport } from './ui/ResultadoImport'
 import { DocumentoImportado } from './ui/DocumentoImportado'
 import { ConferenciaVinculos } from './ui/ConferenciaVinculos'
-import { DocumentoNaoEncontrado } from './ui/Documentos'
+import { ConteudoDocumentos, DocumentoNaoEncontrado } from './ui/Documentos'
 import { AvisoDadosParciais } from './ui/AvisoDadosParciais'
 import type { ParseResult } from './domain/parsers/types'
 import type { DocumentoSalvo } from './aplicacao/consultas/documentos'
@@ -488,6 +488,7 @@ function PreviaDocumento() {
   const [params, setParams] = useSearchParams()
   const amostra = params.get('amostra')
   if (amostra === 'vinculos') return <PreviaVinculos />
+  if (amostra === 'meses') return <PreviaMeses />
   const semTransacoes = amostra === 'sem-transacoes'
   const documentoFicticio: DocumentoSalvo = {
     id: 'documento-ficticio', bank: 'nubank', doc_type: 'extrato',
@@ -549,6 +550,27 @@ function PreviaDocumento() {
         selecionado={idSelecionado === documento.id}
         contagem={contagem} onApagar={() => {}} />
     </ul>
+  )
+}
+
+/** A lista de documentos com três meses, para medir os meses recolhíveis:
+ *  sem banco, a consulta de verdade devolve vazio. */
+function PreviaMeses() {
+  const doc = (id: string, bank: DocumentoSalvo['bank'], doc_type: DocumentoSalvo['doc_type'], period_end: string): DocumentoSalvo => ({
+    id, bank, doc_type, filename: `${id}.pdf`, imported_at: '2026-10-16T12:00:00Z',
+    period_start: `${period_end.slice(0, 7)}-01`, period_end,
+    declared_total: null, declared_income: null, declared_expense: null, conferencia: null,
+  })
+  const documentos = [
+    doc('out-mp', 'mercadopago', 'fatura', '2026-10-16'), doc('out-br', 'bradesco', 'extrato', '2026-10-31'),
+    doc('set-mp', 'mercadopago', 'fatura', '2026-09-16'), doc('set-br', 'bradesco', 'extrato', '2026-09-30'),
+    doc('set-bf', 'bradesco', 'fatura', '2026-09-10'), doc('ago-nu', 'nubank', 'fatura', '2026-08-20'),
+  ]
+  const contagem = new Map(documentos.map((d, i) => [d.id, { qtd: 10 + i, totalCents: 82076 + i * 41500 }]))
+  return (
+    <div className="mx-auto max-w-3xl">
+      <ConteudoDocumentos onMudou={() => {}} contagem={contagem} carregarDocumentos={async () => documentos} />
+    </div>
   )
 }
 

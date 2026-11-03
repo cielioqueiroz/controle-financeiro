@@ -188,6 +188,11 @@ JORNADAS = [
     ("relatorios-fluxo", "/demo.html?tela=relatorios",
      [("clicar-parcial", "Outras 2 categorias")],
      [("ver-secao", "detalhe-relatorio"), ("ver-texto", "Faltou")], 6),
+    # Os meses recolhiveis da lista de documentos, todos abertos.
+    ("faturas-meses", "/demo.html?tela=documentos&amostra=meses",
+     [("clicar", "Abrir todos os meses")], [("ver-botao", "Fechar todos os meses")], 6),
+    ("faturas-meses-claro", "/demo.html?tela=documentos&amostra=meses&tema=claro",
+     [("clicar", "Abrir todos os meses")], [("ver-botao", "Fechar todos os meses")], 6),
     ("relatorios-fluxo-claro", "/demo.html?tela=relatorios&tema=claro",
      [("clicar-parcial", "Outras 2 categorias")],
      [("ver-secao", "detalhe-relatorio"), ("ver-texto", "Faltou")], 6),

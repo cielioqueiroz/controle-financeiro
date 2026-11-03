@@ -623,6 +623,8 @@ export const en: Dicionario = {
   'docs.vazio': 'No documents imported yet.',
   'docs.selecionadoAusente': 'This document is not available in your history.',
   'docs.verTodos': 'View all documents',
+  'docs.abrirTodos': 'Open all months',
+  'docs.fecharTodos': 'Close all months',
   'docs.semPeriodo': 'no period',
   'docs.nLancamentos': '{n} entries',
   'docs.importadoEm': 'imported on {data}',
