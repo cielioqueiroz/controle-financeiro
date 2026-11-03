@@ -1,5 +1,37 @@
 # Estado atual do projeto — retomada
 
+## O PIX que paga a fatura nomeando o emissor — 2026-11-03
+
+- Em `feat/vinculo-pix-emissor`, a partir da `main` (`98ebb38`, já com o
+  #68). Achado ao investigar "Transferências" em R$ 94 mil no fluxo do
+  período: o `Transferência` do Bradesco é majoritariamente PIX a terceiros
+  (R$ 40 mil e 43 mil em julho e agosto), que são gasto de verdade. Mas as
+  faturas do Mercado Pago de setembro (R$ 820,76) e de outubro (R$ 867,79)
+  foram pagas por "PIX QR CODE ESTATICO DES: MERCADO PAGO INSTITUI", e a
+  quitação da 0009 só reconhece "fatura" na descrição: o PIX ficou como
+  gasto, e o mesmo dinheiro contou pela fatura e pelo extrato.
+- **Migração 0014:** só a condição da descrição muda. PIX ou boleto que cita
+  o emissor DAQUELE cartão (Mercado Pago, Nubank) também quita; valor
+  inteiro, vencimento a até sete dias e unicidade continuam exigidos. Termina
+  recalculando o histórico de todo usuário.
+- **Ensaio em branch descartável do Neon** (`teste-0014-vinculo-pix-emissor`,
+  cópia da produção, só ele foi tocado): antes, os três PIX eram `expense`;
+  depois, `card_payment` com `quitacao-fatura` (agosto, setembro e outubro).
+  Vínculos de quitação: 6 na produção, 10 no branch — os 4 novos são os
+  PIX ao Mercado Pago (3) e um ao Nubank de julho (R$ 4.831,70, "NU
+  PAGAMENTOS", fatura de 20/07 do mesmo valor). Casos novos em
+  `scripts/test-vinculos-historico.sql` (PIX ao emissor, a outro emissor, a
+  uma pessoa, compra que cita o emissor); rodados no branch, e o primeiro
+  FALHA com a função da 0009 — o teste distingue as duas regras.
+- **Aplicada na produção em 03/11/2026**, com autorização do dono, numa
+  transação só (função, revogação de EXECUTE e recálculo), no branch
+  `production` do Neon. Antes: 6 quitações, 2 PIX do Mercado Pago como gasto
+  (R$ 820,76 e R$ 867,79). Depois: 10 quitações, 0 PIX como gasto, nenhum
+  acesso indevido à função; os 4 vínculos novos são os do ensaio, e os 6
+  antigos ficaram. Nada foi reimportado: o recálculo corrigiu setembro,
+  outubro e julho sozinho. O branch de teste `teste-0014-vinculo-pix-emissor`
+  segue no Neon até o dono mandar apagar.
+
 ## Outubro fora dos Relatórios e saldo do Bradesco parado — 2026-11-03
 
 - Em `fix/outubro-janela-e-saldo`, a partir da `main` (`23c1dba`, já com o

@@ -71,6 +71,30 @@ begin
   assert (select kind = 'expense' from public.transactions where document_id = v_extrato),
     'o valor sozinho não autoriza quitação';
 
+  -- 0014: o PIX que nomeia o emissor DAQUELE cartão também quita (os cartões
+  -- deste teste são do Nubank). Sem PIX, ou com outro emissor, não quita.
+  v_fatura := pg_temp.documento_vinculo('pix-emissor-f', 'fatura', 'cartao-a', 11101, '2026-10-10');
+  v_extrato := pg_temp.documento_vinculo('pix-emissor-e', 'extrato', 'conta-a', 11101,
+    '2026-10-12', 'PIX QR CODE ESTATICO DES: NU PAGAMENTOS S 12/10');
+  assert (select kind = 'card_payment' and vinculo_document_id = v_fatura
+      and vinculo_criterio = 'quitacao-fatura' from public.transactions
+    where document_id = v_extrato), 'PIX ao emissor não quitou a fatura';
+  perform pg_temp.documento_vinculo('pix-outro-emissor-f', 'fatura', 'cartao-a', 11202, '2026-10-10');
+  v_extrato := pg_temp.documento_vinculo('pix-outro-emissor-e', 'extrato', 'conta-a', 11202,
+    '2026-10-10', 'PIX QR CODE ESTATICO DES: MERCADO PAGO INSTITUI 10/10');
+  assert (select kind = 'expense' and vinculo_criterio is null from public.transactions
+    where document_id = v_extrato), 'PIX a outro emissor quitou a fatura';
+  perform pg_temp.documento_vinculo('pix-pessoa-f', 'fatura', 'cartao-a', 11303, '2026-10-10');
+  v_extrato := pg_temp.documento_vinculo('pix-pessoa-e', 'extrato', 'conta-a', 11303,
+    '2026-10-10', 'PIX ENVIADO DES: FULANO DE TAL 10/10');
+  assert (select kind = 'expense' and vinculo_criterio is null from public.transactions
+    where document_id = v_extrato), 'PIX a uma pessoa quitou a fatura só pelo valor';
+  perform pg_temp.documento_vinculo('sem-pix-f', 'fatura', 'cartao-a', 11404, '2026-10-10');
+  v_extrato := pg_temp.documento_vinculo('sem-pix-e', 'extrato', 'conta-a', 11404,
+    '2026-10-10', 'COMPRA NU PAGAMENTOS LOJA');
+  assert (select kind = 'expense' and vinculo_criterio is null from public.transactions
+    where document_id = v_extrato), 'compra que cita o emissor quitou sem PIX';
+
   -- Uma fatura concorrente revoga o vínculo anterior; não escolhe pela ordem.
   v_fatura := pg_temp.documento_vinculo('ambigua-f1', 'fatura', 'cartao-a', 10404, '2026-10-10');
   v_extrato := pg_temp.documento_vinculo('ambigua-e', 'extrato', 'conta-a', 10404,

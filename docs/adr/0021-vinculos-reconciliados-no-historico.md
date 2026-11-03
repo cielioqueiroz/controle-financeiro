@@ -56,6 +56,17 @@ lado, precisa continuar funcionando sem trocar o contrato do adaptador.
   de `kind` é INVOKER: distingue o proprietário da tabela, usado pela rotina
   automática, do cliente autenticado. Aplicar a migração como proprietário das
   tabelas, como nas migrações anteriores.
+- **Emenda de 03/11/2026 (migração 0014).** A descrição de quitação também
+  vale quando é PIX ou boleto que NOMEIA o emissor do cartão cuja fatura é
+  candidata: `MERCADO ?PAGO` para o Mercado Pago, `NU PAGAMENTOS|NUBANK` para
+  o Nubank. As faturas do Mercado Pago de setembro (R$ 820,76) e de outubro
+  (R$ 867,79) foram pagas do Bradesco por "PIX QR CODE ESTATICO DES: MERCADO
+  PAGO INSTITUI", sem a palavra "fatura", e ficaram como gasto em
+  "Transferências": o mesmo dinheiro contado pela fatura e pelo extrato. O
+  restante da regra não muda — extrato de conta corrente, saída do valor
+  INTEIRO, vencimento a até sete dias, unicidade nos dois sentidos. O PIX para
+  uma pessoa de mesmo valor continua sem vínculo, e só dois emissores entram:
+  os demais bancos seguem pela palavra "fatura".
 - Nenhum UPDATE novo é concedido a `authenticated`. O INSERT amplo anterior
   continua existindo, mas o gatilho descarta evidência, marca manual e natureza
   anterior fornecidas no payload, calculando-as a partir da linha importada.
