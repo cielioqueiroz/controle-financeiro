@@ -87,7 +87,6 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
       {lateral ? (
         <button
           onClick={() => setAberto((v) => !v)}
-          aria-label={t('conta.aria')}
           aria-expanded={aberto}
           className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-carvao-850"
         >
@@ -97,6 +96,9 @@ export function ContaMenu({ onSair, onVerTutorial, onEditarPerfil, variante = 'c
               calha de 16rem. Mesma armadilha do `min-width: auto`. */}
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-tinta">{nome?.trim() || email || '—'}</span>
+            {/* O nome do botão é o que está escrito nele (WCAG 2.5.3); "Conta"
+                vem depois, só para o leitor de tela saber o que o botão abre. */}
+            <span className="sr-only">, {t('conta.aria')}</span>
           </span>
           <svg
             aria-hidden

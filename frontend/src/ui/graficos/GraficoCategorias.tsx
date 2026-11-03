@@ -177,21 +177,22 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
               onFocus={() => setAtiva(i)}
               onBlur={() => setAtiva(null)}
               type="button"
+              // Sem `aria-label`: o nome vem do que está escrito no botão,
+              // e o resto da frase entra só para o leitor de tela. Um rótulo
+              // à parte ("Mercado: R$ 10, 5% do total") quebrava o WCAG 2.5.3
+              // — quem fala o que VÊ ("Mercado R$ 10 5%") não acionava o
+              // botão por voz. O axe-core 4.14 passou a cobrar isso.
               className="grid min-h-11 w-full grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2.5 gap-y-1 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-afundado focus-visible:bg-afundado"
-              aria-label={t('donut.rotuloFatia', {
-                categoria: nomeCategoria(c.cat),
-                valor: formatBRL(c.totalCents),
-                pct: Math.round((c.totalCents / totalCents) * 100),
-              })}
             >
               <MarcaCategoria cor={corCategoria(c.cat)} />
               <span aria-hidden className="text-sm">
                 {c.cat.icone}
               </span>
-              <span className="break-words text-tinta-fraca">{nomeCategoria(c.cat)}</span>
-              <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(c.totalCents)}
+              <span className="break-words text-tinta-fraca">{nomeCategoria(c.cat)}</span>{' '}
+              <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(c.totalCents)}{' '}
               <span className="text-xs text-tinta-tenue">
-                {Math.round((c.totalCents / totalCents) * 100)}%
+                {Math.round((c.totalCents / totalCents) * 100)}%{' '}
+                <span className="sr-only">{t('donut.sufixoFatia')}</span>
               </span>
               </span>
             </button>

@@ -65,7 +65,7 @@ describe('Relatórios — estados e navegação', () => {
       { ...transacao, id: 'antiga', document_id: 'doc-antigo', competencia: '2025-12' },
     ])
     abrir('?janela=3&banco=nubank')
-    const gatilho = await screen.findByRole('button', { name: /Supermercado: .*300,00.*Ver lançamentos/ })
+    const gatilho = await screen.findByRole('button', { name: /Supermercado.*300,00.*do total\. Ver lançamentos/ })
     await userEvent.click(gatilho)
     const detalhe = screen.getByRole('region', { name: 'Supermercado' })
     expect(within(detalhe).getByRole('heading', { name: 'Supermercado' })).toHaveFocus()

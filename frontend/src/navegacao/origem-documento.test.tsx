@@ -44,7 +44,7 @@ describe('procedência entre Relatórios e Faturas', () => {
         <Route path="/faturas" element={<Faturas />} />
       </Routes><Navegador /></DadosProvider>
     </MemoryRouter>)
-    await usuario.click(await screen.findByRole('button', { name: /Selecionar jul 2026/ }))
+    await usuario.click(await screen.findByRole('button', { name: /^jul 2026/ }))
     await usuario.click(screen.getAllByRole('link', { name: 'Ver lançamentos de jul 2026' })[0])
     expect(screen.getByLabelText('Local')).toHaveTextContent('banco=nubank')
     expect(screen.getByLabelText('Local')).toHaveTextContent('ref=2026-07')
@@ -52,7 +52,7 @@ describe('procedência entre Relatórios e Faturas', () => {
     expect(await screen.findByText('fatura-origem.pdf')).toBeVisible()
     await usuario.click(screen.getByRole('button', { name: 'Voltar no navegador' }))
     await usuario.click(await screen.findByRole('button', { name: 'Voltar no navegador' }))
-    expect(await screen.findByRole('button', { name: /Selecionar jul 2026/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(await screen.findByRole('button', { name: /^jul 2026/ })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByLabelText('Local')).toHaveTextContent('janela=6')
     expect(screen.getByLabelText('Local')).toHaveTextContent('comparar=1')
   })
@@ -64,7 +64,7 @@ describe('procedência entre Relatórios e Faturas', () => {
         <Route path="/faturas" element={<Faturas />} />
       </Routes><Navegador /></DadosProvider>
     </MemoryRouter>)
-    await usuario.click(await screen.findByRole('button', { name: /Supermercado: .*100,00.*Ver lançamentos/ }))
+    await usuario.click(await screen.findByRole('button', { name: /Supermercado.*100,00.*do total\. Ver lançamentos/ }))
     const detalhe = screen.getByRole('region', { name: 'Supermercado' })
     await usuario.click(within(detalhe).getByText((_, el) => el?.tagName === 'SUMMARY' && /Nubank.*2026-07/.test(el.textContent ?? '')))
     await usuario.click(within(detalhe).getByRole('button', { name: 'Ver documento importado' }))

@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import http.server
 import json
+import re
 import socket
 import sys
 import threading
@@ -430,12 +431,17 @@ def sair(page, auth):
 
     ⚠️ `:visible` nao e capricho: o botao de conta existe DUAS vezes na
     arvore, na `NavLateral` (lg+) e no `Cabecalho` (abaixo de lg), e um deles
-    esta sempre escondido por CSS. Clicar no escondido estoura o tempo."""
+    esta sempre escondido por CSS. Clicar no escondido estoura o tempo.
+
+    ⚠️ Pelo NOME acessivel, nao pelo `aria-label`: desde o WCAG 2.5.3 (#62)
+    a variante da calha se chama "<nome da pessoa>, Conta" e nao tem mais
+    o atributo. O seletor por atributo achava so o botao do cabecalho, que
+    em lg+ esta escondido, e o clique estourava o tempo."""
     page.wait_for_function(
         "() => document.body.innerText.includes('%s')" % LOGADO, timeout=15000
     )
 
-    page.locator('button[aria-label="Conta"]:visible').first.click()
+    page.get_by_role('button', name=re.compile(r'(^|, )Conta$')).filter(visible=True).first.click()
     page.locator('button:has-text("Sair da conta"):visible').first.click()
 
     confirmar = page.locator('button:text-is("Sair"):visible').first

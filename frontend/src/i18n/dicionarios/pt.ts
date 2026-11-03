@@ -305,7 +305,7 @@ export const pt = {
   // Donut de categorias: os dois rótulos que só existem para leitor de tela —
   // a última dívida de i18n do projeto, fechada em 13/08.
   'donut.rotulo': 'Gasto por categoria, total {total}',
-  'donut.rotuloFatia': '{categoria}: {valor}, {pct}% do total. Ver lançamentos.',
+  'donut.sufixoFatia': 'do total. Ver lançamentos.',
   'fluxoPeriodo.titulo': 'Para onde foram as entradas',
   'fluxoPeriodo.descricao': 'De onde veio o dinheiro do período e em que categorias ele saiu. Os dois lados fecham no mesmo total.',
   'fluxoPeriodo.rotulo': 'Fluxo do período: {total} entre origens e destinos. As listas abaixo têm cada valor.',
@@ -346,7 +346,7 @@ export const pt = {
   'ranking.descCompra': 'Cada compra sozinha, da maior para a menor.',
   'estab.compra1': '1 compra',
   'estab.compras': '{n} compras',
-  'estab.rotulo': '{nome}: {valor} em {n} compras. Ver lançamentos.',
+  'estab.sufixo': 'Ver lançamentos.',
 
   // Variação contra o período anterior (tiles do resumo).
   'variacao.subiu': '{pct}% acima do período anterior',
@@ -429,7 +429,6 @@ export const pt = {
   'comp.somaVencer': 'soma a vencer',
   'comp.nMeses': '{n} meses',
   'comp.porMes': '/mês',
-  'comp.grupoRotulo': '{inicio} a {fim}: {n} meses de {valor}',
   'proximos.titulo': 'Próximos compromissos',
   'proximos.descricao': 'Parcelas já reconhecidas no histórico',
   'proximos.mesLabel': 'competência prevista',
@@ -884,7 +883,6 @@ export const pt = {
   'situacao.comparacaoAjuda': 'Importe mais meses para comparar sua trajetória com segurança.',
   'situacao.linhaTempoTitulo': 'Linha do tempo financeira',
   'situacao.linhaTempoDescricao': 'As barras mostram o resultado mensal. Selecione um mês para destacar a leitura no gráfico.',
-  'situacao.selecionarMes': 'Selecionar {mes}; resultado {valor}',
   'relatorios.eyebrow': 'Leitura aprofundada',
   'relatorios.titulo': 'Relatórios financeiros',
   'relatorios.descricao': 'Uma visão mais detalhada do seu histórico importado.',
