@@ -137,6 +137,30 @@ describe('parseBradescoExtrato — período de julho ignorado', () => {
   })
 })
 
+// O extrato de outubro/2026 do "Bradesco Celular" veio sem "Movimentação
+// entre: … e …" no cabeçalho, e foi salvo sem período: caiu no grupo "sem
+// período" da lista e fora da cobertura de outubro. O mesmo fixture, com o
+// cabeçalho como o de outubro, reproduz o caso.
+describe('parseBradescoExtrato — cabeçalho sem o período', () => {
+  const semPeriodo = parseBradescoExtrato(buildLines(itens.map((i) => (
+    /Movimenta[çc][ãa]o entre/.test(i.text) ? { ...i, text: 'Extrato de: Agência: 111 | Conta: 1234-5' } : i
+  ))))
+  const datas = semPeriodo.transactions.map((t) => t.date.getTime())
+
+  it('o período vai da primeira à última transação', () => {
+    expect(semPeriodo.period).toEqual({
+      start: new Date(Math.min(...datas)),
+      end: new Date(Math.max(...datas)),
+    })
+    expect(semPeriodo.period!.end.getMonth()).toBe(5) // junho
+  })
+
+  it('o resto da leitura não muda', () => {
+    expect(semPeriodo.transactions).toEqual(r.transactions)
+    expect(validar(semPeriodo).status).toBe('confere')
+  })
+})
+
 describe('parseBradescoExtrato — metadados', () => {
   it('lê agência e conta', () => {
     expect(r.account.agency).toBe('111')
