@@ -161,6 +161,24 @@ describe('parseBradescoExtrato — cabeçalho sem o período', () => {
   })
 })
 
+// O mesmo extrato de outubro/2026 também veio sem a linha "COD. LANC. 0" do
+// saldo inicial, e o parser descartava o saldo inteiro: a Situação seguiu
+// mostrando o saldo de 30/09. A coluna "Saldo" de cada linha basta.
+describe('parseBradescoExtrato — sem a linha do saldo inicial', () => {
+  const linhas = buildLines(itens)
+  const codLanc = linhas.find((l) => /COD\. LANC\./.test(l.text))!
+  const semCodLanc = parseBradescoExtrato(buildLines(itens.filter((i) =>
+    !(i.page === codLanc.page && Math.abs(i.y - codLanc.y) < 2))))
+
+  it('o saldo inicial sai da primeira linha com saldo', () => {
+    expect(semCodLanc.balance).toEqual(r.balance)
+  })
+
+  it('as transações não mudam', () => {
+    expect(semCodLanc.transactions).toEqual(r.transactions)
+  })
+})
+
 describe('parseBradescoExtrato — metadados', () => {
   it('lê agência e conta', () => {
     expect(r.account.agency).toBe('111')

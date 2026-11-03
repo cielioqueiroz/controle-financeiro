@@ -55,7 +55,11 @@ export type CompetenciaForaDaJanela = { competencia: string; faltam: FonteDocume
 
 type TxRelatorio = TxAgrupavel & { bank?: string; doc_type?: string }
 
-const chaveFonte = (tx: TxRelatorio): string | null =>
+/** Um documento importado, pelo mês em que conta: o do `period_end` — que
+ *  na fatura é o vencimento —, a mesma régua da competência da transação. */
+export type DocDaJanela = { bank: string; doc_type: string; period_end: string | null }
+
+const chaveFonte = (tx: { bank?: string; doc_type?: string }): string | null =>
   tx.bank && tx.doc_type ? `${tx.bank}|${tx.doc_type}` : null
 
 /** As competências do fim do histórico que não podem fechar a janela.
@@ -69,12 +73,18 @@ const chaveFonte = (tx: TxRelatorio): string | null =>
  *  anterior tinha, o último sai e o teste se repete um mês antes. Uma conta
  *  encerrada atrasa a janela só até o mês seguinte chegar, porque aí o
  *  anterior também já não a tem. Através de uma lacuna de calendário não há
- *  com que comparar, e nada sai. */
+ *  com que comparar, e nada sai.
+ *
+ *  A fonte está presente quando há transação dela OU documento dela
+ *  importado no mês: o extrato de uma conta parada não tem transação
+ *  nenhuma, e em 03/11/2026 isso tirou outubro inteiro da janela. */
 function competenciasForaDaJanela<T extends TxRelatorio>(
-  porCompetencia: Map<string, T[]>, ordenadas: string[],
+  porCompetencia: Map<string, T[]>, ordenadas: string[], documentos: DocDaJanela[],
 ): CompetenciaForaDaJanela[] {
-  const fontes = (competencia: string) =>
-    new Set((porCompetencia.get(competencia) ?? []).map(chaveFonte).filter((f): f is string => f !== null))
+  const fontes = (competencia: string) => new Set([
+    ...(porCompetencia.get(competencia) ?? []),
+    ...documentos.filter((d) => d.period_end?.slice(0, 7) === competencia),
+  ].map(chaveFonte).filter((f): f is string => f !== null))
   const fora: CompetenciaForaDaJanela[] = []
   for (let i = ordenadas.length - 1; i > 0; i--) {
     const competencia = ordenadas[i]
@@ -98,7 +108,7 @@ function competenciasForaDaJanela<T extends TxRelatorio>(
  * que todos os documentos de cada conta foram importados. O que o histórico
  * consegue provar — a fonte que sumiu no último mês — fica fora da janela e
  * volta em `foraDaJanela`, para a tela dizer o que falta importar. */
-export function analisarRelatorio<T extends TxRelatorio>(historico: T[], janela: JanelaRelatorio) {
+export function analisarRelatorio<T extends TxRelatorio>(historico: T[], janela: JanelaRelatorio, documentos: DocDaJanela[] = []) {
   if (historico.length === 0) return null
   const porCompetencia = new Map<string, T[]>()
   for (const tx of historico) {
@@ -107,7 +117,7 @@ export function analisarRelatorio<T extends TxRelatorio>(historico: T[], janela:
     porCompetencia.set(tx.competencia, transacoes)
   }
   const ordenadas = [...porCompetencia.keys()].sort()
-  const foraDaJanela = competenciasForaDaJanela(porCompetencia, ordenadas)
+  const foraDaJanela = competenciasForaDaJanela(porCompetencia, ordenadas, documentos)
   const fim = ordenadas[ordenadas.length - 1 - foraDaJanela.length]
   const atual = periodo(porCompetencia, fim, janela)
   const anterior = periodo(porCompetencia, deslocarCompetencia(fim, -janela), janela)

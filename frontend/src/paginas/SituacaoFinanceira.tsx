@@ -56,16 +56,20 @@ export function SituacaoFinanceira() {
   }
 
   const historico = useMemo(() => visiveis ?? [], [visiveis])
-  const relatorio = useMemo(() => analisarRelatorio(historico, janela), [historico, janela])
+  // Os documentos no mesmo recorte de banco das transações: o mês com o
+  // extrato de uma conta parada fica na janela (ver `analisarRelatorio`).
+  const docsDoRecorte = useMemo(
+    () => (filtros.banco === 'geral' ? docsSaldo : docsSaldo.filter((doc) => doc.bank === filtros.banco)),
+    [docsSaldo, filtros.banco],
+  )
+  const relatorio = useMemo(() => analisarRelatorio(historico, janela, docsDoRecorte), [historico, janela, docsDoRecorte])
   const txsJanela = useMemo(() => relatorio?.atual.transacoes ?? [], [relatorio])
   const { serie, melhorMes, mesMaisCaro: piorMes, categoriasMesMaisCaro: categoriasPiorMes } = useMemo(() => analisarTrajetoria(txsJanela), [txsJanela])
   const maiorResultadoMensal = Math.max(1, ...serie.map((ponto) => Math.abs(resultado(ponto))))
   const competencias = useMemo(() => relatorio?.atual.meses.map((mes) => mes.competencia) ?? [], [relatorio])
   const resumo = relatorio?.atual.resumo
   const resumoAnterior = relatorio?.anterior.resumo
-  const saldos = useMemo(() => saldosPorConta(
-    filtros.banco === 'geral' ? docsSaldo : docsSaldo.filter((doc) => doc.bank === filtros.banco),
-  ), [docsSaldo, filtros.banco])
+  const saldos = useMemo(() => saldosPorConta(docsDoRecorte), [docsDoRecorte])
   const mesAtivo = search.get('mes')
   const ativo = mesAtivo && serie.some((p) => p.competencia === mesAtivo) ? mesAtivo : serie.at(-1)?.competencia ?? ''
   const taxaAtual = relatorio?.taxaEconomiaAtualPct ?? null
