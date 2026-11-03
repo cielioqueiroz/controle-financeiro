@@ -22,6 +22,12 @@
   entre as partes, fora do `sr-only` (dentro dele o espaço some do nome).
   Regra nova no AGENTS §3.
 - axe-core subiu para 4.14 no mesmo PR, como o roteiro pedia.
+- **O CI pegou o que a rodada local não rodou:** o `medir:login` clicava em
+  `button[aria-label="Conta"]`, e a variante da calha (lg+, o viewport do
+  medidor) deixou de ter o atributo. O cenário "sair" estourou o tempo. Agora
+  o medidor procura pelo nome acessível. Mexer no nome de um botão que um
+  medidor procura é mexer no medidor: antes de tirar um `aria-label`,
+  `grep` em `scripts/`.
 
 ## Fluxo do período nos Relatórios — 2026-11-02
 
