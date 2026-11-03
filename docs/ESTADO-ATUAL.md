@@ -23,9 +23,14 @@
   `scripts/test-vinculos-historico.sql` (PIX ao emissor, a outro emissor, a
   uma pessoa, compra que cita o emissor); rodados no branch, e o primeiro
   FALHA com a função da 0009 — o teste distingue as duas regras.
-- **A migração NÃO foi aplicada na produção.** Depende de autorização
-  explícita. Depois dela, nada a reimportar: o recálculo corrige setembro e
-  outubro (e julho) sozinho.
+- **Aplicada na produção em 03/11/2026**, com autorização do dono, numa
+  transação só (função, revogação de EXECUTE e recálculo), no branch
+  `production` do Neon. Antes: 6 quitações, 2 PIX do Mercado Pago como gasto
+  (R$ 820,76 e R$ 867,79). Depois: 10 quitações, 0 PIX como gasto, nenhum
+  acesso indevido à função; os 4 vínculos novos são os do ensaio, e os 6
+  antigos ficaram. Nada foi reimportado: o recálculo corrigiu setembro,
+  outubro e julho sozinho. O branch de teste `teste-0014-vinculo-pix-emissor`
+  segue no Neon até o dono mandar apagar.
 
 ## Outubro fora dos Relatórios e saldo do Bradesco parado — 2026-11-03
 

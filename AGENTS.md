@@ -185,6 +185,14 @@ dela.** Sem ela, o perfil grava no aparelho e diz "salvo só neste aparelho";
 com ela, apelido, cor, idioma, tema, discreto e período valem em todo
 aparelho. Aplicada na produção em 2026-11-02, depois do merge do #57.
 
+⚠️ **A migração `0014` muda a REGRA de quitação de fatura e recalcula o
+histórico de todo usuário.** O PIX ou boleto que cita o emissor do cartão
+(Mercado Pago, Nubank) também quita — antes só valia a palavra "fatura" na
+descrição. Aplicada na produção em 2026-11-03, em transação única, depois de
+ensaio em branch descartável do Neon (ADR-0021, emenda). Qualquer mudança
+nessa função passa pelo mesmo caminho: `create or replace` com o corpo
+inteiro da versão anterior, ensaio em branch, e o laço de recálculo no fim.
+
 ⚠️ **Caixa aqui significa apenas GovConta comprovado.** Os fixtures cobrem duas
 numerações de conta e a continuação de período/layout testada; isso não autoriza
 outros extratos ou investimentos da Caixa. O BB antigo é o layout A; o parser
