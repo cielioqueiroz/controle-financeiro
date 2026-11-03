@@ -149,6 +149,11 @@ alguma coisa sobre o supermercado.
 > **Feito em `feat/atipicos`** (`domain/atipicos.ts`, termo **Gasto atípico**
 > no `CONTEXT.md`): a alternância "Sem atípicos" no donut e no ritmo diário
 > do Painel.
+>
+> **Nos Relatórios, em `feat/relatorios-sem-atipicos`:** o mesmo
+> `?atipicos=fora`, mas só o donut obedece (decisão do dono em 03/11). O
+> fluxo do período promete que o "Sobrou" é o Resultado, e despesas e maiores
+> saídas também continuam com a compra atípica.
 
 ### 2.3 Alertas que o documento já permite
 

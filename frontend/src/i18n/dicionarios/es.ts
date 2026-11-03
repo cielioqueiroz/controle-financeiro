@@ -205,6 +205,8 @@ export const es: Dicionario = {
   'atipicos.dentroN': '{n} compras atípicas suman {valor} en este período.',
   'atipicos.fora1': 'Fuera de los gráficos: {n} compra atípica, {valor}. El gasto real de arriba sigue incluyéndola.',
   'atipicos.foraN': 'Fuera de los gráficos: {n} compras atípicas, {valor}. El gasto real de arriba sigue incluyéndolas.',
+  'atipicos.foraDonut1': 'Fuera del gráfico de categorías: {n} compra atípica, {valor}. Los gastos, el flujo del período y las mayores salidas siguen incluyéndola.',
+  'atipicos.foraDonutN': 'Fuera del gráfico de categorías: {n} compras atípicas, {valor}. Los gastos, el flujo del período y las mayores salidas siguen incluyéndolas.',
   'atipicos.criterio': 'Atípica es la compra suelta de al menos 5× el valor típico de la categoría y de R$ 300 o más. Las cuotas, los cargos recurrentes y las deudas nunca son atípicos.',
   'grafico.diarioDescricao': 'Picos de gasto por fecha real',
   'grafico.evolucaoDescricao': 'Comparación por competencia',

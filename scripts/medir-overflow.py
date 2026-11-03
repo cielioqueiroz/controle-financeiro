@@ -191,6 +191,13 @@ JORNADAS = [
     ("relatorios-fluxo-claro", "/demo.html?tela=relatorios&tema=claro",
      [("clicar-parcial", "Outras 2 categorias")],
      [("ver-secao", "detalhe-relatorio"), ("ver-texto", "Faltou")], 6),
+    # Nos Relatorios o "Sem atipicos" vale so para o donut.
+    ("relatorios-sem-atipicos", "/demo.html?tela=relatorios",
+     [("clicar", "Sem atípicos")],
+     [("ver-secao", "atipicos"), ("pressionado", "Sem atípicos")], 6),
+    ("relatorios-sem-atipicos-claro", "/demo.html?tela=relatorios&tema=claro",
+     [("clicar", "Sem atípicos")],
+     [("ver-secao", "atipicos"), ("pressionado", "Sem atípicos")], 6),
     ("painel-claro", "/demo.html?tela=painel&tema=claro",
      [("expandir", "Contas e compromissos"), ("expandir", "Explorar o período")],
      [("ver-texto", "Fluxo financeiro"), ("ver-texto", "Próximos compromissos")], 6),

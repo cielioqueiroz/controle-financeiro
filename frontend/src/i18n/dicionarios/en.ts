@@ -205,6 +205,8 @@ export const en: Dicionario = {
   'atipicos.dentroN': '{n} outlier purchases add up to {valor} in this period.',
   'atipicos.fora1': 'Left out of the charts: {n} outlier purchase, {valor}. Actual spending at the top still includes it.',
   'atipicos.foraN': 'Left out of the charts: {n} outlier purchases, {valor}. Actual spending at the top still includes them.',
+  'atipicos.foraDonut1': 'Left out of the category chart: {n} outlier purchase, {valor}. Expenses, the period flow and the largest outflows still include it.',
+  'atipicos.foraDonutN': 'Left out of the category chart: {n} outlier purchases, {valor}. Expenses, the period flow and the largest outflows still include them.',
   'atipicos.criterio': 'An outlier is a one-off purchase of at least 5× the typical amount for its category and R$ 300 or more. Installments, recurring charges and debt are never outliers.',
   'grafico.diarioDescricao': 'Spending peaks by actual date',
   'grafico.evolucaoDescricao': 'Comparison by statement period',
