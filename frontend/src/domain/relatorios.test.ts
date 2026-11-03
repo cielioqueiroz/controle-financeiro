@@ -129,6 +129,41 @@ describe('Relatórios — mês final incompleto', () => {
     expect(r.foraDaJanela).toEqual([])
   })
 
+  // 03/11/2026: o extrato do Mercado Pago de outubro foi importado sem
+  // nenhuma transação (conta parada). Pelas transações, a fonte "sumiu" de
+  // outubro, e o mês inteiro saiu da janela — Relatórios, Situação e a
+  // linha do tempo ficaram em setembro. O documento importado é a prova de
+  // que a fonte está lá.
+  describe('documento importado sem transações', () => {
+    const mp = doc('mercadopago', 'extrato')
+    const historico = [
+      ...['2026-08', '2026-09'].flatMap((m) => [tx(m, fatura), tx(m, { ...mp, kind: 'income', amount_cents: -5000 })]),
+      tx('2026-10', fatura),
+    ]
+    const documentos = [
+      { ...mp, period_end: '2026-09-30' },
+      { ...mp, period_end: '2026-10-31' },
+      { ...fatura, period_end: '2026-10-20' },
+    ]
+
+    it('o mês fica na janela', () => {
+      const r = analisarRelatorio(historico, 3, documentos)!
+      expect(r.atual.fim).toBe('2026-10')
+      expect(r.foraDaJanela).toEqual([])
+    })
+
+    it('sem o documento, o mês continua de fora', () => {
+      const r = analisarRelatorio(historico, 3, documentos.filter((d) => d.period_end !== '2026-10-31'))!
+      expect(r.atual.fim).toBe('2026-09')
+      expect(r.foraDaJanela).toEqual([{ competencia: '2026-10', faltam: [{ bank: 'mercadopago', docType: 'extrato' }] }])
+    })
+
+    it('documento sem período não conta para mês nenhum', () => {
+      const r = analisarRelatorio(historico, 3, [{ ...mp, period_end: null }])!
+      expect(r.atual.fim).toBe('2026-09')
+    })
+  })
+
   it('sem banco e tipo de documento nada é deixado de fora', () => {
     const r = analisarRelatorio([tx('2026-09'), tx('2026-10', { kind: 'income', amount_cents: -1 })], 3)!
     expect(r.atual.fim).toBe('2026-10')

@@ -124,6 +124,11 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
   // o final é o saldo da última âncora antes do "Total".
   let saldoInicialCents: number | null = null
   let saldoFinalCents: number | null = null
+  // Sem a linha "COD. LANC. 0" (o extrato de outubro/2026 veio sem), o saldo
+  // inicial sai da primeira linha que mostra saldo: ele é o saldo dela mais
+  // tudo o que saiu até ali (saída é positiva). É conta do documento.
+  let saldoInicialPelaColuna: number | null = null
+  let somaAteAqui = 0
 
   for (let i = 0; i < fim; i++) {
     const l = lines[i]
@@ -176,7 +181,10 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
       kind,
       raw: l.text,
     })
+    somaAteAqui += amountCents
+    if (saldo != null && saldoInicialPelaColuna === null) saldoInicialPelaColuna = saldo + somaAteAqui
   }
+  saldoInicialCents ??= saldoInicialPelaColuna
 
   const { income, expense } = totaisDeclarados(lines, fim + 1)
   const declarado = periodo(lines)

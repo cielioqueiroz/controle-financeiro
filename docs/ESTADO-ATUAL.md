@@ -1,5 +1,29 @@
 # Estado atual do projeto — retomada
 
+## Outubro fora dos Relatórios e saldo do Bradesco parado — 2026-11-03
+
+- Em `fix/outubro-janela-e-saldo`, a partir da `main` (`23c1dba`, já com o
+  #67). Depois de importar outubro, Relatórios, Situação financeira e a
+  linha do tempo seguiram em setembro, e o saldo do Bradesco em 30/09.
+- **Janela:** `competenciasForaDaJanela` decidia a presença de uma fonte
+  (banco + tipo) pelas TRANSAÇÕES. O extrato do Mercado Pago de outubro foi
+  importado sem nenhuma (conta parada; conferido no Neon, só leitura), a
+  fonte "sumiu", e outubro inteiro saiu da janela — nas duas telas, que
+  usam `analisarRelatorio`. Agora a fonte também está presente quando há
+  DOCUMENTO dela no mês (`period_end`, a régua da competência). As telas
+  passam `docsSaldo` no mesmo recorte de banco das transações; a Situação
+  reaproveita essa lista nos saldos.
+- **Saldo:** o mesmo extrato do Bradesco de outubro veio sem a linha
+  "COD. LANC. 0" do saldo inicial, e o parser descartava o `balance`
+  inteiro — `end_balance_cents` gravado nulo, e a Situação mostrando o
+  saldo de setembro. Sem a linha, o saldo inicial sai da primeira linha com
+  saldo: o saldo dela mais o que saiu até ali. No PDF real, o inicial de
+  outubro é exatamente o final de setembro mais o primeiro débito.
+- O extrato do Bradesco de outubro já salvo continua sem saldo: o dono o
+  apaga e reimporta. A janela não pede reimportação.
+- Testes: 3 de domínio na janela, 1 de tela nos Relatórios, 2 no parser
+  (fixture de junho sem a linha "COD. LANC."); 6 mutações morreram.
+
 ## Extrato do Bradesco sem período no cabeçalho — 2026-11-03
 
 - Em `fix/bradesco-extrato-sem-periodo`, a partir da `main` (`815040f`).

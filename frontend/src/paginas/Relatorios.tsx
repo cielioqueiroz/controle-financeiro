@@ -46,8 +46,8 @@ function percentual(valor: number | null): string {
 export function Relatorios() {
   const { t } = useT()
   const dinheiro = useDinheiro()
-  const { todas, recarregar } = useDados()
-  const { visiveis, carregando, erro, setFiltros, compAtiva } = useRecorte()
+  const { todas, recarregar, docsSaldo } = useDados()
+  const { visiveis, carregando, erro, setFiltros, compAtiva, filtros } = useRecorte()
   const [search, setSearch] = useSearchParams()
   const navigate = useNavigate()
   const tipoDetalhe = search.get('detalhe')
@@ -93,7 +93,13 @@ export function Relatorios() {
   }
 
   const historico = useMemo(() => visiveis ?? todas ?? [], [todas, visiveis])
-  const relatorio = useMemo(() => analisarRelatorio(historico, janela), [historico, janela])
+  // Os documentos no mesmo recorte de banco das transações: o mês com o
+  // extrato de uma conta parada fica na janela (ver `analisarRelatorio`).
+  const docsDoRecorte = useMemo(
+    () => (filtros.banco === 'geral' ? docsSaldo : docsSaldo.filter((doc) => doc.bank === filtros.banco)),
+    [docsSaldo, filtros.banco],
+  )
+  const relatorio = useMemo(() => analisarRelatorio(historico, janela, docsDoRecorte), [historico, janela, docsDoRecorte])
   const txs = useMemo(() => relatorio?.atual.transacoes ?? [], [relatorio])
   const serie = useMemo(() => evolucaoMensal(txs), [txs])
   const competencias = useMemo(() => relatorio?.atual.meses.map((mes) => mes.competencia), [relatorio])

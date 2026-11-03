@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { DadosProvider } from '../dados/DadosProvider'
-import { puxarTudo } from '../aplicacao/consultas/historico'
+import { puxarSaldos, puxarTudo } from '../aplicacao/consultas/historico'
 import { Relatorios } from './Relatorios'
 
 vi.mock('../aplicacao/consultas/historico', () => ({
@@ -30,6 +30,28 @@ function abrir(search = '') {
     </MemoryRouter>,
   )
 }
+
+// 03/11/2026: o extrato do Mercado Pago de outubro veio sem transações, e
+// outubro saiu da janela. O documento importado mantém o mês.
+describe('Relatórios — documento sem transações', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('o mês com o extrato de uma conta parada fica no relatório', async () => {
+    const mp = { bank: 'mercadopago' as const, doc_type: 'extrato' as const, kind: 'income', amount_cents: -5000, category_slug: null }
+    vi.mocked(puxarTudo).mockResolvedValue([
+      { ...transacao, id: 'f-set', competencia: '2026-09', date: '2026-09-10' },
+      { ...transacao, ...mp, id: 'mp-set', competencia: '2026-09', date: '2026-09-12', document_id: 'doc-mp-set' },
+      { ...transacao, id: 'f-out', competencia: '2026-10', date: '2026-10-10', document_id: 'doc-out' },
+    ])
+    vi.mocked(puxarSaldos).mockResolvedValue([
+      { id: 'doc-mp-out', bank: 'mercadopago', account_id: 'c', doc_type: 'extrato', period_end: '2026-10-31', declared_total: null,
+        end_balance_cents: 0, total_open_balance: null, next_invoice_balance: null, next_close_date: null, future_installments_total: null },
+    ] as never)
+    abrir('?janela=3')
+    expect((await screen.findAllByText(/ago 2026 — out 2026/)).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/ficou fora da janela/)).not.toBeInTheDocument()
+  })
+})
 
 describe('Relatórios — estados e navegação', () => {
   beforeEach(() => vi.clearAllMocks())
