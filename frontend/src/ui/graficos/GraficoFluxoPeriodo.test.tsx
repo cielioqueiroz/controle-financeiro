@@ -40,7 +40,7 @@ describe('GraficoFluxoPeriodo', () => {
   it('o nome do botão começa pelo texto visível (WCAG 2.5.3)', () => {
     render(<GraficoFluxoPeriodo fluxo={FLUXO} onAbrir={vi.fn()} />)
     const botao = screen.getByRole('button', { name: /^Casa & Moradia/ })
-    expect(botao).toHaveAccessibleName(/Ver lançamentos\.$/)
+    expect(botao).toHaveAccessibleName(/^Casa & Moradia R\$\s1\.000,00 12% Ver lançamentos\.$/)
     expect(botao).not.toHaveAttribute('aria-label')
   })
 

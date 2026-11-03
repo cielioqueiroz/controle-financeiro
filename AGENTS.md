@@ -414,6 +414,15 @@ de uma vez e as listas não têm como divergir. Reprova só `critical` e `seriou
 coisas que dependem de intenção de design, e transformá-las em erro treinaria
 qualquer um a ignorar a saída).
 
+⚠️ **Botão com texto visível não ganha `aria-label`.** Desde o axe-core 4.14
+o medidor cobra o WCAG 2.5.3 (`label-content-name-mismatch`): o nome tem de
+conter o que está escrito, porque quem aciona por voz fala o que vê. O que só
+o leitor de tela precisa ouvir ("do total. Ver lançamentos.") vai num
+`sr-only` DEPOIS do texto. Ponha `{' '}` entre as partes do botão e **fora**
+do `sr-only` — dentro dele o espaço some do nome, e sem ele o jsdom (que não
+tem CSS) cola tudo em "SupermercadoR$ 600,00". Em grid e flex esse espaço
+não aparece na tela.
+
 ⚠️ **O contexto roda com `reduced_motion='reduce'` e as animações são
 finalizadas antes da medição.** Sem isso a legenda do donut entra em cascata
 (`delay: 0.2 + i*0.04`) e o axe pega as linhas a meio fade, reprovando

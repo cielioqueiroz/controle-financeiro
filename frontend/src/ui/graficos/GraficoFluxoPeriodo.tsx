@@ -116,8 +116,8 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
     const conteudo = <>
       <MarcaCategoria cor={chave === 'faltou' ? HACHURA_CSS : cor} />
       <span aria-hidden className="w-5 text-center text-sm">{no.tipo === 'categoria' ? no.cat.icone : ''}</span>
-      <span className="break-words text-tinta-fraca">{nome}</span>
-      <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(no.valorCents)}
+      <span className="break-words text-tinta-fraca">{nome}</span>{' '}
+      <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(no.valorCents)}{' '}
         <span className="text-xs text-tinta-tenue">{pct(no.valorCents)}</span>
       </span>
     </>
@@ -132,8 +132,8 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
           <button type="button" onClick={() => onAbrir(slugs)} {...destaque}
             onFocus={() => setAtiva(chave)} onBlur={() => setAtiva(null)}
             className={`${classe} transition-colors hover:bg-afundado focus-visible:bg-afundado`}>
-            {conteudo}
-            <span className="sr-only">{' '}{t('fluxoPeriodo.verLancamentos')}</span>
+            {conteudo}{' '}
+            <span className="sr-only">{t('fluxoPeriodo.verLancamentos')}</span>
           </button>
         ) : conteudo}
       </li>

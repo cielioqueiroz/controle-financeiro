@@ -12,7 +12,10 @@ type Props = {
   /** Já formatado — a linha não sabe de centavos. */
   valor: string
   onClick: () => void
-  rotuloAcessivel?: string
+  /** O que só o leitor de tela ouve, DEPOIS do texto visível. Era um
+   *  `aria-label` inteiro, que trocava o nome do botão por outra frase e
+   *  quebrava o WCAG 2.5.3: quem fala o que vê não acionava a linha. */
+  sufixoAcessivel?: string
   /** Índice para o atraso da entrada em cascata. */
   ordem: number
 }
@@ -36,7 +39,7 @@ export function LinhaRanking({
   meta,
   valor,
   onClick,
-  rotuloAcessivel,
+  sufixoAcessivel,
   ordem,
 }: Props) {
   return (
@@ -47,20 +50,22 @@ export function LinhaRanking({
     >
       <button
         onClick={onClick}
-        aria-label={rotuloAcessivel}
         className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-carvao-850"
       >
-        <span className="tabular w-4 shrink-0 text-[11px] text-tinta-tenue">{posicao}</span>
+        {/* Os `{' '}` entre as partes não aparecem (flex ignora texto só de
+            espaço), mas separam as palavras no nome do botão onde não há CSS. */}
+        <span className="tabular w-4 shrink-0 text-[11px] text-tinta-tenue">{posicao}</span>{' '}
         <span className="min-w-0 flex-1">
-          <span className="block break-words text-sm text-tinta">{titulo}</span>
+          <span className="block break-words text-sm text-tinta">{titulo}</span>{' '}
           {/* `truncate` também aqui: a linha de baixo é a que tem texto de
               tamanho imprevisível (nome de categoria traduzido, contagem em
               três idiomas) e era por ela que a coluna estourava. */}
           <span className="mt-1 flex items-center gap-1.5 truncate text-[11px] text-tinta-tenue">
             {meta}
           </span>
-        </span>
+        </span>{' '}
         <span className="tabular shrink-0 text-sm text-tinta">{valor}</span>
+        {sufixoAcessivel && <>{' '}<span className="sr-only">{sufixoAcessivel}</span></>}
       </button>
     </motion.li>
   )

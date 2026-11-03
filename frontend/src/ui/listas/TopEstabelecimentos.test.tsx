@@ -22,6 +22,15 @@ describe('TopEstabelecimentos', () => {
 
   // Sem a contagem, "R$ 240" é indistinguível de uma compra única de R$ 240 —
   // e é a repetição que faz este ranking existir.
+  // WCAG 2.5.3: quem aciona por voz fala o que vê. Um `aria-label` à parte
+  // ("IFOOD: R$ 240,00 em 3 compras") trocava o nome inteiro do botão.
+  it('o nome do botão é o texto visível, e "Ver lançamentos" vem depois', () => {
+    render(<TopEstabelecimentos itens={[grupo()]} onAbrir={vi.fn()} />)
+    const botao = screen.getByRole('button')
+    expect(botao).not.toHaveAttribute('aria-label')
+    expect(botao).toHaveAccessibleName(/^1 IFOOD 3 compras R\$\s240,00 Ver lançamentos\.$/)
+  })
+
   it('usa o singular quando foi uma compra só', () => {
     render(<TopEstabelecimentos itens={[grupo({ contagem: 1 })]} onAbrir={vi.fn()} />)
     expect(screen.getByText('1 compra')).toBeInTheDocument()

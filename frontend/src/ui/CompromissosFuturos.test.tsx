@@ -120,7 +120,9 @@ describe('CompromissosFuturos', () => {
     it('recolhe numa linha com a faixa de meses e o valor por mês', () => {
       render(<Card meses={iguais} />)
       // `\s`: o Intl separa "R$" do valor com espaço não separável.
-      const linha = screen.getByRole('button', { name: /nov 2026 a jan 2027: 3 meses de R\$\s450,00/ })
+      // O nome é o texto visível (WCAG 2.5.3): sem `aria-label` que diga outra coisa.
+      const linha = screen.getByRole('button', { name: /^nov 2026 – jan 2027 3 meses R\$\s450,00\/mês$/ })
+      expect(linha).not.toHaveAttribute('aria-label')
       expect(linha).toHaveTextContent('3 meses')
       expect(linha).toHaveTextContent('/mês')
       // O total do cartão continua sendo a soma de todos os meses.

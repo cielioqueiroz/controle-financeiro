@@ -31,6 +31,14 @@ async function abrirMenu(usuario: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('ContaMenu', () => {
+  // WCAG 2.5.3: a variante lateral MOSTRA o nome da pessoa. Com
+  // `aria-label="Conta"`, quem dissesse o nome que vê não acionava o botão.
+  it('na calha, o nome do botão começa pelo nome que aparece nele', () => {
+    render(<ContaMenu onSair={vi.fn()} variante="lateral" nome="Ana Souza" />)
+    const botao = screen.getByRole('button', { name: /^Ana Souza, Conta$/ })
+    expect(botao).not.toHaveAttribute('aria-label')
+  })
+
   // O diálogo de confirmação mora num portal (<body>), fora do `ref` do
   // menu. O fechar-ao-clicar-fora olhava só o `ref`, então o mousedown no
   // próprio botão "Sair" contava como clique fora: o menu (e o diálogo

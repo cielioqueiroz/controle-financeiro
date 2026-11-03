@@ -64,16 +64,13 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
               <button
                 onClick={() => onAlternar(open ? null : g.inicio)}
                 className="flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-carvao-850"
-                aria-label={varios ? t('comp.grupoRotulo', {
-                  inicio: rotuloMes(g.inicio), fim: rotuloMes(g.fim), n: g.meses.length, valor: formatBRL(porMes),
-                }) : undefined}
               >
                 <span className="min-w-0 flex-1 truncate text-sm capitalize text-tinta">
                   {varios ? `${rotuloMes(g.inicio)} – ${rotuloMes(g.fim)}` : rotuloMes(g.inicio)}
-                </span>
+                </span>{' '}
                 <span className="tabular text-[11px] text-tinta-tenue">
                   {varios ? t('comp.nMeses', { n: g.meses.length }) : `${g.itens.length}×`}
-                </span>
+                </span>{' '}
                 <span className="tabular text-sm text-tinta">
                   {formatBRL(porMes)}
                   {varios && <span className="text-[11px] text-tinta-tenue">{t('comp.porMes')}</span>}

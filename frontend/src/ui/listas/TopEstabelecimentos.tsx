@@ -54,11 +54,7 @@ export function TopEstabelecimentos({ itens, onAbrir, semTitulo }: Props) {
             // rótulo, clicar num grupo renomeado acharia só as compras que
             // receberam aquele nome, e não o estabelecimento inteiro.
             onClick={() => onAbrir(item.merchant)}
-            rotuloAcessivel={t('estab.rotulo', {
-              nome: item.rotulo,
-              valor: formatBRL(item.totalCents),
-              n: item.contagem,
-            })}
+            sufixoAcessivel={t('estab.sufixo')}
           />
         ))}
       </ul>

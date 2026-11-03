@@ -28,7 +28,7 @@
     "medir:piscada": "uv run --with playwright python scripts/medir-piscada.py"
   },
   "devDependencies": {
-    "axe-core": "^4.13.0",
+    "axe-core": "^4.14.0",
     "oxlint": "^1.90.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2"

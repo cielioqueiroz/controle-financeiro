@@ -211,12 +211,11 @@ export function SituacaoFinanceira() {
                       type="button"
                       onClick={() => atualizarBusca('mes', ponto.competencia)}
                       aria-pressed={selecionado}
-                      aria-label={t('situacao.selecionarMes', { mes: rotuloMes(ponto.competencia), valor: dinheiro(saldoMes) })}
                       className={`group min-w-0 rounded-lg border p-3 text-left transition-colors ${selecionado ? 'border-marca/60 bg-carvao-850' : 'border-carvao-700 bg-afundado hover:border-carvao-600'}`}
                     >
                       <span className={`block truncate text-[11px] ${selecionado ? 'font-semibold text-tinta' : 'text-tinta-fraca'}`}>
                         {rotuloMes(ponto.competencia)}
-                      </span>
+                      </span>{' '}
                       <span aria-hidden className="relative mt-3 block h-14">
                         <span className="absolute inset-x-0 top-1/2 h-px bg-carvao-700" />
                         <span className={`absolute left-1/2 w-3 -translate-x-1/2 rounded-sm ${saldoMes >= 0 ? 'bottom-1/2 bg-credito' : 'top-1/2 bg-debito'}`}
@@ -224,7 +223,7 @@ export function SituacaoFinanceira() {
                       </span>
                       <span className={`tabular mt-2 block truncate text-[11px] ${saldoMes >= 0 ? 'text-credito' : 'text-debito'}`}>
                         {dinheiro(saldoMes)}
-                      </span>
+                      </span>{' '}
                       <span className="mt-1 block min-h-4 truncate text-[9px] text-tinta-tenue">
                         {ehMelhor ? t('situacao.melhorMes') : ehPior ? t('situacao.mesMaisCaro') : ''}
                       </span>

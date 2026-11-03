@@ -1,5 +1,28 @@
 # Estado atual do projeto — retomada
 
+## WCAG 2.5.3 e axe-core 4.14 — 2026-11-02
+
+- Em `fix/wcag-253`, a partir da `main` (`df74d93`, já com o #61). Item
+  pendente desde o #59, que deixou o axe-core em 4.13 de propósito.
+- O axe 4.14 liga a regra `label-content-name-mismatch` e reprovou 19
+  jornadas. Uma sonda listou 22 elementos em cinco peças: a legenda do donut,
+  as linhas do ranking por estabelecimento, as faixas agrupadas de
+  compromissos, os cartões de mês da Situação financeira e o botão "Conta"
+  da calha, que mostra o nome da pessoa e se chamava "Conta".
+- Em todas, o `aria-label` saiu e o nome passou a vir do texto visível. O que
+  só o leitor de tela precisa ouvir entrou num `sr-only` depois do texto:
+  "do total. Ver lançamentos." no donut (o patch guardado em
+  `.claude/wcag-253-donut.patch`, refeito à mão porque o #61 mexeu no
+  contexto), "Ver lançamentos." no ranking e ", Conta" na calha. Chaves
+  `donut.rotuloFatia`, `estab.rotulo`, `comp.grupoRotulo` e
+  `situacao.selecionarMes` saíram dos três dicionários.
+- **Achado:** no jsdom o nome saía colado ("SupermercadoR$ 2.100,00100%"),
+  porque sem CSS os `span` são inline. No navegador o grid e o flex separam
+  as partes, e por isso o axe passava. Os botões tocados ganharam `{' '}`
+  entre as partes, fora do `sr-only` (dentro dele o espaço some do nome).
+  Regra nova no AGENTS §3.
+- axe-core subiu para 4.14 no mesmo PR, como o roteiro pedia.
+
 ## Fluxo do período nos Relatórios — 2026-11-02
 
 - Em `feat/sankey-relatorios`, a partir da `main` (`fc2056a`). Item 2.5 da

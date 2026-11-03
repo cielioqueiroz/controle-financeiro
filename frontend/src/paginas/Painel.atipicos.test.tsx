@@ -70,7 +70,7 @@ describe('Painel — sem atípicos', () => {
   it('tira a atípica do gráfico de categorias e mantém o gasto real do topo', async () => {
     abrirEmJunho([...MAIO, ...JUNHO])
     await expandirAnalise()
-    const categoria = () => screen.getByRole('button', { name: /^Supermercado:/ })
+    const categoria = () => screen.getByRole('button', { name: /^Supermercado R\$.*do total/ })
     expect(categoria()).toHaveAccessibleName(/R\$\s2\.100,00/)
 
     await userEvent.click(screen.getByRole('button', { name: 'Sem atípicos' }))

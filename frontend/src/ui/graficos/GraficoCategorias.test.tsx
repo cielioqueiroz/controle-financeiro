@@ -25,6 +25,15 @@ function abrir(rota: string) {
 }
 
 describe('GraficoCategorias — o clique na fatia', () => {
+  // WCAG 2.5.3: o nome começa pelo que está escrito no botão. O rótulo à
+  // parte ("Supermercado: R$ 600,00, 60% do total") trocava o nome inteiro.
+  it('o nome do botão é o texto visível, com o resto da frase depois', () => {
+    abrir('/')
+    const botao = screen.getByRole('button', { name: /^Supermercado/ })
+    expect(botao).not.toHaveAttribute('aria-label')
+    expect(botao).toHaveAccessibleName(/^Supermercado R\$\s600,00 60% do total\. Ver lançamentos\.$/)
+  })
+
   it('mantém a identidade das fatias ao inverter o ranking', () => {
     const { container, rerender } = render(<MemoryRouter><GraficoCategorias categorias={CATEGORIAS} totalCents={100000} /></MemoryRouter>)
     const cores = [...container.querySelectorAll('circle')].map((el) => el.getAttribute('stroke'))
