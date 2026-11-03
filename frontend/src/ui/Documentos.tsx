@@ -8,6 +8,7 @@ import { mesAbrev } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { temaDoBanco } from '../domain/banks'
 import { useT } from '../i18n/IdiomaProvider'
+import { useDinheiro } from '../dados/DiscretoProvider'
 import { Confirmacao } from './acesso/Confirmacao'
 import { DocumentoImportado } from './DocumentoImportado'
 import { ErroCarregar } from './ErroCarregar'
@@ -24,6 +25,9 @@ type Props = {
   onLimparSelecao?: () => void
   transacoes?: TransacaoParaConferencia[] | null
   onVerDocumento?: (id: string) => void
+  /** De onde vem a lista. Só a folha de provas troca: sem banco, a consulta
+   *  de verdade devolve vazio e os meses não teriam o que mostrar. */
+  carregarDocumentos?: () => Promise<DocumentoSalvo[]>
 }
 
 /** A competência do documento: o mês em que ele conta para o usuário.
@@ -93,8 +97,10 @@ export function DocumentoNaoEncontrado({ onLimpar }: { onLimpar?: () => void }) 
   )
 }
 
-export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, onLimparSelecao, transacoes, onVerDocumento }: Props) {
+export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, onLimparSelecao, transacoes, onVerDocumento,
+  carregarDocumentos = puxarDocumentos }: Props) {
   const { t } = useT()
+  const dinheiro = useDinheiro()
   const [docs, setDocs] = useState<DocumentoSalvo[] | null>(null)
   const [erro, setErro] = useState<ReturnType<typeof chaveDeErro> | null>(null)
   const [confirmando, setConfirmando] = useState<string | null>(null)
@@ -104,7 +110,7 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
   async function carregar() {
     setErro(null)
     try {
-      setDocs(await puxarDocumentos())
+      setDocs(await carregarDocumentos())
     } catch (e) {
       setErro(chaveDeErro(e, 'docs.toastListaFalha', 'documentos'))
     }
@@ -174,6 +180,32 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
     })
   }, [docs])
 
+  /** Cada mês abre e fecha (pedido do dono em 03/11: com todos abertos a
+   *  lista confundia). Começa aberto só o mês mais recente e o do documento
+   *  que chegou por link — quem clicou em "Ver documento importado" precisa
+   *  vê-lo, de qualquer mês. O que a pessoa abriu ou fechou à mão vence. */
+  const [escolhidos, setEscolhidos] = useState<Map<string, boolean>>(new Map())
+  const compSelecionada = docs?.find((d) => d.id === documentoSelecionado)
+  const mesSelecionado = compSelecionada ? competenciaDoc(compSelecionada) : null
+  useEffect(() => {
+    if (mesSelecionado === null) return
+    setEscolhidos((atual) => {
+      if (!atual.has(mesSelecionado)) return atual
+      const proximo = new Map(atual)
+      proximo.delete(mesSelecionado)
+      return proximo
+    })
+  }, [documentoSelecionado, mesSelecionado])
+  const aberto = (comp: string) =>
+    escolhidos.get(comp) ?? (comp === agrupados[0]?.[0] || comp === mesSelecionado)
+  const todosAbertos = agrupados.every(([comp]) => aberto(comp))
+  function alternarMes(comp: string) {
+    setEscolhidos((atual) => new Map(atual).set(comp, !aberto(comp)))
+  }
+  function alternarTodos() {
+    setEscolhidos(new Map(agrupados.map(([comp]) => [comp, !todosAbertos])))
+  }
+
   // Nomeia o documento em vez de um "tem certeza?" genérico: quem apaga
   // precisa reconhecer qual fatura/extrato está prestes a perder.
   const docAlvo = docs?.find((d) => d.id === confirmando)
@@ -224,29 +256,55 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
         ) : docs.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-tinta-fraca">{t('docs.vazio')}</p>
         ) : (
-          <ul className="space-y-1">
-            {agrupados.map(([comp, doDoMes]) => (
-              <li key={comp || 'sem-periodo'}>
-                {/* O cabeçalho do mês é `sticky`: numa lista longa, rolar
-                    sem ele faz a pessoa perder de vista em que mês está —
-                    que é justamente a queixa que originou o agrupamento. */}
-                <p className="tabular sticky top-0 z-10 bg-carvao-900 px-3 pt-3 pb-1 text-xs uppercase tracking-[0.2em] text-tinta-tenue first-letter:uppercase">
-                  {tituloCompetencia(comp, t('docs.semPeriodo'))}
-                </p>
-                <ul className="space-y-3 py-2">
-                  {doDoMes.map((d) => (
-                    <DocumentoImportado
-                      key={d.id}
-                      documento={d}
-                      selecionado={d.id === documentoSelecionado}
-                      contagem={contagem === null ? null : contagem.get(d.id) ?? { qtd: 0, totalCents: 0 }}
-                      onApagar={() => setConfirmando(d.id)}
-                    />
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
+          <>
+            {agrupados.length > 1 && (
+              <div className="flex justify-end px-3 pt-2">
+                <button type="button" onClick={alternarTodos}
+                  className="min-h-11 rounded-md px-3 text-xs font-medium text-marca hover:bg-afundado">
+                  {t(todosAbertos ? 'docs.fecharTodos' : 'docs.abrirTodos')}
+                </button>
+              </div>
+            )}
+            <ul className="space-y-1">
+              {agrupados.map(([comp, doDoMes]) => {
+                const estaAberto = aberto(comp)
+                const idLista = `docs-mes-${comp || 'sem-periodo'}`
+                const gastoCents = doDoMes.reduce((soma, d) => soma + (contagem?.get(d.id)?.totalCents ?? 0), 0)
+                return (
+                  <li key={comp || 'sem-periodo'}>
+                    {/* O cabeçalho do mês é `sticky`: numa lista longa, rolar
+                        sem ele faz a pessoa perder de vista em que mês está —
+                        que é justamente a queixa que originou o agrupamento. */}
+                    <button type="button" aria-expanded={estaAberto} aria-controls={estaAberto ? idLista : undefined}
+                      onClick={() => alternarMes(comp)}
+                      className="sticky top-0 z-10 flex min-h-11 w-full flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md bg-carvao-900 px-3 py-2 text-left hover:bg-afundado">
+                      <span aria-hidden className={`inline-block w-3 text-tinta-tenue transition-transform ${estaAberto ? 'rotate-90' : ''}`}>▸</span>
+                      <span className="tabular text-xs uppercase tracking-[0.2em] text-tinta-tenue first-letter:uppercase">
+                        {tituloCompetencia(comp, t('docs.semPeriodo'))}
+                      </span>{' '}
+                      <span className="text-xs text-tinta-fraca">
+                        {t(doDoMes.length === 1 ? 'docs.contDoc1' : 'docs.contDocs', { n: doDoMes.length })}
+                        {contagem !== null && <>{' · '}{t('docs.gastoReal', { valor: dinheiro(gastoCents) })}</>}
+                      </span>
+                    </button>
+                    {estaAberto && (
+                      <ul id={idLista} className="space-y-3 py-2">
+                        {doDoMes.map((d) => (
+                          <DocumentoImportado
+                            key={d.id}
+                            documento={d}
+                            selecionado={d.id === documentoSelecionado}
+                            contagem={contagem === null ? null : contagem.get(d.id) ?? { qtd: 0, totalCents: 0 }}
+                            onApagar={() => setConfirmando(d.id)}
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </>
         )}
       </div>
 

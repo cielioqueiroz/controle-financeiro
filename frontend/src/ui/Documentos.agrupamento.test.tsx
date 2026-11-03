@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { ConteudoDocumentos } from './Documentos'
 import type { DocumentoSalvo } from '../persist/documentos'
 
@@ -43,9 +44,14 @@ vi.mock('../persist/documentos', () => ({
   apagarTudo: vi.fn(),
 }))
 
-function montar() {
-  return render(<ConteudoDocumentos onMudou={vi.fn()} contagem={new Map()} />)
+function montar(documentoSelecionado: string | null = null) {
+  return render(<ConteudoDocumentos onMudou={vi.fn()} documentoSelecionado={documentoSelecionado} contagem={new Map([
+    ['ago-mp', { qtd: 3, totalCents: 10000 }],
+    ['ago-nu', { qtd: 2, totalCents: 25050 }],
+  ])} />)
 }
+
+const mes = (nome: RegExp) => screen.getByRole('button', { name: nome })
 
 describe('Documentos — agrupados por competência', () => {
   it('põe um cabeçalho por mês', async () => {
@@ -76,11 +82,59 @@ describe('Documentos — agrupados por competência', () => {
   it('mantém todos os documentos — agrupar não é filtrar', async () => {
     montar()
     await screen.findByText(/agosto de 2026/i)
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir todos os meses' }))
     // Rótulo EXATO: `/apagar/i` casaria também o "Apagar tudo e recomeçar"
     // do rodapé, e o teste passaria a contar cinco onde há quatro.
     expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(
       DOCS.length,
     )
+  })
+})
+
+// Pedido do dono em 03/11: com vários meses abertos a lista confundia. Cada
+// mês abre e fecha, e só o mais recente começa aberto.
+describe('Documentos — meses recolhíveis', () => {
+  it('só o mês mais recente começa aberto', async () => {
+    montar()
+    await screen.findByText(/agosto de 2026/i)
+    expect(mes(/^agosto de 2026/i)).toHaveAttribute('aria-expanded', 'true')
+    expect(mes(/^junho de 2026/i)).toHaveAttribute('aria-expanded', 'false')
+    expect(mes(/^sem período/i)).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(2)
+  })
+
+  it('o cabeçalho fechado diz quantos documentos e quanto gasto real o mês tem', async () => {
+    montar()
+    await screen.findByText(/agosto de 2026/i)
+    expect(mes(/^agosto de 2026/i)).toHaveTextContent(/2 documentos.*Gasto real salvo: R\$\s350,50/)
+    expect(mes(/^junho de 2026/i)).toHaveTextContent('1 documento')
+  })
+
+  it('clicar no mês abre e fecha', async () => {
+    montar()
+    await screen.findByText(/agosto de 2026/i)
+    await userEvent.click(mes(/^junho de 2026/i))
+    expect(mes(/^junho de 2026/i)).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(3)
+    await userEvent.click(mes(/^agosto de 2026/i))
+    expect(mes(/^agosto de 2026/i)).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(1)
+  })
+
+  // Quem chega por "Ver documento importado" (Relatórios, Painel) precisa
+  // ver o documento, mesmo de um mês antigo.
+  it('o mês do documento aberto por link começa aberto', async () => {
+    montar('jun')
+    await screen.findByText(/agosto de 2026/i)
+    expect(mes(/^junho de 2026/i)).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('fechar todos fecha os meses', async () => {
+    montar()
+    await screen.findByText(/agosto de 2026/i)
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir todos os meses' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar todos os meses' }))
+    expect(screen.queryByRole('button', { name: 'Apagar documento' })).not.toBeInTheDocument()
   })
 })
 

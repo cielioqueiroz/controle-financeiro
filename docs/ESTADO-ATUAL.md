@@ -1,5 +1,26 @@
 # Estado atual do projeto — retomada
 
+## Meses recolhíveis na lista de documentos — 2026-11-03
+
+- Em `feat/faturas-meses-recolhiveis`, a partir da `main` (`f704e08`, já
+  com o #64). Pedido do dono: com todos os meses abertos, a lista de
+  Faturas confundia na hora de analisar.
+- Cada mês virou um botão (`aria-expanded`) com o nome do mês, quantos
+  documentos tem e o gasto real somado deles. Mês fechado não desenha os
+  documentos. Começa aberto só o mês mais recente e o do documento que
+  chegou por link (`?documento=`, de Relatórios, Painel e Situação) — quem
+  clicou em "Ver documento importado" precisa vê-lo. O que a pessoa abriu ou
+  fechou à mão vence; um link novo para um mês fechado o reabre. Botão
+  "Abrir/Fechar todos os meses" quando há mais de um.
+- Botão com `aria-expanded`, e não `<details>`: o jsdom não esconde o
+  conteúdo de um `<details>` fechado, e os testes não distinguiriam aberto
+  de fechado.
+- `ConteudoDocumentos` ganhou `carregarDocumentos` (padrão:
+  `puxarDocumentos`) para a folha de provas: sem banco, a consulta devolve
+  vazio. Amostra nova `?tela=documentos&amostra=meses`, com três meses, e
+  jornadas `faturas-meses` e `-claro`.
+- 5 testes novos em `Documentos.agrupamento.test.tsx`; 6 mutações morreram.
+
 ## Fatura do Mercado Pago com pagamento anterior — 2026-11-03
 
 - Em `fix/mercadopago-pagamento-fatura`, a partir da `main` (`4fc1ab5`).

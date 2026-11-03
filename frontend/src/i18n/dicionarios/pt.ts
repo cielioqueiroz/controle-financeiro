@@ -640,6 +640,8 @@ export const pt = {
   'docs.vazio': 'Nenhum documento importado ainda.',
   'docs.selecionadoAusente': 'Este documento não está disponível no seu histórico.',
   'docs.verTodos': 'Ver todos os documentos',
+  'docs.abrirTodos': 'Abrir todos os meses',
+  'docs.fecharTodos': 'Fechar todos os meses',
   'docs.semPeriodo': 'sem período',
   'docs.nLancamentos': '{n} lançamentos',
   'docs.importadoEm': 'importado em {data}',
