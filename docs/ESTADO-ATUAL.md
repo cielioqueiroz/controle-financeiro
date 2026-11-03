@@ -1,5 +1,28 @@
 # Estado atual do projeto — retomada
 
+## Extrato do Bradesco sem período no cabeçalho — 2026-11-03
+
+- Em `fix/bradesco-extrato-sem-periodo`, a partir da `main` (`815040f`).
+  O dono importou os seis PDFs de outubro, viu cinco na lista de Faturas e
+  o Bradesco "faltando" na cobertura; ao reimportar, "já foi importado".
+- **Causa:** o extrato do "Bradesco Celular" de outubro veio com o
+  cabeçalho `Extrato de: Agência: … | Conta: …`, SEM o
+  `| Movimentação entre: 01/09/2026 e 30/09/2026` que o de setembro tinha.
+  O parser só lia o período dessa frase: o documento foi salvo com
+  `period_start`/`period_end` nulos (conferido no Neon, só leitura), caiu
+  no grupo "sem período" — fechado, no fim da lista, desde o #65 — e fora
+  da cobertura de outubro. A conferência fechava, então nada avisava.
+- **Correção:** sem o período declarado, o período é o das próprias
+  transações (primeira e última data — 02/10 a 28/10 no PDF real). A
+  continuação do extrato ("Últimos Lançamentos") segue usando só o
+  declarado. E o grupo "sem período" da lista passa a começar aberto: é
+  anomalia, não pode sumir.
+- O documento já salvo sem período fica como está: o dono o apaga (agora
+  visível) e reimporta.
+- Teste com o fixture de junho e o cabeçalho cortado como o de outubro;
+  as mutações (sem o recurso, mínimo/máximo invertidos, grupo fechado)
+  morreram. PDFs reais de setembro e outubro conferem.
+
 ## Calendário prevê o valor reajustado — 2026-11-03
 
 - Em `feat/calendario-reajuste`, a partir da `main` (`7cc78a3`, já com o

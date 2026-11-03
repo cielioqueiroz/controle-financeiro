@@ -87,6 +87,12 @@ function periodo(lines: Line[]): { start: Date; end: Date } | null {
   }
 }
 
+function periodoDasTransacoes(transactions: RawTransaction[]): { start: Date; end: Date } | null {
+  if (transactions.length === 0) return null
+  const datas = transactions.map((t) => t.date.getTime())
+  return { start: new Date(Math.min(...datas)), end: new Date(Math.max(...datas)) }
+}
+
 function conta(lines: Line[]): { agency: string | null; number: string | null } {
   const texto = lines.map((l) => l.text).join('\n')
   const m = texto.match(/Ag[êe]ncia:\s*(\d+)\s*\|\s*Conta:\s*([\d-]+)/i)
@@ -173,8 +179,14 @@ export function parseBradescoExtrato(lines: Line[]): ParseResult {
   }
 
   const { income, expense } = totaisDeclarados(lines, fim + 1)
-  const per = periodo(lines)
-  const saldoDaContinuacao = saldoFinalNaContinuacao(lines, fim, per)
+  const declarado = periodo(lines)
+  const saldoDaContinuacao = saldoFinalNaContinuacao(lines, fim, declarado)
+  // O "Bradesco Celular" nem sempre imprime "Movimentação entre: … e …": o
+  // de outubro/2026 veio sem, foi salvo sem período e sumiu da cobertura do
+  // mês. Sem o declarado, o período é o das próprias transações — o que o
+  // documento comprova cobrir. A continuação acima segue só com o declarado:
+  // sem ele, não há como saber se a página seguinte é do mesmo período.
+  const per = declarado ?? periodoDasTransacoes(transactions)
   const { agency, number } = conta(lines)
 
   return {

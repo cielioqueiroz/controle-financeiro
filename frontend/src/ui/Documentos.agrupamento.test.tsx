@@ -99,8 +99,16 @@ describe('Documentos — meses recolhíveis', () => {
     await screen.findByText(/agosto de 2026/i)
     expect(mes(/^agosto de 2026/i)).toHaveAttribute('aria-expanded', 'true')
     expect(mes(/^junho de 2026/i)).toHaveAttribute('aria-expanded', 'false')
-    expect(mes(/^sem período/i)).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(2)
+  })
+
+  // O extrato do Bradesco de outubro/2026 foi salvo sem período, caiu neste
+  // grupo fechado no fim da lista, e o dono não o achava para apagar — só
+  // via "já foi importado" ao reimportar. Sem período é anomalia: aparece.
+  it('o grupo sem período começa aberto', async () => {
+    montar()
+    await screen.findByText(/agosto de 2026/i)
+    expect(mes(/^sem período/i)).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(3)
   })
 
   it('o cabeçalho fechado diz quantos documentos e quanto gasto real o mês tem', async () => {
@@ -115,10 +123,10 @@ describe('Documentos — meses recolhíveis', () => {
     await screen.findByText(/agosto de 2026/i)
     await userEvent.click(mes(/^junho de 2026/i))
     expect(mes(/^junho de 2026/i)).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(4)
     await userEvent.click(mes(/^agosto de 2026/i))
     expect(mes(/^agosto de 2026/i)).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Apagar documento' })).toHaveLength(2)
   })
 
   // Quem chega por "Ver documento importado" (Relatórios, Painel) precisa

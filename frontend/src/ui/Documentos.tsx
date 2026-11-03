@@ -196,8 +196,10 @@ export function ConteudoDocumentos({ onMudou, contagem, documentoSelecionado, on
       return proximo
     })
   }, [documentoSelecionado, mesSelecionado])
+  // O grupo sem período (`''`) também começa aberto: é anomalia, e fechado
+  // no fim da lista ele escondeu o extrato do Bradesco de outubro/2026.
   const aberto = (comp: string) =>
-    escolhidos.get(comp) ?? (comp === agrupados[0]?.[0] || comp === mesSelecionado)
+    escolhidos.get(comp) ?? (comp === agrupados[0]?.[0] || comp === mesSelecionado || comp === '')
   const todosAbertos = agrupados.every(([comp]) => aberto(comp))
   function alternarMes(comp: string) {
     setEscolhidos((atual) => new Map(atual).set(comp, !aberto(comp)))
