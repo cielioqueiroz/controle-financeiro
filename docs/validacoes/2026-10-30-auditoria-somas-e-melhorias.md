@@ -196,6 +196,10 @@ novembro". O Monarch oferece um calendário de recorrências parecido
 
 > **Feito em `feat/calendario-proximo-mes`** (`domain/calendario.ts`, termo
 > **Calendário do próximo mês** no `CONTEXT.md`), na página de Recorrências.
+>
+> **Reajuste, em `feat/calendario-reajuste`:** quando a recorrência tem o
+> alerta "valor mudou", o calendário prevê o último valor e diz quanto era
+> antes. Pela mediana, o reajuste só apareceria depois de se repetir.
 
 ### 2.7 Mais formatos de importação (opcional)
 

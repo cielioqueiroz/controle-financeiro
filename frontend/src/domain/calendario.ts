@@ -1,5 +1,5 @@
 import { projecaoFutura, type ItemFuturo, type TxParcela } from './agrupar'
-import { competenciaMaisRecente, detectarRecorrencias, type TxRecorrente } from './recorrencias'
+import { alertasDe, competenciaMaisRecente, detectarRecorrencias, type TxRecorrente } from './recorrencias'
 
 /** O calendário do próximo mês: o que deve cair, dia a dia.
  *
@@ -26,6 +26,9 @@ export type ItemDoDia =
       valorCents: number
       /** `variavel`: luz, água — o valor é a mediana, não uma promessa. */
       variacao: 'fixo' | 'variavel'
+      /** Só quando o valor mudou (o alerta `valor-mudou`): `valorCents` é o
+       *  último valor, e este é o de antes. */
+      valorAnteriorCents?: number
     }
   | { tipo: 'parcelas'; bank: string; valorCents: number; parcelas: ItemFuturo[] }
 
@@ -78,7 +81,8 @@ function vencimentoPorBanco(docs: DocVencimento[]): Map<string, number> {
  *  alertas de recorrência, e não o relógio: o calendário de quem importou
  *  até agosto é o de setembro, em qualquer dia em que for aberto.
  *
- *  Recorrência no dia típico (o 31 vira o último dia de um mês curto);
+ *  Recorrência no dia típico (o 31 vira o último dia de um mês curto), com
+ *  o valor típico — ou o último, quando o alerta diz que ele mudou;
  *  parcelas somadas por cartão, no dia de vencimento da última fatura dele.
  *  Recorrência exclui parcela (`detectarRecorrencias`), então nada aparece
  *  duas vezes. Sem nada previsto, devolve `null`. */
@@ -97,18 +101,33 @@ export function calendarioDoProximoMes(txs: TxCalendario[], docs: DocVencimento[
   let saidaCents = 0
   let entradaCents = 0
 
-  for (const r of detectarRecorrencias(txs)) {
+  const recorrencias = detectarRecorrencias(txs)
+  // O valor que mudou é o do alerta, e não uma régua própria: o calendário
+  // não pode prever o valor novo de uma conta que a tela de alertas diz não
+  // ter mudado. Pela mediana, um reajuste só apareceria depois de se repetir.
+  const mudancas = new Map<string, { deCents: number; paraCents: number }>()
+  for (const a of alertasDe(recorrencias, atual)) {
+    if (a.tipo === 'valor-mudou') mudancas.set(`${a.origem}|${a.chave}`, a)
+  }
+
+  for (const r of recorrencias) {
     if (mesesEntre(r.ultimaCompetencia, atual) > ATRASO_TOLERADO) continue
+    const chave = `${r.tipo}|${r.chave}`
+    // Só com uma cobrança no último mês: com duas (salário e férias) o
+    // alerta acusa a soma, e a soma não é o valor de um mês.
+    const mudanca = r.ocorrenciasNaUltima === 1 ? mudancas.get(chave) : undefined
+    const valorCents = mudanca ? mudanca.paraCents : r.valorTipicoCents
     adicionar(Math.min(r.diaTipico, ultimoDia), {
       tipo: 'recorrencia',
-      chave: `${r.tipo}|${r.chave}`,
+      chave,
       descricao: r.descricao,
       sentido: r.tipo,
-      valorCents: r.valorTipicoCents,
+      valorCents,
       variacao: r.variacao,
+      ...(mudanca && { valorAnteriorCents: mudanca.deCents }),
     })
-    if (r.tipo === 'entrada') entradaCents += r.valorTipicoCents
-    else saidaCents += r.valorTipicoCents
+    if (r.tipo === 'entrada') entradaCents += valorCents
+    else saidaCents += valorCents
   }
 
   const vencimentos = vencimentoPorBanco(docs)

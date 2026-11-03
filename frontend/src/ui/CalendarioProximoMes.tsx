@@ -85,6 +85,9 @@ function Item({ item, semDia }: { item: ItemDoDia; semDia: boolean }) {
         <div className="min-w-0 basis-40 flex-1">
           <p className="break-words text-tinta">{item.descricao}</p>
           {item.variacao === 'variavel' && <p className="text-xs text-tinta-tenue">{t('cal.variavel')}</p>}
+          {item.valorAnteriorCents !== undefined && (
+            <p className="text-xs text-tinta-tenue">{t('cal.valorMudou', { valor: dinheiro(item.valorAnteriorCents) })}</p>
+          )}
         </div>
         <span className={`tabular whitespace-nowrap ${entrada ? 'text-credito' : 'text-tinta'}`}>
           {entrada && <span className="sr-only">{t('cal.entra')}: </span>}

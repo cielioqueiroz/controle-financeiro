@@ -81,6 +81,15 @@ describe('Recorrências — calendário do próximo mês', () => {
     expect(within(calendario).getByText('Deve sair').nextElementSibling).toHaveTextContent('R$ 2.500,00')
   })
 
+  it('o aluguel reajustado entra com o valor novo e diz quanto era', async () => {
+    const julho = tx({ competencia: '2026-07', date: '2026-07-05', amount_cents: 220000 })
+    vi.mocked(puxarTudo).mockResolvedValue([...ALUGUEL, julho] as never)
+    abrir()
+    const calendario = await screen.findByRole('region', { name: 'O que deve cair em agosto de 2026' })
+    expect(within(calendario).getByText('Valor novo do último mês; antes era R$ 2.000,00.')).toBeInTheDocument()
+    expect(within(calendario).getByText('Deve sair').nextElementSibling).toHaveTextContent('R$ 2.200,00')
+  })
+
   it('a recorrência que sumiu fica na lista e fora do calendário', async () => {
     // O aluguel parou em junho e o histórico já chega a setembro.
     const setembro = tx({ description: 'LOJA', competencia: '2026-09', date: '2026-09-02', category_slug: 'vestuario', amount_cents: 5000 })

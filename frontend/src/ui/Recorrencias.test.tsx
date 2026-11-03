@@ -16,6 +16,7 @@ const rec = (over: Partial<Recorrencia>): Recorrencia => ({
   competencias: ['2026-03', '2026-04', '2026-05'],
   ultimoValorCents: 3990,
   ultimaCompetencia: '2026-05',
+  ocorrenciasNaUltima: 1,
   ...over,
 })
 

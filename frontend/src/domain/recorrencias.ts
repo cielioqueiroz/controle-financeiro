@@ -45,6 +45,9 @@ export type Recorrencia = {
   competencias: string[]
   ultimoValorCents: number
   ultimaCompetencia: string
+  /** Quantas cobranças somam o `ultimoValorCents`. Com duas (salário e
+   *  férias, cobrança em dobro), o último valor não é o valor de um mês. */
+  ocorrenciasNaUltima: number
 }
 
 /** Mínimo de meses distintos para algo ser considerado recorrente. Dois
@@ -153,6 +156,7 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
       competencias,
       ultimoValorCents: somas[somas.length - 1],
       ultimaCompetencia,
+      ocorrenciasNaUltima: porComp.get(ultimaCompetencia)!.qtd,
     })
   }
 

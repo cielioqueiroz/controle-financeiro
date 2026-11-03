@@ -97,6 +97,58 @@ describe('calendarioDoProximoMes', () => {
     expect(cal.dias.map((d) => d.dia)).toEqual([5])
   })
 
+  // Retomada de 03/11, item 2: pela mediana, o aluguel reajustado em agosto
+  // só apareceria no calendário depois de se repetir mais dois meses.
+  describe('valor que mudou', () => {
+    const reajustado = () => mensal({}, ['2026-05', '2026-06', '2026-07', '2026-08'])
+      .map((t) => (t.competencia === '2026-08' ? { ...t, amount_cents: 220000 } : t))
+    const recorrencia = (cal: ReturnType<typeof calendarioDoProximoMes>) =>
+      cal!.dias[0].itens.find((i) => i.tipo === 'recorrencia')!
+
+    it('com o alerta de valor mudou, prevê o valor novo e diz o anterior', () => {
+      const cal = calendarioDoProximoMes(reajustado(), [])
+      expect(recorrencia(cal)).toEqual(expect.objectContaining({ valorCents: 220000, valorAnteriorCents: 200000 }))
+      expect(cal!.saidaCents).toBe(220000)
+    })
+
+    it('a entrada que mudou também: o salário novo soma do lado das entradas', () => {
+      const salario = mensal({ description: 'SALARIO EMPRESA', kind: 'income', amount_cents: -600000, category_slug: 'salario' },
+        ['2026-05', '2026-06', '2026-07', '2026-08'])
+        .map((t) => (t.competencia === '2026-08' ? { ...t, amount_cents: -700000 } : t))
+      const cal = calendarioDoProximoMes(salario, [])
+      expect(recorrencia(cal)).toEqual(expect.objectContaining({ valorCents: 700000, valorAnteriorCents: 600000 }))
+      expect(cal!.entradaCents).toBe(700000)
+    })
+
+    it('dois pagamentos no último mês não são reajuste: segue a mediana', () => {
+      // O salário e as férias no mesmo mês somam R$ 11.900. O alerta acusa a
+      // mudança, mas prever R$ 11.900 todo mês seria inventar um aumento.
+      const salario = mensal({ description: 'SALARIO EMPRESA', kind: 'income', amount_cents: -300000, category_slug: 'salario' },
+        ['2026-05', '2026-06', '2026-07', '2026-08'])
+      const ferias = tx({ description: 'SALARIO EMPRESA', kind: 'income', amount_cents: -890000, category_slug: 'salario', date: '2026-08-20' })
+      const cal = calendarioDoProximoMes([...salario, ferias], [])
+      expect(recorrencia(cal).valorCents).toBe(300000)
+      expect(recorrencia(cal)).not.toHaveProperty('valorAnteriorCents')
+      expect(cal!.entradaCents).toBe(300000)
+    })
+
+    it('abaixo do limiar do alerta, segue a mediana e não diz valor anterior', () => {
+      // R$ 4,00 a mais num aluguel de R$ 2.000: nem 10%, nem R$ 5.
+      const cal = calendarioDoProximoMes(mensal({}, ['2026-05', '2026-06', '2026-07', '2026-08'])
+        .map((t) => (t.competencia === '2026-08' ? { ...t, amount_cents: 200400 } : t)), [])
+      expect(recorrencia(cal).valorCents).toBe(200000)
+      expect(recorrencia(cal)).not.toHaveProperty('valorAnteriorCents')
+    })
+
+    it('a conta variável segue a mediana: oscilar é a natureza dela', () => {
+      const luz = mensal({ description: 'CONTA LUZ', category_slug: 'moradia' }, ['2026-05', '2026-06', '2026-07', '2026-08'])
+        .map((t, i) => ({ ...t, amount_cents: [15000, 21000, 18000, 30000][i] }))
+      const cal = calendarioDoProximoMes(luz, [])
+      expect(recorrencia(cal)).toEqual(expect.objectContaining({ variacao: 'variavel', valorCents: 19500 }))
+      expect(recorrencia(cal)).not.toHaveProperty('valorAnteriorCents')
+    })
+  })
+
   it('sem nada previsto, cala', () => {
     expect(calendarioDoProximoMes([], [])).toBeNull()
     expect(calendarioDoProximoMes([tx()], [])).toBeNull()

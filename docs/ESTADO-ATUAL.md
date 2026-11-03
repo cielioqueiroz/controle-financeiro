@@ -1,5 +1,29 @@
 # Estado atual do projeto — retomada
 
+## Calendário prevê o valor reajustado — 2026-11-03
+
+- Em `feat/calendario-reajuste`, a partir da `main` (`7cc78a3`, já com o
+  #64 e o #65). Item 2 da retomada: o calendário do próximo mês previa toda recorrência pela
+  mediana, e um aluguel reajustado em agosto só apareceria com o valor novo
+  depois de se repetir mais dois meses.
+- **A régua é o próprio alerta `valor-mudou`** (`alertasDe`), não uma nova:
+  série fixa, mudança de 10% e R$ 5 ou mais. Com o alerta, o item entra
+  com o último valor e ganha `valorAnteriorCents`; a tela diz "Valor novo
+  do último mês; antes era R$ X." (`cal.valorMudou`, três dicionários). Sem
+  o alerta, segue a mediana — inclusive a conta variável, que oscila por
+  natureza. Os totais "Deve sair"/"Deve entrar" somam o valor previsto.
+- **Achado na folha de provas:** o salário da amostra de julho são DUAS
+  entradas (R$ 3.000 + R$ 8.900), e o alerta acusa "mudou de R$ 3.000,00
+  para R$ 11.900,00". Seguir o alerta faria o calendário prever R$ 11.900
+  todo mês. Por isso o último valor só vale quando o último mês teve UMA
+  cobrança (`ocorrenciasNaUltima`, campo novo de `Recorrencia`); com duas
+  (salário e férias, cobrança em dobro), segue a mediana. O alerta em si
+  continua acusando a soma — isso é da tela de alertas e ficou como está.
+- Uma observação só não separa reajuste de ponto fora da curva; a frase
+  "antes era" deixa a troca à vista.
+- Teste de domínio com 5 casos (saída, entrada, duas cobranças, abaixo do
+  limiar, conta variável) e 1 de tela em `Recorrencias.calendario.test.tsx`;
+  10 mutações morreram todas.
 ## Meses recolhíveis na lista de documentos — 2026-11-03
 
 - Em `feat/faturas-meses-recolhiveis`, a partir da `main` (`f704e08`, já

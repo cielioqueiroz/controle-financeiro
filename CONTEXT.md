@@ -199,7 +199,9 @@ O que deve cair, dia a dia, no mês seguinte à competência mais recente com
 dado: as **recorrências** ativas no dia típico delas (de saída e de entrada)
 e as parcelas do **compromisso futuro**, somadas por cartão no dia de
 vencimento da última fatura dele. É projeção, nunca gravada. A régua é o
-histórico, não o relógio: quem importou até agosto vê setembro.
+histórico, não o relógio: quem importou até agosto vê setembro. A
+recorrência entra com o valor típico, ou com o último quando o alerta de
+valor mudou o acusa — e então diz quanto era antes.
 _Em código_: `calendarioDoProximoMes` (`domain/calendario.ts`)
 _Evitar_: agenda (em código), previsão, contas a pagar
 

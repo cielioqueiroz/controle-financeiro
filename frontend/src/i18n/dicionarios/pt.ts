@@ -426,6 +426,7 @@ export const pt = {
   'cal.nParcelas1': '{n} parcela',
   'cal.nParcelasN': '{n} parcelas',
   'cal.variavel': 'Valor típico: varia de mês a mês.',
+  'cal.valorMudou': 'Valor novo do último mês; antes era {valor}.',
   'comp.aVencerSing': '{n} parcela a vencer',
   'comp.aVencerPlur': '{n} parcelas a vencer',
   'comp.somaVencer': 'soma a vencer',
