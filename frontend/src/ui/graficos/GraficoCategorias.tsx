@@ -67,14 +67,20 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
   const { t } = useT()
   const [ativa, setAtiva] = useState<number | null>(null)
 
-  if (totalCents === 0 || categorias.length === 0) return null
+  if (categorias.length === 0) return null
 
-  const topo = categorias.slice(0, 8)
+  const positivas = categorias.filter((c) => c.totalCents > 0)
+  const negativas = categorias.filter((c) => c.totalCents < 0)
+  const totalPositivoCents = positivas.reduce((soma, c) => soma + c.totalCents, 0)
+  if (totalPositivoCents === 0 && negativas.length === 0) return null
+
+  const topo = positivas.slice(0, 8)
+  const itens = [...topo, ...negativas]
   const suave = [0.22, 1, 0.36, 1] as const
 
-  const emFoco = ativa !== null ? topo[ativa] : null
-  const rotuloCentro = emFoco ? nomeCategoria(emFoco.cat) : rotuloTotal ?? t('dash.gastoReal')
-  const valorCentro = emFoco ? emFoco.totalCents : totalCents
+  const emFoco = ativa !== null ? itens[ativa] : null
+  const rotuloCentro = emFoco ? nomeCategoria(emFoco.cat) : negativas.length > 0 ? t('grafico.saidasPositivas') : rotuloTotal ?? t('dash.gastoReal')
+  const valorCentro = emFoco ? emFoco.totalCents : totalPositivoCents
 
   /** Abre os lançamentos da categoria SEM perder o recorte atual.
    *
@@ -88,13 +94,13 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
     navigate(`/lancamentos${escreverFiltros({ ...filtros, categoria: slug })}`)
   }
 
-  const fatias = geometriaDonut(topo, totalCents)
+  const fatias = geometriaDonut(topo, totalPositivoCents)
 
   // Com uma categoria dominando, a lista vira o gráfico: as barras deixam de
   // ser fração do total (onde a dominante esmaga todas) e passam à escala
   // robusta dos outros gráficos, com a serrilha em quem passa do teto. O
   // percentual escrito continua sendo do total, então nada mente.
-  const dominante = topo[0].totalCents / totalCents > DOMINANCIA
+  const dominante = topo.length > 0 && topo[0].totalCents / totalPositivoCents > DOMINANCIA
   const escala = dominante ? escalaRobusta(topo.map((c) => c.totalCents)) : null
   const largura = (c: CategoriaResumo) => escala
     ? alturaPct(c.totalCents, escala)
@@ -105,22 +111,24 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
       <div className="mb-5">
         <p className="rotulo">{t('dash.porCategoria')}</p>
         <p className="mt-1 text-xs text-tinta-fraca">
-          {dominante
+          {negativas.length > 0
+            ? t('grafico.categoriasComEstornos')
+            : dominante
             ? t('grafico.categoriasDominante', {
                 categoria: nomeCategoria(topo[0].cat),
-                pct: Math.round((topo[0].totalCents / totalCents) * 100),
+                pct: Math.round((topo[0].totalCents / totalPositivoCents) * 100),
               })
             : t('grafico.categoriasDescricao')}
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-6">
-      {!dominante && <div className="relative shrink-0">
+      {!dominante && topo.length > 0 && <div className="relative shrink-0">
         <svg
           viewBox="0 0 130 130"
           className="h-40 w-40 -rotate-90"
           role="img"
-          aria-label={t('donut.rotulo', { total: formatBRL(totalCents) })}
+          aria-label={t('donut.rotulo', { total: formatBRL(totalPositivoCents) })}
         >
           {topo.map((c, i) => {
             const { arco, offset } = fatias[i]
@@ -163,7 +171,7 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
 
       {/* A lista É a legenda, e é obrigatória — ver o comentário do topo. */}
       <ul className="min-w-0 basis-64 flex-1 space-y-2">
-        {topo.map((c, i) => (
+        {itens.map((c, i) => (
           <motion.li
             key={c.cat.slug}
             initial={semMovimento ? false : { opacity: 0, x: -6 }}
@@ -191,12 +199,12 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
               <span className="break-words text-tinta-fraca">{nomeCategoria(c.cat)}</span>{' '}
               <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(c.totalCents)}{' '}
               <span className="text-xs text-tinta-tenue">
-                {Math.round((c.totalCents / totalCents) * 100)}%{' '}
-                <span className="sr-only">{t('donut.sufixoFatia')}</span>
+                {c.totalCents < 0 ? t('grafico.estorno') : `${Math.round((c.totalCents / totalPositivoCents) * 100)}%`}{' '}
+                <span className="sr-only">{t(c.totalCents < 0 ? 'fluxoPeriodo.verLancamentos' : 'donut.sufixoFatia')}</span>
               </span>
               </span>
             </button>
-            <div aria-hidden className={`ml-9 mr-12 ${dominante ? 'h-2' : 'h-1'} overflow-hidden rounded-full bg-afundado`}>
+            {c.totalCents > 0 && <div aria-hidden className={`ml-9 mr-12 ${dominante ? 'h-2' : 'h-1'} overflow-hidden rounded-full bg-afundado`}>
               <motion.span
                 className="relative block h-full rounded-full"
                 style={{ backgroundColor: corCategoria(c.cat) }}
@@ -217,11 +225,16 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
                   />
                 )}
               </motion.span>
-            </div>
+            </div>}
           </motion.li>
         ))}
       </ul>
     </div>
+      {negativas.length > 0 && (
+        <p className="tabular mt-3 text-xs text-tinta-fraca">
+          {t('grafico.gastoAposEstornos', { total: formatBRL(totalCents) })}
+        </p>
+      )}
       {escala && escala.cortados > 0 && (
         <p className="tabular mt-3 text-[10px] text-tinta-tenue">
           {t('diario.escala', { teto: formatBRL(escala.teto) })} ·{' '}

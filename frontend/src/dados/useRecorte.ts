@@ -1,9 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { filtrar, agregar, variacaoPct } from '../domain/agrupar'
+import { competenciasComMesmasFontes } from '../domain/relatorios'
 import { mover } from './periodo'
 import { useDados } from './DadosProvider'
 import { useFiltros } from './useFiltros'
+
+const competencia = (ref: Date) => `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`
 
 /** A fatia do histórico que os filtros da URL descrevem.
  *
@@ -11,7 +14,7 @@ import { useFiltros } from './useFiltros'
  *  MESMO conjunto — sem isto, cada página repetiria o `filtrar`+`agregar` e
  *  elas divergiriam na primeira mudança de regra. */
 export function useRecorte() {
-  const { todas, carregando, erro, competenciaInicial } = useDados()
+  const { todas, docsSaldo, carregando, erro, competenciaInicial } = useDados()
   const { filtros, setFiltros } = useFiltros()
   const [search] = useSearchParams()
 
@@ -50,14 +53,26 @@ export function useRecorte() {
    *  duas divergirem na primeira mudança. */
   const variacao = useMemo(() => {
     if (!visiveis) return { gasto: null, entradas: null }
-    const anterior = agregar(filtrar(visiveis, filtros.periodo, mover(filtros.periodo, filtros.ref, -1)))
+    const refAnterior = mover(filtros.periodo, filtros.ref, -1)
+    const txsAnteriores = filtrar(visiveis, filtros.periodo, refAnterior)
+    if (filtros.periodo === 'mes') {
+      const documentos = docsSaldo.filter((doc) => filtros.banco === 'geral' || doc.bank === filtros.banco)
+      if (!competenciasComMesmasFontes(
+        { competencia: competencia(filtros.ref), transacoes: txs },
+        { competencia: competencia(refAnterior), transacoes: txsAnteriores },
+        documentos,
+      )) {
+        return { gasto: null, entradas: null }
+      }
+    }
+    const anterior = agregar(txsAnteriores)
     return {
       gasto: variacaoPct(resumo.gastoCents, anterior.gastoCents),
       entradas: variacaoPct(resumo.entradasCents, anterior.entradasCents),
     }
-  }, [visiveis, filtros.periodo, filtros.ref, resumo.gastoCents, resumo.entradasCents])
+  }, [visiveis, docsSaldo, txs, filtros.banco, filtros.periodo, filtros.ref, resumo.gastoCents, resumo.entradasCents])
 
-  const compAtiva = `${filtros.ref.getFullYear()}-${String(filtros.ref.getMonth() + 1).padStart(2, '0')}`
+  const compAtiva = competencia(filtros.ref)
 
   return {
     /** Transações do período e banco escolhidos. */

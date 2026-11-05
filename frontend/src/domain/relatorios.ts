@@ -62,6 +62,25 @@ export type DocDaJanela = { bank: string; doc_type: string; period_end: string |
 const chaveFonte = (tx: { bank?: string; doc_type?: string }): string | null =>
   tx.bank && tx.doc_type ? `${tx.bank}|${tx.doc_type}` : null
 
+function fontesDaCompetencia(
+  transacoes: TxRelatorio[], documentos: DocDaJanela[], competencia: string,
+): Set<string> {
+  return new Set([
+    ...transacoes,
+    ...documentos.filter((d) => d.period_end?.slice(0, 7) === competencia),
+  ].map(chaveFonte).filter((f): f is string => f !== null))
+}
+
+export function competenciasComMesmasFontes(
+  atual: { competencia: string; transacoes: TxRelatorio[] },
+  anterior: { competencia: string; transacoes: TxRelatorio[] },
+  documentos: DocDaJanela[],
+): boolean {
+  const atuais = fontesDaCompetencia(atual.transacoes, documentos, atual.competencia)
+  const anteriores = fontesDaCompetencia(anterior.transacoes, documentos, anterior.competencia)
+  return atuais.size === anteriores.size && [...atuais].every((fonte) => anteriores.has(fonte))
+}
+
 /** As competências do fim do histórico que não podem fechar a janela.
  *
  *  A fatura conta no mês do vencimento (ADR-0001), e a última importada
@@ -81,17 +100,13 @@ const chaveFonte = (tx: { bank?: string; doc_type?: string }): string | null =>
 function competenciasForaDaJanela<T extends TxRelatorio>(
   porCompetencia: Map<string, T[]>, ordenadas: string[], documentos: DocDaJanela[],
 ): CompetenciaForaDaJanela[] {
-  const fontes = (competencia: string) => new Set([
-    ...(porCompetencia.get(competencia) ?? []),
-    ...documentos.filter((d) => d.period_end?.slice(0, 7) === competencia),
-  ].map(chaveFonte).filter((f): f is string => f !== null))
   const fora: CompetenciaForaDaJanela[] = []
   for (let i = ordenadas.length - 1; i > 0; i--) {
     const competencia = ordenadas[i]
     const anterior = ordenadas[i - 1]
     if (anterior !== deslocarCompetencia(competencia, -1)) break
-    const presentes = fontes(competencia)
-    const faltam = [...fontes(anterior)].filter((f) => !presentes.has(f)).sort()
+    const presentes = fontesDaCompetencia(porCompetencia.get(competencia) ?? [], documentos, competencia)
+    const faltam = [...fontesDaCompetencia(porCompetencia.get(anterior) ?? [], documentos, anterior)].filter((f) => !presentes.has(f)).sort()
     if (faltam.length === 0) break
     fora.push({
       competencia,
