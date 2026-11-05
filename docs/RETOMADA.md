@@ -61,9 +61,6 @@ O histórico completo, com o porquê de cada decisão, está em
 - Abrir os Relatórios em produção e ver se o "Sobrou"/"Faltou" do fluxo do período
   bate com o card de Resultado. Testar o login REAL (o `medir:login` usa Auth de
   mentira).
-- Decidir o detalhe de categoria com "Sem atípicos" ligado: hoje ele lista a
-  compra atípica, e o total fica maior que a fatia do donut.
-
 ## Fila de trabalho, em ordem
 
 1. Do relatório de melhorias de 03/11 (o dono escolhe): Trusted Types na CSP,
