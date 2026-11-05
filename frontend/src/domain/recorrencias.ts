@@ -215,9 +215,14 @@ export function alertasDe(
   const alertas: Alerta[] = []
 
   for (const r of recorrencias) {
-    // 1. Mudou de valor. Só para série de valor fixo: a conta de luz varia
-    //    por natureza e alertaria todo mês, ensinando a ignorar o alerta.
-    if (r.variacao === 'fixo' && r.valorAnteriorCents > 0) {
+    // 1. Mudou de valor. Só para série de valor fixo e uma ocorrência no
+    //    último mês: a conta de luz varia por natureza; salário + férias é
+    //    uma soma excepcional, não o novo salário mensal.
+    if (
+      r.variacao === 'fixo' &&
+      r.valorAnteriorCents > 0 &&
+      r.ocorrenciasNaUltima === 1
+    ) {
       const delta = Math.abs(r.ultimoValorCents - r.valorAnteriorCents)
       if (
         delta >= MIN_VARIACAO_CENTS &&

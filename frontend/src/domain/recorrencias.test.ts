@@ -200,6 +200,26 @@ describe('alertasDe', () => {
     ])
   })
 
+  it('NÃO confunde duas entradas no último mês com mudança de salário', () => {
+    const salario = serie(
+      ['2026-05', '2026-06', '2026-07', '2026-08'],
+      [300000, 300000, 300000, 300000],
+      { description: 'SALARIO EMPRESA', kind: 'income', category_slug: 'salario' },
+    )
+    const ferias = tx({
+      competencia: '2026-08',
+      date: '2026-08-20',
+      description: 'SALARIO EMPRESA',
+      kind: 'income',
+      category_slug: 'salario',
+      amount_cents: 890000,
+    })
+    const recs = detectarRecorrencias([...salario, ferias])
+
+    expect(recs[0].ocorrenciasNaUltima).toBe(2)
+    expect(alertasDe(recs, '2026-08')).toEqual([])
+  })
+
   it('NÃO avisa mudança em conta de valor variável (luz não grita todo mês)', () => {
     const recs = detectarRecorrencias(
       serie(['2026-03', '2026-04', '2026-05', '2026-06'], [12000, 21000, 15000, 30000], {

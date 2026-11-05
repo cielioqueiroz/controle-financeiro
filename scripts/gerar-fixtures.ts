@@ -26,6 +26,7 @@ const ENTRADAS: Entrada[] = [
   { arquivo: 'NuBank_extratoConta.pdf', saida: 'nubank-extrato' },
   { arquivo: 'Nubank_faturaCartao.pdf', saida: 'nubank-fatura' },
   { arquivo: 'credit-card-mp-statement.pdf', saida: 'mercadopago-fatura' },
+  { arquivo: 'faturaMercadoPagoOutubro2026.pdf', saida: 'mercadopago-fatura-pagamento-anterior' },
   { arquivo: 'ffd46a6a-b950-498a-a701-3aab2897172d.pdf', saida: 'mercadopago-extrato' },
 ]
 
@@ -129,6 +130,9 @@ const SUBSTITUICOES: Array<[RegExp, string]> = [
   [/L C COMERCIO/g, 'X Y COMERCIO'],
   [/GREYCOMLTDA/g, 'LOJAUMLTDA'],
   [/EXTRACTONATU/g, 'PRODUTOSNAT'],
+  [/EDCASA/g, 'LOJAXX'],
+  [/NATUNECTAR/g, 'LOJATRESX'],
+  [/LIFETODAY/g, 'LOJAQUATR'],
 ]
 
 /** SO PARA O MERCADO PAGO. Identificadores de operacao do extrato: 9+
@@ -296,6 +300,9 @@ const PROIBIDOS = [
   /10624791647/,
   /1465\]/,
   /L C COMERCIO/,
+  /EDCASA/,
+  /NATUNECTAR/,
+  /LIFETODAY/,
   /5164/,
 ]
 
