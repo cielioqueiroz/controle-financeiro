@@ -37,7 +37,7 @@ O histórico completo, com o porquê de cada decisão, está em
 
 ## Estado em 03/11/2026
 
-- `main` com tudo até o **#69** (e o PR da "linha suspeita", ver abaixo).
+- `main` com tudo até o **#70** (`d60d03c`).
 - **Neon (produção, branch `production`):** migrações 0001–**0014** aplicadas. A
   0014 (PIX/boleto que cita o emissor do cartão quita a fatura) foi aplicada em
   03/11, em transação única, com 6 → 10 quitações. O branch de teste
@@ -49,8 +49,7 @@ O histórico completo, com o porquê de cada decisão, está em
   #68 janela dos relatórios por documento + saldo do Bradesco sem "COD. LANC. 0" ·
   #69 migração 0014.
 - **A "linha suspeita"** (a conferência que diverge aponta a linha que explica a
-  diferença) e a correção de contraste dos selos de banco estão no PR da branch
-  `feat/divergencia-aponta-linha-2`. Confira `gh pr list` antes de recriar.
+  diferença) e a correção de contraste dos selos de banco entraram no #70.
 
 ## Pendente do dono (perguntar, não presumir)
 

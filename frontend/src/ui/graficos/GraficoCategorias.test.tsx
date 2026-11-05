@@ -117,3 +117,26 @@ describe('GraficoCategorias — uma categoria dominando', () => {
     expect(container.querySelector('[data-cortada]')).toBeNull()
   })
 })
+
+describe('GraficoCategorias — estornos que deixam categoria negativa', () => {
+  const categorias = [
+    { cat: categoria('supermercado'), totalCents: 10000, contagem: 1 },
+    { cat: categoria('transporte'), totalCents: 5000, contagem: 1 },
+    { cat: categoria('farmacia'), totalCents: -7000, contagem: 1 },
+  ]
+
+  it('dimensiona as fatias pelas saídas positivas e mostra o abatimento à parte', () => {
+    const { container } = render(<MemoryRouter><GraficoCategorias categorias={categorias} totalCents={8000} /></MemoryRouter>)
+    expect(container.querySelectorAll('circle')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: /Supermercado.*67%/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Farmácia.*-R\$\s70,00.*Estorno/ })).toBeInTheDocument()
+    expect(screen.getByText(/Gasto real após estornos.*R\$\s80,00/)).toBeInTheDocument()
+  })
+
+  it('mostra o estorno mesmo quando o gasto líquido é zero', () => {
+    render(<MemoryRouter><GraficoCategorias categorias={[
+      categorias[0], { ...categorias[2], totalCents: -10000 },
+    ]} totalCents={0} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: /Farmácia.*Estorno/ })).toBeInTheDocument()
+  })
+})

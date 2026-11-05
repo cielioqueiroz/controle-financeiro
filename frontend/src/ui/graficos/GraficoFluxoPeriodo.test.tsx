@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GraficoFluxoPeriodo } from './GraficoFluxoPeriodo'
 import { fluxoDoPeriodo, type TxFluxo } from '../../domain/fluxo-periodo'
@@ -25,6 +25,19 @@ beforeEach(() => {
 })
 
 describe('GraficoFluxoPeriodo', () => {
+  it('mostra os detalhes da faixa e fixa o destaque ao toque', () => {
+    const { container } = render(<GraficoFluxoPeriodo fluxo={FLUXO} onAbrir={vi.fn()} />)
+    const faixa = container.querySelector('[data-faixa="banco:bradesco"]')!
+    const leitura = container.querySelector('[data-grafico="fluxo-periodo"]')!.previousElementSibling
+    fireEvent.pointerEnter(faixa, { pointerType: 'mouse' })
+    expect(leitura).toHaveTextContent(/Bradesco.*R\$\s6\.000,00.*74%/)
+    fireEvent.pointerLeave(faixa, { pointerType: 'mouse' })
+    fireEvent.pointerUp(faixa, { pointerType: 'touch' })
+    expect(leitura).toHaveTextContent(/Bradesco.*R\$\s6\.000,00.*74%/)
+    fireEvent.pointerUp(faixa, { pointerType: 'touch' })
+    expect(screen.getByText('Passe o mouse, toque ou foque uma faixa para ver seus detalhes.')).toBeInTheDocument()
+  })
+
   it('as duas listas nomeiam cada nó, com valor e percentual do total', () => {
     render(<GraficoFluxoPeriodo fluxo={FLUXO} onAbrir={vi.fn()} />)
     const origens = screen.getByRole('region', { name: 'De onde veio' })

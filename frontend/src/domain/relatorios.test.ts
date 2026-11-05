@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analisarRelatorio } from './relatorios'
+import { analisarRelatorio, competenciasComMesmasFontes } from './relatorios'
 import type { TxAgrupavel } from './agrupar'
 
 type TxComFonte = TxAgrupavel & { bank?: string; doc_type?: string }
@@ -168,5 +168,23 @@ describe('Relatórios — mês final incompleto', () => {
     const r = analisarRelatorio([tx('2026-09'), tx('2026-10', { kind: 'income', amount_cents: -1 })], 3)!
     expect(r.atual.fim).toBe('2026-10')
     expect(r.foraDaJanela).toEqual([])
+  })
+})
+
+describe('Comparação mensal por fonte', () => {
+  const fatura = { bank: 'nubank', doc_type: 'fatura' }
+  const extrato = { bank: 'nubank', doc_type: 'extrato' }
+  const atual = { competencia: '2026-07', transacoes: [tx('2026-07', fatura), tx('2026-07', extrato)] }
+  const anterior = { competencia: '2026-06', transacoes: [tx('2026-06', fatura)] }
+
+  it('oculta a comparação quando só um mês tem o extrato', () => {
+    expect(competenciasComMesmasFontes(atual, anterior, [])).toBe(false)
+    expect(competenciasComMesmasFontes(anterior, atual, [])).toBe(false)
+  })
+
+  it('reconhece o extrato importado mesmo sem transações', () => {
+    expect(competenciasComMesmasFontes(atual, anterior, [
+      { ...extrato, period_end: '2026-06-30' },
+    ])).toBe(true)
   })
 })

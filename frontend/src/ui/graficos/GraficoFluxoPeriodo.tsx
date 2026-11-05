@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type PointerEvent } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 
 import type { Destino, FluxoDoPeriodo, Origem } from '../../domain/fluxo-periodo'
@@ -86,7 +86,9 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
   const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const { t } = useT()
-  const [ativa, setAtiva] = useState<string | null>(null)
+  const [ponteiro, setPonteiro] = useState<string | null>(null)
+  const [foco, setFoco] = useState<string | null>(null)
+  const [fixada, setFixada] = useState<string | null>(null)
 
   const { origens, destinos, totalCents } = fluxo
   const maiorColuna = Math.max(origens.length, destinos.length)
@@ -101,11 +103,35 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
     const arredondado = Math.round((valor / totalCents) * 100)
     return arredondado === 0 ? '<1%' : `${arredondado}%`
   }
-  const opacidade = (chave: string) => ativa === null || ativa === chave ? 1 : 0.25
+
 
   const nomeOrigem = (o: Origem) => o.tipo === 'banco' ? temaDoBanco(o.bank).nome : t(`fluxoPeriodo.${o.tipo}`)
   const nomeDestino = (d: Destino) => d.tipo === 'categoria' ? nomeCategoria(d.cat)
     : d.tipo === 'outras' ? t('fluxoPeriodo.outras', { n: d.slugs.length }) : t('fluxoPeriodo.sobrou')
+  const chaveAtiva = ponteiro ?? foco ?? fixada
+  const origem = origens.find((o) => chaveOrigem(o) === chaveAtiva)
+  const destino = destinos.find((d) => chaveDestino(d) === chaveAtiva)
+  const item = origem ?? destino
+  const opacidade = (chave: string) => !item || chaveAtiva === chave ? 1 : 0.25
+  const opacidadeFaixa = (chave: string) => !item ? 0.35 : chaveAtiva === chave ? 0.9 : 0.09
+
+  const destaque = (chave: string) => ({
+    onPointerEnter: (evento: PointerEvent) => {
+      if (evento.pointerType !== 'touch') setPonteiro(chave)
+    },
+    onPointerLeave: () => setPonteiro(null),
+  })
+
+  const interacaoSvg = (chave: string) => ({
+    ...destaque(chave),
+    onPointerUp: (evento: PointerEvent) => {
+      if (evento.pointerType !== 'touch') return
+      setPonteiro(null)
+      setFoco(null)
+      setFixada((anterior) => anterior === chave ? null : chave)
+    },
+  })
+
   const slugsDe = (no: Origem | Destino): string[] | null =>
     no.tipo === 'categoria' ? [no.cat.slug] : no.tipo === 'outras' || no.tipo === 'estornos' ? no.slugs : null
 
@@ -122,15 +148,11 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
       </span>
     </>
     const classe = 'grid min-h-11 w-full grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2.5 gap-y-1 rounded-md px-2 py-2 text-left text-sm'
-    const destaque = {
-      onMouseEnter: () => setAtiva(chave),
-      onMouseLeave: () => setAtiva(null),
-    }
     return (
-      <li key={chave} {...(slugs ? {} : destaque)} className={slugs ? undefined : classe}>
+      <li key={chave} {...(slugs ? {} : destaque(chave))} className={slugs ? undefined : classe}>
         {slugs ? (
-          <button type="button" onClick={() => onAbrir(slugs)} {...destaque}
-            onFocus={() => setAtiva(chave)} onBlur={() => setAtiva(null)}
+          <button type="button" onClick={() => onAbrir(slugs)} {...destaque(chave)}
+            onFocus={() => setFoco(chave)} onBlur={() => setFoco(null)}
             className={`${classe} transition-colors hover:bg-afundado focus-visible:bg-afundado`}>
             {conteudo}{' '}
             <span className="sr-only">{t('fluxoPeriodo.verLancamentos')}</span>
@@ -147,6 +169,11 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
         <p className="mt-1 text-xs text-tinta-fraca">{t('fluxoPeriodo.descricao')}</p>
       </div>
 
+      <p aria-hidden="true" className="tabular mb-2 min-h-10 break-words text-sm text-tinta">
+        {item
+          ? <><strong>{origem ? nomeOrigem(origem) : destino && nomeDestino(destino)}</strong> · {formatBRL(item.valorCents)} · {pct(item.valorCents)}</>
+          : t('fluxoPeriodo.leitura')}
+      </p>
       <div className="relative h-48 min-w-0 sm:h-60" data-grafico="fluxo-periodo">
         <svg viewBox={`0 0 ${LARGURA} ${ALTURA}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full"
           role="img" aria-label={t('fluxoPeriodo.rotulo', { total: formatBRL(totalCents) })}>
@@ -157,17 +184,17 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
           </defs>
           {esquerda.map((f) => (
             <motion.path key={f.chave} data-faixa={f.chave} d={caminho(NO, f.y, MEIO, f.yMeio, f.altura)}
-              fill={preenchimento(f)} initial={semMovimento ? false : { opacity: 0 }} animate={{ opacity: opacidade(f.chave) * 0.35 }}
-              transition={{ duration: 0.4 }} onMouseEnter={() => setAtiva(f.chave)} onMouseLeave={() => setAtiva(null)} />
+              fill={preenchimento(f)} initial={semMovimento ? false : { opacity: 0 }} animate={{ opacity: opacidadeFaixa(f.chave) }}
+              transition={{ duration: 0.4 }} {...interacaoSvg(f.chave)} />
           ))}
           {direita.map((f) => (
             <motion.path key={f.chave} data-faixa={f.chave} d={caminho(MEIO + NO, f.yMeio, LARGURA - NO, f.y, f.altura)}
-              fill={f.cor} initial={semMovimento ? false : { opacity: 0 }} animate={{ opacity: opacidade(f.chave) * 0.35 }}
-              transition={{ duration: 0.4 }} onMouseEnter={() => setAtiva(f.chave)} onMouseLeave={() => setAtiva(null)} />
+              fill={f.cor} initial={semMovimento ? false : { opacity: 0 }} animate={{ opacity: opacidadeFaixa(f.chave) }}
+              transition={{ duration: 0.4 }} {...interacaoSvg(f.chave)} />
           ))}
           {[...esquerda.map((f) => ({ ...f, x: 0 })), ...direita.map((f) => ({ ...f, x: LARGURA - NO }))].map((f) => (
             <rect key={`no:${f.chave}`} x={f.x} y={f.y} width={NO} height={Math.max(f.altura, 2)} rx="2"
-              fill={preenchimento(f)} opacity={opacidade(f.chave)} />
+              fill={preenchimento(f)} opacity={opacidade(f.chave)} {...interacaoSvg(f.chave)} />
           ))}
           <rect x={MEIO} y={topoMeio} width={NO} height={totalCents * escala} rx="2" fill="var(--color-tinta-tenue)" />
         </svg>
