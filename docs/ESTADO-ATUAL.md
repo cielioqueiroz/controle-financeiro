@@ -1,5 +1,28 @@
 # Estado atual do projeto — retomada
 
+## Alertas de recorrência e fixture do Mercado Pago — 2026-11-05
+
+- O alerta `valor-mudou` só compara o último total quando houve uma ocorrência
+  naquela competência. Salário e férias com a mesma descrição deixam de parecer
+  um reajuste de R$ 3.000 para R$ 11.900. O calendário já aplicava essa proteção.
+- A fatura real do Mercado Pago de outubro virou fixture anonimizado com seis
+  páginas e 291 itens. O teste do parser usa esse documento completo para provar
+  o pagamento anterior como crédito e a conferência de R$ 867,79 ao centavo.
+- O gerador ganhou a entrada da nova amostra e termos adicionais na auditoria de
+  anonimização. Os testes focados de recorrência, calendário e parser passaram.
+
+## Fluxo interativo, comparação mensal e estornos por categoria — 2026-11-05
+
+- #71 mesclado na `main`. O fluxo do período mostra nome, valor e percentual ao
+  passar o mouse ou focar uma faixa; o toque fixa o destaque no celular.
+- O Painel só compara meses com as mesmas fontes por banco e tipo de documento.
+  Documento importado sem transações conta como fonte presente.
+- O donut distribui as saídas positivas e lista categorias que ficaram negativas
+  como estornos, com o gasto líquido identificado à parte.
+- `npm run verificar` passou localmente e o PR teve todos os checks verdes.
+  Overflow e axe locais não concluíram porque o ambiente recusou a conexão com o
+  servidor de desenvolvimento.
+
 ## A divergência aponta a linha suspeita — 2026-11-03
 
 - Em `feat/divergencia-aponta-linha-2`, a partir da `main` (`97fa842`, já com
