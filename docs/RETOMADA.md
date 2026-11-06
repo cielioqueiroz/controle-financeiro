@@ -37,7 +37,7 @@ O histórico completo, com o porquê de cada decisão, está em
 
 ## Estado em 06/11/2026
 
-- As implementações de produto até o **#73** (`41ae75d`) estão na `main`.
+- As implementações de produto até o **#74** (`7f2e731`) estão na `main`.
 - **Neon (produção, branch `production`):** migrações 0001–**0014** aplicadas. A
   0014 (PIX/boleto que cita o emissor do cartão quita a fatura) foi aplicada em
   03/11, em transação única, com 6 → 10 quitações. O branch de teste
@@ -52,8 +52,8 @@ O histórico completo, com o porquê de cada decisão, está em
   entre meses com as mesmas fontes e categorias com estorno líquido no donut.
 - **A "linha suspeita"** (a conferência que diverge aponta a linha que explica a
   diferença) e a correção de contraste dos selos de banco entraram no #70.
-- Nesta rodada: Trusted Types obrigatório na CSP, com política limitada aos
-  workers do pdf.js e medição do motor de PDF sob a política real.
+- #74: Trusted Types obrigatório na CSP, com política limitada aos workers do
+  pdf.js e medição do motor de PDF sob a política real.
 
 ## Pendente do dono (perguntar, não presumir)
 
@@ -65,9 +65,9 @@ O histórico completo, com o porquê de cada decisão, está em
   mentira).
 ## Fila de trabalho, em ordem
 
-1. Do relatório de melhorias de 03/11 (o dono escolhe): "Baixar meus dados"
-   (LGPD art. 18), assinatura anual na recorrência, medir o contraste não-texto
-   (3:1) e o daltonismo das cores dos gráficos.
+1. Do relatório de melhorias de 03/11 (o dono escolhe): assinatura anual na
+   recorrência, medir o contraste não-texto (3:1) e o daltonismo das cores dos
+   gráficos. "Baixar meus dados" foi concluído nesta rodada.
 
 ## Rotina de verificação
 

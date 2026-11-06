@@ -1,6 +1,6 @@
 # ADR-0024 — Trusted Types sem política de HTML ou código
 
-Data: 2026-11-06. Status: implementado; publicação depende do merge do PR.
+Data: 2026-11-06. Status: em produção desde o PR #74 (`7f2e731`).
 
 ## Contexto
 

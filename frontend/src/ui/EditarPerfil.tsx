@@ -152,6 +152,7 @@ export function EditarPerfil({
             {aba === 'preferencias' && <AbaPreferencias />}
             {aba === 'dados' && (
               <AbaDados
+                perfil={{ nome: nomeAtual || null, email: emailAtual ?? null }}
                 onOcupado={setOcupado}
                 onExcluidos={(loginExcluido) => {
                   onFechar()

@@ -1,5 +1,16 @@
 # Estado atual do projeto — retomada
 
+## Cópia completa dos dados — 2026-11-06
+
+- A aba "Seus dados" do perfil agora baixa um JSON versionado com perfil,
+  contas, documentos, transações, regras, categorias pessoais, preferências e
+  falhas registradas. O CSV de transações continua disponível separadamente.
+- A leitura passa pela sessão autenticada e pela RLS das sete tabelas. Categorias
+  globais ficam fora porque não pertencem à pessoa.
+- Cada consulta exige a contagem exata do banco; se a Data API truncar uma
+  resposta, o download falha em vez de entregar silenciosamente uma cópia
+  incompleta. Os PDFs originais não entram porque nunca saem do aparelho.
+
 ## Trusted Types na CSP — 2026-11-06
 
 - A CSP agora exige Trusted Types nos sinks de script e permite somente a
