@@ -57,6 +57,9 @@ entao o modulo do worker — e o nosso prelude com ele — roda ANTES do corpo d
 Blob que instala o polyfill. Um `delete` cego apagaria depois o que o polyfill
 acabou de por, e o cenario nunca poderia passar.
 
+O servidor aplica a CSP lida do `vercel.json`: o verde tambem prova que Trusted
+Types nao bloqueia o worker real nem o Blob dos polyfills.
+
 NADA DE PDF REAL AQUI. O arquivo e gerado neste script, tem quatro linhas de
 texto inventado e morre no fim. PDF de banco tem CPF, agencia, conta e nomes de
 terceiros, e o historico do git e permanente (.gitignore: `*.pdf`). Para medir
@@ -66,6 +69,7 @@ contra um documento seu, use `medir-csp.py --pdf caminho.pdf`, que e local.
 from __future__ import annotations
 
 import http.server
+import json
 import re
 import socket
 import sys
@@ -155,6 +159,20 @@ apagar_no_worker: tuple[str, ...] = ()
 WORKER = re.compile(r'^pdf\.worker\.min-.*\.mjs$')
 
 
+def csp_do_vercel() -> str:
+    cfg = json.loads((RAIZ / 'vercel.json').read_text(encoding='utf-8'))
+    for bloco in cfg.get('headers', []):
+        if bloco.get('source') != '/(.*)':
+            continue
+        for header in bloco.get('headers', []):
+            if header.get('key', '').lower() == 'content-security-policy':
+                csp = header['value']
+                if "require-trusted-types-for 'script'" not in csp:
+                    raise RuntimeError('a CSP nao exige Trusted Types')
+                return csp
+    raise RuntimeError('vercel.json nao declara Content-Security-Policy')
+
+
 def porta_livre() -> int:
     with socket.socket() as s:
         s.bind(('127.0.0.1', 0))
@@ -163,10 +181,15 @@ def porta_livre() -> int:
 
 def servidor(raiz: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
     porta = porta_livre()
+    csp = csp_do_vercel()
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *a, **kw):
             super().__init__(*a, directory=str(raiz), **kw)
+
+        def end_headers(self):
+            self.send_header('Content-Security-Policy', csp)
+            super().end_headers()
 
         def do_GET(self):  # noqa: N802 (nome da stdlib)
             # O worker sai daqui com o prelude do cenario na frente. E a unica
