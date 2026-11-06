@@ -1,5 +1,16 @@
 # Estado atual do projeto — retomada
 
+## Trusted Types na CSP — 2026-11-06
+
+- A CSP agora exige Trusted Types nos sinks de script e permite somente a
+  política `default`. Ela não converte HTML nem código: aceita exclusivamente o
+  worker versionado do pdf.js e o blob próprio usado pelos polyfills.
+- O medidor de CSP passou a exigir as diretivas e a provar o bloqueio de HTML
+  cru, política adicional, script externo, inline e `eval`.
+- O medidor de PDF agora serve o build com a CSP real. O motor abriu o PDF
+  sintético nos quatro cenários, inclusive Chrome 118 e os dois polyfills.
+- Decisão e limites em `docs/adr/0024-trusted-types-sem-politica-html.md`.
+
 ## Alertas de recorrência e fixture do Mercado Pago — 2026-11-05
 
 - O alerta `valor-mudou` só compara o último total quando houve uma ocorrência

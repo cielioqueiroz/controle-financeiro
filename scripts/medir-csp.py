@@ -72,7 +72,13 @@ ESPERADAS = [
         'd': 'script-src',
         'uri': 'eval',
         'por que': 'zod allowsEval (via neon-js/better-auth): sonda de capacidade em try/catch',
-    }
+    },
+    {
+        'd': 'require-trusted-types-for',
+        'uri': 'trusted-types-sink',
+        'amostra': 'Function|',
+        'por que': 'zod allowsEval (via neon-js/better-auth): sonda de capacidade em try/catch',
+    },
 ]
 
 # Coleta de violacoes. Roda antes de qualquer script da pagina (add_init_script)
@@ -136,6 +142,20 @@ def headers_publicados(base: str) -> str:
     if not csp:
         sys.exit(f'{base} nao manda Content-Security-Policy — a Vercel nao aplicou o header.')
     return csp
+
+
+def falhas_trusted_types(csp: str) -> list[str]:
+    diretivas = {
+        partes[0].lower(): partes[1:]
+        for trecho in csp.split(';')
+        if (partes := trecho.strip().split())
+    }
+    falhas = []
+    if "'script'" not in diretivas.get('require-trusted-types-for', []):
+        falhas.append("a CSP nao exige Trusted Types nos sinks de script")
+    if diretivas.get('trusted-types') != ['default']:
+        falhas.append("a CSP nao restringe as politicas Trusted Types a default")
+    return falhas
 
 
 def caminhos_de_infra(base: str) -> list[str]:
@@ -227,7 +247,7 @@ async ({ estranha, worker, relatorio, dataApi, auth }) => {
   const dorme = (ms) => new Promise((r) => setTimeout(r, ms));
   const saida = [];
 
-  async function sonda(nome, esperado, fn) {
+  async function sonda(nome, esperado, fn, erroEsperado = null) {
     const antes = window.__csp.length;
     let erro = null;
     try { await fn(); } catch (e) { erro = String((e && e.message) || e); }
@@ -239,6 +259,7 @@ async ({ estranha, worker, relatorio, dataApi, auth }) => {
       bloqueado: novas.length > 0,
       diretivas: novas.map((v) => v.d + ' <- ' + v.uri),
       erro,
+      erroEsperado,
     });
   }
 
@@ -326,12 +347,25 @@ async ({ estranha, worker, relatorio, dataApi, auth }) => {
     const s = document.createElement('script');
     s.src = estranha + '/x.js';
     document.head.append(s);
-  });
+  }, 'URL de worker não autorizada');
 
   await sonda('script: eval', 'bloqueia', () => {
     const r = (0, eval)('1+1');
     if (r === 2) throw new Error('o eval EXECUTOU');
   });
+
+  await sonda('HTML: innerHTML com string crua', 'bloqueia', () => {
+    const d = document.createElement('div');
+    d.innerHTML = '<p>conteudo inofensivo</p>';
+  });
+
+  if (window.trustedTypes) {
+    await sonda('Trusted Types: criar politica', 'bloqueia', () => {
+      window.trustedTypes.createPolicy('sonda-nao-autorizada', {
+        createHTML: (entrada) => entrada,
+      });
+    });
+  }
 
   await sonda('img: origem estranha (canal de exfiltracao)', 'bloqueia', () => {
     const i = new Image();
@@ -491,7 +525,7 @@ def main() -> int:
     data_api = next((o for o in origens if 'apirest' in o), None)
     auth_url = next((o for o in origens if 'neonauth' in o), None)
 
-    falhas: list[str] = []
+    falhas: list[str] = falhas_trusted_types(csp)
     console: list[str] = []
 
     with sync_playwright() as p:
@@ -515,7 +549,17 @@ def main() -> int:
         inesperadas = []
         for v in violacoes_jornada:
             conhecida = next(
-                (e for e in ESPERADAS if e['d'] == v['d'] and e['uri'] == v['uri']), None
+                (
+                    e
+                    for e in ESPERADAS
+                    if e['d'] == v['d']
+                    and e['uri'] == v['uri']
+                    and (
+                        not e.get('amostra')
+                        or (v.get('amostra') or '').startswith(e['amostra'])
+                    )
+                ),
+                None,
             )
             if conhecida:
                 print(f'  esperada  {v["d"]} <- {v["uri"]}  ({conhecida["por que"]})')
@@ -567,7 +611,12 @@ def main() -> int:
 
         print('SONDAS')
         for r in resultados:
-            ok = r['bloqueado'] == (r['esperado'] == 'bloqueia')
+            erro_bloqueia = bool(
+                r.get('erroEsperado')
+                and r.get('erro')
+                and r['erroEsperado'] in r['erro']
+            )
+            ok = (r['bloqueado'] or erro_bloqueia) == (r['esperado'] == 'bloqueia')
             # Erro que nao seja de rede, numa sonda positiva, e falha de verdade:
             # e a sonda dizendo "executei e o resultado saiu errado".
             grito = r['erro'] and 'Failed to fetch' not in (r['erro'] or '')
