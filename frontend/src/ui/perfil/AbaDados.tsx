@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { puxarTudo } from '../../aplicacao/consultas/historico'
+import { puxarMeusDados } from '../../aplicacao/consultas/conta'
 import { apagarMeusDados } from '../../aplicacao/comandos/conta'
 import { registrarFalha } from '../../aplicacao/comandos/falhas'
 import { excluirLogin, type ResultadoExclusaoLogin } from '../../lib/conta-auth'
 import { transacoesParaCsv } from '../../lib/exportar-csv'
+import { meusDadosParaJson } from '../../lib/exportar-dados'
 import { baixarArquivo } from '../../lib/compartilhar'
 import { marcarAparelhoSincronizado, gravarPreferenciasLocais, SEM_PREFERENCIAS } from '../../lib/preferencias'
 import { useT } from '../../i18n/IdiomaProvider'
@@ -12,6 +14,7 @@ import type { Dicionario } from '../../i18n/dicionarios/pt'
 import { CAMPO_PERFIL, ROTULO_PERFIL } from './estilos'
 
 type Props = {
+  perfil: { nome: string | null; email: string | null }
   onOcupado: (ocupado: boolean) => void
   /** Chamado depois de apagar os dados; `true` se o login também saiu. */
   onExcluidos: (loginExcluido: boolean) => void
@@ -30,13 +33,33 @@ const AVISO_LOGIN: Record<Exclude<ResultadoExclusaoLogin, 'excluido'>, keyof Dic
  *  final só acende com a palavra digitada. Um clique só não apaga nada, e o
  *  `Confirmacao` de sempre (um "Tem certeza?") não basta para o que não tem
  *  volta — o olho aprende a clicar nele. */
-export function AbaDados({ onOcupado, onExcluidos }: Props) {
+export function AbaDados({ perfil, onOcupado, onExcluidos }: Props) {
   const { t } = useT()
+  const [baixandoDados, setBaixandoDados] = useState(false)
   const [exportando, setExportando] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [digitado, setDigitado] = useState('')
   const [excluindo, setExcluindo] = useState(false)
   const palavra = t('perfil.dados.excluirPalavra')
+
+  async function baixarDados() {
+    setBaixandoDados(true)
+    try {
+      const dados = await puxarMeusDados()
+      const json = meusDadosParaJson(dados, perfil)
+      const hoje = new Date().toISOString().slice(0, 10)
+      baixarArquivo(
+        new Blob([json], { type: 'application/json;charset=utf-8' }),
+        `capital-financeiro-dados-${hoje}.json`,
+      )
+      toast.success(t('perfil.dados.baixarOk'))
+    } catch (e) {
+      registrarFalha(e, 'historico')
+      toast.error(t('perfil.dados.baixarFalha'))
+    } finally {
+      setBaixandoDados(false)
+    }
+  }
 
   async function exportar() {
     setExportando(true)
@@ -85,11 +108,23 @@ export function AbaDados({ onOcupado, onExcluidos }: Props) {
   return (
     <div className="space-y-6 px-6 py-5">
       <section className="space-y-2">
+        <h3 className={ROTULO_PERFIL}>{t('perfil.dados.baixarTitulo')}</h3>
+        <p className="text-sm text-tinta-fraca">{t('perfil.dados.baixarAjuda')}</p>
+        <button
+          onClick={baixarDados}
+          disabled={baixandoDados || exportando || excluindo}
+          className="min-h-11 rounded-lg border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:border-carvao-600 disabled:opacity-50"
+        >
+          {baixandoDados ? t('perfil.dados.baixando') : t('perfil.dados.baixar')}
+        </button>
+      </section>
+
+      <section className="space-y-2">
         <h3 className={ROTULO_PERFIL}>{t('perfil.dados.exportarTitulo')}</h3>
         <p className="text-sm text-tinta-fraca">{t('perfil.dados.exportarAjuda')}</p>
         <button
           onClick={exportar}
-          disabled={exportando || excluindo}
+          disabled={baixandoDados || exportando || excluindo}
           className="min-h-11 rounded-lg border border-carvao-700 px-4 py-2 text-sm text-tinta transition-colors hover:border-carvao-600 disabled:opacity-50"
         >
           {exportando ? t('perfil.dados.exportando') : t('perfil.dados.exportar')}

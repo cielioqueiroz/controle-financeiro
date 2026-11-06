@@ -28,9 +28,12 @@ vi.mock('../lib/neon', () => {
   return Object.assign(mod, { obterNeon: () => Promise.resolve(mod.neon) })
 })
 
-const conta = vi.hoisted(() => ({ apagar: vi.fn(), puxarTudo: vi.fn() }))
+const conta = vi.hoisted(() => ({ apagar: vi.fn(), puxarTudo: vi.fn(), puxarDados: vi.fn() }))
+const arquivos = vi.hoisted(() => ({ baixar: vi.fn() }))
 vi.mock('../aplicacao/comandos/conta', () => ({ apagarMeusDados: conta.apagar }))
 vi.mock('../aplicacao/consultas/historico', () => ({ puxarTudo: conta.puxarTudo }))
+vi.mock('../aplicacao/consultas/conta', () => ({ puxarMeusDados: conta.puxarDados }))
+vi.mock('../lib/compartilhar', () => ({ baixarArquivo: arquivos.baixar }))
 
 beforeEach(() => {
   localStorage.clear()
@@ -41,6 +44,16 @@ beforeEach(() => {
   deleteUser.mockClear()
   conta.apagar.mockReset().mockResolvedValue(undefined)
   conta.puxarTudo.mockReset().mockResolvedValue([])
+  conta.puxarDados.mockReset().mockResolvedValue({
+    accounts: [],
+    documents: [],
+    transactions: [],
+    merchant_rules: [],
+    categories: [],
+    client_errors: [],
+    preferencias: [],
+  })
+  arquivos.baixar.mockReset()
 })
 
 // A fila do sonner é de módulo (ver AGENTS.md §4.1).
@@ -228,6 +241,32 @@ describe('EditarPerfil — abas', () => {
 })
 
 describe('EditarPerfil — seus dados', () => {
+  it('baixa a cópia completa em JSON mesmo sem transações', async () => {
+    const usuario = userEvent.setup()
+    abrir()
+    await usuario.click(screen.getByRole('tab', { name: 'Seus dados' }))
+    await usuario.click(screen.getByRole('button', { name: 'Baixar meus dados' }))
+
+    await waitFor(() => expect(arquivos.baixar).toHaveBeenCalled())
+    const [blob, nome] = arquivos.baixar.mock.calls[0]
+    expect(blob).toBeInstanceOf(Blob)
+    expect(blob.type).toBe('application/json;charset=utf-8')
+    expect(nome).toMatch(/^capital-financeiro-dados-\d{4}-\d{2}-\d{2}\.json$/)
+    expect(conta.puxarDados).toHaveBeenCalledOnce()
+    expect(await screen.findByText('Cópia dos seus dados baixada.')).toBeInTheDocument()
+  })
+
+  it('avisa quando não consegue preparar a cópia completa', async () => {
+    conta.puxarDados.mockRejectedValueOnce(new Error('falha de leitura'))
+    const usuario = userEvent.setup()
+    abrir()
+    await usuario.click(screen.getByRole('tab', { name: 'Seus dados' }))
+    await usuario.click(screen.getByRole('button', { name: 'Baixar meus dados' }))
+
+    expect(await screen.findByText('Não consegui preparar a cópia completa dos seus dados.')).toBeInTheDocument()
+    expect(arquivos.baixar).not.toHaveBeenCalled()
+  })
+
   it('exportar sem transações avisa em vez de baixar arquivo vazio', async () => {
     const usuario = userEvent.setup()
     abrir()
