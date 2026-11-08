@@ -5,7 +5,8 @@
 - A aba "Seus dados" do perfil agora baixa um JSON versionado com perfil,
   contas, documentos, transações, regras, categorias pessoais, preferências e
   falhas registradas. O CSV de transações continua disponível separadamente.
-- A leitura passa pela sessão autenticada e pela RLS das sete tabelas. Categorias
+- A leitura passava pela sessão autenticada e pela RLS das sete tabelas. A
+  migração 0015 acrescenta `document_transactions` à cópia integral. Categorias
   globais ficam fora porque não pertencem à pessoa.
 - Cada consulta exige a contagem exata do banco; se a Data API truncar uma
   resposta, o download falha em vez de entregar silenciosamente uma cópia
@@ -340,7 +341,8 @@
 - Período padrão: `lerFiltros(search, padrao)` só usa o padrão na URL nua.
   Link com `ref` e sem `p` continua sendo mês, que é como `escreverFiltros`
   o escreve.
-- Excluir apaga as sete tabelas pela Data API (documentos primeiro) e só
+- Excluir apaga os dados pessoais pela Data API (documentos primeiro; as
+  relações de `document_transactions` caem por cascata) e só
   depois tenta `deleteUser`. Se o servidor recusar (o better-auth só abre a
   rota com `deleteUser.enabled`), a tela diz que o login continua. Se apagar
   os dados falhar, o login não é tocado.

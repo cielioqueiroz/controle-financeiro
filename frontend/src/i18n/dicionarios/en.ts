@@ -2,6 +2,8 @@ import type { Dicionario } from './pt'
 
 /** English. Same keys as pt (the type enforces it). Translations to review. */
 export const en: Dicionario = {
+  'filtros.escolherMes': 'Choose month',
+  'grafico.ondeGastou': 'Where you spent',
   'regrasOp.nova': 'New rule with operators',
   'regrasOp.titulo': 'Categorization rules',
   'regrasOp.descricao': 'These are the rules you create and those learned when you correct a category. Higher priority wins; ties go to the longer condition.',
@@ -626,7 +628,7 @@ export const en: Dicionario = {
   'docs.periodoDocumento': 'Period stated in the document',
   'docs.gastoReal': 'Saved real spending: {valor}',
   'docs.contagemIndisponivel': 'Entry count and real spending are currently unavailable.',
-  'docs.semTransacoes': 'No transactions are linked to this document. They may already belong to another imported document.',
+  'docs.semTransacoes': 'This document contains no transactions.',
   'docs.conferenciaNaoGuardada': 'This document’s original reconciliation result was not stored. To check it again, select the PDF and review the preview.',
   'docs.conferenciaOriginal': 'Original reconciliation',
   'docs.conferenciaOriginalAjuda': 'Result stored at import, before linking and deduplication. The count describes the original extraction; it does not confirm that every document was imported.',

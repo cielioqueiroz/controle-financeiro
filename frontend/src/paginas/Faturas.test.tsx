@@ -36,6 +36,7 @@ vi.mock('../persist/puxar', () => ({
         bank: 'nubank',
         doc_type: 'fatura',
         document_id: 'doc-1',
+        document_ids: ['doc-1', 'doc-3'],
         installment: null,
       },
     ]),
@@ -57,6 +58,15 @@ vi.mock('../persist/documentos', () => ({
         declared_total: 12000,
         imported_at: '2026-06-15T10:00:00Z',
       },
+      {
+        id: 'doc-3',
+        bank: 'nubank',
+        doc_type: 'fatura',
+        period_start: '2026-05-01',
+        period_end: '2026-06-10',
+        declared_total: 12000,
+        imported_at: '2026-06-16T10:00:00Z',
+      },
     ]),
   ),
   apagarDocumento: vi.fn(),
@@ -76,15 +86,16 @@ describe('página Faturas', () => {
 
   it('lista os documentos importados', async () => {
     montar()
-    expect(await screen.findByText('Nubank')).toBeInTheDocument()
+    expect(await screen.findAllByText('Nubank')).toHaveLength(2)
+    expect(screen.getAllByText(/1 lançamento/)).toHaveLength(2)
   })
 
   it('mantém os documentos sem inventar gasto zero quando a consulta das transações falha', async () => {
     vi.mocked(puxarTudo).mockRejectedValueOnce(new Error('timeout'))
     montar()
-    expect(await screen.findByText('Contagem e gasto real indisponíveis no momento.')).toBeVisible()
-    expect(screen.getByText('Nubank')).toBeVisible()
-    expect(screen.queryByText(/Gasto real salvo|Sem transações vinculadas/)).not.toBeInTheDocument()
+    expect(await screen.findAllByText('Contagem e gasto real indisponíveis no momento.')).toHaveLength(2)
+    expect((await screen.findAllByText('Nubank'))[0]).toBeVisible()
+    expect(screen.queryByText(/Gasto real salvo|não contém transações/)).not.toBeInTheDocument()
   })
 
   // Era um modal. Numa página, travar a rolagem do body congelaria a página
@@ -92,7 +103,7 @@ describe('página Faturas', () => {
   // adaptado.
   it('não trava a rolagem do body — isso era comportamento de modal', async () => {
     montar()
-    await screen.findByText('Nubank')
+    await screen.findAllByText('Nubank')
     expect(document.body.style.overflow).not.toBe('hidden')
   })
 
@@ -101,7 +112,7 @@ describe('página Faturas', () => {
   // conteúdo preso atrás de uma segunda barra de rolagem.
   it('não cria barra de rolagem própria dentro da página', async () => {
     const { container } = montar()
-    await screen.findByText('Nubank')
+    await screen.findAllByText('Nubank')
     expect(container.querySelector('.overflow-y-auto')).toBeNull()
     expect(container.innerHTML).not.toContain('max-h-[55vh]')
   })
@@ -110,7 +121,7 @@ describe('página Faturas', () => {
   // numa página não teria o que fechar.
   it('não oferece botão de fechar', async () => {
     montar()
-    await screen.findByText('Nubank')
+    await screen.findAllByText('Nubank')
     expect(screen.queryByRole('button', { name: /fechar/i })).toBeNull()
   })
 })

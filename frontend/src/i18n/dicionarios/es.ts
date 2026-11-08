@@ -2,6 +2,8 @@ import type { Dicionario } from './pt'
 
 /** Español. Mismas claves que pt (el tipo lo exige). Traducciones a revisar. */
 export const es: Dicionario = {
+  'filtros.escolherMes': 'Elegir mes',
+  'grafico.ondeGastou': 'Dónde gastaste',
   'regrasOp.nova': 'Nueva regla con operadores',
   'regrasOp.titulo': 'Reglas de categorización',
   'regrasOp.descricao': 'Aquí están las reglas que creas y las que la app aprende cuando corriges una categoría. Gana la prioridad más alta; en caso de empate, gana la condición más larga.',
@@ -626,7 +628,7 @@ export const es: Dicionario = {
   'docs.periodoDocumento': 'Período indicado en el documento',
   'docs.gastoReal': 'Gasto real guardado: {valor}',
   'docs.contagemIndisponivel': 'El número de movimientos y el gasto real no están disponibles en este momento.',
-  'docs.semTransacoes': 'No hay transacciones vinculadas a este documento. Pueden estar en otro documento importado.',
+  'docs.semTransacoes': 'Este documento no contiene transacciones.',
   'docs.conferenciaNaoGuardada': 'No se guardó el resultado de la comprobación original de este documento. Para comprobarlo de nuevo, selecciona el PDF y revisa la vista previa.',
   'docs.conferenciaOriginal': 'Comprobación original',
   'docs.conferenciaOriginalAjuda': 'Resultado guardado al importar, antes de vincular y deduplicar. La cantidad describe la lectura original; no confirma que se hayan importado todos los documentos.',

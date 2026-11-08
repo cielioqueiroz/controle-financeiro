@@ -115,6 +115,27 @@ describe('puxarSaldos', () => {
   })
 })
 
+describe.each([
+  ['documentos', puxarDocumentos],
+  ['saldos', puxarSaldos],
+])('integridade da leitura de %s', (_nome, consultar) => {
+  it('recusa resposta truncada em vez de mostrar apenas parte do dinheiro', async () => {
+    montar({ documentos: [doc(), doc({ id: 'doc-2' })], truncarEm: 1 })
+    await expect(consultar()).rejects.toThrow(/recorte incompleto/i)
+  })
+
+  it.each([null, -1, 0.5])('recusa contagem inválida %s', async (contagem) => {
+    montar({ documentos: [doc()], contagem })
+    await expect(consultar()).rejects.toThrow(/recorte incompleto/i)
+  })
+
+  it('aceita ausência de documentos confirmada pela contagem exata', async () => {
+    montar()
+    expect(await consultar()).toEqual([])
+    expect(falso.chamadas[0].contagem).toBe('exact')
+  })
+})
+
 describe('apagarDocumento', () => {
   it('apaga pelo id — as transações caem por ON DELETE CASCADE', async () => {
     montar()

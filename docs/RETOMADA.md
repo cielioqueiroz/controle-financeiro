@@ -1,7 +1,7 @@
 # Retomada — Capital Financeiro
 
 Roteiro para quem pega o projeto sem o contexto das conversas anteriores (outro
-agente, outro editor, ou o dono daqui a semanas). Atualizado em **06/11/2026**.
+agente, outro editor, ou o dono daqui a semanas). Atualizado em **08/11/2026**.
 O histórico completo, com o porquê de cada decisão, está em
 [`ESTADO-ATUAL.md`](./ESTADO-ATUAL.md); as regras de código, em
 [`../AGENTS.md`](../AGENTS.md); os nomes do domínio, em
@@ -35,13 +35,17 @@ O histórico completo, com o porquê de cada decisão, está em
 - Teste de domínio PRIMEIRO, reproduzindo o caso; depois mutação para provar que o
   teste pega o defeito.
 
-## Estado em 06/11/2026
+## Estado em 08/11/2026
 
 - As implementações de produto até o **#74** (`7f2e731`) estão na `main`.
-- **Neon (produção, branch `production`):** migrações 0001–**0014** aplicadas. A
+- **Neon (produção, branch `production`):** migrações 0001–**0015** aplicadas. A
   0014 (PIX/boleto que cita o emissor do cartão quita a fatura) foi aplicada em
   03/11, em transação única, com 6 → 10 quitações. O branch de teste
   `teste-0014-vinculo-pix-emissor` segue no Neon até o dono mandar apagar.
+- A 0015 cria a relação N:N entre documentos e transações. Foi ensaiada numa
+  branch derivada de produção e aplicada em 08/11, em transação única: 644
+  transações, 644 relações primárias, nenhuma relação ausente ou entre usuários
+  diferentes. Ela preserva a transação ao excluir uma prova quando há outra.
 - Entregue nesta rodada: #63 "Sem atípicos" nos Relatórios (só no donut) · #64
   Mercado Pago: o pagamento da fatura anterior vem positivo no bloco
   "Movimentações na fatura" · #65 meses recolhíveis em Faturas · #66 calendário
@@ -67,7 +71,8 @@ O histórico completo, com o porquê de cada decisão, está em
 
 1. Do relatório de melhorias de 03/11 (o dono escolhe): assinatura anual na
    recorrência, medir o contraste não-texto (3:1) e o daltonismo das cores dos
-   gráficos. "Baixar meus dados" foi concluído nesta rodada.
+   gráficos. "Baixar meus dados" e a consolidação de novo patamar recorrente
+   foram concluídos.
 
 ## Rotina de verificação
 

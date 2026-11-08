@@ -25,7 +25,7 @@ beforeEach(() => {
 })
 
 describe('puxarMeusDados', () => {
-  it('lê as sete tabelas da pessoa com contagem exata', async () => {
+  it('lê as oito tabelas da pessoa com contagem exata', async () => {
     const falso = banco({
       contas: [{ id: 'a1', bank: 'nubank', type: 'credit_card', last4: '1234', number: null }],
       documentos: [{ imported_at: '2026-11-01T00:00:00Z', file_hash: 'h1' }],
@@ -38,6 +38,7 @@ describe('puxarMeusDados', () => {
         ],
         client_errors: [{ id: 'e1', error_class: 'TypeError' }],
         preferencias: [{ user_id: 'u1', idioma: 'pt' }],
+        document_transactions: [{ document_id: 'd1', transaction_id: 't1' }],
       },
     })
 
@@ -47,13 +48,14 @@ describe('puxarMeusDados', () => {
       'accounts',
       'documents',
       'transactions',
+      'document_transactions',
       'merchant_rules',
       'categories',
       'client_errors',
       'preferencias',
     ])
     expect(dados.categories).toEqual([{ id: 'c1', user_id: 'u1', slug: 'cafe' }])
-    expect(falso.chamadas.filter((c) => c.op === 'select')).toHaveLength(7)
+    expect(falso.chamadas.filter((c) => c.op === 'select')).toHaveLength(8)
     expect(falso.chamadas.every((c) => c.contagem === 'exact')).toBe(true)
   })
 
@@ -79,6 +81,7 @@ describe('puxarMeusDados', () => {
       'accounts',
       'documents',
       'transactions',
+      'document_transactions',
       'merchant_rules',
     ])
   })

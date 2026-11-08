@@ -4,6 +4,7 @@ export type DadosExportados = {
   accounts: LinhaExportada[]
   documents: LinhaExportada[]
   transactions: LinhaExportada[]
+  document_transactions: LinhaExportada[]
   merchant_rules: LinhaExportada[]
   categories: LinhaExportada[]
   client_errors: LinhaExportada[]

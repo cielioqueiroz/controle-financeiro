@@ -1,12 +1,13 @@
 import { obterNeon } from '../lib/neon'
 import type { ParseResult, RawTransaction } from '../domain/parsers/types'
 import type { DocKind } from '../domain/pdf/detect'
-import { hashConteudoDocumento, hashDocumento, chaveTransacao, sha256 } from '../domain/dedupe/hash'
+import { hashConteudoDocumento, hashDocumento, chaveTransacao, chaveTransacaoLegada, sha256 } from '../domain/dedupe/hash'
 import { categoriaDe, REGRAS_GLOBAIS, type Regra } from '../domain/categorize/regras'
 import { mesclarRegras } from '../domain/categorize/aprendizado'
 import { vincular, paraVincular } from '../domain/link/vinculos'
 import { compararGabaritos, validar } from '../domain/validate/checksum'
 import type { ConferenciaSalva } from '../domain/validate/conferencia-salva'
+import { RecorteIncompletoError } from './puxar'
 
 export type ResultadoSalvar =
   | { status: 'salvo'; documentId: string; inseridas: number; jaExistiam: number }
@@ -52,15 +53,28 @@ export async function salvarDocumento(
   const contentHash = await hashConteudoDocumento(result, kind)
   const key = accountKey(result, kind)
   const linked = vincular([paraVincular(result, key, kind.docType)])
+  const identidades = await Promise.all(linked.map(async (t) => ({
+    atual: await sha256(chaveTransacao(t, key)),
+    legada: t.installment ? await sha256(chaveTransacaoLegada(t, key)) : null,
+  })))
+  const existentes = await lerHashesParcelados(neon, linked, identidades)
+  const usados = new Set([...existentes.values()].flat())
 
-  // Duas linhas idênticas no mesmo documento são ocorrências reais. O
-  // sufixo também precisa coincidir entre documentos sobrepostos.
+  // Cada ocorrência real tem uma chave. Reusar os hashes gravados preserva
+  // a deduplicação mesmo quando o histórico mistura chaves antigas e novas.
   const ocorrencias = new Map<string, number>()
   const transacoes: Record<string, unknown>[] = []
-  for (const t of linked) {
-    const base = await sha256(chaveTransacao(t, key))
+  for (const [i, t] of linked.entries()) {
+    const base = identidades[i].atual
     const n = (ocorrencias.get(base) ?? 0) + 1
     ocorrencias.set(base, n)
+    let hash = existentes.get(base)?.[n - 1]
+    if (!hash) {
+      let indice = n
+      hash = hashDaOcorrencia(base, indice)
+      while (usados.has(hash)) hash = hashDaOcorrencia(base, ++indice)
+      usados.add(hash)
+    }
     transacoes.push({
       date: t.date.toISOString().slice(0, 10),
       description: t.description,
@@ -70,7 +84,7 @@ export async function salvarDocumento(
       category_slug: categoriaDe(t, regras, { bank: kind.bank }),
       installment: t.installment,
       fx: t.fx,
-      hash: n === 1 ? base : `${base}#${n}`,
+      hash,
     })
   }
 
@@ -105,6 +119,62 @@ export async function salvarDocumento(
     throw new Error(error.message)
   }
   return lerResultado(data, transacoes.length)
+}
+
+const hashDaOcorrencia = (base: string, n: number): string => n === 1 ? base : `${base}#${n}`
+
+/** A chave antiga já inclui conta, data, valor e estabelecimento. A parcela
+ *  gravada determina qual cobrança a chave antiga realmente representa. */
+async function lerHashesParcelados(
+  neon: NonNullable<Awaited<ReturnType<typeof obterNeon>>>,
+  transacoes: RawTransaction[],
+  identidades: { atual: string; legada: string | null }[],
+): Promise<Map<string, string[]>> {
+  const equivalencias = new Map<string, string>()
+  const datas: string[] = []
+  for (const [i, t] of transacoes.entries()) {
+    const { atual, legada } = identidades[i]
+    if (!t.installment || !legada) continue
+    const { current, total } = t.installment
+    equivalencias.set(`${legada}/${current}/${total}`, atual)
+    equivalencias.set(`${atual}/${current}/${total}`, atual)
+    datas.push(t.date.toISOString().slice(0, 10))
+  }
+  const existentes = new Map<string, string[]>()
+  if (datas.length === 0) return existentes
+  datas.sort()
+  const { data, error, count } = await neon.from('transactions')
+    .select('hash, installment', { count: 'exact' })
+    .not('installment', 'is', null)
+    .gte('date', datas[0])
+    .lte('date', datas[datas.length - 1])
+  if (error) throw error
+  if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0
+    || !Array.isArray(data) || data.length !== count) {
+    throw new RecorteIncompletoError('a leitura dos hashes de parcelas veio incompleta')
+  }
+
+  const vistos = new Set<string>()
+  for (const linha of data as unknown[]) {
+    const r = linha as { hash?: unknown; installment?: { current?: unknown; total?: unknown } } | null
+    const hash = r?.hash
+    const parcela = r?.installment
+    const base = typeof hash === 'string' ? hash.match(/^([a-f0-9]{64})(?:#[1-9]\d*)?$/)?.[1] : null
+    if (typeof hash !== 'string' || !base || vistos.has(hash)
+      || typeof parcela?.current !== 'number' || typeof parcela.total !== 'number'
+      || !Number.isSafeInteger(parcela.current) || !Number.isSafeInteger(parcela.total)
+      || parcela.current < 1 || parcela.current > parcela.total) {
+      throw new RecorteIncompletoError('a leitura trouxe uma identidade de parcela inválida')
+    }
+    vistos.add(hash)
+    const atual = equivalencias.get(`${base}/${parcela.current}/${parcela.total}`)
+    if (!atual) continue
+    const hashes = existentes.get(atual)
+    if (hashes) hashes.push(hash)
+    else existentes.set(atual, [hash])
+  }
+  for (const hashes of existentes.values()) hashes.sort()
+  return existentes
 }
 
 function lerResultado(data: unknown, contagem: number): ResultadoSalvar {

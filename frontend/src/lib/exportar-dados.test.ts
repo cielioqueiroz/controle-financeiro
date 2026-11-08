@@ -5,6 +5,7 @@ const dados: DadosExportados = {
   accounts: [{ id: 'a1', bank: 'nubank' }],
   documents: [{ id: 'd1', filename: 'fatura.pdf' }],
   transactions: [{ id: 't1', amount_cents: 1234 }],
+  document_transactions: [{ document_id: 'd1', transaction_id: 't1' }],
   merchant_rules: [{ id: 'r1', pattern: 'PADARIA' }],
   categories: [{ id: 'c1', slug: 'cafe' }],
   client_errors: [{ id: 'e1', error_class: 'TypeError' }],

@@ -33,11 +33,13 @@ export function Procedencia({ txs, periodo }: Props) {
   const dinheiro = useDinheiro()
   if (txs.length === 0) return null
 
-  const documentos = new Set(txs.map((x) => x.document_id))
+  const ids = (tx: TransacaoSalva) => tx.document_ids ?? [tx.document_id]
   const faturas = new Set(
-    txs.filter((x) => x.doc_type === 'fatura').map((x) => x.document_id),
+    txs.filter((x) => x.doc_type === 'fatura').flatMap(ids),
   ).size
-  const extratos = documentos.size - faturas
+  const extratos = new Set(
+    txs.filter((x) => x.doc_type === 'extrato').flatMap(ids),
+  ).size
 
   // Ordem estável: a do catálogo, não a de aparição. Sem isso a fileira se
   // reordena a cada troca de período, e a pessoa relê para achar o mesmo
