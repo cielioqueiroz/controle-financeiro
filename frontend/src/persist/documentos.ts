@@ -3,6 +3,20 @@ import type { DocParaSaldo } from '../domain/saldos'
 import type { DocParaAberto } from '../domain/aberto'
 import type { DocParaQuitacao } from '../domain/link/quitacao-parcial'
 import { lerConferenciaSalva, type ConferenciaSalva } from '../domain/validate/conferencia-salva'
+import { RecorteIncompletoError } from './puxar'
+
+function exigirRespostaCompleta<T>(data: T[] | null, count: number | null): T[] {
+  if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
+    throw new RecorteIncompletoError('o banco não informou uma contagem exata válida dos documentos')
+  }
+  const linhas = data ?? []
+  if (linhas.length !== count) {
+    throw new RecorteIncompletoError(
+      `o banco tem ${count} documentos e a resposta trouxe ${linhas.length}`,
+    )
+  }
+  return linhas
+}
 
 export type DocumentoSalvo = {
   id: string
@@ -22,12 +36,12 @@ export type DocumentoSalvo = {
 export async function puxarDocumentos(): Promise<DocumentoSalvo[]> {
   const neon = await obterNeon()
   if (!neon) return []
-  const { data, error } = await neon
+  const { data, error, count } = await neon
     .from('documents')
-    .select('id, bank, doc_type, period_start, period_end, filename, imported_at, declared_total, declared_income, declared_expense, conferencia')
+    .select('id, bank, doc_type, period_start, period_end, filename, imported_at, declared_total, declared_income, declared_expense, conferencia', { count: 'exact' })
     .order('imported_at', { ascending: false })
   if (error) throw error
-  const documentos = (data ?? []) as Array<Omit<DocumentoSalvo, 'conferencia'> & { conferencia?: unknown }>
+  const documentos = exigirRespostaCompleta(data, count) as Array<Omit<DocumentoSalvo, 'conferencia'> & { conferencia?: unknown }>
   return documentos.map((d) => ({ ...d, conferencia: lerConferenciaSalva(d.conferencia) }))
 }
 
@@ -41,13 +55,14 @@ export type DocDoPainel = DocParaSaldo & DocParaAberto & DocParaQuitacao
 export async function puxarSaldos(): Promise<DocDoPainel[]> {
   const neon = await obterNeon()
   if (!neon) return []
-  const { data, error } = await neon
+  const { data, error, count } = await neon
       .from('documents')
       .select(
         'id, bank, account_id, doc_type, period_end, declared_total, end_balance_cents, total_open_balance, next_invoice_balance, next_close_date, future_installments_total',
+        { count: 'exact' },
       )
   if (error) throw error
-  return (data ?? []) as DocDoPainel[]
+  return exigirRespostaCompleta(data, count) as DocDoPainel[]
 }
 
 /** Apaga um documento. As transações caem junto por ON DELETE CASCADE

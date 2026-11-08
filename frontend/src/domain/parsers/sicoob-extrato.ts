@@ -56,7 +56,8 @@ function conta(lines: Line[]): { agency: string | null; number: string | null; h
 }
 
 export function parseSicoobExtrato(lines: Line[]): ParseResult {
-  const ano = anoDoPeriodo(lines)
+  const faixa = periodo(lines)
+  const ano = faixa?.start.getFullYear() ?? anoDoPeriodo(lines)
   const transactions: RawTransaction[] = []
   let saldoInicial: number | null = null
   let saldoFinal: number | null = null
@@ -81,7 +82,15 @@ export function parseSicoobExtrato(lines: Line[]): ParseResult {
     const dm = dataTexto?.trim().match(DATA_DM)
     if (!dm || !v) continue
 
-    const date = new Date(ano, Number(dm[2]) - 1, Number(dm[1]))
+    const dia = Number(dm[1])
+    const mes = Number(dm[2]) - 1
+    const anos = faixa
+      ? [...new Set([faixa.start.getFullYear(), faixa.end.getFullYear()])]
+      : [ano]
+    const date = anos
+      .map((candidato) => new Date(candidato, mes, dia))
+      .find((candidato) => !faixa || (candidato >= faixa.start && candidato <= faixa.end))
+      ?? new Date(ano, mes, dia)
     // C = crédito (entrada, negativo); D = débito (saída, positivo).
     const amountCents = v.letra === 'C' ? -v.cents : v.cents
 
@@ -126,7 +135,7 @@ export function parseSicoobExtrato(lines: Line[]): ParseResult {
       saldoInicial != null && saldoFinal != null
         ? { initial: saldoInicial, final: saldoFinal }
         : null,
-    period: periodo(lines),
+    period: faixa,
     account: {
       bank: 'sicoob',
       type: 'checking',

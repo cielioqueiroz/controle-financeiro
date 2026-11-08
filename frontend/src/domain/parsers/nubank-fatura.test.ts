@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { buildLines } from '../pdf/lines'
 import { parseNubankFatura } from './nubank-fatura'
+import { parseNubankExtrato } from './nubank-extrato'
+import { validar } from '../validate/checksum'
 import type { TextItem } from '../pdf/types'
 
 const lines = buildLines(
@@ -105,11 +107,29 @@ describe('parseNubankFatura — câmbio', () => {
 })
 
 describe('parseNubankFatura — metadados', () => {
-  it('lê o período vigente', () => {
+  it('usa o vencimento como fim do período para a competência e a quitação', () => {
     expect(r.period).toEqual({
       start: new Date(2026, 4, 20), // 20 MAI
-      end: new Date(2026, 5, 20), // 20 JUN
+      end: new Date(2026, 5, 29), // vencimento em 29 JUN
     })
+  })
+
+  it('mantém a fatura no mês do vencimento quando o ciclo fechou no mês anterior', () => {
+    const items = JSON.parse(readFileSync('tests/fixtures/nubank-fatura.items.json', 'utf-8')) as TextItem[]
+    const outra = parseNubankFatura(buildLines(items.map((item) => ({
+      ...item, text: item.text.replace(/FATURA 29 JUN 2026/g, 'FATURA 05 JUL 2026'),
+    }))))
+    expect(validar(outra).status).toBe('confere')
+    expect(outra.period).toEqual({ start: new Date(2026, 4, 20), end: new Date(2026, 6, 5) })
+  })
+
+  it('mantém o pagamento do fixture dentro da janela de sete dias da quitação', () => {
+    const items = JSON.parse(readFileSync('tests/fixtures/nubank-extrato.items.json', 'utf-8')) as TextItem[]
+    const extrato = parseNubankExtrato(buildLines(items))
+    const pagamento = extrato.transactions.find((t) => t.kind === 'pagamento' && t.amountCents === r.declaredTotal)!
+    expect(pagamento.date).toEqual(new Date(2026, 5, 29))
+    const distanciaDias = Math.abs(pagamento.date.getTime() - r.period!.end.getTime()) / 86_400_000
+    expect(distanciaDias).toBeLessThanOrEqual(7)
   })
 
   it('identifica a conta como cartão de crédito do Nubank', () => {

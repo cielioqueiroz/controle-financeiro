@@ -57,10 +57,37 @@ const MIN_COMPETENCIAS = 3
 /** Tolerância para classificar como valor fixo. */
 const TOLERANCIA_FIXO = 0.05
 
+/** Mudança de valor só vira novo patamar acima de 10% E de R$ 5,00. */
+const MIN_VARIACAO_PCT = 0.1
+const MIN_VARIACAO_CENTS = 500
+
 function mediana(ns: number[]): number {
   const s = [...ns].sort((a, b) => a - b)
   const m = Math.floor(s.length / 2)
   return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2)
+}
+
+function valoresEstaveis(valores: number[]): boolean {
+  const base = mediana(valores)
+  return base > 0 && valores.every((valor) => Math.abs(valor - base) / base <= TOLERANCIA_FIXO)
+}
+
+/** Um reajuste deixa de ser uma anomalia quando há pelo menos três meses no
+ * patamar anterior e dois no novo. Exigir estabilidade dos dois lados evita
+ * transformar uma conta naturalmente variável em valor fixo. */
+function patamarConsolidado(valores: number[]): { anterior: number; atual: number } | null {
+  for (let corte = 3; corte <= valores.length - 2; corte += 1) {
+    const anteriores = valores.slice(0, corte)
+    const atuais = valores.slice(corte)
+    if (!valoresEstaveis(anteriores) || !valoresEstaveis(atuais)) continue
+    const anterior = mediana(anteriores)
+    const atual = mediana(atuais)
+    const delta = Math.abs(atual - anterior)
+    if (delta >= MIN_VARIACAO_CENTS && delta / anterior >= MIN_VARIACAO_PCT) {
+      return { anterior, atual }
+    }
+  }
+  return null
 }
 
 /** Competência mais recente presente nos dados. É a régua dos alertas: sem
@@ -98,6 +125,8 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
   for (const t of txs) {
     if (t.installment) continue
     if (t.kind !== 'expense' && t.kind !== 'income') continue
+    // Estorno de fatura é expense negativo: devolve uma compra, não cobra.
+    if (t.kind === 'expense' && t.amount_cents < 0) continue
     const tipo = t.kind === 'income' ? 'entrada' : 'saida'
     const chave = normalizeMerchant(t.description)
     if (!chave) continue
@@ -127,13 +156,14 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
 
     const somas = competencias.map((c) => porComp.get(c)!.soma)
     const anteriores = somas.slice(0, -1)
-    const base = mediana(anteriores)
+    const patamar = patamarConsolidado(somas)
+    const base = patamar?.anterior ?? mediana(anteriores)
     // A última ocorrência fica FORA do cálculo da linha de base de propósito:
     // ela é justamente a candidata a ser a mudança que o alerta anuncia, e
     // incluí-la faria o aumento se esconder reclassificando a série como
     // variável.
     const variacao =
-      base > 0 && anteriores.every((v) => Math.abs(v - base) / base <= TOLERANCIA_FIXO)
+      patamar || valoresEstaveis(anteriores)
         ? 'fixo'
         : 'variavel'
 
@@ -149,7 +179,7 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
       descricao: nomeExibido(maisNova),
       categoriaSlug: maisNova.category_slug ?? 'outros',
       tipo: g.tipo,
-      valorTipicoCents: mediana(somas),
+      valorTipicoCents: patamar?.atual ?? mediana(somas),
       valorAnteriorCents: base,
       diaTipico: mediana(g.ocorrencias.map((t) => Number(t.date.slice(8, 10)))),
       variacao,
@@ -191,11 +221,8 @@ export type Alerta =
  *  condições juntas: só o percentual faria uma assinatura de R$ 9,90 gritar
  *  por R$ 1,00; só o valor absoluto faria uma conta de R$ 800 ignorar R$ 6,00
  *  de aumento. */
-const MIN_VARIACAO_PCT = 0.1
-const MIN_VARIACAO_CENTS = 500
-
-/** Quantos meses de atraso ainda contam como "sumiu". Sem esse teto, uma
- *  série que existiu por 3 meses em 2024 alertaria para sempre. */
+/** Quantos meses de atraso ainda geram alertas. Sem esse teto, uma série
+ *  antiga ou seu último reajuste alertariam para sempre. */
 const MAX_MESES_SUMIDO = 3
 
 function mesesEntre(a: string, b: string): number {
@@ -215,6 +242,9 @@ export function alertasDe(
   const alertas: Alerta[] = []
 
   for (const r of recorrencias) {
+    const atraso = mesesEntre(r.ultimaCompetencia, competenciaAtual)
+    if (atraso > MAX_MESES_SUMIDO) continue
+
     // 1. Mudou de valor. Só para série de valor fixo e uma ocorrência no
     //    último mês: a conta de luz varia por natureza; salário + férias é
     //    uma soma excepcional, não o novo salário mensal.
@@ -241,8 +271,7 @@ export function alertasDe(
     }
 
     // 2. Sumiu. Faltou no mês mais recente com dado, e o atraso é recente.
-    const atraso = mesesEntre(r.ultimaCompetencia, competenciaAtual)
-    if (atraso >= 1 && atraso <= MAX_MESES_SUMIDO) {
+    if (atraso >= 1) {
       alertas.push({
         tipo: 'sumiu',
         chave: r.chave,

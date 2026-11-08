@@ -33,6 +33,7 @@ function linha(over: Record<string, unknown> = {}): Record<string, unknown> {
     category_slug: 'padaria',
     installment: null,
     document_id: 'doc-1',
+    account_id: 'conta-1',
     accounts: { bank: 'nubank' },
     documents: { doc_type: 'fatura', period_end: '2026-06-30' },
     ...over,
@@ -80,8 +81,24 @@ describe('puxarTudo — leitura do histórico', () => {
       bank: 'nubank',
       doc_type: 'fatura',
       document_id: 'doc-1',
+      document_ids: ['doc-1'],
+      account_id: 'conta-1',
       installment: null,
     })
+  })
+
+  it('preserva todos os documentos que comprovam uma transação sobreposta', async () => {
+    montar({
+      transacoes: [linha()],
+      linhas: {
+        document_transactions: [
+          { transaction_id: 'tx-1', document_id: 'doc-1' },
+          { transaction_id: 'tx-1', document_id: 'doc-2' },
+        ],
+      },
+    })
+
+    expect((await puxarTudo())[0].document_ids).toEqual(['doc-1', 'doc-2'])
   })
 
   it('aceita relação ausente sem quebrar, caindo em "desconhecido"', async () => {
@@ -105,6 +122,13 @@ describe('integridade do recorte', () => {
 
     const consulta = falso.chamadas.find((c) => c.tabela === 'transactions' && c.op === 'select')
     expect(consulta?.contagem).toBe('exact')
+    const relacoes = falso.chamadas.find((c) => c.tabela === 'document_transactions')
+    expect(relacoes?.contagem).toBe('exact')
+  })
+
+  it('recusa transação sem a relação com sua procedência primária', async () => {
+    montar({ transacoes: [linha()], linhas: { document_transactions: [] } })
+    await expect(puxarTudo()).rejects.toThrow(/procedência primária/i)
   })
 
   /** O modo de falha que este guarda existe para pegar: o servidor diz que

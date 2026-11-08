@@ -18,7 +18,7 @@
 
 export type RespostaFalsa = { data: unknown; error: { message: string } | null }
 
-export type Filtro = { tipo: 'eq' | 'in' | 'not' | 'is'; coluna: string; valor: unknown }
+export type Filtro = { tipo: 'eq' | 'in' | 'not' | 'is' | 'gte' | 'lte'; coluna: string; valor: unknown }
 
 /** Uma operação que o código sob teste pediu ao banco. É o que as asserções
  *  leem: não basta o resultado estar certo, a pergunta feita ao banco também
@@ -65,6 +65,8 @@ const casa = (linha: Record<string, unknown>, filtros: Filtro[]): boolean =>
   filtros.every((f) => {
     const v = linha[f.coluna]
     if (f.tipo === 'eq') return v === f.valor
+    if (f.tipo === 'gte') return typeof v === 'string' && typeof f.valor === 'string' && v >= f.valor
+    if (f.tipo === 'lte') return typeof v === 'string' && typeof f.valor === 'string' && v <= f.valor
     if (f.tipo === 'in') return (f.valor as unknown[]).includes(v)
     if (f.tipo === 'is') return f.valor === null ? v == null : v === f.valor
     if (f.tipo === 'not') return !(f.valor === null ? v == null : v === f.valor)
@@ -128,6 +130,14 @@ class ConsultaFalsa implements PromiseLike<RespostaFalsa> {
   }
   not(coluna: string, _op: string, valor: unknown): this {
     this.chamada.filtros.push({ tipo: 'not', coluna, valor })
+    return this
+  }
+  gte(coluna: string, valor: string): this {
+    this.chamada.filtros.push({ tipo: 'gte', coluna, valor })
+    return this
+  }
+  lte(coluna: string, valor: string): this {
+    this.chamada.filtros.push({ tipo: 'lte', coluna, valor })
     return this
   }
   limit(n: number): this {
@@ -195,7 +205,12 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
         }
         return envelope(transacoes.filter((t) => casa(t, c.filtros)))
       }
-      const outras = estado.linhas?.[c.tabela] ?? []
+      const outras = c.tabela === 'document_transactions'
+        ? (estado.linhas?.document_transactions ?? transacoes.flatMap((t) =>
+          typeof t.id === 'string' && typeof t.document_id === 'string'
+            ? [{ document_id: t.document_id, transaction_id: t.id }]
+            : []))
+        : (estado.linhas?.[c.tabela] ?? [])
       return envelope(outras.filter((l) => casa(l, c.filtros)))
     }
 
@@ -260,8 +275,15 @@ export function criarNeonFalso(estado: EstadoFalso = {}) {
       }
       documentos.push({ ...doc, id: documentId, imported_at: '2026-09-06T00:00:00Z' })
       registrar('documents', [{ ...doc, account_id: accountId }])
-      if (novos.length) registrar('transactions', novos.map((t) => ({ ...t, account_id: accountId, document_id: documentId })))
+      const gravadas = novos.map((t) => ({ ...t, account_id: accountId, document_id: documentId }))
+      if (gravadas.length) registrar('transactions', gravadas)
+      transacoes.push(...gravadas)
       for (const t of novos) hashes.add(t.hash as string)
+      const relacoes = txs.map((t) => ({
+        document_id: documentId,
+        transaction_id: t.hash,
+      }))
+      if (relacoes.length) registrar('document_transactions', relacoes)
       return { data: { status: 'salvo', documentId, inseridas: novos.length, jaExistiam: txs.length - novos.length }, error: null }
     },
     auth: {

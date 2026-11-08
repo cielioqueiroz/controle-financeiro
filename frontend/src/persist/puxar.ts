@@ -15,6 +15,10 @@ export type TransacaoSalva = {
   bank: string
   doc_type: string
   document_id: string
+  /** Todos os documentos que comprovam a transação. `document_id` continua
+   * sendo a procedência primária usada para competência e relações legadas. */
+  document_ids?: string[]
+  account_id?: string | null
   installment: { current: number; total: number } | null
   vinculo_document_id?: string | null
   vinculo_transacao_id?: string | null
@@ -22,7 +26,7 @@ export type TransacaoSalva = {
 }
 
 const COLUNAS =
-  'id, date, description, label, amount_cents, kind, category_slug, installment, document_id, vinculo_document_id, vinculo_transacao_id, vinculo_criterio, accounts!transactions_account_id_fkey(bank), documents!transactions_document_id_fkey(doc_type, period_end)'
+  'id, date, description, label, amount_cents, kind, category_slug, installment, document_id, account_id, vinculo_document_id, vinculo_transacao_id, vinculo_criterio, accounts!transactions_account_id_fkey(bank), documents!transactions_document_id_fkey(doc_type, period_end)'
 
 /** A leitura voltou incompleta ou deformada.
  *
@@ -68,10 +72,14 @@ export class RecorteIncompletoError extends Error {
 export async function puxarTudo(): Promise<TransacaoSalva[]> {
   const neon = await obterNeon()
   if (!neon) return []
-  const { data, error, count } = await neon
-    .from('transactions')
-    .select(COLUNAS, { count: 'exact' })
-    .order('date', { ascending: false })
+  const [historico, relacoes] = await Promise.all([
+    neon.from('transactions').select(COLUNAS, { count: 'exact' })
+      .order('date', { ascending: false }),
+    neon.from('document_transactions')
+      .select('document_id, transaction_id', { count: 'exact' }),
+  ])
+
+  const { data, error, count } = historico
 
   if (error) throw error
 
@@ -86,7 +94,27 @@ export async function puxarTudo(): Promise<TransacaoSalva[]> {
     )
   }
 
-  return linhas.map(paraTransacaoSalva)
+  if (relacoes.error) throw relacoes.error
+  const linhasRelacoes = relacoes.data ?? []
+  if (typeof relacoes.count !== 'number' || !Number.isSafeInteger(relacoes.count)
+    || relacoes.count < 0 || linhasRelacoes.length !== relacoes.count) {
+    throw new RecorteIncompletoError('as relações entre documentos e transações vieram incompletas')
+  }
+
+  const documentosPorTransacao = new Map<string, string[]>()
+  for (const bruto of linhasRelacoes) {
+    const relacao = exigirObjeto(bruto, 'relação documento-transação')
+    const transactionId = exigirTexto(relacao.transaction_id, 'transaction_id')
+    const documentId = exigirTexto(relacao.document_id, 'document_id')
+    const ids = documentosPorTransacao.get(transactionId) ?? []
+    if (ids.includes(documentId)) {
+      throw new RecorteIncompletoError('a relação documento-transação veio duplicada')
+    }
+    ids.push(documentId)
+    documentosPorTransacao.set(transactionId, ids)
+  }
+
+  return linhas.map((linha: unknown) => paraTransacaoSalva(linha, documentosPorTransacao))
 }
 
 /** Converte a linha do banco, conferindo a forma em runtime.
@@ -97,14 +125,24 @@ export async function puxarTudo(): Promise<TransacaoSalva[]> {
  *  entra na soma — `undefined` vira `NaN`, e um `NaN` numa soma apaga o
  *  total inteiro sem uma linha de erro. É o mesmo princípio do `AGENTS.md`:
  *  número que não pode ser calculado vira estado vazio, nunca zero. */
-function paraTransacaoSalva(bruto: unknown): TransacaoSalva {
+function paraTransacaoSalva(
+  bruto: unknown,
+  documentosPorTransacao: Map<string, string[]>,
+): TransacaoSalva {
   const r = exigirObjeto(bruto, 'transação')
   const doc = r.documents == null ? null : exigirObjeto(r.documents, 'documents')
   const conta = r.accounts == null ? null : exigirObjeto(r.accounts, 'accounts')
   const date = exigirTexto(r.date, 'date')
 
+  const id = exigirTexto(r.id, 'id')
+  const documentId = exigirTexto(r.document_id, 'document_id')
+  const documentIds = documentosPorTransacao.get(id)
+  if (!documentIds?.includes(documentId)) {
+    throw new RecorteIncompletoError('a procedência primária não apareceu nas relações do documento')
+  }
+
   return {
-    id: exigirTexto(r.id, 'id'),
+    id,
     date,
     competencia: competenciaDe(texto(doc?.period_end) ?? null, date),
     description: exigirTexto(r.description, 'description'),
@@ -114,7 +152,9 @@ function paraTransacaoSalva(bruto: unknown): TransacaoSalva {
     category_slug: texto(r.category_slug) ?? null,
     bank: texto(conta?.bank) ?? 'desconhecido',
     doc_type: texto(doc?.doc_type) ?? 'desconhecido',
-    document_id: exigirTexto(r.document_id, 'document_id'),
+    document_id: documentId,
+    document_ids: documentIds,
+    account_id: texto(r.account_id) ?? null,
     installment: parcela(r.installment),
     ...(r.vinculo_document_id != null ? { vinculo_document_id: exigirTexto(r.vinculo_document_id, 'vinculo_document_id') } : {}),
     ...(r.vinculo_transacao_id != null ? { vinculo_transacao_id: exigirTexto(r.vinculo_transacao_id, 'vinculo_transacao_id') } : {}),

@@ -4,6 +4,7 @@ import { useFiltros } from '../dados/useFiltros'
 import { useDados } from '../dados/DadosProvider'
 import { temaDoBanco } from '../domain/banks'
 import type { Periodo } from '../domain/agrupar'
+import { localeAtual } from '../domain/normalize/locale'
 import { mover, rotuloPeriodo } from '../dados/periodo'
 import type { Dicionario } from '../i18n/dicionarios/pt'
 
@@ -45,6 +46,13 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
   const { todas } = useDados()
 
   const bancos = [...new Set((todas ?? []).map((x) => x.bank))].filter(Boolean).sort()
+  const mesAtual = filtros.ref.getFullYear() + '-' + String(filtros.ref.getMonth() + 1).padStart(2, '0')
+  const meses = [...new Set([mesAtual, ...(todas ?? []).map((tx) => tx.competencia).filter(Boolean)])].sort().reverse()
+  const nomeDoMes = (mes: string) => {
+    const [ano, numero] = mes.split('-').map(Number)
+    const rotulo = new Intl.DateTimeFormat(localeAtual(), { month: 'long', year: 'numeric' }).format(new Date(ano, numero - 1, 1))
+    return rotulo.charAt(0).toLocaleUpperCase(localeAtual()) + rotulo.slice(1)
+  }
   const chave = `${filtros.periodo}-${filtros.ref.getTime()}`
 
   return (
@@ -101,14 +109,36 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
 
       {/* Navegação de período */}
       {mostrarPeriodo && (
-      <div className="flex items-center justify-center gap-6">
-        <button
+      <div className="flex min-w-0 items-center justify-center gap-2 sm:gap-6">
+        {filtros.periodo !== 'mes' && <button
           onClick={() => setFiltros({ ref: mover(filtros.periodo, filtros.ref, -1) })}
           className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
           aria-label={t('dash.periodoAnterior')}
         >
           ‹
-        </button>
+        </button>}
+        {filtros.periodo === 'mes' ? (
+          <div className="min-w-0 text-center">
+            <h2 className="sr-only">{rotuloPeriodo('mes', filtros.ref)}</h2>
+            <label className="relative block w-64 max-w-full">
+              <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta-fraca" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M7 3v4m10-4v4M3 11h18" />
+              </svg>
+              <span className="sr-only">{t('filtros.escolherMes')}</span>
+              <select value={mesAtual} onChange={(event) => {
+                const [ano, mes] = event.target.value.split('-').map(Number)
+                setFiltros({ ref: new Date(ano, mes - 1, 1) })
+              }} className="campo-painel w-full cursor-pointer appearance-none pl-10 pr-10 text-center font-medium transition-colors hover:border-carvao-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca">
+                {meses.map((mes) => <option key={mes} value={mes}>{nomeDoMes(mes)}</option>)}
+              </select>
+              <svg viewBox="0 0 20 20" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta-fraca" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                <path d="m6 8 4 4 4-4" />
+              </svg>
+            </label>
+            <p className="mt-2 text-xs text-tinta-tenue">{t(agrupamentoDe('mes'))}</p>
+          </div>
+        ) : (
         <AnimatePresence mode="wait">
           <motion.div
             key={chave}
@@ -126,13 +156,14 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
             </p>
           </motion.div>
         </AnimatePresence>
-        <button
+        )}
+        {filtros.periodo !== 'mes' && <button
           onClick={() => setFiltros({ ref: mover(filtros.periodo, filtros.ref, 1) })}
           className="grid h-11 w-11 place-items-center rounded-full border border-carvao-700 text-tinta-fraca transition-colors hover:border-carvao-600 hover:text-tinta"
           aria-label={t('dash.proximoPeriodo')}
         >
           ›
-        </button>
+        </button>}
       </div>
       )}
     </div>

@@ -5,6 +5,8 @@
  *  `Dicionario` exigiria de en/es os mesmos textos, impedindo a tradução. Aqui
  *  os valores são `string`, então en/es só precisam ter as MESMAS CHAVES. */
 export const pt = {
+  'filtros.escolherMes': 'Escolher mês',
+  'grafico.ondeGastou': 'Onde você gastou',
   'regrasOp.nova': 'Nova regra com operadores',
   'regrasOp.titulo': 'Regras de categorização',
   'regrasOp.descricao': 'Aqui ficam as regras que você cria e as que o app aprende quando você corrige uma categoria. Maior prioridade vence; em empate, a condição mais longa vence.',
@@ -643,7 +645,7 @@ export const pt = {
   'docs.periodoDocumento': 'Período informado no documento',
   'docs.gastoReal': 'Gasto real salvo: {valor}',
   'docs.contagemIndisponivel': 'Contagem e gasto real indisponíveis no momento.',
-  'docs.semTransacoes': 'Sem transações vinculadas a este documento. Elas podem já estar em outro documento importado.',
+  'docs.semTransacoes': 'Este documento não contém transações.',
   'docs.conferenciaNaoGuardada': 'O resultado da conferência original deste documento não foi guardado. Para conferir novamente, selecione o PDF e revise a prévia.',
   'docs.conferenciaOriginal': 'Conferência original',
   'docs.conferenciaOriginalAjuda': 'Resultado guardado na importação, antes dos vínculos e da deduplicação. A contagem descreve a leitura original; não confirma que todos os documentos foram importados.',

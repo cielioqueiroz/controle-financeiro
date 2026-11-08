@@ -55,6 +55,16 @@ describe('Procedencia', () => {
     expect(screen.getByText(/1 extrato/)).toBeInTheDocument()
   })
 
+  it('conta todos os documentos que comprovam uma transação sobreposta', () => {
+    render(
+      <Procedencia
+        txs={[tx({ document_id: 'f1', document_ids: ['f1', 'f2'] })]}
+        periodo="junho de 2026"
+      />,
+    )
+    expect(screen.getByText(/2 faturas/)).toBeInTheDocument()
+  })
+
   // "4 documentos" não diz se a fatura do mês entrou — e é a fatura que traz
   // o detalhe das compras. Por isso a contagem é por tipo, não um total só.
   it('some com o tipo que não aparece, em vez de escrever zero', () => {

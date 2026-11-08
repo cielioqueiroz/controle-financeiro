@@ -65,7 +65,9 @@ export function MesesRelatorio({ atual, anterior, comparavel, foraDaJanela = [],
                   <div>
                     <span className="text-tinta">{rotuloMes(mes.competencia)}</span>
                     <p className="mt-1 text-xs text-tinta-fraca">{mes.resumo
-                      ? t('relatorios.documentosMes', { n: new Set(mes.transacoes.map((tx) => tx.document_id)).size })
+                      ? t('relatorios.documentosMes', {
+                        n: new Set(mes.transacoes.flatMap((tx) => tx.document_ids ?? [tx.document_id])).size,
+                      })
                       : t('relatorios.mesSemDados')}</p>
                   </div>
                   <span className="tabular text-xs text-tinta">{mes.resumo

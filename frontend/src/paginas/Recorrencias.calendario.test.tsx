@@ -37,7 +37,7 @@ const SALARIO = MESES.map((c) => tx({
   competencia: c, date: `${c}-05`, description: 'SALARIO EMPRESA', kind: 'income', amount_cents: -600000, category_slug: 'salario',
 }))
 const PARCELA = tx({
-  description: 'TV', bank: 'nubank', doc_type: 'fatura', amount_cents: 50000, installment: { current: 2, total: 6 }, date: '2026-05-20',
+  description: 'TV', bank: 'nubank', account_id: 'c1', doc_type: 'fatura', amount_cents: 50000, installment: { current: 2, total: 6 }, date: '2026-05-20',
 })
 
 function abrir() {

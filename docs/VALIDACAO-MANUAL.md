@@ -187,7 +187,7 @@ para isso, nunca a sua.
    acentos certos, valores com vírgula, nenhuma célula virando fórmula.
 5. Seus dados → excluir com a palavra. Anotar o aviso: "Conta e dados
    excluídos" (o Neon liga o `deleteUser`) ou "O login continua existindo"
-   (não liga). No console do Neon, conferir que as sete tabelas não têm mais
+   (não liga). No console do Neon, conferir que as oito tabelas não têm mais
    linhas daquele `user_id`.
 
 ---

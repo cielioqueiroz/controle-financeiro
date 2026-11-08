@@ -39,7 +39,8 @@ um deploy exige *Instant Rollback* no painel.
 │                            0006 privilégios · 0007 falhas · 0008 importação atômica ·
 │                            0009 vínculos históricos · 0010 regras com consulta · 0011 Caixa ·
 │                            0012 estorno de fatura (dados) · 0013 preferências ·
-│                            0014 quitação por PIX ao emissor
+│                            0014 quitação por PIX ao emissor ·
+│                            0015 documentos e transações compartilhadas
 ├── scripts/           medidores em Python + ferramentas em tsx
 ├── docs/              ADRs, estado atual, imagens
 ├── vercel.json        headers, CSP e rewrites — só valem EM PRODUÇÃO
@@ -128,8 +129,8 @@ persist/puxar.ts + documentos.ts + categoriasUsuario.ts
 
 ## 1.4 Modelo de dados (Neon Postgres)
 
-Sete tabelas, **todas com RLS por `user_id`**: `accounts`, `documents`,
-`categories`, `merchant_rules`, `transactions`, `client_errors` e
+Oito tabelas, **todas com RLS por `user_id`**: `accounts`, `documents`,
+`document_transactions`, `categories`, `merchant_rules`, `transactions`, `client_errors` e
 `preferencias` (0013, uma linha por pessoa — ver
 [ADR-0023](./docs/adr/0023-preferencias-em-tabela-propria.md)). As políticas comparam
 `(select auth.user_id())::uuid = user_id`; `categories` é a exceção, porque lê
@@ -137,6 +138,12 @@ também as globais (`user_id is null`).
 
 Três índices em `transactions`: `(user_id, date)`, `(document_id)` e
 `(user_id, category_slug)`.
+
+⚠️ **Uma transação pode ter mais de um documento como prova.**
+`transactions.document_id` é a procedência primária; a relação completa fica
+em `document_transactions` (0015). Cálculos percorrem `transactions` uma vez;
+contagens por documento usam a relação N:N. Apagar uma prova transfere a
+procedência primária quando outra existe. Ver ADR-0026.
 
 **RLS não é a única defesa.** A migração `0003` acrescentou uma função e dois
 gatilhos que recusam relação apontando para linha de OUTRO usuário — chave

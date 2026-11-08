@@ -62,11 +62,18 @@ const dataDa = (date: Date): string => date.toISOString().slice(0, 10)
 
 const textoEstavel = (text: string): string => text.trim().replace(/\s+/g, ' ')
 
-/** Chave de dedup de uma transação: conta + data + valor + merchant
- *  normalizado. Igualdade exata — nunca difusa. */
-export function chaveTransacao(tx: RawTransaction, accountKey: string): string {
+/** Identidade usada nas importações antigas e nas transações sem parcela. */
+export function chaveTransacaoLegada(tx: RawTransaction, accountKey: string): string {
   const dia = tx.date.toISOString().slice(0, 10)
   const merchant = normalizeMerchant(tx.description)
   return `${accountKey}|${dia}|${tx.amountCents}|${merchant}`
 }
 
+
+/** A data original da compra pode se repetir nas próximas faturas.
+ *  O número da parcela distingue cobranças que repetem data e valor. */
+export function chaveTransacao(tx: RawTransaction, accountKey: string): string {
+  const base = chaveTransacaoLegada(tx, accountKey)
+  if (!tx.installment) return base
+  return JSON.stringify([base, tx.installment.current, tx.installment.total])
+}

@@ -61,22 +61,23 @@ export function construirInsights(
     linkNote: t.linkNote,
   }))
 
-  const gastoRealCents = transacoes
-    .filter((t) => t.link === null && t.amountCents > 0)
+  // A natureza manda na mesma conta de `salvar`/`agregar`: estorno
+  // abate a compra, pagamento não é gasto e vínculo não vira entrada.
+  const despesas = linked.filter((t) =>
+    t.link === null && (t.kind === 'compra' || t.kind === 'encargo'))
+  const gastoRealCents = despesas.reduce((a, t) => a + t.amountCents, 0)
+
+  const gastoIngenuoCents = linked
+    .filter((t) => t.kind === 'compra' || t.kind === 'encargo' || (t.kind === 'pagamento' && t.amountCents > 0))
     .reduce((a, t) => a + t.amountCents, 0)
 
-  const gastoIngenuoCents = transacoes
-    .filter((t) => t.amountCents > 0)
-    .reduce((a, t) => a + t.amountCents, 0)
-
-  const totalEntradasCents = transacoes
-    .filter((t) => t.amountCents < 0)
-    .reduce((a, t) => a - t.amountCents, 0)
+  const totalEntradasCents = linked
+    .filter((t) => t.link === null && t.kind === 'entrada')
+    .reduce((a, t) => a + Math.abs(t.amountCents), 0)
 
   const mapa = new Map<string, CategoriaResumo>()
-  for (const t of transacoes) {
-    if (t.link !== null || t.amountCents <= 0) continue
-    const slug = t.categoriaSlug
+  for (const t of despesas) {
+    const slug = categoriaDe(t, regras)
     const atual = mapa.get(slug) ?? { cat: categoria(slug), totalCents: 0, contagem: 0 }
     atual.totalCents += t.amountCents
     atual.contagem += 1

@@ -26,19 +26,12 @@
    ============================================================ */
 
 @theme {
-  /* ---------- Tipografia ----------
-     Uma família (IBM Plex), três vozes. Sem serifada decorativa: aquilo é
-     metade da assinatura do visual-padrão-de-IA que estamos deixando.
-
-     • Mono é a voz principal dos NÚMEROS, e os números são o herói desta
-       tela. Livro-caixa se lê em coluna alinhada, não em fonte bonita.
-     • Condensed nos rótulos de coluna, como cabeçalho de formulário
-       bancário — dá hierarquia sem trocar de família.
-     • Sans no corpo. */
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  /* Instrument Sans na interface e nos títulos; IBM Plex Mono nos números.
+     A paleta e as superfícies continuam as da main. */
+  --font-sans: "Instrument Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-condensada: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
-  --font-display: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  --font-condensada: "Instrument Sans", system-ui, sans-serif;
+  --font-display: "Instrument Sans", system-ui, sans-serif;
 
   /* ---------- Superfícies (tema CLARO é o padrão) ----------
      Papel frio de formulário/impressão fiscal, não creme. A elevação sobe
@@ -294,8 +287,7 @@ body {
     cursor: not-allowed;
   }
 
-  /* Títulos: condensada com tracking apertado. A largura estreita é o que
-     separa título de corpo — mesma família, outra proporção. */
+  /* Títulos com o mesmo desenho da interface, em peso maior. */
   .font-display {
     font-family: var(--font-condensada);
     font-weight: 600;
@@ -434,6 +426,18 @@ body {
   .regua {
     border-bottom: 1px solid var(--color-borda);
   }
+}
+
+.gastos-por-categoria .rotulo { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; text-transform: none; color: var(--color-tinta); }
+.gastos-por-categoria .categoria-gasto { grid-template-columns: auto minmax(0, 1fr); padding-inline: 0.5rem; }
+.gastos-por-categoria .categoria-gasto-nome { font-weight: 500; }
+.gastos-por-categoria .categoria-gasto-valor { grid-column: 2; font-size: 0.8125rem; }
+.gastos-por-categoria .categoria-gasto-barra { margin: 0 0.5rem 0.75rem 1.5rem; height: 0.375rem; }
+.gastos-por-categoria .categoria-gasto:hover, .gastos-por-categoria .categoria-gasto:focus-visible { background: var(--color-afundado); }
+
+@media (min-width: 640px) {
+  .gastos-por-categoria .categoria-gasto { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .gastos-por-categoria .categoria-gasto-valor { grid-column: 3; align-items: center; gap: 1rem; }
 }
 
 /* Modais e menus. Elevação por CONTORNO + sombra curta, não por borrão:

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hashConteudoDocumento, hashDocumento } from './hash'
+import { chaveTransacao, hashConteudoDocumento, hashDocumento } from './hash'
 import type { ParseResult } from '../parsers/types'
 import type { DocKind } from '../pdf/detect'
 
@@ -41,5 +41,19 @@ describe('identidade de Documento', () => {
     expect(await hashDocumento(new TextEncoder().encode('a').buffer)).not.toBe(
       await hashDocumento(new TextEncoder().encode('b').buffer),
     )
+  })
+})
+
+describe('identidade da cobrança parcelada', () => {
+  it('distingue parcelas diferentes com a mesma data original, valor e estabelecimento', () => {
+    const terceira = { ...resultado().transactions[0], installment: { current: 3, total: 4 } }
+    const quarta = { ...terceira, installment: { current: 4, total: 4 } }
+    expect(chaveTransacao(terceira, 'cartao')).not.toBe(chaveTransacao(quarta, 'cartao'))
+  })
+
+  it('mantém a mesma identidade ao reimportar a mesma parcela', () => {
+    const parcela = { ...resultado().transactions[0], installment: { current: 3, total: 4 } }
+    const copia = { ...parcela, installment: { ...parcela.installment } }
+    expect(chaveTransacao(parcela, 'cartao')).toBe(chaveTransacao(copia, 'cartao'))
   })
 })

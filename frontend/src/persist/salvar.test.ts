@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { criarNeonFalso } from './neon-falso'
-import { hashDocumento, hashConteudoDocumento } from '../domain/dedupe/hash'
+import { hashDocumento, hashConteudoDocumento, sha256 } from '../domain/dedupe/hash'
 import type { ParseResult, RawTransaction, RawKind } from '../domain/parsers/types'
 import type { DocKind } from '../domain/pdf/detect'
 import type { Regra } from '../domain/categorize/regras'
@@ -294,6 +294,73 @@ describe('dedupe contra o que já está no banco', () => {
 
     expect(r).toMatchObject({ status: 'salvo', inseridas: 0, jaExistiam: 2 })
     expect(falso.gravadasEm('transactions')).toHaveLength(gravadasAntes)
+    expect(falso.gravadasEm('document_transactions')).toEqual([
+      expect.objectContaining({ document_id: 'doc-1' }),
+      expect.objectContaining({ document_id: 'doc-1' }),
+      expect.objectContaining({ document_id: 'doc-2' }),
+      expect.objectContaining({ document_id: 'doc-2' }),
+    ])
+  })
+})
+
+describe('dedupe de parcelas contra o histórico', () => {
+  const data = '2026-06-10'
+  const parcela = (current: number) => ({
+    ...tx(data, 'PADARIA DO ZE', 500), installment: { current, total: 4 },
+  })
+  const baseLegada = () => sha256('nubank-fatura-1234|2026-06-10|500|PADARIA DO ZE')
+  const bytes = (s: string) => new TextEncoder().encode(s).buffer as ArrayBuffer
+
+  it('reusa as ocorrências legadas da mesma parcela num documento sobreposto', async () => {
+    const hash = await baseLegada()
+    const mesma = parcela(3)
+    montar({
+      hashes: [hash, `${hash}#2`, `${hash}#3`],
+      transacoes: [
+        { hash, date: data, installment: parcela(2).installment },
+        { hash: `${hash}#2`, date: data, installment: mesma.installment },
+        { hash: `${hash}#3`, date: data, installment: mesma.installment },
+      ],
+    })
+    const doc = documento({ transactions: [mesma, mesma, mesma], declaredTotal: 1500 })
+    expect(await salvarDocumento(doc, FATURA, BYTES, 'sobreposta.pdf', []))
+      .toMatchObject({ status: 'salvo', inseridas: 1, jaExistiam: 2 })
+    expect(falso.rpcChamadas[0].parametros.p_transacoes).toEqual([
+      expect.objectContaining({ hash: `${hash}#2` }),
+      expect.objectContaining({ hash: `${hash}#3` }),
+      expect.objectContaining({ hash: expect.not.stringMatching(new RegExp(hash)) }),
+    ])
+
+    expect(await salvarDocumento(doc, FATURA, bytes('mesmo conteúdo'), 'reexportada.pdf', []))
+      .toMatchObject({ status: 'documento-duplicado' })
+    const reexportada = { ...doc, forward: { ...doc.forward, totalOpenBalance: 100 } }
+    expect(await salvarDocumento(reexportada, FATURA, bytes('conteúdo sobreposto'), 'reexportada.pdf', []))
+      .toMatchObject({ status: 'salvo', inseridas: 0, jaExistiam: 3 })
+  })
+
+  it('grava uma parcela diferente mesmo quando os outros dados batem com o legado', async () => {
+    const hash = await baseLegada()
+    montar({ hashes: [hash], transacoes: [{ hash, date: data, installment: parcela(3).installment }] })
+    const doc = documento({ transactions: [parcela(4)] })
+    expect(await salvarDocumento(doc, FATURA, BYTES, 'fatura-seguinte.pdf', []))
+      .toMatchObject({ status: 'salvo', inseridas: 1, jaExistiam: 0 })
+    expect(falso.gravadasEm('transactions')[0].installment).toEqual({ current: 4, total: 4 })
+  })
+
+  it('cancela a importação se a leitura da identidade das parcelas vier truncada', async () => {
+    const hash = await baseLegada()
+    montar({ transacoes: [{ hash, date: data, installment: parcela(3).installment }], truncarEm: 0 })
+    await expect(salvarDocumento(documento({ transactions: [parcela(3)] }), FATURA, BYTES, 'f.pdf', []))
+      .rejects.toThrow(/incomplet/i)
+    expect(falso.rpcChamadas).toHaveLength(0)
+  })
+
+  it('cancela a importação se a identidade de uma parcela do histórico vier deformada', async () => {
+    const hash = await baseLegada()
+    montar({ transacoes: [{ hash, date: data, installment: { current: '3', total: 4 } }] })
+    await expect(salvarDocumento(documento({ transactions: [parcela(3)] }), FATURA, BYTES, 'f.pdf', []))
+      .rejects.toThrow(/incomplet/i)
+    expect(falso.rpcChamadas).toHaveLength(0)
   })
 })
 

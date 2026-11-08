@@ -6,7 +6,7 @@ import { BarraFiltros } from './BarraFiltros'
 
 /** O que o `useDados` devolve é trocado por caso — é dele que sai a lista de
  *  bancos, e é ela que decide se o filtro de banco aparece. */
-let bancos: { bank: string }[] = []
+let bancos: { bank: string; competencia?: string }[] = []
 vi.mock('../dados/DadosProvider', () => ({
   useDados: () => ({ todas: bancos }),
 }))
@@ -66,15 +66,19 @@ describe('BarraFiltros', () => {
     expect(screen.getByText('por data da compra')).toBeInTheDocument()
   })
 
-  it('anda para o período anterior e para o próximo', async () => {
+  it.each([
+    ['dia', '2026-06-15', '2026-06-14'],
+    ['semana', '2026-06-15', '2026-06-08'],
+    ['ano', '2026-06', '2025-06'],
+  ])('mantém as setas no modo %s', async (periodo, ref, anterior) => {
     const usuario = userEvent.setup()
-    montar({}, '/?p=mes&ref=2026-06')
+    montar({}, '/?p=' + periodo + '&ref=' + ref)
 
     await usuario.click(screen.getByRole('button', { name: 'Período anterior' }))
-    expect(url()).toContain('ref=2026-05')
+    expect(url()).toContain('ref=' + anterior)
 
     await usuario.click(screen.getByRole('button', { name: 'Próximo período' }))
-    expect(url()).toContain('ref=2026-06')
+    expect(url()).toContain('ref=' + ref)
   })
 
   /** "Senão é um filtro que não filtra": com um banco só, as pílulas seriam
@@ -131,5 +135,47 @@ describe('BarraFiltros', () => {
     bancos = []
     montar()
     expect(screen.getByRole('button', { name: 'Mês' })).toBeInTheDocument()
+  })
+
+  it('escolhe um mês do histórico sem perder os outros filtros nem o foco', async () => {
+    bancos = [
+      { bank: 'nubank', competencia: '2026-06' },
+      { bank: 'bradesco', competencia: '2026-08' },
+      { bank: 'nubank', competencia: '2026-08' },
+    ]
+    montar({}, '/?ref=2026-06&banco=nubank&cat=supermercado&q=mercado&documento=d1')
+    const seletor = screen.getByRole('combobox', { name: 'Escolher mês' })
+    expect(seletor).toHaveValue('2026-06')
+    expect(screen.getAllByRole('option')).toHaveLength(2)
+
+    await userEvent.selectOptions(seletor, '2026-08')
+
+    expect(url()).toContain('ref=2026-08')
+    expect(url()).toContain('banco=nubank')
+    expect(url()).toContain('cat=supermercado')
+    expect(url()).toContain('q=mercado')
+    expect(url()).toContain('documento=d1')
+    expect(seletor).toHaveFocus()
+    expect(seletor).toHaveValue('2026-08')
+  })
+
+  it('usa só o seletor no modo mês, sem setas redundantes', () => {
+    montar({}, '/?ref=2026-06')
+    expect(screen.getByRole('combobox', { name: 'Escolher mês' })).toHaveValue('2026-06')
+    expect(screen.getByRole('option', { name: 'Junho de 2026' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Período anterior' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Próximo período' })).not.toBeInTheDocument()
+  })
+
+  it('mantém selecionado um mês sem documento', () => {
+    bancos = [{ bank: 'nubank', competencia: '2026-06' }]
+    montar({}, '/?ref=2026-07')
+    expect(screen.getByRole('combobox', { name: 'Escolher mês' })).toHaveValue('2026-07')
+  })
+
+  it('não oferece escolha de mês quando o recorte é por dia', () => {
+    montar({}, '/?p=dia&ref=2026-06-15')
+    expect(screen.queryByRole('combobox', { name: 'Escolher mês' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '15 jun 2026' })).toBeInTheDocument()
   })
 })

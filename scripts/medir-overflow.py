@@ -50,6 +50,12 @@ INTERVALO_MS = 500
 # fundo animado que motivou esta ferramenta e precisa dos 8 segundos; as
 # demais so precisam da animacao de entrada assentar.
 JORNADAS = [
+    ("mes-e-categorias", "/demo.html?tela=painel&ref=2026-06",
+     [("escolher-mes", "2026-07"), ("expandir", "Explorar o período"), ("focar-botao-parcial", "Supermercado")],
+     [("mes-escolhido", "2026-07"), ("ver-texto", "Onde você gastou"), ("focado-botao-parcial", "Supermercado")], 6),
+    ("mes-e-categorias-claro", "/demo.html?tela=painel&ref=2026-06&tema=claro",
+     [("escolher-mes", "2026-07"), ("expandir", "Explorar o período"), ("focar-botao-parcial", "Supermercado")],
+     [("mes-escolhido", "2026-07"), ("ver-texto", "Onde você gastou"), ("focado-botao-parcial", "Supermercado")], 6),
     ("vinculos-documentados", "/demo.html?tela=documentos&amostra=vinculos",
      [("ativar-resumo", "Conferir vínculos entre documentos")],
      [("ver-texto", "Pagamento no extrato"), ("ver-texto", "PIX recebido")], 6),
@@ -65,7 +71,7 @@ JORNADAS = [
      [("expandir", "Ver contas e datas"), ("clicar-link", "Ver documento importado")],
      [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
     ("grafico-mes-origem", "/demo.html?tela=situacao&amostra=saldo",
-     [("clicar-parcial", "jun 2026"), ("clicar-link", "Ver lançamentos de jun 2026"), ("clicar", "Ver documento importado")],
+     [("clicar-parcial", "mai 2026"), ("clicar-link", "Ver lançamentos de mai 2026"), ("clicar", "Ver documento importado")],
      [("ver-path", "/faturas"), ("focado-resumo", "Ver dados do documento")], 6),
     ("emoji-opcoes", "/demo.html",
      [("clicar", "Abrir editor de compra"), ("clicar-parcial", "Nova"), ("clicar", "Emoji da categoria")],
@@ -261,7 +267,11 @@ def executar(pagina: Page, passos: list[tuple[str, str]]) -> None:
     a ficar sem medicao — o defeito que este arquivo existe para nao repetir.
     """
     for acao, alvo in passos:
-        if acao == "clicar-link":
+        if acao == "escolher-mes":
+            pagina.get_by_role("combobox", name="Escolher mês", exact=True).select_option(alvo)
+        elif acao == "focar-botao-parcial":
+            pagina.get_by_role("button").filter(has_text=alvo).first.focus()
+        elif acao == "clicar-link":
             pagina.get_by_role("link", name=alvo, exact=True).first.click()
         elif acao == "buscar-emoji":
             pagina.get_by_role("searchbox").filter(visible=True).last.fill(alvo)
@@ -289,7 +299,11 @@ def executar(pagina: Page, passos: list[tuple[str, str]]) -> None:
 def conferir(pagina: Page, provas: list[tuple[str, str]]) -> None:
     """Prova que a peca esta na tela. Lanca se nao estiver."""
     for acao, alvo in provas:
-        if acao == "ver-botao":
+        if acao == "mes-escolhido":
+            expect(pagina.get_by_role("combobox", name="Escolher mês", exact=True)).to_have_value(alvo)
+        elif acao == "focado-botao-parcial":
+            expect(pagina.get_by_role("button").filter(has_text=alvo).first).to_be_focused()
+        elif acao == "ver-botao":
             expect(pagina.get_by_role("button", name=alvo, exact=True).first).to_be_visible()
         elif acao == "pressionado":
             # O rotulo de uma alternancia nao muda com o clique; o aria-pressed

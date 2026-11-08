@@ -62,7 +62,7 @@ export function CalendarioProximoMes({ calendario }: Props) {
             </div>
             <ul className="min-w-0 flex-1 space-y-2">
               {itens.map((item) => (
-                <li key={item.tipo === 'recorrencia' ? item.chave : `parcelas|${item.bank}`}>
+                <li key={item.tipo === 'recorrencia' ? item.chave : `parcelas|${item.accountId ?? item.bank}`}>
                   <Item item={item} semDia={dia === null} />
                 </li>
               ))}

@@ -25,10 +25,12 @@ export function Faturas() {
   const contagem = useMemo(() => {
     const m = new Map<string, { qtd: number; totalCents: number }>()
     for (const t of todas ?? []) {
-      const cur = m.get(t.document_id) ?? { qtd: 0, totalCents: 0 }
-      cur.qtd += 1
-      if (t.kind === 'expense') cur.totalCents += t.amount_cents
-      m.set(t.document_id, cur)
+      for (const documentId of t.document_ids ?? [t.document_id]) {
+        const cur = m.get(documentId) ?? { qtd: 0, totalCents: 0 }
+        cur.qtd += 1
+        if (t.kind === 'expense') cur.totalCents += t.amount_cents
+        m.set(documentId, cur)
+      }
     }
     return m
   }, [todas])
