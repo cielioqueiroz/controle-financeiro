@@ -15,7 +15,12 @@ export type TxCalendario = TxRecorrente & TxParcela
 
 /** O que o calendário precisa de um documento: de que banco é, se é fatura
  *  e quando vence. */
-export type DocVencimento = { bank: string; doc_type: string; period_end: string | null }
+export type DocVencimento = {
+  bank: string
+  account_id?: string | null
+  doc_type: string
+  period_end: string | null
+}
 
 export type ItemDoDia =
   | {
@@ -30,7 +35,13 @@ export type ItemDoDia =
        *  último valor, e este é o de antes. */
       valorAnteriorCents?: number
     }
-  | { tipo: 'parcelas'; bank: string; valorCents: number; parcelas: ItemFuturo[] }
+  | {
+      tipo: 'parcelas'
+      bank: string
+      accountId?: string | null
+      valorCents: number
+      parcelas: ItemFuturo[]
+    }
 
 /** `dia: null` reúne o que não tem dia conhecido: as parcelas de um cartão
  *  cuja fatura nunca foi importada. Fica no fim. */
@@ -67,14 +78,15 @@ function diasNoMes(comp: string): number {
 }
 
 /** O dia de vencimento de cada cartão, pela fatura mais recente dele. */
-function vencimentoPorBanco(docs: DocVencimento[]): Map<string, number> {
+function vencimentoPorConta(docs: DocVencimento[]): Map<string, number> {
   const ultima = new Map<string, string>()
   for (const d of docs) {
     if (d.doc_type !== 'fatura' || !d.period_end) continue
-    const atual = ultima.get(d.bank)
-    if (!atual || d.period_end > atual) ultima.set(d.bank, d.period_end)
+    const conta = d.account_id ?? `${d.bank}:sem-conta`
+    const atual = ultima.get(conta)
+    if (!atual || d.period_end > atual) ultima.set(conta, d.period_end)
   }
-  return new Map([...ultima].map(([bank, fim]) => [bank, Number(fim.slice(8, 10))]))
+  return new Map([...ultima].map(([conta, fim]) => [conta, Number(fim.slice(8, 10))]))
 }
 
 /** O mês seguinte à competência mais recente com dado — a mesma régua dos
@@ -130,15 +142,35 @@ export function calendarioDoProximoMes(txs: TxCalendario[], docs: DocVencimento[
     else saidaCents += valorCents
   }
 
-  const vencimentos = vencimentoPorBanco(docs)
+  const vencimentos = vencimentoPorConta(docs)
   const mes = projecaoFutura(txs).find((m) => m.competencia === competencia)
-  for (const { bank, totalCents } of mes?.porBanco ?? []) {
-    const dia = vencimentos.get(bank)
+  type ParcelasDaConta = {
+    bank: string
+    accountId: string | null
+    totalCents: number
+    parcelas: ItemFuturo[]
+  }
+  const porConta = new Map<string, ParcelasDaConta>()
+  for (const parcela of mes?.itens ?? []) {
+    const conta = parcela.accountId ?? `${parcela.bank}:sem-conta`
+    const grupo: ParcelasDaConta = porConta.get(conta) ?? {
+      bank: parcela.bank,
+      accountId: parcela.accountId ?? null,
+      totalCents: 0,
+      parcelas: [],
+    }
+    grupo.totalCents += parcela.amountCents
+    grupo.parcelas.push(parcela)
+    porConta.set(conta, grupo)
+  }
+  for (const [conta, { bank, accountId, totalCents, parcelas }] of porConta) {
+    const dia = vencimentos.get(conta)
     adicionar(dia === undefined ? null : Math.min(dia, ultimoDia), {
       tipo: 'parcelas',
       bank,
+      accountId,
       valorCents: totalCents,
-      parcelas: mes!.itens.filter((it) => it.bank === bank),
+      parcelas,
     })
     saidaCents += totalCents
   }

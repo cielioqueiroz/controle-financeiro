@@ -214,6 +214,7 @@ export type TxParcela = {
   description: string
   label: string | null
   bank: string
+  account_id?: string | null
   installment: { current: number; total: number } | null
 }
 
@@ -223,6 +224,7 @@ export type ItemFuturo = {
   total: number
   amountCents: number
   bank: string
+  accountId?: string | null
 }
 
 /** Quanto de um mês futuro vem de cada cartão. É o que o gráfico dos
@@ -268,7 +270,8 @@ export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
     if (t.kind !== 'expense' || !t.installment) continue
     const { current, total } = t.installment
     const origem = somarMeses(t.competencia, 1 - current)
-    const chave = `${t.bank}|${normalizeMerchant(t.description)}|${total}|${origem}`
+    const conta = t.account_id ?? `${t.bank}:sem-conta`
+    const chave = `${conta}|${normalizeMerchant(t.description)}|${total}|${origem}`
     const atual = series.get(chave)
     const maisNova = atual?.[0].installment?.current ?? 0
     if (current > maisNova) series.set(chave, [t])
@@ -289,6 +292,7 @@ export function projecaoFutura(txs: TxParcela[]): MesFuturo[] {
           total,
           amountCents: t.amount_cents,
           bank: t.bank,
+          accountId: t.account_id ?? null,
         })
         meses.set(comp, mes)
       }

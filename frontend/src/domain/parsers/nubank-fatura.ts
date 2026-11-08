@@ -59,7 +59,8 @@ function periodo(lines: Line[], ref: Date): { start: Date; end: Date } | null {
   const m = linha.text.match(PERIODO)!
   return {
     start: inferYear(Number(m[1]), parseMesAbreviado(m[2]), ref),
-    end: inferYear(Number(m[3]), parseMesAbreviado(m[4]), ref),
+    // O fim ancora competência e quitação: é o vencimento (ADR-0001).
+    end: ref,
   }
 }
 

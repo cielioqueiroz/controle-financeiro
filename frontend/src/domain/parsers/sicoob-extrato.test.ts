@@ -5,6 +5,7 @@ import { parseSicoobExtrato } from './sicoob-extrato'
 import { detectDocument } from '../pdf/detect'
 import { validar } from '../validate/checksum'
 import type { TextItem } from '../pdf/types'
+import type { Line } from '../pdf/lines'
 
 const lines = buildLines(
   JSON.parse(readFileSync('tests/fixtures/sicoob-extrato.items.json', 'utf-8')) as TextItem[],
@@ -55,6 +56,36 @@ describe('parseSicoobExtrato — multi-linha e sinal', () => {
 
   it('usa o ano do período nas datas (2025)', () => {
     expect(r.transactions.every((t) => t.date.getFullYear() === 2025)).toBe(true)
+  })
+
+  it('usa o ano final nas transações de janeiro quando o período atravessa dezembro', () => {
+    const linha = (text: string, y: number, cells: Line['cells'] = []): Line => ({
+      text,
+      y,
+      page: 1,
+      cells,
+    })
+    const celula = (text: string, x: number, right: number) => ({ text, x, width: right - x, right })
+    const atravessaAno: Line[] = [
+      linha('Periodo: 01/12/2025 - 31/01/2026', 700),
+      linha('SALDO ANTERIOR R$ 1.000,00C', 680, [
+        celula('SALDO ANTERIOR', 177, 280),
+        celula('R$ 1.000,00C', 490, 556),
+      ]),
+      linha('05/01 COMPRA R$ 100,00D', 660, [
+        celula('05/01', 40, 70),
+        celula('COMPRA', 177, 240),
+        celula('R$ 100,00D', 500, 556),
+      ]),
+      linha('SALDO DO DIA R$ 900,00C', 640, [
+        celula('SALDO DO DIA', 177, 270),
+        celula('R$ 900,00C', 500, 556),
+      ]),
+    ]
+
+    const resultado = parseSicoobExtrato(atravessaAno)
+    expect(resultado.transactions[0].date).toEqual(new Date(2026, 0, 5))
+    expect(validar(resultado).status).toBe('confere')
   })
 
   it('extrai vários lançamentos', () => {

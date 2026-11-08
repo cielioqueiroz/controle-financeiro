@@ -128,6 +128,35 @@ describe('detectarRecorrencias', () => {
     expect(r[0].variacao).toBe('fixo')
   })
 
+  it('adota o novo patamar depois de dois meses de reajuste confirmado', () => {
+    const r = detectarRecorrencias(
+      serie(
+        ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06'],
+        [20000, 20000, 20000, 22000, 22000],
+      ),
+    )
+
+    expect(r[0]).toMatchObject({
+      variacao: 'fixo',
+      valorAnteriorCents: 20000,
+      valorTipicoCents: 22000,
+      ultimoValorCents: 22000,
+    })
+  })
+
+  it('não inventa novo patamar numa série naturalmente variável', () => {
+    const r = detectarRecorrencias(
+      serie(
+        ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06'],
+        [15000, 21000, 18000, 22000, 22000],
+        { description: 'ENERGIA' },
+      ),
+    )
+
+    expect(r[0].variacao).toBe('variavel')
+    expect(r[0].valorTipicoCents).toBe(21000)
+  })
+
   it('reconhece entrada recorrente (salário)', () => {
     const txs = serie(['2026-03', '2026-04', '2026-05'], [152000, 152000, 152000], {
       description: 'SALARIO EMPRESA X',
@@ -147,6 +176,19 @@ describe('detectarRecorrencias', () => {
     const r = detectarRecorrencias(txs)
     expect(r).toHaveLength(2)
     expect(r.map((x) => x.tipo).sort()).toEqual(['entrada', 'saida'])
+  })
+
+  it('estornos de fatura não viram uma recorrência de saída', () => {
+    const estornos = serie(['2026-03', '2026-04', '2026-05'], [-3990, -3990, -3990])
+    expect(detectarRecorrencias(estornos)).toEqual([])
+  })
+
+  it('estorno não soma ao valor nem à contagem da cobrança recorrente', () => {
+    const cobrancas = serie(['2026-03', '2026-04', '2026-05'], [3990, 3990, 3990])
+    const estornos = serie(['2026-03', '2026-04', '2026-05'], [-3990, -3990, -3990])
+    const recorrencias = detectarRecorrencias([...cobrancas, ...estornos])
+    expect(recorrencias).toHaveLength(1)
+    expect(recorrencias[0]).toMatchObject({ valorTipicoCents: 3990, ocorrenciasNaUltima: 1 })
   })
 
   it('usa o rótulo do usuário da ocorrência mais recente', () => {
@@ -271,6 +313,29 @@ describe('alertasDe', () => {
       serie(['2024-01', '2024-02', '2024-03'], [9900, 9900, 9900]),
     )
     expect(alertasDe(recs, '2026-06')).toEqual([])
+  })
+
+  it('mudança de valor antiga também respeita o limite de três meses', () => {
+    expect(alertasDe(fixaQueSubiu(), '2026-10')).toEqual([])
+  })
+
+  it('mantém o valor reajustado durante a tolerância de um mês do calendário', () => {
+    expect(alertasDe(fixaQueSubiu(), '2026-07')).toEqual([
+      expect.objectContaining({ tipo: 'valor-mudou', deCents: 3990, paraCents: 5590 }),
+    ])
+  })
+
+  it('mantém o alerta e a projeção no novo patamar quando o reajuste se repete', () => {
+    const recs = detectarRecorrencias(
+      serie(
+        ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06'],
+        [20000, 20000, 20000, 22000, 22000],
+      ),
+    )
+
+    expect(alertasDe(recs, '2026-06')).toEqual([
+      expect.objectContaining({ tipo: 'valor-mudou', deCents: 20000, paraCents: 22000 }),
+    ])
   })
 
   it('sem competência de referência não há alerta nenhum', () => {

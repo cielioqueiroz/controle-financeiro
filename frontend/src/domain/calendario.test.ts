@@ -11,6 +11,7 @@ function tx(over: Partial<TxCalendario> = {}): TxCalendario {
     kind: 'expense',
     category_slug: 'moradia',
     bank: 'bradesco',
+    account_id: 'conta-bra',
     installment: null,
     ...over,
   }
@@ -21,7 +22,12 @@ function mensal(over: Partial<TxCalendario>, meses = ['2026-06', '2026-07', '202
   return meses.map((c) => tx({ ...over, competencia: c, date: `${c}-${dia}` }))
 }
 
-const fatura = (bank: string, period_end: string) => ({ bank, doc_type: 'fatura', period_end })
+const fatura = (bank: string, period_end: string, account_id?: string) => ({
+  bank,
+  account_id: account_id ?? `conta-${bank}`,
+  doc_type: 'fatura',
+  period_end,
+})
 
 describe('calendarioDoProximoMes', () => {
   it('é o mês seguinte à competência mais recente com dado', () => {
@@ -70,8 +76,8 @@ describe('calendarioDoProximoMes', () => {
 
   it('as parcelas do cartão caem juntas no vencimento da última fatura dele', () => {
     const parcelas = [
-      tx({ description: 'TV', bank: 'nubank', amount_cents: 50000, installment: { current: 2, total: 6 } }),
-      tx({ description: 'SOFA', bank: 'nubank', amount_cents: 30000, installment: { current: 5, total: 10 } }),
+      tx({ description: 'TV', bank: 'nubank', account_id: 'conta-nubank', amount_cents: 50000, installment: { current: 2, total: 6 } }),
+      tx({ description: 'SOFA', bank: 'nubank', account_id: 'conta-nubank', amount_cents: 30000, installment: { current: 5, total: 10 } }),
     ]
     const cal = calendarioDoProximoMes([...mensal({}), ...parcelas],
       [fatura('nubank', '2026-07-09'), fatura('nubank', '2026-08-12')])!
@@ -89,6 +95,25 @@ describe('calendarioDoProximoMes', () => {
     const parcela = tx({ description: 'TV', bank: 'nubank', amount_cents: 50000, installment: { current: 2, total: 6 } })
     const cal = calendarioDoProximoMes([...mensal({}), parcela], [])!
     expect(cal.dias.map((d) => d.dia)).toEqual([5, null])
+  })
+
+  it('mantém separados dois cartões do mesmo banco com vencimentos diferentes', () => {
+    const parcelas = [
+      tx({ description: 'TV', bank: 'nubank', account_id: 'nu-1', amount_cents: 50000, installment: { current: 2, total: 6 } }),
+      tx({ description: 'SOFA', bank: 'nubank', account_id: 'nu-2', amount_cents: 30000, installment: { current: 5, total: 10 } }),
+    ]
+    const cal = calendarioDoProximoMes([...mensal({}), ...parcelas], [
+      fatura('nubank', '2026-08-12', 'nu-1'),
+      fatura('nubank', '2026-08-20', 'nu-2'),
+    ])!
+
+    expect(cal.dias.find((d) => d.dia === 12)?.itens).toEqual([
+      expect.objectContaining({ tipo: 'parcelas', accountId: 'nu-1', valorCents: 50000 }),
+    ])
+    expect(cal.dias.find((d) => d.dia === 20)?.itens).toEqual([
+      expect.objectContaining({ tipo: 'parcelas', accountId: 'nu-2', valorCents: 30000 }),
+    ])
+    expect(cal.saidaCents).toBe(280000)
   })
 
   it('a série de parcelas quitada não aparece', () => {
@@ -147,6 +172,11 @@ describe('calendarioDoProximoMes', () => {
       expect(recorrencia(cal)).toEqual(expect.objectContaining({ variacao: 'variavel', valorCents: 19500 }))
       expect(recorrencia(cal)).not.toHaveProperty('valorAnteriorCents')
     })
+  })
+
+  it('estornos de fatura não inventam uma saída no próximo mês', () => {
+    const estornos = mensal({ amount_cents: -200000 })
+    expect(calendarioDoProximoMes(estornos, [])).toBeNull()
   })
 
   it('sem nada previsto, cala', () => {

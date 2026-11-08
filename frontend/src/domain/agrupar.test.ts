@@ -235,6 +235,7 @@ describe('projecaoFutura', () => {
     description: 'GELADEIRA LOJA X',
     label: null,
     bank: 'nubank',
+    account_id: 'cartao-nu',
     installment: { current: 3, total: 6 },
     ...over,
   })
@@ -332,6 +333,15 @@ describe('projecaoFutura', () => {
       parcela({ bank: 'bradesco' }),
     ])
     expect(f[0].totalCents).toBe(20000)
+  })
+
+  it('a mesma descrição em dois cartões do mesmo banco são duas séries', () => {
+    const f = projecaoFutura([
+      parcela({ account_id: 'nu-1' }),
+      parcela({ account_id: 'nu-2' }),
+    ])
+    expect(f[0].totalCents).toBe(20000)
+    expect(f[0].itens.map((item) => item.accountId)).toEqual(['nu-1', 'nu-2'])
   })
 
   it('série quitada não volta a projetar a última parcela', () => {
