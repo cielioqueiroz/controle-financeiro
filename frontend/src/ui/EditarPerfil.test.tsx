@@ -48,6 +48,7 @@ beforeEach(() => {
     accounts: [],
     documents: [],
     transactions: [],
+    document_transactions: [],
     merchant_rules: [],
     categories: [],
     client_errors: [],

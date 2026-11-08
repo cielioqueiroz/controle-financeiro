@@ -1,3 +1,4 @@
+import { LogoBanco } from './LogoBanco'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 
@@ -51,11 +52,13 @@ export function SaldoAberto({ bank, abertoCents, futurasCents, proximoFechamento
   return (
     <div className="rounded-xl border border-carvao-700 bg-carvao-900/80 px-4 py-3">
       <div className="flex items-center gap-2">
-        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: tema.accent }} aria-hidden />
-        <span className="text-xs uppercase tracking-widest text-tinta-tenue">
+        <LogoBanco bank={bank} />
+        <span className="min-w-0">
+          <span className="block text-xs uppercase tracking-widest text-tinta-tenue">
           {t('aberto.rotulo')}
         </span>
-        <span className="truncate text-sm text-tinta">{tema.nome}</span>
+          <span className="block truncate text-sm text-tinta">{tema.nome}</span>
+        </span>
       </div>
       <p className="tabular mt-1 text-lg text-tinta">{formatBRL(valor)}</p>
       <p className="text-[11px] text-tinta-tenue">

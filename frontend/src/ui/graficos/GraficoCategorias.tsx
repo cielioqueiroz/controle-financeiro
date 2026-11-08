@@ -13,6 +13,7 @@ import { useDinheiro } from '../../dados/DiscretoProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
 
 type Props = {
+  formato?: 'donut' | 'barras'
   categorias: CategoriaResumo[]
   totalCents: number
   onAbrir?: (slug: string) => void
@@ -59,7 +60,7 @@ function geometriaDonut(topo: CategoriaResumo[], totalCents: number) {
  *
  *  Interativo: passar o mouse (ou focar pelo teclado) destaca a fatia e
  *  mostra o valor dela no centro; clicar abre os lançamentos da categoria. */
-export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal }: Props) {
+export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal, formato = 'donut' }: Props) {
   const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
   const navigate = useNavigate()
@@ -104,12 +105,12 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
   const escala = dominante ? escalaRobusta(topo.map((c) => c.totalCents)) : null
   const largura = (c: CategoriaResumo) => escala
     ? alturaPct(c.totalCents, escala)
-    : Math.min((c.totalCents / totalCents) * 100, 100)
+    : Math.min((c.totalCents / totalPositivoCents) * 100, 100)
 
   return (
-    <div>
+    <div className={formato === 'barras' ? 'gastos-por-categoria' : undefined}>
       <div className="mb-5">
-        <p className="rotulo">{t('dash.porCategoria')}</p>
+        <p className="rotulo">{t(formato === 'barras' ? 'grafico.ondeGastou' : 'dash.porCategoria')}</p>
         <p className="mt-1 text-xs text-tinta-fraca">
           {negativas.length > 0
             ? t('grafico.categoriasComEstornos')
@@ -122,8 +123,23 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
         </p>
       </div>
 
+      {formato === 'barras' && totalPositivoCents > 0 && (
+        <>
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <span className="text-xs text-tinta-fraca">{rotuloCentro}</span>
+            <span className="tabular text-sm font-medium text-tinta">{formatBRL(valorCentro)}</span>
+          </div>
+          <div className="mb-4 flex h-3 overflow-hidden rounded-full bg-afundado" aria-hidden>
+            {positivas.map((c) => (
+              <span key={c.cat.slug} className="h-full transition-opacity duration-150"
+                style={{ width: (c.totalCents / totalPositivoCents * 100) + '%', backgroundColor: corCategoria(c.cat),
+                  opacity: emFoco === null || emFoco.cat.slug === c.cat.slug ? 1 : 0.25 }} />
+            ))}
+          </div>
+        </>
+      )}
       <div className="flex flex-wrap items-center gap-6">
-      {!dominante && topo.length > 0 && <div className="relative shrink-0">
+      {formato === 'donut' && !dominante && topo.length > 0 && <div className="relative shrink-0">
         <svg
           viewBox="0 0 130 130"
           className="h-40 w-40 -rotate-90"
@@ -190,21 +206,21 @@ export function GraficoCategorias({ categorias, totalCents, onAbrir, rotuloTotal
               // à parte ("Mercado: R$ 10, 5% do total") quebrava o WCAG 2.5.3
               // — quem fala o que VÊ ("Mercado R$ 10 5%") não acionava o
               // botão por voz. O axe-core 4.14 passou a cobrar isso.
-              className="grid min-h-11 w-full grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2.5 gap-y-1 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-afundado focus-visible:bg-afundado"
+              className="categoria-gasto grid min-h-11 w-full grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2.5 gap-y-1 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-afundado focus-visible:bg-afundado"
             >
               <MarcaCategoria cor={corCategoria(c.cat)} />
-              <span aria-hidden className="text-sm">
+              {formato === 'donut' && <span aria-hidden className="text-sm">
                 {c.cat.icone}
-              </span>
-              <span className="break-words text-tinta-fraca">{nomeCategoria(c.cat)}</span>{' '}
-              <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(c.totalCents)}{' '}
+              </span>}
+              <span className="categoria-gasto-nome break-words text-tinta-fraca">{nomeCategoria(c.cat)}</span>{' '}
+              <span className="categoria-gasto-valor tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(c.totalCents)}{' '}
               <span className="text-xs text-tinta-tenue">
                 {c.totalCents < 0 ? t('grafico.estorno') : `${Math.round((c.totalCents / totalPositivoCents) * 100)}%`}{' '}
                 <span className="sr-only">{t(c.totalCents < 0 ? 'fluxoPeriodo.verLancamentos' : 'donut.sufixoFatia')}</span>
               </span>
               </span>
             </button>
-            {c.totalCents > 0 && <div aria-hidden className={`ml-9 mr-12 ${dominante ? 'h-2' : 'h-1'} overflow-hidden rounded-full bg-afundado`}>
+            {c.totalCents > 0 && <div aria-hidden className={`categoria-gasto-barra ml-9 mr-12 ${dominante ? 'h-2' : 'h-1'} overflow-hidden rounded-full bg-afundado`}>
               <motion.span
                 className="relative block h-full rounded-full"
                 style={{ backgroundColor: corCategoria(c.cat) }}

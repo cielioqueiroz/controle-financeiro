@@ -633,6 +633,7 @@ export function Painel({ onAprendeu }: Props) {
                   <Cartao>
                     {resumoDoGrafico.porCategoria.length > 0 && (
                       <GraficoCategorias
+                        formato="barras"
                         categorias={resumoDoGrafico.porCategoria}
                         totalCents={resumoDoGrafico.gastoCents}
                         rotuloTotal={semAtipicos ? t('atipicos.rotina') : undefined}

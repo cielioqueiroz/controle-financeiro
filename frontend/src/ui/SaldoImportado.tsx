@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom'
+import { LogoBanco } from './LogoBanco'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { resumirSaldos, type SaldoConta } from '../domain/saldos'
@@ -34,9 +35,9 @@ export function SaldoImportado({ saldos }: { saldos: SaldoConta[] }) {
             const params = new URLSearchParams(search)
             if (conta.documentId) params.set('documento', conta.documentId)
             return <li key={conta.accountId ?? conta.bank} className="rounded-lg bg-afundado p-3 text-sm">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="font-medium text-tinta">{(BANCOS[conta.bank as Bank] ?? BANCOS.desconhecido).nome}
-                  <span className="ml-2 text-xs text-tinta-fraca">{t('saldoImportado.conta', { n: i + 1 })}</span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex min-w-0 items-center gap-2 font-medium text-tinta"><LogoBanco bank={conta.bank} /><span>{(BANCOS[conta.bank as Bank] ?? BANCOS.desconhecido).nome}
+                  <span className="ml-2 text-xs text-tinta-fraca">{t('saldoImportado.conta', { n: i + 1 })}</span></span>
                 </span>
                 <span className="tabular text-tinta">{dinheiro(conta.balanceCents)}</span>
               </div>
