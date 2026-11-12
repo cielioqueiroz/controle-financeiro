@@ -8,6 +8,7 @@ import { useT } from '../../i18n/IdiomaProvider'
 import { escalaRobusta, alturaPct } from './escala-barras'
 import type { MesFuturo } from '../../domain/agrupar'
 import { useDinheiro } from '../../dados/DiscretoProvider'
+import { LogoBanco } from '../LogoBanco'
 
 type Props = {
   meses: MesFuturo[]
@@ -32,11 +33,10 @@ function tema(bank: string) {
  *  mês. O desenho responde as duas de relance — a altura diz quanto, a cor
  *  diz de quem.
  *
- *  **A cor vem do catálogo `BANCOS`**, a mesma fonte dos pontinhos do filtro
- *  e dos cards de saldo: o roxo do Nubank e o vermelho do Bradesco são os
- *  mesmos em toda a tela, então a associação se aprende uma vez só. Cor
- *  nunca vai sozinha: cada barra tem o valor no nome acessível, com a parte
- *  de cada banco, e a legenda nomeia quem está no gráfico. */
+ *  **A cor vem do catálogo `BANCOS`**, a mesma fonte dos cards de saldo. A
+ *  marca real na legenda reforça a associação sem depender só do roxo do
+ *  Nubank ou do vermelho do Bradesco. Cada barra também tem o valor no nome
+ *  acessível, com a parte de cada banco. */
 export function GraficoCompromissos({ meses, onSelecionar }: Props) {
   const formatBRL = useDinheiro()
   const semMovimento = useReducedMotion()
@@ -70,11 +70,7 @@ export function GraficoCompromissos({ meses, onSelecionar }: Props) {
         <div className="flex items-center gap-3 text-[11px] text-tinta-tenue">
           {bancos.map((b) => (
             <span key={b} className="flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="h-2 w-2 rounded-[1px]"
-                style={{ background: tema(b).accent }}
-              />
+              <LogoBanco bank={b} tamanho="xs" />
               {tema(b).nome}
             </span>
           ))}

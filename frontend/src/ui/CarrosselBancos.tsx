@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { BANCOS } from '../domain/banks'
 import type { Bank } from '../domain/pdf/detect'
 import { useT } from '../i18n/IdiomaProvider'
+import { LogoBanco } from './LogoBanco'
 
 /** Bancos que o app realmente lê — nunca 'desconhecido'. A ordem fixa dá um
  *  ritmo estável ao laço. */
@@ -18,7 +19,7 @@ const SUPORTADOS: Bank[] = ['nubank', 'bradesco', 'bb', 'sicredi', 'sicoob', 'me
 export function CarrosselBancos() {
   const semMovimento = useReducedMotion()
   const { t } = useT()
-  const bancos = SUPORTADOS.map((b) => BANCOS[b])
+  const bancos = SUPORTADOS.map((id) => ({ id, ...BANCOS[id] }))
 
   return (
     <div>
@@ -44,15 +45,7 @@ export function CarrosselBancos() {
               aria-hidden={i >= bancos.length}
               className="flex items-center gap-2 font-display text-xl whitespace-nowrap text-tinta-fraca/70 transition-colors"
             >
-              {/* A cor institucional do banco, e só ela — o nome continua
-                  monocromático. O ponto é o mesmo indicador que a lista de
-                  lançamentos usa, então quem vê aqui reconhece lá dentro.
-                  `aria-hidden` porque a cor não é informação: o nome é. */}
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: banco.accent }}
-              />
+              <LogoBanco bank={banco.id} tamanho="sm" />
               {banco.nome}
             </span>
           ))}

@@ -363,6 +363,7 @@ export const en: Dicionario = {
   'rec.contagem': '{n} found in your history',
   'rec.contagem1': '{n} found in your history',
   'rec.dia': 'day {d}',
+  'rec.anual': 'yearly · {mes} · day {d}',
   'rec.variavel': 'amount varies',
   'rec.verTodas': 'show {n} more',
   'rec.verMenos': 'show less',

@@ -31,6 +31,11 @@ export type Recorrencia = {
   descricao: string
   categoriaSlug: string
   tipo: 'saida' | 'entrada'
+  /** Mensal é a recorrência comum; anual exige a categoria Assinaturas e
+   * cobranças separadas por aproximadamente doze meses. */
+  cadencia: 'mensal' | 'anual'
+  /** Mês típico (1–12) apenas para a cadência anual. */
+  mesTipico: number | null
   /** Mediana dos totais por competência, em centavos (sempre positivo). */
   valorTipicoCents: number
   /** Mediana das competências ANTERIORES à última. É a linha de base contra
@@ -53,6 +58,7 @@ export type Recorrencia = {
 /** Mínimo de meses distintos para algo ser considerado recorrente. Dois
  *  meses seguidos podem ser coincidência; três já é padrão. */
 const MIN_COMPETENCIAS = 3
+const MIN_COMPETENCIAS_ANUAL = 2
 
 /** Tolerância para classificar como valor fixo. */
 const TOLERANCIA_FIXO = 0.05
@@ -70,6 +76,20 @@ function mediana(ns: number[]): number {
 function valoresEstaveis(valores: number[]): boolean {
   const base = mediana(valores)
   return base > 0 && valores.every((valor) => Math.abs(valor - base) / base <= TOLERANCIA_FIXO)
+}
+
+function numeroDaCompetencia(competencia: string): number {
+  const [ano, mes] = competencia.split('-').map(Number)
+  return ano * 12 + mes - 1
+}
+
+function ehAssinaturaAnual(grupo: Grupo, competencias: string[]): boolean {
+  if (grupo.tipo !== 'saida' || competencias.length < MIN_COMPETENCIAS_ANUAL) return false
+  if (!grupo.ocorrencias.every((tx) => tx.category_slug === 'assinaturas')) return false
+  const intervalos = competencias.slice(1).map((competencia, indice) =>
+    numeroDaCompetencia(competencia) - numeroDaCompetencia(competencias[indice]),
+  )
+  return intervalos.every((meses) => meses >= 11 && meses <= 13)
 }
 
 /** Um reajuste deixa de ser uma anomalia quando há pelo menos três meses no
@@ -151,19 +171,20 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
     }
 
     const competencias = [...porComp.keys()].sort()
-    if (competencias.length < MIN_COMPETENCIAS) continue
+    const anual = ehAssinaturaAnual(g, competencias)
+    if (!anual && competencias.length < MIN_COMPETENCIAS) continue
     if (mediana(competencias.map((c) => porComp.get(c)!.qtd)) !== 1) continue
 
     const somas = competencias.map((c) => porComp.get(c)!.soma)
     const anteriores = somas.slice(0, -1)
-    const patamar = patamarConsolidado(somas)
-    const base = patamar?.anterior ?? mediana(anteriores)
+    const patamar = anual ? null : patamarConsolidado(somas)
+    const base = anual ? somas[somas.length - 2] : patamar?.anterior ?? mediana(anteriores)
     // A última ocorrência fica FORA do cálculo da linha de base de propósito:
     // ela é justamente a candidata a ser a mudança que o alerta anuncia, e
     // incluí-la faria o aumento se esconder reclassificando a série como
     // variável.
     const variacao =
-      patamar || valoresEstaveis(anteriores)
+      anual || patamar || valoresEstaveis(anteriores)
         ? 'fixo'
         : 'variavel'
 
@@ -179,7 +200,9 @@ export function detectarRecorrencias(txs: TxRecorrente[]): Recorrencia[] {
       descricao: nomeExibido(maisNova),
       categoriaSlug: maisNova.category_slug ?? 'outros',
       tipo: g.tipo,
-      valorTipicoCents: patamar?.atual ?? mediana(somas),
+      cadencia: anual ? 'anual' : 'mensal',
+      mesTipico: anual ? Number(ultimaCompetencia.slice(5, 7)) : null,
+      valorTipicoCents: anual ? somas[somas.length - 1] : patamar?.atual ?? mediana(somas),
       valorAnteriorCents: base,
       diaTipico: mediana(g.ocorrencias.map((t) => Number(t.date.slice(8, 10)))),
       variacao,
@@ -231,6 +254,12 @@ function mesesEntre(a: string, b: string): number {
   return (by - ay) * 12 + (bm - am)
 }
 
+function somarMeses(competencia: string, quantidade: number): string {
+  const [ano, mes] = competencia.split('-').map(Number)
+  const data = new Date(ano, mes - 1 + quantidade, 1)
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`
+}
+
 /** Alertas derivados das recorrências. `competenciaAtual` é a competência
  *  mais recente que TEM DADO (não o mês do calendário) — é o que impede que
  *  o mês cuja fatura ainda não foi importada acuse tudo como sumido. */
@@ -242,7 +271,10 @@ export function alertasDe(
   const alertas: Alerta[] = []
 
   for (const r of recorrencias) {
-    const atraso = mesesEntre(r.ultimaCompetencia, competenciaAtual)
+    const mesesDesdeUltima = mesesEntre(r.ultimaCompetencia, competenciaAtual)
+    const atraso = r.cadencia === 'anual'
+      ? mesesEntre(somarMeses(r.ultimaCompetencia, 12), competenciaAtual)
+      : mesesDesdeUltima
     if (atraso > MAX_MESES_SUMIDO) continue
 
     // 1. Mudou de valor. Só para série de valor fixo e uma ocorrência no
@@ -271,7 +303,7 @@ export function alertasDe(
     }
 
     // 2. Sumiu. Faltou no mês mais recente com dado, e o atraso é recente.
-    if (atraso >= 1) {
+    if (r.cadencia === 'anual' ? atraso >= 0 : atraso >= 1) {
       alertas.push({
         tipo: 'sumiu',
         chave: r.chave,

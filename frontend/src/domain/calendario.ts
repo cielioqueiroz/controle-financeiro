@@ -123,7 +123,9 @@ export function calendarioDoProximoMes(txs: TxCalendario[], docs: DocVencimento[
   }
 
   for (const r of recorrencias) {
-    if (mesesEntre(r.ultimaCompetencia, atual) > ATRASO_TOLERADO) continue
+    if (r.cadencia === 'anual') {
+      if (somarMeses(r.ultimaCompetencia, 12) !== competencia) continue
+    } else if (mesesEntre(r.ultimaCompetencia, atual) > ATRASO_TOLERADO) continue
     const chave = `${r.tipo}|${r.chave}`
     // Só com uma cobrança no último mês: com duas (salário e férias) o
     // alerta acusa a soma, e a soma não é o valor de um mês.

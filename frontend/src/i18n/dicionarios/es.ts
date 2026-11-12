@@ -363,6 +363,7 @@ export const es: Dicionario = {
   'rec.contagem': '{n} detectadas en el historial',
   'rec.contagem1': '{n} detectada en el historial',
   'rec.dia': 'día {d}',
+  'rec.anual': 'anual · {mes} · día {d}',
   'rec.variavel': 'el importe varía',
   'rec.verTodas': 'ver {n} más',
   'rec.verMenos': 'ver menos',

@@ -12,6 +12,8 @@ const rec = (over: Partial<Recorrencia>): Recorrencia => ({
   valorTipicoCents: 3990,
   valorAnteriorCents: 3990,
   diaTipico: 5,
+  mesTipico: null,
+  cadencia: 'mensal',
   variacao: 'fixo',
   competencias: ['2026-03', '2026-04', '2026-05'],
   ultimoValorCents: 3990,
@@ -36,6 +38,11 @@ describe('Recorrencias', () => {
   it('marca as de valor variável', () => {
     render(<Recorrencias recorrencias={[rec({ variacao: 'variavel' })]} alertas={[]} />)
     expect(screen.getByText('valor varia')).toBeInTheDocument()
+  })
+
+  it('identifica uma assinatura anual pelo mês e pelo dia', () => {
+    render(<Recorrencias recorrencias={[rec({ cadencia: 'anual', mesTipico: 6 })]} alertas={[]} />)
+    expect(screen.getByText(/anual.*jun.*dia 5/i)).toBeInTheDocument()
   })
 
   it('não marca as de valor fixo', () => {

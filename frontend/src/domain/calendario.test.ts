@@ -49,6 +49,32 @@ describe('calendarioDoProximoMes', () => {
     expect(cal.entradaCents).toBe(0)
   })
 
+  it('põe assinatura anual apenas no mês em que ela deve voltar', () => {
+    const assinatura = mensal(
+      { description: 'ANTIVIRUS PREMIUM', category_slug: 'assinaturas', amount_cents: 21900 },
+      ['2025-06', '2026-06'],
+      '18',
+    )
+    const maio = tx({ competencia: '2027-05', date: '2027-05-02', description: 'COMPRA AVULSA' })
+    const cal = calendarioDoProximoMes([...assinatura, maio], [])!
+
+    expect(cal.competencia).toBe('2027-06')
+    expect(cal.dias).toEqual([
+      { dia: 18, itens: [expect.objectContaining({ tipo: 'recorrencia', descricao: 'Antivirus Premium', valorCents: 21900 })] },
+    ])
+  })
+
+  it('não projeta assinatura anual em todos os meses', () => {
+    const assinatura = mensal(
+      { description: 'ANTIVIRUS PREMIUM', category_slug: 'assinaturas', amount_cents: 21900 },
+      ['2025-06', '2026-06'],
+      '18',
+    )
+    const setembro = tx({ competencia: '2026-09', date: '2026-09-02', description: 'COMPRA AVULSA' })
+
+    expect(calendarioDoProximoMes([...assinatura, setembro], [])).toBeNull()
+  })
+
   it('a entrada recorrente também cai, e soma do lado das entradas', () => {
     const salario = mensal({ description: 'SALARIO EMPRESA', kind: 'income', amount_cents: -600000, category_slug: 'salario' })
     const cal = calendarioDoProximoMes([...mensal({}), ...salario], [])!

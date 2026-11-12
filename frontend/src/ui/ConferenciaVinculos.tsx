@@ -4,6 +4,7 @@ import { temaDoBanco } from '../domain/banks'
 import { dataLongaDe } from '../domain/normalize/data'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
+import { LogoBanco } from './LogoBanco'
 
 type Props = {
   transacoes: TransacaoParaConferencia[] | null
@@ -41,7 +42,7 @@ function Ponta({ ponta, rotulo, onVerDocumento }: { ponta: PontaVinculo | null; 
   return <div className="min-w-0">
     <p className="rotulo">{rotulo}</p>
     {ponta ? <>
-      <p className="mt-2 text-sm text-tinta">{temaDoBanco(ponta.documento.bank).nome}</p>
+      <p className="mt-2 flex items-center gap-2 text-sm text-tinta"><LogoBanco bank={ponta.documento.bank} tamanho="sm" />{temaDoBanco(ponta.documento.bank).nome}</p>
       <p className="mt-1 break-words text-xs text-tinta-fraca">{ponta.description ?? ponta.documento.filename ?? t('docs.nomeAusente')}</p>
       {data && <p className="mt-1 text-xs text-tinta-fraca">{data}</p>}
       <p className="tabular mt-2 text-sm text-tinta">{ponta.amountCents === null ? t('vinculos.valorIndisponivel') : dinheiro(ponta.amountCents)}</p>

@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { useT } from '../i18n/IdiomaProvider'
 import type { Recorrencia, Alerta } from '../domain/recorrencias'
 import { useDinheiro } from '../dados/DiscretoProvider'
+import { mesAbrev } from '../domain/normalize/data'
 
 type Props = {
   recorrencias: Recorrencia[]
@@ -81,8 +82,13 @@ export function Recorrencias({ recorrencias, alertas }: Props) {
               animate={{ opacity: 1 }}
               className="flex items-center gap-3 px-5 py-2.5"
             >
-              <span className="tabular w-14 shrink-0 text-xs uppercase tracking-wide text-tinta-tenue">
-                {t('rec.dia', { d: r.diaTipico })}
+              <span className={`${r.cadencia === 'anual' ? 'w-28' : 'w-14'} tabular shrink-0 text-xs uppercase tracking-wide text-tinta-tenue`}>
+                {r.cadencia === 'anual'
+                  ? t('rec.anual', {
+                      mes: mesAbrev(new Date(2026, (r.mesTipico ?? 1) - 1, 1)),
+                      d: r.diaTipico,
+                    })
+                  : t('rec.dia', { d: r.diaTipico })}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-tinta">{r.descricao}</span>

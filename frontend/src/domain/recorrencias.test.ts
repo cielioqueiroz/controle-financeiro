@@ -36,6 +36,44 @@ describe('detectarRecorrencias', () => {
     expect(r[0].chave).toBe('NETFLIX.COM')
     expect(r[0].valorTipicoCents).toBe(3990)
     expect(r[0].competencias).toEqual(['2026-03', '2026-04', '2026-05'])
+    expect(r[0].cadencia).toBe('mensal')
+  })
+
+  it('duas cobranças anuais da categoria assinaturas formam uma série anual', () => {
+    const r = detectarRecorrencias(
+      serie(['2025-06', '2026-06'], [19900, 21900], { description: 'ANTIVIRUS PREMIUM' }),
+    )
+
+    expect(r).toHaveLength(1)
+    expect(r[0]).toMatchObject({
+      chave: 'ANTIVIRUS PREMIUM',
+      cadencia: 'anual',
+      mesTipico: 6,
+      valorAnteriorCents: 19900,
+      valorTipicoCents: 21900,
+      ultimoValorCents: 21900,
+    })
+  })
+
+  it('três cobranças anuais continuam anuais, não viram recorrência mensal', () => {
+    const r = detectarRecorrencias(
+      serie(['2024-11', '2025-11', '2026-11'], [9900, 9900, 9900], {
+        description: 'DOMINIO ANUAL',
+      }),
+    )
+
+    expect(r[0]).toMatchObject({ cadencia: 'anual', mesTipico: 11 })
+  })
+
+  it('não chama de anual uma cobrança fora da categoria assinaturas', () => {
+    expect(
+      detectarRecorrencias(
+        serie(['2025-06', '2026-06'], [90000, 90000], {
+          description: 'SEGURO RESIDENCIAL',
+          category_slug: 'casa',
+        }),
+      ),
+    ).toEqual([])
   })
 
   it('duas competências ainda não são padrão', () => {
@@ -300,6 +338,17 @@ describe('alertasDe', () => {
         descricao: 'Academia Smart',
         desdeCompetencia: '2026-05',
       },
+    ])
+  })
+
+  it('assinatura anual só acusa sumiço depois do mês em que deveria voltar', () => {
+    const anual = detectarRecorrencias(
+      serie(['2025-06', '2026-06'], [19900, 19900], { description: 'ANTIVIRUS PREMIUM' }),
+    )
+
+    expect(alertasDe(anual, '2027-05')).toEqual([])
+    expect(alertasDe(anual, '2027-06')).toEqual([
+      expect.objectContaining({ tipo: 'sumiu', chave: 'ANTIVIRUS PREMIUM' }),
     ])
   })
 

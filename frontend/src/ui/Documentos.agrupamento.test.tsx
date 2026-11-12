@@ -156,10 +156,11 @@ describe('Documentos — o banco vem do catálogo', () => {
     expect(screen.queryByText('Mercadopago')).toBeNull()
   })
 
-  it('usa o fundo suave do banco no selo', async () => {
-    montar()
+  it('usa a marca local do banco sem substituir seu nome', async () => {
+    const { container } = montar()
     await screen.findByText('Mercado Pago')
-    const selo = screen.getByText('Me')
-    expect(selo).toHaveStyle({ background: 'rgba(0, 158, 227, 0.12)' })
+    const logo = container.querySelector('[data-bank-logo="mercadopago"]')
+    expect(logo?.querySelector('img')).toHaveAttribute('src', '/img/bancos/mercadopago.svg')
+    expect(screen.getByText('Mercado Pago')).toBeVisible()
   })
 })

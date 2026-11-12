@@ -6,6 +6,7 @@ import { diaSemanaAbrev } from '../domain/normalize/data'
 import { localeAtual } from '../domain/normalize/locale'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
+import { LogoBanco } from './LogoBanco'
 
 type Props = { calendario: CalendarioDoMes }
 
@@ -102,7 +103,7 @@ function Item({ item, semDia }: { item: ItemDoDia; semDia: boolean }) {
     <details className="group text-sm">
       <summary className="flex min-h-11 cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 rounded-md [&::-webkit-details-marker]:hidden">
         <span className="flex min-w-0 basis-40 flex-1 items-center gap-2">
-          <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: banco.accent }} />
+          <LogoBanco bank={item.bank} tamanho="sm" />
           <span className="break-words text-tinta">
             {t('cal.parcelas', { banco: banco.nome })}{' '}
             <span className="text-tinta-tenue">
