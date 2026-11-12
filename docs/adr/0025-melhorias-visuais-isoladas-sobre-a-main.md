@@ -12,9 +12,10 @@ barras e as fontes Instrument Sans / IBM Plex Mono.
 - Instrument Sans substitui Sans/Condensed na interface e nos títulos. IBM Plex
   Mono continua nos valores, datas e percentuais. Os WOFF2 são locais, somente
   latin/latin-ext; as licenças OFL acompanham os arquivos.
-- As logos Bradesco, Nubank e Mercado Pago identificam as contas ao lado dos
-  nomes. Não anunciam o nome duas vezes para leitores de tela. Outros bancos
-  mantêm o marcador do catálogo, sem marca inventada.
+- As logos dos sete bancos comprovadamente suportados identificam contas,
+  documentos, filtros, procedência e compromissos ao lado dos nomes. Não
+  anunciam o nome duas vezes para leitores de tela; banco desconhecido mantém
+  o marcador do catálogo, sem marca inventada.
 - Em Mês, o seletor oferece as competências presentes no histórico e mantém a
   competência atual mesmo quando está vazia. Como a escolha já é direta, não
   há setas redundantes nesse período; Dia, Semana e Ano mantêm sua navegação.
@@ -28,10 +29,11 @@ barras e as fontes Instrument Sans / IBM Plex Mono.
 
 ## Consequências
 
-O experimento anterior foi descartado da branch local, sem mudar a `main`,
-commitar ou publicar. Estas melhorias continuam na `codex/redesign-premium`
-para revisão local. A decisão visual não depende de autenticação ou migração.
-A aprovação da direção anterior não autoriza retomá-la.
+O experimento anterior foi descartado sem publicar. A direção aprovada entrou
+na `main` pelo PR #76; a ampliação das marcas para os sete bancos continua
+isolada na branch `codex/logos-bancos-recorrencias` até nova aprovação. A
+decisão visual não depende de autenticação ou migração. A aprovação da direção
+anterior não autoriza retomá-la.
 
 ## Revisão local
 
@@ -43,5 +45,5 @@ overflow horizontal nem violações critical/serious do axe-core, com fontes e
 logos carregadas. A revisão visual usou a folha de provas identificada com
 dados fictícios, conforme autorizado pelo dono.
 
-Aguardando aprovação visual. Build, CSP, commit, push, PR e merge ficam para
-uma etapa posterior, mediante autorização explícita.
+O PR #76 foi verificado, aprovado e publicado em 08/11/2026. Mudanças posteriores
+continuam exigindo nova revisão antes de commit, push, PR ou merge.

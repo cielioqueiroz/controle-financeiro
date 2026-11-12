@@ -367,6 +367,7 @@ export const pt = {
   'rec.contagem': '{n} detectadas no histórico',
   'rec.contagem1': '{n} detectada no histórico',
   'rec.dia': 'dia {d}',
+  'rec.anual': 'anual · {mes} · dia {d}',
   'rec.variavel': 'valor varia',
   'rec.verTodas': 'ver mais {n}',
   'rec.verMenos': 'ver menos',

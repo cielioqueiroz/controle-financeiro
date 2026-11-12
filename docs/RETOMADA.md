@@ -37,7 +37,7 @@ O histórico completo, com o porquê de cada decisão, está em
 
 ## Estado em 08/11/2026
 
-- As implementações de produto até o **#74** (`7f2e731`) estão na `main`.
+- As implementações de produto até o **#76** (`1253e9f`) estão na `main`.
 - **Neon (produção, branch `production`):** migrações 0001–**0015** aplicadas. A
   0014 (PIX/boleto que cita o emissor do cartão quita a fatura) foi aplicada em
   03/11, em transação única, com 6 → 10 quitações. O branch de teste
@@ -58,6 +58,9 @@ O histórico completo, com o porquê de cada decisão, está em
   diferença) e a correção de contraste dos selos de banco entraram no #70.
 - #74: Trusted Types obrigatório na CSP, com política limitada aos workers do
   pdf.js e medição do motor de PDF sob a política real.
+- #76: escolha direta de competência sem setas redundantes, leitura "Onde você
+  gastou", fontes locais, revisão dos cálculos do painel e integridade N:N entre
+  documentos e transações.
 
 ## Pendente do dono (perguntar, não presumir)
 
@@ -69,10 +72,10 @@ O histórico completo, com o porquê de cada decisão, está em
   mentira).
 ## Fila de trabalho, em ordem
 
-1. Do relatório de melhorias de 03/11 (o dono escolhe): assinatura anual na
-   recorrência, medir o contraste não-texto (3:1) e o daltonismo das cores dos
-   gráficos. "Baixar meus dados" e a consolidação de novo patamar recorrente
-   foram concluídos.
+1. Implementado e verificado localmente na `codex/logos-bancos-recorrencias`:
+   logos dos sete bancos em toda a leitura, assinatura anual na recorrência e
+   medição de contraste não-texto/daltonismo dos gráficos. Publicação pendente
+   de PR, checks e merge autorizados pelo dono em 12/11/2026.
 
 ## Rotina de verificação
 
@@ -83,7 +86,7 @@ O histórico completo, com o porquê de cada decisão, está em
   o `verificar` (disputam CPU). Use a folha de provas `/demo.html`.
 - Mexeu no nome de um botão: `grep` em `scripts/` e `npm run build:login &&
   npm run medir:login`. Mexeu em cor ou em `domain/banks.ts`: `python
-  scripts/medir-contraste.py`.
+  scripts/medir-contraste.py` e `npm run medir:daltonismo`.
 - Defeito de leitura de PDF: `npx tsx scripts/_prova-mp.ts <pdfs>` (pipeline real
   e conferência) e `scripts/_dump-mp.ts` (as linhas). São locais, ignorados pelo
   git. Os PDFs reais ficam fora do repositório.

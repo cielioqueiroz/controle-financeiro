@@ -14,6 +14,7 @@ import { useT } from '../i18n/IdiomaProvider'
 import { interpolarNos } from '../i18n/interpolarNos'
 import { GraficoCategorias } from './graficos/GraficoCategorias'
 import { useDinheiro } from '../dados/DiscretoProvider'
+import { LogoBanco } from './LogoBanco'
 
 type Props = {
   kind: DocKind
@@ -88,6 +89,7 @@ export function ResultadoImport({
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 border-b border-carvao-800 bg-carvao-900 px-5 py-5 max-sm:sticky max-sm:top-0 max-sm:z-20 sm:px-8 sm:py-7">
         <div>
           <div className="flex items-center gap-3">
+            <LogoBanco bank={kind.bank} />
             <span
               className="carimbo inline-flex h-9 items-center rounded-full px-3 text-sm font-semibold"
               style={{ background: tema.accent, color: tema.tinta }}

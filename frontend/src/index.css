@@ -123,7 +123,7 @@
   --color-grafico-acumulado: #356cb0;
   --color-grafico-neutro: #424e5e;
   --color-grafico-alerta: #94721e;
-  --color-grafico-saida: #bb594d;
+  --color-grafico-saida: #991133;
 
   /* Barra de gráfico EM REPOUSO — o pano de fundo contra o qual a exceção
      aparece. Fica deliberadamente fora da paleta de séries: a série colore
@@ -236,7 +236,7 @@
   --color-grafico-acumulado: #82b1ef;
   --color-grafico-neutro: #79818c;
   --color-grafico-alerta: #cabb7f;
-  --color-grafico-saida: #eb9385;
+  --color-grafico-saida: #ff5533;
   --color-categoria-verde: #67c5a0;
   --color-categoria-ambar: #d5ba72;
   --color-categoria-coral: #eb9385;

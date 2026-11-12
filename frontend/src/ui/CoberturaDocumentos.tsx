@@ -4,6 +4,7 @@ import { isoLocal } from '../domain/agrupar'
 import { temaDoBanco } from '../domain/banks'
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
+import { LogoBanco } from './LogoBanco'
 
 type Props = { documentos: DocParaCobertura[] }
 
@@ -73,11 +74,12 @@ export function CoberturaDocumentos({ documentos }: Props) {
           </thead>
           <tbody>
             {cobertura.linhas.map((linha) => {
-              const fonte = `${temaDoBanco(linha.bank).nome} · ${t(linha.docType === 'fatura' ? 'doc.fatura' : 'doc.extrato')}`
+              const banco = temaDoBanco(linha.bank).nome
+              const tipo = t(linha.docType === 'fatura' ? 'doc.fatura' : 'doc.extrato')
               return (
                 <tr key={`${linha.bank}|${linha.docType}`}>
                   <th scope="row" className="whitespace-nowrap py-1 pr-3 text-left font-normal text-tinta-fraca">
-                    {fonte}
+                    <span className="flex items-center gap-2"><LogoBanco bank={linha.bank} tamanho="xs" />{banco} · {tipo}</span>
                   </th>
                   {linha.celulas.map((celula) => (
                     <td key={celula.competencia} className="px-1.5 py-1 text-center">

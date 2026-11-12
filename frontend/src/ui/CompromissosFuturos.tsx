@@ -2,11 +2,10 @@ import { motion, AnimatePresence } from 'motion/react'
 
 import { mesAbrev } from '../domain/normalize/data'
 import { useT } from '../i18n/IdiomaProvider'
-import { BANCOS } from '../domain/banks'
-import type { Bank } from '../domain/pdf/detect'
 import type { MesFuturo } from '../domain/agrupar'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { agruparMesesIguais } from './compromissos-agrupados'
+import { LogoBanco } from './LogoBanco'
 
 type Props = {
   meses: MesFuturo[]
@@ -90,13 +89,7 @@ export function CompromissosFuturos({ meses, aberto, onAlternar }: Props) {
                   >
                     {g.itens.map((it, i) => (
                       <li key={i} className="flex items-center gap-3 py-1.5 text-sm">
-                        {/* Mesmo ponto colorido do filtro e do gráfico ao
-                            lado: de qual cartão é esta parcela. */}
-                        <span
-                          aria-hidden
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{ background: (BANCOS[it.bank as Bank] ?? BANCOS.desconhecido).accent }}
-                        />
+                        <LogoBanco bank={it.bank} tamanho="xs" />
                         <span className="tabular shrink-0 rounded-sm bg-carvao-800 px-1.5 py-0.5 text-[10px] text-tinta-fraca">
                           {it.de === it.ate ? it.de : `${it.de}–${it.ate}`}/{it.total}
                         </span>

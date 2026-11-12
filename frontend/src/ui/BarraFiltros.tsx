@@ -7,6 +7,7 @@ import type { Periodo } from '../domain/agrupar'
 import { localeAtual } from '../domain/normalize/locale'
 import { mover, rotuloPeriodo } from '../dados/periodo'
 import type { Dicionario } from '../i18n/dicionarios/pt'
+import { LogoBanco } from './LogoBanco'
 
 const PERIODOS = [
   { id: 'dia', chave: 'dash.dia' },
@@ -20,11 +21,11 @@ function agrupamentoDe(periodo: Periodo): keyof Dicionario {
   return periodo === 'mes' || periodo === 'ano' ? 'dash.porFatura' : 'dash.porData'
 }
 
-function bancoInfo(b: string): { nome: string; cor?: string } {
+function bancoInfo(b: string): { nome: string } {
   // Era uma cópia local do acesso seguro ao catálogo; virou uma opinião só
   // em `domain/banks.ts`, que é de quem o catálogo é.
   const tema = temaDoBanco(b)
-  return { nome: tema.nome, cor: tema.accent }
+  return { nome: tema.nome }
 }
 
 type Props = {
@@ -99,7 +100,7 @@ export function BarraFiltros({ mostrarPeriodo = true }: Props = {}) {
                   ativo={filtros.banco === b}
                   onClick={() => setFiltros({ banco: b })}
                   nome={info.nome}
-                  cor={info.cor}
+                  bank={b}
                 />
               )
             })}
@@ -174,12 +175,12 @@ function BancoPill({
   ativo,
   onClick,
   nome,
-  cor,
+  bank,
 }: {
   ativo: boolean
   onClick: () => void
   nome: string
-  cor?: string
+  bank?: string
 }) {
   return (
     <button
@@ -198,7 +199,7 @@ function BancoPill({
           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
         />
       )}
-      {cor && <span className="relative z-10 h-2 w-2 rounded-full" style={{ background: cor }} />}
+      {bank && <span className="relative z-10"><LogoBanco bank={bank} tamanho="sm" /></span>}
       <span className="relative z-10">{nome}</span>
     </button>
   )

@@ -7,6 +7,7 @@ import { temaDoBanco } from '../../domain/banks'
 import { useDinheiro } from '../../dados/DiscretoProvider'
 import { useT } from '../../i18n/IdiomaProvider'
 import { MarcaCategoria } from '../MarcaCategoria'
+import { LogoBanco } from '../LogoBanco'
 import { corCategoria } from '../corCategoria'
 
 type Props = {
@@ -141,7 +142,9 @@ export function GraficoFluxoPeriodo({ fluxo, onAbrir }: Props) {
     // linha; valor e percentual embaixo do nome, que em 375px não cabem ao lado.
     const conteudo = <>
       <MarcaCategoria cor={chave === 'faltou' ? HACHURA_CSS : cor} />
-      <span aria-hidden className="w-5 text-center text-sm">{no.tipo === 'categoria' ? no.cat.icone : ''}</span>
+      {no.tipo === 'banco'
+        ? <LogoBanco bank={no.bank} tamanho="xs" />
+        : <span aria-hidden className="w-5 text-center text-sm">{no.tipo === 'categoria' ? no.cat.icone : ''}</span>}
       <span className="break-words text-tinta-fraca">{nome}</span>{' '}
       <span className="tabular col-start-3 flex flex-wrap justify-between gap-x-3 text-tinta">{formatBRL(no.valorCents)}{' '}
         <span className="text-xs text-tinta-tenue">{pct(no.valorCents)}</span>

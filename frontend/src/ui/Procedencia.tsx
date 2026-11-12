@@ -4,6 +4,7 @@ import { useT } from '../i18n/IdiomaProvider'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { quitacoesSemFatura } from '../domain/link/quitacao-sem-fatura'
 import type { TransacaoSalva } from '../aplicacao/consultas/historico'
+import { LogoBanco } from './LogoBanco'
 
 type Props = {
   /** As transações do recorte na tela — as mesmas que somam os tiles. */
@@ -70,11 +71,7 @@ export function Procedencia({ txs, periodo }: Props) {
         <span className="flex flex-wrap items-center gap-x-2">
           {bancos.map((b) => (
             <span key={b} className="flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: BANCOS[b].accent }}
-              />
+              <LogoBanco bank={b} tamanho="xs" />
               {BANCOS[b].nome}
             </span>
           ))}

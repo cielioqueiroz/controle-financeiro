@@ -7,6 +7,7 @@ import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
 import { Cartao } from './Cartao'
 import { Procedencia } from './Procedencia'
+import { LogoBanco } from './LogoBanco'
 
 type Props = {
   titulo: string
@@ -57,7 +58,7 @@ export function DetalheRelatorio({
               <summary className="min-h-11 cursor-pointer text-sm leading-relaxed">
                 {/* nowrap: o navegador quebra a linha depois de hífen — o da
                     competência ("2026-" / "07") e o de um valor negativo. */}
-                {BANCOS[primeira.bank as Bank]?.nome ?? primeira.bank} · {t(primeira.doc_type === 'fatura' ? 'proc.fatura1' : 'proc.extrato1')} · <span className="whitespace-nowrap">{primeira.competencia}</span>
+                <span className="inline-flex items-center gap-2"><LogoBanco bank={primeira.bank} tamanho="xs" />{BANCOS[primeira.bank as Bank]?.nome ?? primeira.bank}</span> · {t(primeira.doc_type === 'fatura' ? 'proc.fatura1' : 'proc.extrato1')} · <span className="whitespace-nowrap">{primeira.competencia}</span>
                 <span className="tabular ml-2 whitespace-nowrap">{dinheiro(transacoes.reduce((soma, tx) => soma + contribuicao(tx), 0))}</span>
               </summary>
               {onVerDocumento && <button type="button" className="acao-painel my-3" onClick={() => onVerDocumento(documento)}>

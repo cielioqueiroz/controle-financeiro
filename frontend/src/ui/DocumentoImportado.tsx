@@ -5,6 +5,7 @@ import { dataLongaDe } from '../domain/normalize/data'
 import { useDinheiro } from '../dados/DiscretoProvider'
 import { useT } from '../i18n/IdiomaProvider'
 import { ComparacoesConferencia } from './ComparacoesConferencia'
+import { LogoBanco } from './LogoBanco'
 
 type Props = {
   documento: DocumentoSalvo
@@ -40,10 +41,7 @@ export function DocumentoImportado({ documento: d, contagem: c, onApagar, seleci
   return (
     <li className="cartao p-4">
       <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-semibold text-tinta"
-          style={{ background: tema.wash }}>
-          {tema.nome.slice(0, 2)}
-        </span>
+        <LogoBanco bank={d.bank} />
         <div className="min-w-0 flex-1">
           <p className="text-sm text-tinta">
             {t(d.doc_type === 'fatura' ? 'doc.fatura' : 'doc.extrato')} · <span>{tema.nome}</span>
